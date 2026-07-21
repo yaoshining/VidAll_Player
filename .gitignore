@@ -1,0 +1,17 @@
+# HarmonyOS / Hvigor
+.hvigor/
+**/.hvigor/
+**/build/
+**/.cxx/
+**/.externalNativeBuild/
+
+# Native build output and local source cache
+dist/
+.cache/
+oh_modules/
+
+# IDE and local settings
+.idea/
+.vscode/
+.DS_Store
+*.log

@@ -1,0 +1,49 @@
+name: 构建 libmpv（ARM64 OpenHarmony）
+
+on:
+  pull_request:
+    paths:
+      - 'native/**'
+      - '.github/workflows/build-libmpv.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'native/**'
+      - '.github/workflows/build-libmpv.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-libmpv:
+    name: 从锁定源码构建 libmpv.so
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - name: 检出项目
+        uses: actions/checkout@v4
+
+      - name: 安装构建依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gperf meson ninja-build python3-pip unzip wget
+
+      - name: 构建 ARM64 libmpv
+        run: native/scripts/build-libmpv-bootstrap.sh
+
+      - name: 验证产物
+        run: |
+          test -f dist/libmpv/arm64-v8a/libmpv.so
+          test -f dist/libmpv/arm64-v8a/libmpv.so.sha256
+          file dist/libmpv/arm64-v8a/libmpv.so
+          sha256sum --check dist/libmpv/arm64-v8a/libmpv.so.sha256
+
+      - name: 上传 libmpv 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmpv-ohos-arm64-v8a
+          if-no-files-found: error
+          path: |
+            dist/libmpv/arm64-v8a/libmpv.so
+            dist/libmpv/arm64-v8a/libmpv.so.sha256

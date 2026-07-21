@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "description": "初始 CI 引导构建的不可变来源锁定；生产发布前需扩展为全部传递依赖与 SHA-256 清单。",
+  "sources": {
+    "ohosMpvBuild": {
+      "repository": "https://github.com/mpv-ohos/libmpv-ohos-build.git",
+      "commit": "1bab837e662ffa47ce51efd0720d3ed7c4988944",
+      "purpose": "提供 OpenHarmony ARM64 libmpv 源码交叉构建脚本参考。"
+    },
+    "mpv": {
+      "repository": "https://github.com/mpv-player/mpv.git",
+      "tag": "v0.40.0",
+      "commit": "e48ac7ce08462f5e33af6ef9deeac6fa87eef01e",
+      "purpose": "生产构建目标的上游版本基线；当前引导工作流尚未替换参考构建仓库内的 MPV 补丁来源。"
+    }
+  }
+}
