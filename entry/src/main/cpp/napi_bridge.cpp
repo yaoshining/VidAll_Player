@@ -1,0 +1,1169 @@
+#include <napi/native_api.h>
+#include <hilog/log.h>
+#include <ace/xcomponent/native_interface_xcomponent.h>
+
+#include <cstdint>
+
+constexpr unsigned int VIDALL_LOG_DOMAIN = 0xA04d50;
+constexpr const char* VIDALL_LOG_TAG = "VidAllPlayer";
+#define MPV_LOG(level, ...) OH_LOG_Print(LOG_APP, level, VIDALL_LOG_DOMAIN, VIDALL_LOG_TAG, __VA_ARGS__)
+#include <cstdio>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <unordered_map>
+
+#if VIDALL_MPV_AVAILABLE
+#include <chrono>
+#include <condition_variable>
+#include <csetjmp>
+#include <csignal>
+#include <dlfcn.h>
+
+#include <EGL/egl.h>
+#include <GLES3/gl3.h>
+#include <native_window/external_window.h>
+#include <mpv/client.h>
+#include <mpv/render.h>
+#include <mpv/render_gl.h>
+#endif
+
+namespace {
+
+#if VIDALL_MPV_AVAILABLE
+// File-scope sigjmp_buf for GL probe signal handler — must appear before
+// PlayerSession because ProbeGlDriver() uses it at line ~264.
+static sigjmp_buf gProbeJmpBuf;
+
+// Global NativeWindow obtained from XComponent OnSurfaceCreated callback.
+// This is the ONLY correct way to get the NativeWindow — CreateNativeWindowFromSurfaceId
+// creates a new BufferQueue producer that conflicts with XComponent's own producer.
+static OHNativeWindow* gNativeWindow = nullptr;
+static std::mutex gNativeWindowMutex;
+static std::condition_variable gNativeWindowCv;
+
+// XComponent native callbacks — obtain NativeWindow directly from XComponent
+void OnSurfaceCreated(OH_NativeXComponent* component, void* window)
+{
+    MPV_LOG(LOG_INFO, "XComponent OnSurfaceCreated: window=%{public}p", window);
+    std::lock_guard<std::mutex> lock(gNativeWindowMutex);
+    gNativeWindow = static_cast<OHNativeWindow*>(window);
+    gNativeWindowCv.notify_one();
+}
+
+void OnSurfaceChanged(OH_NativeXComponent* component, void* window)
+{
+    MPV_LOG(LOG_INFO, "XComponent OnSurfaceChanged: window=%{public}p", window);
+    std::lock_guard<std::mutex> lock(gNativeWindowMutex);
+    gNativeWindow = static_cast<OHNativeWindow*>(window);
+    gNativeWindowCv.notify_one();
+}
+
+void OnSurfaceDestroyed(OH_NativeXComponent* component, void* window)
+{
+    MPV_LOG(LOG_INFO, "XComponent OnSurfaceDestroyed");
+    std::lock_guard<std::mutex> lock(gNativeWindowMutex);
+    gNativeWindow = nullptr;
+}
+
+void DispatchTouchEvent(OH_NativeXComponent* component, void* window)
+{
+    // No-op for touch events
+}
+#endif
+
+napi_value CreateString(napi_env env, const std::string& value)
+{
+    napi_value result = nullptr;
+    napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result);
+    return result;
+}
+
+bool ReadString(napi_env env, napi_value value, std::string& result)
+{
+    size_t length = 0;
+    if (value == nullptr || napi_get_value_string_utf8(env, value, nullptr, 0, &length) != napi_ok) {
+        return false;
+    }
+    result.assign(length + 1, '\0');
+    if (napi_get_value_string_utf8(env, value, result.data(), result.size(), &length) != napi_ok) {
+        return false;
+    }
+    result.resize(length);
+    return true;
+}
+
+bool GetStringArgument(napi_env env, napi_callback_info info, size_t index, std::string& result)
+{
+    size_t argc = 3;
+    napi_value args[3] = {nullptr, nullptr, nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    return argc > index && ReadString(env, args[index], result);
+}
+
+bool GetHandleArgument(napi_env env, napi_callback_info info, int64_t& handle)
+{
+    size_t argc = 3;
+    napi_value args[3] = {nullptr, nullptr, nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    return argc > 0 && napi_get_value_int64(env, args[0], &handle) == napi_ok && handle > 0;
+}
+
+#if VIDALL_MPV_AVAILABLE
+
+class PlayerSession {
+public:
+    PlayerSession()
+        : player_(mpv_create(), mpv_terminate_destroy)
+    {
+    }
+
+    ~PlayerSession()
+    {
+        Release();
+    }
+
+    bool Initialize(std::string& error)
+    {
+        if (!player_) {
+            error = "libmpv 创建失败";
+            return false;
+        }
+
+        mpv_set_option_string(player_.get(), "terminal", "no");
+        mpv_set_option_string(player_.get(), "config", "no");
+        mpv_set_option_string(player_.get(), "vo", "libmpv");
+        mpv_set_option_string(player_.get(), "hwdec", "auto-safe");
+        if (mpv_initialize(player_.get()) < 0) {
+            player_.reset();
+            error = "libmpv 初始化失败";
+            return false;
+        }
+        // Start mpv event loop thread to drive render callbacks
+        eventThread_ = std::thread(&PlayerSession::EventLoop, this);
+        return true;
+    }
+
+    std::string AttachSurface(const std::string& surfaceId)
+    {
+        std::lock_guard<std::mutex> lock(lifecycleMutex_);
+        if (!player_) {
+            return "播放器已释放";
+        }
+        if (renderThread_.joinable()) {
+            return renderReady_ ? "XComponent Surface 已绑定" : "图形输出正在初始化…";
+        }
+
+        surfaceId_ = surfaceId;
+        renderReady_ = false;
+        renderError_.clear();
+        stopRenderer_ = false;
+        renderThread_ = std::thread(&PlayerSession::RenderLoop, this);
+
+        // Wait briefly for the render thread to report init success or failure
+        std::unique_lock<std::mutex> renderLock(renderMutex_);
+        renderReadyCv_.wait_for(renderLock, std::chrono::seconds(5), [this] {
+            return renderReady_ || !renderError_.empty();
+        });
+        if (!renderError_.empty()) {
+            return renderError_;
+        }
+        return renderReady_ ? "XComponent Surface 已绑定" : "图形输出正在初始化…";
+    }
+
+    std::string DetachSurface()
+    {
+        StopRenderer();
+        return "XComponent Surface 已解绑";
+    }
+
+    std::string Load(const std::string& url)
+    {
+        if (!player_ || url.empty()) {
+            return player_ ? "请输入有效的视频 URL" : "播放器已释放";
+        }
+        const char* command[] = {"loadfile", url.c_str(), "replace", nullptr};
+        return mpv_command_async(player_.get(), 1, command) >= 0 ? "已提交加载请求" : "libmpv 拒绝加载请求";
+    }
+
+    std::string SetPause(bool paused)
+    {
+        if (!player_) {
+            return "播放器已释放";
+        }
+        const char* command[] = {"set", "pause", paused ? "yes" : "no", nullptr};
+        return mpv_command_async(player_.get(), 2, command) >= 0 ? (paused ? "已暂停" : "正在播放") : "播放状态切换失败";
+    }
+
+    std::string Stop()
+    {
+        if (!player_) {
+            return "播放器已释放";
+        }
+        const char* command[] = {"stop", nullptr};
+        return mpv_command_async(player_.get(), 3, command) >= 0 ? "已停止播放" : "停止播放失败";
+    }
+
+    std::string Seek(double seconds)
+    {
+        if (!player_) {
+            return "播放器已释放";
+        }
+        char position[32] = {0};
+        std::snprintf(position, sizeof(position), "%.3f", seconds);
+        const char* command[] = {"seek", position, "absolute+exact", nullptr};
+        return mpv_command_async(player_.get(), 4, command) >= 0 ? "已提交跳转请求" : "跳转请求失败";
+    }
+
+    std::string GetPlayerStatus()
+    {
+        if (!player_) {
+            return "播放器已释放";
+        }
+        std::string status;
+        char sessionInfo[64] = {0};
+        std::snprintf(sessionInfo, sizeof(sessionInfo), "session:%p", this);
+        status += sessionInfo;
+        status += useSwRender_ ? " 渲染:SW" : " 渲染:GL";
+        {
+            char initInfo[128] = {0};
+            std::snprintf(initInfo, sizeof(initInfo), " sw:%d ctx:%p initRc:%d",
+                          useSwRender_, renderContext_, lastInitRc_);
+            status += initInfo;
+        }
+        int64_t w = 0, h = 0;
+        mpv_get_property(player_.get(), "width", MPV_FORMAT_INT64, &w);
+        mpv_get_property(player_.get(), "height", MPV_FORMAT_INT64, &h);
+        char dim[64] = {0};
+        std::snprintf(dim, sizeof(dim), " 视频:%lldx%lld", (long long)w, (long long)h);
+        status += dim;
+        char* mediaTitle = mpv_get_property_string(player_.get(), "media-title");
+        if (mediaTitle && mediaTitle[0]) {
+            status += " 标题:";
+            status += mediaTitle;
+        }
+        if (mediaTitle) mpv_free(mediaTitle);
+        char* pauseStr = mpv_get_property_string(player_.get(), "pause");
+        status += (pauseStr && std::string(pauseStr) == "yes") ? " 已暂停" : " 播放中";
+        if (pauseStr) mpv_free(pauseStr);
+        char* eofStr = mpv_get_property_string(player_.get(), "eof-reached");
+        if (eofStr && std::string(eofStr) == "yes") {
+            status += " 已结束";
+        }
+        if (eofStr) mpv_free(eofStr);
+        char* idleStr = mpv_get_property_string(player_.get(), "idle-active");
+        if (idleStr && std::string(idleStr) == "yes") {
+            status += " 空闲";
+        }
+        if (idleStr) mpv_free(idleStr);
+        char* demuxer = mpv_get_property_string(player_.get(), "demuxer");
+        if (demuxer && demuxer[0]) {
+            status += " demuxer:";
+            status += demuxer;
+        }
+        if (demuxer) mpv_free(demuxer);
+        char* errorMsg = mpv_get_property_string(player_.get(), "error-text");
+        if (errorMsg && errorMsg[0]) {
+            status += " 错误:";
+            status += errorMsg;
+        }
+        if (errorMsg) mpv_free(errorMsg);
+        double cacheSpeed = 0;
+        mpv_get_property(player_.get(), "cache-speed", MPV_FORMAT_DOUBLE, &cacheSpeed);
+        char cacheInfo[64] = {0};
+        std::snprintf(cacheInfo, sizeof(cacheInfo), " 缓存速度:%.0fB/s", cacheSpeed);
+        status += cacheInfo;
+        double timePos = 0, duration = 0;
+        mpv_get_property(player_.get(), "time-pos", MPV_FORMAT_DOUBLE, &timePos);
+        mpv_get_property(player_.get(), "duration", MPV_FORMAT_DOUBLE, &duration);
+        char timeInfo[64] = {0};
+        std::snprintf(timeInfo, sizeof(timeInfo), " 时间:%.1f/%.1f", timePos, duration);
+        status += timeInfo;
+        // Frame count for debugging
+        char frameInfo[64] = {0};
+        std::snprintf(frameInfo, sizeof(frameInfo), " 帧数:%d", framesRendered_);
+        status += frameInfo;
+        // Audio params
+        char* aoDriver = mpv_get_property_string(player_.get(), "current-ao");
+        if (aoDriver && aoDriver[0]) {
+            status += " ao:";
+            status += aoDriver;
+        }
+        if (aoDriver) mpv_free(aoDriver);
+        mpv_node audioParams;
+        if (mpv_get_property(player_.get(), "audio-params", MPV_FORMAT_NODE, &audioParams) >= 0 && audioParams.format == MPV_FORMAT_NODE_MAP) {
+            for (int i = 0; i < audioParams.u.list->num; i++) {
+                if (std::string(audioParams.u.list->keys[i]) == "samplerate" && audioParams.u.list->values[i].format == MPV_FORMAT_INT64) {
+                    char sr[32];
+                    std::snprintf(sr, sizeof(sr), " sr:%lld", (long long)audioParams.u.list->values[i].u.int64);
+                    status += sr;
+                }
+                if (std::string(audioParams.u.list->keys[i]) == "format" && audioParams.u.list->values[i].format == MPV_FORMAT_STRING) {
+                    status += " af:";
+                    status += audioParams.u.list->values[i].u.string;
+                }
+            }
+            mpv_free_node_contents(&audioParams);
+        }
+        return status;
+    }
+
+    void Release()
+    {
+        StopRenderer();
+        {
+            std::lock_guard<std::mutex> lock(lifecycleMutex_);
+            if (eventThread_.joinable()) {
+                // mpv_terminate_destroy will cause mpv_wait_event to return MPV_EVENT_SHUTDOWN
+                player_.reset();
+                eventThread_.join();
+            } else {
+                player_.reset();
+            }
+        }
+    }
+
+    // MPV event loop thread — required for mpv_render_context_set_update_callback
+    // to work. Without this, the render callback is never triggered.
+    void EventLoop()
+    {
+        MPV_LOG(LOG_INFO, "EventLoop: starting");
+        while (true) {
+            mpv_event* event = mpv_wait_event(player_.get(), 0.1);
+            if (event->event_id == MPV_EVENT_SHUTDOWN) {
+                MPV_LOG(LOG_INFO, "EventLoop: shutdown received");
+                break;
+            }
+            // Process other events (log-message, property-change, etc.) — no-op for now
+        }
+        MPV_LOG(LOG_INFO, "EventLoop: exiting");
+    }
+
+    // Get frame data for PixelMap rendering (called from ArkTS thread)
+    napi_value GetFrameData(napi_env env)
+    {
+        std::lock_guard<std::mutex> lock(frameMutex_);
+        if (!frameReady_ || pendingFrame_.empty()) {
+            return nullptr;
+        }
+
+        napi_value result = nullptr;
+        napi_create_object(env, &result);
+
+        napi_value widthVal = nullptr;
+        napi_create_int32(env, frameWidth_, &widthVal);
+        napi_set_named_property(env, result, "width", widthVal);
+
+        napi_value heightVal = nullptr;
+        napi_create_int32(env, frameHeight_, &heightVal);
+        napi_set_named_property(env, result, "height", heightVal);
+
+        // Create ArrayBuffer from the pending frame data
+        napi_value arrayBuffer = nullptr;
+        void* data = nullptr;
+        size_t dataSize = pendingFrame_.size();
+        napi_create_arraybuffer(env, dataSize, &data, &arrayBuffer);
+        memcpy(data, pendingFrame_.data(), dataSize);
+        napi_set_named_property(env, result, "data", arrayBuffer);
+
+        frameReady_ = false; // Mark as consumed
+        return result;
+    }
+
+private:
+    // GetProcAddress callback for mpv_opengl_init_params. Only uses
+    // eglGetProcAddress — this is the standard way to resolve GL and EGL
+    // extension functions. On devices with a broken GPU driver (e.g.
+    // HarmonyOS TV emulator missing libEGL_impl.so), eglGetProcAddress
+    // returns NULL for core GL functions. In that case, GetProcAddress
+    // returns NULL, and libmpv will detect this and fail gracefully in
+    // mpv_render_context_create rather than crashing.
+    static void* GetProcAddress(void*, const char* name)
+    {
+        if (name == nullptr) {
+            return nullptr;
+        }
+        void* proc = reinterpret_cast<void*>(eglGetProcAddress(name));
+        if (proc == nullptr) {
+            // Log only once to avoid flooding; the InitializeMpvRenderer
+            // pre-check will catch this case before libmpv calls us.
+            static bool loggedOnce = false;
+            if (!loggedOnce) {
+                MPV_LOG(LOG_WARN, "GetProcAddress: eglGetProcAddress(\"%{public}s\") returned NULL", name);
+                loggedOnce = true;
+            }
+        }
+        return proc;
+    }
+
+    static void NotifyRender(void* context)
+    {
+        auto* session = static_cast<PlayerSession*>(context);
+        {
+            std::lock_guard<std::mutex> lock(session->renderMutex_);
+            session->renderRequested_ = true;
+        }
+        session->renderCondition_.notify_one();
+    }
+
+    bool InitializeEgl()
+    {
+        // window_ must already be created by RenderLoop before calling this
+        if (window_ == nullptr) {
+            return false;
+        }
+        display_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        if (display_ == EGL_NO_DISPLAY || !eglInitialize(display_, nullptr, nullptr)) {
+            return false;
+        }
+
+        const EGLint configAttributes[] = {
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_RED_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_BLUE_SIZE, 8,
+            EGL_ALPHA_SIZE, 8,
+            EGL_NONE
+        };
+        EGLint configCount = 0;
+        if (!eglChooseConfig(display_, configAttributes, &config_, 1, &configCount) || configCount != 1) {
+            return false;
+        }
+        const EGLint contextAttributes[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+        context_ = eglCreateContext(display_, config_, EGL_NO_CONTEXT, contextAttributes);
+        if (context_ == EGL_NO_CONTEXT) {
+            return false;
+        }
+        surface_ = eglCreateWindowSurface(display_, config_, reinterpret_cast<EGLNativeWindowType>(window_), nullptr);
+        if (surface_ == EGL_NO_SURFACE || !eglMakeCurrent(display_, surface_, surface_, context_)) {
+            return false;
+        }
+
+        // Probe the GL driver by calling a lightweight function. On some TV
+        // emulator images the EGL wrapper "succeeds" (eglInitialize returns
+        // true, eglGetProcAddress returns non-NULL) but the underlying GPU
+        // driver library (libEGL_impl.so) is missing, so any actual GL call
+        // crashes with SIGSEGV. We detect this here by calling glClear with a
+        // no-op mask — it must not crash and must not leave an impossible
+        // error state. If it does crash, the signal handler below will longjmp
+        // back and we clean up EGL gracefully.
+        if (!ProbeGlDriver()) {
+            eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+            if (surface_ != EGL_NO_SURFACE) { eglDestroySurface(display_, surface_); surface_ = EGL_NO_SURFACE; }
+            if (context_ != EGL_NO_CONTEXT) { eglDestroyContext(display_, context_); context_ = EGL_NO_CONTEXT; }
+            eglTerminate(display_); display_ = EGL_NO_DISPLAY;
+            // Do NOT destroy window_ — it may be reused for SW render
+            return false;
+        }
+
+        eglSwapInterval(display_, 1);
+        return true;
+    }
+
+    // File-scope jump buffer for the GL probe signal handler.
+    // Defined at file scope (outside the class) to avoid ODR issues.
+    // sigjmp_buf gProbeJmpBuf;
+
+    // Probe the GL driver with a lightweight call. Returns false if the
+    // driver is broken (SIGSEGV from NULL-dereferencing EGL wrapper stub).
+    bool ProbeGlDriver()
+    {
+        struct sigaction oldAction = {};
+        struct sigaction sa = {};
+        sa.sa_handler = [](int) { siglongjmp(gProbeJmpBuf, 1); };
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+        if (sigaction(SIGSEGV, &sa, &oldAction) != 0) {
+            MPV_LOG(LOG_ERROR, "ProbeGlDriver: sigaction failed");
+            return false;
+        }
+
+        if (sigsetjmp(gProbeJmpBuf, 1) != 0) {
+            // SIGSEGV was caught during the GL probe — driver is broken.
+            sigaction(SIGSEGV, &oldAction, nullptr);
+            MPV_LOG(LOG_ERROR, "ProbeGlDriver: SIGSEGV caught — GPU driver is broken");
+            return false;
+        }
+
+        // Clear with zero mask — a no-op that still exercises the GL dispatch.
+        glClear(0);
+        // glGetError exercises the driver further; any return proves the
+        // dispatch table works. A crash means the driver is broken.
+        GLenum err = glGetError();
+        MPV_LOG(LOG_INFO, "ProbeGlDriver: glClear+glGetError OK, err=%{public}u — driver OK", err);
+
+        sigaction(SIGSEGV, &oldAction, nullptr);
+        return true;
+    }
+
+    bool InitializeMpvRenderer()
+    {
+        MPV_LOG(LOG_INFO, "InitializeMpvRenderer: called, useSwRender_=%{public}d renderContext_=%{public}p",
+                useSwRender_, renderContext_);
+        // On emulator devices with broken GPU drivers, eglGetProcAddress may
+        // return non-NULL stubs that crash when called by libmpv internally.
+        // To avoid this, try SW render first (which requires no GPU), and
+        // only attempt OpenGL if SW is not available.
+        // TODO: On real TV hardware, try OpenGL first for better performance.
+
+        // Try software rendering first — safe on all devices
+        const char* swApiType = MPV_RENDER_API_TYPE_SW;
+        mpv_render_param swParams[] = {
+            {MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(swApiType)},
+            {MPV_RENDER_PARAM_INVALID, nullptr}
+        };
+        int rc = mpv_render_context_create(&renderContext_, player_.get(), swParams);
+        MPV_LOG(LOG_INFO, "InitializeMpvRenderer: SW mpv_render_context_create rc=%{public}d renderContext_=%{public}p", rc, renderContext_);
+        if (rc >= 0) {
+            MPV_LOG(LOG_INFO, "InitializeMpvRenderer: SW render context created OK");
+            mpv_render_context_set_update_callback(renderContext_, NotifyRender, this);
+            useSwRender_ = true;
+            return true;
+        }
+        MPV_LOG(LOG_WARN, "InitializeMpvRenderer: SW render failed (rc=%{public}d), trying OpenGL", rc);
+        lastInitRc_ = rc;
+
+        // Fallback: try OpenGL via EGL
+        void* glClearProc = reinterpret_cast<void*>(eglGetProcAddress("glClear"));
+        void* glBindTexProc = reinterpret_cast<void*>(eglGetProcAddress("glBindTexture"));
+        MPV_LOG(LOG_INFO, "InitializeMpvRenderer: eglGetProcAddress glClear=%{public}p glBindTexture=%{public}p",
+                glClearProc, glBindTexProc);
+        if (glClearProc == nullptr || glBindTexProc == nullptr) {
+            MPV_LOG(LOG_ERROR, "InitializeMpvRenderer: eglGetProcAddress returns NULL for core GL — GPU driver broken");
+            return false;
+        }
+
+        mpv_opengl_init_params glInit = {GetProcAddress, nullptr};
+        const char* apiType = MPV_RENDER_API_TYPE_OPENGL;
+        mpv_render_param params[] = {
+            {MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(apiType)},
+            {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &glInit},
+            {MPV_RENDER_PARAM_INVALID, nullptr}
+        };
+        rc = mpv_render_context_create(&renderContext_, player_.get(), params);
+        if (rc >= 0) {
+            MPV_LOG(LOG_INFO, "InitializeMpvRenderer: OpenGL render context created OK");
+            mpv_render_context_set_update_callback(renderContext_, NotifyRender, this);
+            useSwRender_ = false;
+            return true;
+        }
+        MPV_LOG(LOG_ERROR, "InitializeMpvRenderer: OpenGL render also failed (rc=%{public}d)", rc);
+        return false;
+    }
+
+    void RenderLoop()
+    {
+        MPV_LOG(LOG_INFO, "RenderLoop: starting");
+
+        // Create NativeWindow from surfaceId obtained from XComponentController.
+        // This creates an independent producer connection to the BufferQueue,
+        // which is the standard approach for video decoder output on HarmonyOS.
+        if (surfaceId_.empty()) {
+            MPV_LOG(LOG_ERROR, "RenderLoop: no surfaceId provided");
+            std::lock_guard<std::mutex> renderLock(renderMutex_);
+            renderError_ = "Surface ID 未提供；请确保 XComponent Surface 已创建。";
+            renderReadyCv_.notify_one();
+            return;
+        }
+
+        uint64_t sid = 0;
+        try {
+            sid = std::stoull(surfaceId_);
+        } catch (...) {
+            MPV_LOG(LOG_ERROR, "RenderLoop: invalid surfaceId '%{public}s'", surfaceId_.c_str());
+            std::lock_guard<std::mutex> renderLock(renderMutex_);
+            renderError_ = "Surface ID 格式无效。";
+            renderReadyCv_.notify_one();
+            return;
+        }
+
+        OHNativeWindow* createdWindow = nullptr;
+        int32_t createRc = OH_NativeWindow_CreateNativeWindowFromSurfaceId(sid, &createdWindow);
+        MPV_LOG(LOG_INFO, "RenderLoop: CreateNativeWindowFromSurfaceId sid=%{public}llu rc=%{public}d window=%{public}p",
+                (unsigned long long)sid, createRc, createdWindow);
+        if (createRc != 0 || createdWindow == nullptr) {
+            MPV_LOG(LOG_ERROR, "RenderLoop: CreateNativeWindowFromSurfaceId failed (rc=%{public}d)", createRc);
+            std::lock_guard<std::mutex> renderLock(renderMutex_);
+            renderError_ = "无法从 Surface ID 创建 NativeWindow；rc=" + std::to_string(createRc);
+            renderReadyCv_.notify_one();
+            return;
+        }
+        window_ = createdWindow;
+        ownsWindow_ = true;
+
+        // Strategy: try SW render first (no GPU/EGL needed).
+        // Only fall back to EGL+GL if SW render fails.
+        // IMPORTANT: Do NOT initialize EGL before trying SW render, because
+        // eglCreateWindowSurface claims the NativeWindow's BufferQueue producer,
+        // which then conflicts with SW render's RequestBuffer calls (error 50002000).
+
+        // Try SW render first — no GPU required
+        if (InitializeMpvRenderer()) {
+            // SW render context created successfully
+            MPV_LOG(LOG_INFO, "RenderLoop: SW render initialized, entering SwRenderLoop");
+        } else {
+            // SW render failed — try EGL + OpenGL as fallback
+            MPV_LOG(LOG_INFO, "RenderLoop: SW render failed, trying EGL+GL");
+            bool eglOk = InitializeEgl();
+            if (eglOk) {
+                // Re-try InitializeMpvRenderer with EGL context active (GL render path)
+                if (!InitializeMpvRenderer()) {
+                    MPV_LOG(LOG_ERROR, "RenderLoop: GL render also failed after EGL init");
+                    // Clean up EGL
+                    eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+                    if (surface_ != EGL_NO_SURFACE) { eglDestroySurface(display_, surface_); surface_ = EGL_NO_SURFACE; }
+                    if (context_ != EGL_NO_CONTEXT) { eglDestroyContext(display_, context_); context_ = EGL_NO_CONTEXT; }
+                    eglTerminate(display_); display_ = EGL_NO_DISPLAY;
+                }
+            }
+            if (renderContext_ == nullptr) {
+                MPV_LOG(LOG_ERROR, "RenderLoop: Both SW and GL render failed");
+                std::lock_guard<std::mutex> lock(renderMutex_);
+                renderError_ = "渲染上下文创建失败；当前设备不支持视频输出。";
+                renderReadyCv_.notify_one();
+                return;
+            }
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(renderMutex_);
+            renderReady_ = true;
+            renderReadyCv_.notify_one();
+        }
+
+        if (useSwRender_) {
+            SwRenderLoop();
+        } else {
+            GlRenderLoop();
+        }
+        DestroyRenderer();
+    }
+
+    // Software render loop: read frames from mpv as raw pixels.
+    // On real hardware with working NativeWindow BufferQueue, writes frames
+    // directly to the XComponent surface. On emulators where BufferQueue is
+    // broken (error 50002000), falls back to PixelMap callback path that
+    // delivers RGBA pixels to ArkTS via onFrameCallback.
+    void SwRenderLoop()
+    {
+        MPV_LOG(LOG_INFO, "SwRenderLoop: starting");
+        bool useNativeWindow = false;
+        int nativeWindowFailCount = 0;
+        const int MAX_NATIVE_WINDOW_FAILS = 3;
+
+        if (window_ != nullptr) {
+            // Try to set up NativeWindow
+            int32_t format = 1; // PIXEL_FMT_RGBA_8888
+            OH_NativeWindow_NativeWindowHandleOpt(window_, SET_FORMAT, format);
+            OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, 480, 270);
+
+            // Test if NativeWindow BufferQueue works by requesting one buffer
+            OHNativeWindowBuffer* testBuf = nullptr;
+            int testFence = -1;
+            int testRc = OH_NativeWindow_NativeWindowRequestBuffer(window_, &testBuf, &testFence);
+            if (testRc == 0 && testBuf != nullptr) {
+                // BufferQueue works — flush the test buffer and use NativeWindow path
+                Region region = {};
+                Region::Rect rect = {0, 0, 480, 270};
+                region.rects = &rect;
+                region.rectNumber = 1;
+                OH_NativeWindow_NativeWindowFlushBuffer(window_, testBuf, testFence, region);
+                useNativeWindow = true;
+                MPV_LOG(LOG_INFO, "SwRenderLoop: NativeWindow BufferQueue OK, using direct path");
+            } else {
+                MPV_LOG(LOG_WARN, "SwRenderLoop: NativeWindow BufferQueue failed (rc=%{public}d), using PixelMap callback", testRc);
+            }
+        } else {
+            MPV_LOG(LOG_WARN, "SwRenderLoop: no NativeWindow, using PixelMap callback");
+        }
+
+        int lastW = 0, lastH = 0;
+        std::vector<uint8_t> frameBuf;
+
+        for (;;) {
+            {
+                std::unique_lock<std::mutex> lock(renderMutex_);
+                renderCondition_.wait_for(lock, std::chrono::milliseconds(16), [this] {
+                    return stopRenderer_ || renderRequested_;
+                });
+                if (stopRenderer_) {
+                    break;
+                }
+                if (!renderRequested_) {
+                    continue;
+                }
+                renderRequested_ = false;
+            }
+
+            if ((mpv_render_context_update(renderContext_) & MPV_RENDER_UPDATE_FRAME) == 0) {
+                continue;
+            }
+
+            int64_t w64 = 0, h64 = 0;
+            mpv_get_property(player_.get(), "width", MPV_FORMAT_INT64, &w64);
+            mpv_get_property(player_.get(), "height", MPV_FORMAT_INT64, &h64);
+            int w = static_cast<int>(w64);
+            int h = static_cast<int>(h64);
+            if (w <= 0 || h <= 0) {
+                continue;
+            }
+
+            // Reallocate buffer if dimensions changed
+            size_t stride = ((w * 4 + 63) / 64) * 64;
+            size_t frameSize = stride * h;
+            if (w != lastW || h != lastH) {
+                frameBuf.resize(frameSize + 64);
+                lastW = w;
+                lastH = h;
+                if (useNativeWindow) {
+                    OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, w, h);
+                }
+                MPV_LOG(LOG_INFO, "SwRenderLoop: video dimensions changed to %dx%d", w, h);
+            }
+
+            uint8_t* framePtr = frameBuf.data();
+            uintptr_t alignOffset = (64 - (reinterpret_cast<uintptr_t>(framePtr) % 64)) % 64;
+            framePtr += alignOffset;
+
+            int size[2] = {w, h};
+            char* fmt = const_cast<char*>("rgba");
+            mpv_render_param renderParams[] = {
+                {MPV_RENDER_PARAM_SW_SIZE, size},
+                {MPV_RENDER_PARAM_SW_FORMAT, fmt},
+                {MPV_RENDER_PARAM_SW_STRIDE, &stride},
+                {MPV_RENDER_PARAM_SW_POINTER, framePtr},
+                {MPV_RENDER_PARAM_INVALID, nullptr}
+            };
+            if (mpv_render_context_render(renderContext_, renderParams) < 0) {
+                continue;
+            }
+
+            framesRendered_++;
+
+            if (useNativeWindow) {
+                // Direct NativeWindow path — high performance on real hardware
+                OHNativeWindowBuffer* buffer = nullptr;
+                int fenceFd = -1;
+                int rc = OH_NativeWindow_NativeWindowRequestBuffer(window_, &buffer, &fenceFd);
+                if (rc != 0 || buffer == nullptr) {
+                    nativeWindowFailCount++;
+                    if (nativeWindowFailCount >= MAX_NATIVE_WINDOW_FAILS) {
+                        MPV_LOG(LOG_WARN, "SwRenderLoop: NativeWindow failed %d times, switching to PixelMap", nativeWindowFailCount);
+                        useNativeWindow = false;
+                    }
+                    continue;
+                }
+                nativeWindowFailCount = 0;
+
+                BufferHandle* bufHandle = OH_NativeWindow_GetBufferHandleFromNative(buffer);
+                if (bufHandle != nullptr && bufHandle->virAddr != nullptr) {
+                    int bufStride = bufHandle->stride;
+                    if (bufStride <= 0) {
+                        bufStride = w * 4;
+                    }
+                    size_t copyWidth = std::min(static_cast<size_t>(w * 4), static_cast<size_t>(bufStride));
+                    size_t copyLines = std::min(static_cast<size_t>(h), static_cast<size_t>(bufHandle->height > 0 ? bufHandle->height : h));
+                    for (size_t y = 0; y < copyLines; y++) {
+                        memcpy(static_cast<uint8_t*>(bufHandle->virAddr) + y * bufStride,
+                               framePtr + y * stride, copyWidth);
+                    }
+                }
+                Region region = {};
+                int flushW = (bufHandle && bufHandle->width > 0) ? bufHandle->width : w;
+                int flushH = (bufHandle && bufHandle->height > 0) ? bufHandle->height : h;
+                Region::Rect rect = {0, 0, static_cast<uint32_t>(flushW), static_cast<uint32_t>(flushH)};
+                region.rects = &rect;
+                region.rectNumber = 1;
+                OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fenceFd, region);
+            } else {
+                // PixelMap callback path — for emulators with broken BufferQueue
+                // Store the latest frame data so ArkTS can read it via getFrameData()
+                {
+                    std::lock_guard<std::mutex> lock(frameMutex_);
+                    // Store tightly packed RGBA data (no stride padding needed for PixelMap)
+                    if (pendingFrame_.size() != static_cast<size_t>(w * h * 4)) {
+                        pendingFrame_.resize(w * h * 4);
+                    }
+                    // Copy with stride-to-tight conversion
+                    for (int y = 0; y < h; y++) {
+                        memcpy(pendingFrame_.data() + y * w * 4,
+                               framePtr + y * stride, w * 4);
+                    }
+                    frameWidth_ = w;
+                    frameHeight_ = h;
+                    frameReady_ = true;
+                }
+            }
+        }
+        MPV_LOG(LOG_INFO, "SwRenderLoop: exiting, rendered %d frames", framesRendered_);
+    }
+
+    // OpenGL render loop using EGL + XComponent surface
+    void GlRenderLoop()
+    {
+        MPV_LOG(LOG_INFO, "GlRenderLoop: starting");
+        for (;;) {
+            {
+                std::unique_lock<std::mutex> lock(renderMutex_);
+                renderCondition_.wait_for(lock, std::chrono::milliseconds(100), [this] {
+                    return stopRenderer_ || renderRequested_;
+                });
+                if (stopRenderer_) {
+                    break;
+                }
+                renderRequested_ = false;
+            }
+
+            if ((mpv_render_context_update(renderContext_) & MPV_RENDER_UPDATE_FRAME) == 0) {
+                continue;
+            }
+            EGLint width = 0;
+            EGLint height = 0;
+            eglQuerySurface(display_, surface_, EGL_WIDTH, &width);
+            eglQuerySurface(display_, surface_, EGL_HEIGHT, &height);
+            if (width <= 0 || height <= 0 || !eglMakeCurrent(display_, surface_, surface_, context_)) {
+                continue;
+            }
+            mpv_opengl_fbo fbo = {0, width, height, GL_RGBA8};
+            int flipY = 1;
+            mpv_render_param params[] = {
+                {MPV_RENDER_PARAM_OPENGL_FBO, &fbo},
+                {MPV_RENDER_PARAM_FLIP_Y, &flipY},
+                {MPV_RENDER_PARAM_INVALID, nullptr}
+            };
+            if (mpv_render_context_render(renderContext_, params) >= 0) {
+                eglSwapBuffers(display_, surface_);
+            }
+        }
+    }
+
+    void StopRenderer()
+    {
+        std::unique_lock<std::mutex> lifecycleLock(lifecycleMutex_);
+        if (!renderThread_.joinable()) {
+            return;
+        }
+        {
+            std::lock_guard<std::mutex> renderLock(renderMutex_);
+            stopRenderer_ = true;
+        }
+        renderCondition_.notify_one();
+        lifecycleLock.unlock();
+        renderThread_.join();
+    }
+
+    void DestroyRenderer()
+    {
+        if (renderContext_ != nullptr) {
+            mpv_render_context_set_update_callback(renderContext_, nullptr, nullptr);
+            mpv_render_context_free(renderContext_);
+            renderContext_ = nullptr;
+        }
+        if (display_ != EGL_NO_DISPLAY) {
+            eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+            if (surface_ != EGL_NO_SURFACE) {
+                eglDestroySurface(display_, surface_);
+            }
+            if (context_ != EGL_NO_CONTEXT) {
+                eglDestroyContext(display_, context_);
+            }
+            eglTerminate(display_);
+        }
+        if (window_ != nullptr) {
+            if (ownsWindow_) {
+                // We created this window via CreateNativeWindowFromSurfaceId — must destroy it
+                OH_NativeWindow_DestroyNativeWindow(window_);
+            }
+            window_ = nullptr;
+            ownsWindow_ = false;
+        }
+        display_ = EGL_NO_DISPLAY;
+        surface_ = EGL_NO_SURFACE;
+        context_ = EGL_NO_CONTEXT;
+        config_ = nullptr;
+    }
+
+    std::unique_ptr<mpv_handle, decltype(&mpv_terminate_destroy)> player_{nullptr, mpv_terminate_destroy};
+    std::mutex lifecycleMutex_;
+    std::thread eventThread_;
+    std::thread renderThread_;
+    std::mutex renderMutex_;
+    std::condition_variable renderCondition_;
+    std::condition_variable renderReadyCv_;
+    bool stopRenderer_ = false;
+    bool renderRequested_ = false;
+    bool renderReady_ = false;
+    std::string renderError_;
+    bool useSwRender_ = false;
+    int lastInitRc_ = 0;
+    OHNativeWindow* window_ = nullptr;
+    bool ownsWindow_ = false;
+    std::string surfaceId_;
+    EGLDisplay display_ = EGL_NO_DISPLAY;
+    EGLSurface surface_ = EGL_NO_SURFACE;
+    EGLContext context_ = EGL_NO_CONTEXT;
+    EGLConfig config_ = nullptr;
+    mpv_render_context* renderContext_ = nullptr;
+    // PixelMap fallback frame data
+    std::mutex frameMutex_;
+    std::vector<uint8_t> pendingFrame_;
+    int frameWidth_ = 0;
+    int frameHeight_ = 0;
+    bool frameReady_ = false;
+    int framesRendered_ = 0;
+};
+
+std::mutex g_sessionsMutex;
+std::unordered_map<int64_t, std::shared_ptr<PlayerSession>> g_sessions;
+int64_t g_nextHandle = 1;
+
+std::shared_ptr<PlayerSession> FindSession(int64_t handle)
+{
+    std::lock_guard<std::mutex> lock(g_sessionsMutex);
+    const auto found = g_sessions.find(handle);
+    return found == g_sessions.end() ? nullptr : found->second;
+}
+
+#endif
+
+napi_value GetBuildInfo(napi_env env, napi_callback_info info)
+{
+    (void)info;
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    napi_value available = nullptr;
+#if VIDALL_MPV_AVAILABLE
+    napi_get_boolean(env, true, &available);
+    napi_set_named_property(env, result, "mpvVersion", CreateString(env, "0.40.0"));
+#else
+    napi_get_boolean(env, false, &available);
+    napi_set_named_property(env, result, "mpvVersion", CreateString(env, "未随 x86_64 模拟器打包"));
+#endif
+    napi_set_named_property(env, result, "available", available);
+    napi_set_named_property(env, result, "abi", CreateString(env,
+#if VIDALL_MPV_AVAILABLE
+        "arm64-v8a"
+#else
+        "x86_64"
+#endif
+    ));
+    napi_set_named_property(env, result, "sourceCommit", CreateString(env, "e07b7cd8b872427e03540502e4a68b23b54da133"));
+    return result;
+}
+
+napi_value CreatePlayer(napi_env env, napi_callback_info info)
+{
+    (void)info;
+    napi_value result = nullptr;
+#if VIDALL_MPV_AVAILABLE
+    auto session = std::make_shared<PlayerSession>();
+    std::string error;
+    if (!session->Initialize(error)) {
+        napi_create_int64(env, 0, &result);
+        return result;
+    }
+    int64_t handle = 0;
+    {
+        std::lock_guard<std::mutex> lock(g_sessionsMutex);
+        handle = g_nextHandle++;
+        g_sessions.emplace(handle, std::move(session));
+    }
+    napi_create_int64(env, handle, &result);
+#else
+    napi_create_int64(env, 0, &result);
+#endif
+    return result;
+}
+
+napi_value AttachSurface(napi_env env, napi_callback_info info)
+{
+#if VIDALL_MPV_AVAILABLE
+    size_t argc = 2;
+    napi_value args[2] = {nullptr, nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int64_t handle = 0;
+    if (napi_get_value_int64(env, args[0], &handle) != napi_ok || handle <= 0) {
+        return CreateString(env, "播放器句柄无效");
+    }
+
+    std::string surfaceId;
+    if (argc >= 2 && args[1] != nullptr) {
+        size_t len = 0;
+        napi_get_value_string_utf8(env, args[1], nullptr, 0, &len);
+        if (len > 0) {
+            surfaceId.resize(len);
+            napi_get_value_string_utf8(env, args[1], &surfaceId[0], len + 1, &len);
+        }
+    }
+
+    auto session = FindSession(handle);
+    if (!session) {
+        return CreateString(env, "播放器不存在或已释放");
+    }
+    return CreateString(env, session->AttachSurface(surfaceId));
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value DetachSurface(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    if (!GetHandleArgument(env, info, handle)) {
+        return CreateString(env, "播放器句柄无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->DetachSurface() : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value Load(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    std::string url;
+    if (!GetHandleArgument(env, info, handle) || !GetStringArgument(env, info, 1, url)) {
+        return CreateString(env, "请输入有效的视频 URL");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->Load(url) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value SetPause(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    size_t argc = 2;
+    napi_value args[2] = {nullptr, nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    bool paused = false;
+    if (argc != 2 || napi_get_value_int64(env, args[0], &handle) != napi_ok || napi_get_value_bool(env, args[1], &paused) != napi_ok) {
+        return CreateString(env, "播放状态参数无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->SetPause(paused) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value Stop(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    if (!GetHandleArgument(env, info, handle)) {
+        return CreateString(env, "播放器句柄无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->Stop() : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value ReleasePlayer(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    if (!GetHandleArgument(env, info, handle)) {
+        return CreateString(env, "播放器句柄无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    std::shared_ptr<PlayerSession> session;
+    {
+        std::lock_guard<std::mutex> lock(g_sessionsMutex);
+        const auto found = g_sessions.find(handle);
+        if (found == g_sessions.end()) {
+            return CreateString(env, "播放器已释放");
+        }
+        session = found->second;
+        g_sessions.erase(found);
+    }
+    session->Release();
+    return CreateString(env, "播放器已释放");
+#else
+    return CreateString(env, "模拟器无原生播放器需要释放");
+#endif
+}
+
+napi_value GetPlayerStatus(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    if (!GetHandleArgument(env, info, handle)) {
+        return CreateString(env, "播放器句柄无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->GetPlayerStatus() : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value GetFrameData(napi_env env, napi_callback_info info)
+{
+#if VIDALL_MPV_AVAILABLE
+    int64_t handle = 0;
+    if (!GetHandleArgument(env, info, handle)) {
+        return nullptr;
+    }
+    auto session = FindSession(handle);
+    return session ? session->GetFrameData(env) : nullptr;
+#else
+    return nullptr;
+#endif
+}
+
+napi_value Init(napi_env env, napi_value exports)
+{
+    napi_property_descriptor descriptors[] = {
+        {"getBuildInfo", nullptr, GetBuildInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"createPlayer", nullptr, CreatePlayer, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"attachSurface", nullptr, AttachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"detachSurface", nullptr, DetachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"load", nullptr, Load, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"setPause", nullptr, SetPause, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"stop", nullptr, Stop, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"release", nullptr, ReleasePlayer, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getPlayerStatus", nullptr, GetPlayerStatus, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getFrameData", nullptr, GetFrameData, nullptr, nullptr, nullptr, napi_default, nullptr},
+    };
+    napi_define_properties(env, exports, sizeof(descriptors) / sizeof(descriptors[0]), descriptors);
+
+#if VIDALL_MPV_AVAILABLE
+    // Register XComponent surface callbacks to obtain NativeWindow
+    napi_value exportInstance = nullptr;
+    OH_NativeXComponent* nativeXComponent = nullptr;
+    // Use OH_NATIVE_XCOMPONENT_OBJ macro to obtain the native XComponent handle
+    napi_get_named_property(env, exports, OH_NATIVE_XCOMPONENT_OBJ, &exportInstance);
+    if (exportInstance != nullptr) {
+        napi_unwrap(env, exportInstance, reinterpret_cast<void**>(&nativeXComponent));
+    }
+    if (nativeXComponent != nullptr) {
+        static OH_NativeXComponent_Callback callback = {
+            .OnSurfaceCreated = OnSurfaceCreated,
+            .OnSurfaceChanged = OnSurfaceChanged,
+            .OnSurfaceDestroyed = OnSurfaceDestroyed,
+            .DispatchTouchEvent = DispatchTouchEvent,
+        };
+        int32_t ret = OH_NativeXComponent_RegisterCallback(nativeXComponent, &callback);
+        MPV_LOG(LOG_INFO, "XComponent RegisterCallback: ret=%{public}d", ret);
+    } else {
+        MPV_LOG(LOG_WARN, "XComponent: nativeXComponent not found via OH_NATIVE_XCOMPONENT_OBJ");
+    }
+#endif
+
+    return exports;
+}
+
+} // namespace
+
+NAPI_MODULE(entry, Init)

@@ -1,0 +1,6 @@
+{
+  "name": "libentry.so",
+  "version": "1.0.0",
+  "types": "index.d.ts",
+  "description": "VidAll Player NAPI interface"
+}
