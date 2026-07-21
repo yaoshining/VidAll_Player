@@ -23,6 +23,13 @@
 - **决策**：tag 先生成一个不可变候选制品集合，再由同一 `release-manifest.json` 上传 GitHub Release 与批准私有 ohpm 源，双向回读一致后才标记已发布。
 - **风险处理**：任一渠道失败保持 `candidate`/`failed`，不宣称已发布；不可变远端版本由批准的人工补偿处理。
 
+## 引导构建故障与缓存
+
+- **故障根因**：2026-03-07 的引导工作流在 FFmpeg 完成后构建 libxml2 `v2.15.1` 失败。固定参考仓库安装的 apt Meson `0.61.2` 不接受 libxml2 使用的 `c_std=c11,c99,c89` 选项组合，错误为“Value `c11,c99,c89` is not one of the choices”。这也说明参考仓库虽锁定提交，其运行时依赖版本仍会漂移，不能作为发布证据。
+- **短期修复**：工作流固定安装 Meson `1.7.0`，使其先于系统 Meson 被解析；引导脚本在 Meson 或参考提交变化时清除相应中间构建目录，并始终检出并校验参考仓库提交。
+- **缓存边界**：GitHub Actions 仅缓存 pip、Cargo registry/git、固定参考仓库下载的源码和可由完整 key 失效的中间构建目录。key 包含运行系统、ABI、OpenHarmony SDK、Meson 版本、来源锁、构建脚本与工作流内容。`dist/` 和上传工件绝不作为缓存输入，构建完成后仍重新生成并校验 SHA-256。
+- **残余风险**：参考脚本仍按 tag 下载 libxml2、FFmpeg、MPV 等依赖，且会在线安装 Rust/cargo-c；缓存只降低耗时，不能补足来源可复现性。阶段 1 的正式发布链仍必须迁移为本仓库控制的传递依赖锁、归档 SHA-256、补丁与离线构建。
+
 ## 兼容验证与迁移
 
 - **决策**：以独立 `consumer-smoke`、IJK 行为矩阵和消费方 `playerEngine=ijk|vidall` 功能开关推进迁移；本库绝不读取、修改、构建、提交或发布 VidAll_TV。

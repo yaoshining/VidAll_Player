@@ -24,12 +24,47 @@ jobs:
       - name: 检出项目
         uses: actions/checkout@v4
 
+      - name: 恢复 Python 与 Rust 下载缓存
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: libmpv-tools-${{ runner.os }}-meson-1.7.0-${{ hashFiles('.github/workflows/build-libmpv.yml') }}
+          restore-keys: |
+            libmpv-tools-${{ runner.os }}-meson-1.7.0-
+
       - name: 安装构建依赖
         run: |
           sudo apt-get update
-          sudo apt-get install --yes gperf meson ninja-build python3-pip unzip wget
+          sudo apt-get install --yes gperf ninja-build python3-pip unzip wget
+          python3 -m pip install --user --upgrade 'meson==1.7.0'
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/meson" --version
+
+      - name: 恢复构建下载与中间缓存
+        id: libmpv-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cargo/registry
+            ~/.cargo/git
+            .cache/vidall-player
+          key: libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', '.github/workflows/build-libmpv.yml') }}
+          restore-keys: |
+            libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-
+
+      - name: 输出缓存诊断
+        run: |
+          echo "libmpv 缓存命中：${{ steps.libmpv-cache.outputs.cache-hit }}"
+          echo "缓存目录：$GITHUB_WORKSPACE/.cache/vidall-player"
+          meson --version
 
       - name: 构建 ARM64 libmpv
+        env:
+          VIDALL_PLAYER_CACHE_DIR: ${{ github.workspace }}/.cache/vidall-player
         run: native/scripts/build-libmpv-bootstrap.sh
 
       - name: 验证产物
