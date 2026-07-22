@@ -15,3 +15,7 @@ oh_modules/
 .vscode/
 .DS_Store
 *.log
+
+# Candidate release evidence (directory placeholders are tracked)
+release/**
+!release/**/.gitkeep

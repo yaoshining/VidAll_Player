@@ -20,16 +20,16 @@
 
 **Purpose**: 创建库边界、项目结构与基础配置
 
-- [ ] T001 创建 `packages/vidall-player/` HAR 包目录结构，包括 `Index.ets`、`src/public/`、`src/xcomponent/`、`src/internal/`、`src/native/`、`oh-package.json5`、`build-profile.json5`
-- [ ] T002 [P] 创建 `native/bridge/`、`native/session/`、`native/render/`、`native/media/`、`native/include/`、`native/tests/`、`native/config/`、`native/patches/` 目录并添加占位文件
-- [ ] T003 [P] 创建 `examples/tv-phone-demo/` 与 `examples/consumer-smoke/` 示例项目骨架
-- [ ] T004 [P] 创建 `scripts/build/`、`scripts/audit/`、`scripts/evidence/`、`scripts/release/` 脚本目录并添加占位文件
-- [ ] T005 [P] 创建 `release/` 生成证明目录结构（manifests/、sbom/、licenses/、capabilities/、audits/），添加 .gitkeep
-- [ ] T006 配置 `packages/vidall-player/oh-package.json5` 包元数据，包名暂定 `@vidall/player`
-- [ ] T007 [P] 配置 `packages/vidall-player/build-profile.json5` HAR 构建目标
-- [ ] T008 配置根 `build-profile.json5` 增加库模块与示例模块
-- [ ] T009 [P] 建立 API 15/19/22 审查表模板在 `native/config/api-review-template.json`
-- [ ] T010 [P] 配置 `.gitignore` 排除 `release/` 生成产物、`.cache/` 和构建输出
+- [x] T001 创建 `packages/vidall-player/` HAR 包目录结构，包括 `Index.ets`、`src/public/`、`src/xcomponent/`、`src/internal/`、`src/native/`、`oh-package.json5`、`build-profile.json5`
+- [x] T002 [P] 创建 `native/bridge/`、`native/session/`、`native/render/`、`native/media/`、`native/include/`、`native/tests/`、`native/config/`、`native/patches/` 目录并添加占位文件
+- [x] T003 [P] 创建 `examples/tv-phone-demo/` 与 `examples/consumer-smoke/` 示例项目骨架
+- [x] T004 [P] 创建 `scripts/build/`、`scripts/audit/`、`scripts/evidence/`、`scripts/release/` 脚本目录并添加占位文件
+- [x] T005 [P] 创建 `release/` 生成证明目录结构（manifests/、sbom/、licenses/、capabilities/、audits/），添加 .gitkeep
+- [x] T006 配置 `packages/vidall-player/oh-package.json5` 包元数据，包名暂定 `@vidall/player`
+- [x] T007 [P] 配置 `packages/vidall-player/build-profile.json5` HAR 构建目标
+- [x] T008 配置根 `build-profile.json5` 增加库模块与示例模块
+- [x] T009 [P] 建立 API 15/19/22 审查表模板在 `native/config/api-review-template.json`
+- [x] T010 [P] 配置 `.gitignore` 排除 `release/` 生成产物、`.cache/` 和构建输出
 
 ---
 
@@ -39,16 +39,16 @@
 
 **⚠️ CRITICAL**: 本阶段未完成前，不可开始任何用户故事
 
-- [ ] T011 在 `packages/vidall-player/src/public/` 实现核心类型定义：`PlayerState`、`PlayerSurface`、`PlayerOptions`、`MediaSource`、`ExternalSubtitle`、`PlayerTrack`、`PlayerError`、`PlayerEvent`，严格匹配 `contracts/arkts-sdk.md`
-- [ ] T012 在 `packages/vidall-player/src/public/` 实现 `VidAllPlayer` 接口与 `createPlayer` 工厂函数声明
-- [ ] T013 在 `packages/vidall-player/Index.ets` 实现唯一公开导出，只导出契约定义的类型和 `createPlayer`
-- [ ] T014 [P] 在 `packages/vidall-player/src/internal/` 实现输入校验器：URI/头部/重定向信任范围校验、禁止 URL 用户信息、认证头运行时安全
-- [ ] T015 [P] 在 `packages/vidall-player/src/internal/` 实现错误脱敏器：过滤密码、Authorization、令牌、完整路径和敏感查询参数
-- [ ] T016 [P] 在 `packages/vidall-player/src/internal/` 实现命令串行化队列：每会话串行处理、拒绝已释放会话命令、前置条件检查
-- [ ] T017 在 `packages/vidall-player/src/native/` 建立 NAPI 类型声明文件，声明 native 层暴露的函数签名，不导出给消费者
-- [ ] T018 [P] 在 `packages/vidall-player/src/xcomponent/` 实现 XComponent 生命周期适配：`attachSurface`、`resizeSurface`、`detachSurface`，只传递 `componentId`+`generation`，不暴露 NativeWindow
-- [ ] T019 在 `packages/vidall-player/src/internal/` 实现会话状态机：八态迁移、事件序号严格递增、releasePhase (open/closing/closed)
-- [ ] T020 [P] 在 `packages/vidall-player/src/internal/` 实现 API 15/19/22 运行时特性探测与降级封装
+- [x] T011 在 `packages/vidall-player/src/public/` 实现核心类型定义：`PlayerState`、`PlayerSurface`、`PlayerOptions`、`MediaSource`、`ExternalSubtitle`、`PlayerTrack`、`PlayerError`、`PlayerEvent`，严格匹配 `contracts/arkts-sdk.md`
+- [x] T012 在 `packages/vidall-player/src/public/` 实现 `VidAllPlayer` 接口与 `createPlayer` 工厂函数声明
+- [x] T013 在 `packages/vidall-player/Index.ets` 实现唯一公开导出，只导出契约定义的类型和 `createPlayer`
+- [x] T014 [P] 在 `packages/vidall-player/src/internal/` 实现输入校验器：URI/头部/重定向信任范围校验、禁止 URL 用户信息、认证头运行时安全
+- [x] T015 [P] 在 `packages/vidall-player/src/internal/` 实现错误脱敏器：过滤密码、Authorization、令牌、完整路径和敏感查询参数
+- [x] T016 [P] 在 `packages/vidall-player/src/internal/` 实现命令串行化队列：每会话串行处理、拒绝已释放会话命令、前置条件检查
+- [x] T017 在 `packages/vidall-player/src/native/` 建立 NAPI 类型声明文件，声明 native 层暴露的函数签名，不导出给消费者
+- [x] T018 [P] 在 `packages/vidall-player/src/xcomponent/` 实现 XComponent 生命周期适配：`attachSurface`、`resizeSurface`、`detachSurface`，只传递 `componentId`+`generation`，不暴露 NativeWindow
+- [x] T019 在 `packages/vidall-player/src/internal/` 实现会话状态机：八态迁移、事件序号严格递增、releasePhase (open/closing/closed)
+- [x] T020 [P] 在 `packages/vidall-player/src/internal/` 实现 API 15/19/22 运行时特性探测与降级封装
 
 **Checkpoint**: 基础就绪——用户故事实现可并行开始
 

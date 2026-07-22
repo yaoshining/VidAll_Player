@@ -1,0 +1,10 @@
+{
+  "module": {
+    "name": "vidall_player",
+    "type": "har",
+    "deviceTypes": [
+      "phone",
+      "tv"
+    ]
+  }
+}

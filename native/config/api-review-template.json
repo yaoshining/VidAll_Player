@@ -1,0 +1,7 @@
+{
+  "installationCompatibilityApi": 15,
+  "sensitiveApiReviewLevel": 19,
+  "certificationTargetApi": 22,
+  "capabilities": [],
+  "reviewInstructions": "Every capability must record its minimum API, detection method, API 15-18 fallback, and verification evidence."
+}

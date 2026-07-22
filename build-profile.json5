@@ -37,6 +37,18 @@
           ]
         }
       ]
+    },
+    {
+      "name": "vidall_player",
+      "srcPath": "./packages/vidall-player",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
     }
   ]
 }

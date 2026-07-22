@@ -1,0 +1,9 @@
+{
+  "name": "@vidall/player",
+  "version": "1.0.0",
+  "description": "VidAll Player ArkTS public contract foundation; package name is provisional until private registry approval.",
+  "main": "Index.ets",
+  "author": "VidAll",
+  "license": "Apache-2.0",
+  "dependencies": {}
+}
