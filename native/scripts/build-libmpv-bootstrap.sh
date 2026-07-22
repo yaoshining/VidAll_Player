@@ -5,6 +5,7 @@ readonly ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly LOCK_FILE="$ROOT_DIR/native/config/sources.lock.json"
 readonly BUILD_REPOSITORY='https://github.com/mpv-ohos/libmpv-ohos-build.git'
 readonly BUILD_COMMIT='1bab837e662ffa47ce51efd0720d3ed7c4988944'
+readonly DEPENDENCY_CACHE_SCHEMA='2'
 readonly MESON_VERSION='1.7.0'
 readonly CACHE_ROOT="${VIDALL_PLAYER_CACHE_DIR:-${HOME:-$ROOT_DIR}/.cache/vidall-player}"
 readonly WORK_DIR="$CACHE_ROOT/libmpv-ohos-build"
@@ -57,8 +58,8 @@ if [ "$actual_commit" != "$BUILD_COMMIT" ]; then
   exit 1
 fi
 
-# 上游来源变更可能切换 FFmpeg 版本或补丁；清除会被 download.sh 跳过的旧依赖。
-invalidate_dependency_cache_if_build_source_changed "$WORK_DIR" "$BUILD_COMMIT"
+# 上游来源变更或缓存方案升级可能切换 FFmpeg 版本或补丁；清除会被 download.sh 跳过的旧依赖。
+invalidate_dependency_cache_if_build_source_changed "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA"
 
 # Meson 或上游补丁更新时使已有中间构建失效，避免缓存污染。
 if [ ! -f "$MESON_MARKER" ] || [ "$(cat "$MESON_MARKER")" != "$MESON_VERSION" ]; then
@@ -70,7 +71,7 @@ cd "$WORK_DIR"
 chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 ./download.sh
 ./patch.sh
-mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT"
+mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA"
 ./build.sh
 (
   cd libmpv/arm64-build

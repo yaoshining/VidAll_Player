@@ -25,28 +25,28 @@ main() {
   local work_dir="$temp_dir/libmpv-ohos-build"
   mkdir -p "$work_dir/libmpv/ffmpeg" "$work_dir/libmpv/arm64-build"
   printf '%s\n' 'release/9.0' > "$work_dir/libmpv/ffmpeg/version"
-  printf '%s\n' 'old-build-commit' > "$work_dir/.vidall-player-build-commit"
+  printf '%s\n' 'new-build-commit' > "$work_dir/.vidall-player-build-commit"
 
-  # 旧构建来源必须移除全部依赖，而不是仅清理 Meson 中间目录。
+  # 无版本的旧标记必须失效，避免复用在旧脚本中留下的不完整缓存。
   source "$BOOTSTRAP_SCRIPT"
-  invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit'
+  invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit:2'
 
   assert_missing "$work_dir/libmpv/ffmpeg"
   assert_missing "$work_dir/libmpv/arm64-build"
   assert_missing "$work_dir/.vidall-player-build-commit"
 
   mkdir -p "$work_dir/libmpv/ffmpeg"
-  invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit'
+  invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit:2'
   assert_missing "$work_dir/libmpv/ffmpeg"
 
   mkdir -p "$work_dir/libmpv/ffmpeg"
-  mark_dependency_cache_prepared "$work_dir" 'new-build-commit'
-  assert_file_content "$work_dir/.vidall-player-build-commit" 'new-build-commit'
-  invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit'
+  mark_dependency_cache_prepared "$work_dir" 'new-build-commit:2'
+  assert_file_content "$work_dir/.vidall-player-build-commit" 'new-build-commit:2'
+  invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit:2'
   [ -d "$work_dir/libmpv/ffmpeg" ] || fail '相同构建来源不应清除依赖缓存'
 
   rm "$work_dir/.vidall-player-build-commit"
-  invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit'
+  invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit:2'
   assert_missing "$work_dir/libmpv/ffmpeg"
   assert_missing "$work_dir/.vidall-player-build-commit"
 }
