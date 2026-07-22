@@ -18,12 +18,22 @@ invalidate_dependency_cache_if_build_source_changed() {
 
   if [ ! -f "$commit_marker" ] || [ "$(cat "$commit_marker")" != "$expected_commit" ]; then
     # 下载脚本会跳过已有依赖目录；来源变更时必须同时清除旧 FFmpeg 与构建目录。
-    rm -rf "$work_dir/libmpv"
-    printf '%s\n' "$expected_commit" > "$commit_marker"
+    rm -rf -- "$work_dir/libmpv"
+    rm -f -- "$commit_marker"
   fi
 }
 
-# Allow shell tests to import cache invalidation behavior without starting a native build.
+mark_dependency_cache_prepared() {
+  local work_dir="$1"
+  local expected_commit="$2"
+  local commit_marker="$work_dir/.vidall-player-build-commit"
+  local temporary_marker="$commit_marker.tmp"
+
+  printf '%s\n' "$expected_commit" > "$temporary_marker"
+  mv -- "$temporary_marker" "$commit_marker"
+}
+
+# 供 shell 测试导入缓存失效逻辑，避免触发原生构建。
 if [ "${BASH_SOURCE[0]}" != "$0" ]; then
   return 0
 fi
@@ -60,6 +70,7 @@ cd "$WORK_DIR"
 chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 ./download.sh
 ./patch.sh
+mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT"
 ./build.sh
 (
   cd libmpv/arm64-build

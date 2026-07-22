@@ -33,16 +33,22 @@ main() {
 
   assert_missing "$work_dir/libmpv/ffmpeg"
   assert_missing "$work_dir/libmpv/arm64-build"
-  assert_file_content "$work_dir/.vidall-player-build-commit" 'new-build-commit'
+  assert_missing "$work_dir/.vidall-player-build-commit"
 
   mkdir -p "$work_dir/libmpv/ffmpeg"
+  invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit'
+  assert_missing "$work_dir/libmpv/ffmpeg"
+
+  mkdir -p "$work_dir/libmpv/ffmpeg"
+  mark_dependency_cache_prepared "$work_dir" 'new-build-commit'
+  assert_file_content "$work_dir/.vidall-player-build-commit" 'new-build-commit'
   invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit'
   [ -d "$work_dir/libmpv/ffmpeg" ] || fail '相同构建来源不应清除依赖缓存'
 
   rm "$work_dir/.vidall-player-build-commit"
   invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit'
   assert_missing "$work_dir/libmpv/ffmpeg"
-  assert_file_content "$work_dir/.vidall-player-build-commit" 'new-build-commit'
+  assert_missing "$work_dir/.vidall-player-build-commit"
 }
 
 main "$@"
