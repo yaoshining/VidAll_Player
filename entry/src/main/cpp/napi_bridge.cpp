@@ -219,8 +219,11 @@ public:
         if (!player_) {
             return "播放器已释放";
         }
-        char position[32] = {0};
-        std::snprintf(position, sizeof(position), "%.3f", value);
+        char position[64] = {0};
+        const int written = std::snprintf(position, sizeof(position), "%.17g", value);
+        if (written < 0 || static_cast<size_t>(written) >= sizeof(position)) {
+            return "跳转参数格式化失败";
+        }
         const char* command[] = {"seek", position, mode, nullptr};
         return mpv_command_async(player_.get(), 4, command) >= 0 ? "已提交跳转请求" : "跳转请求失败";
     }
@@ -230,8 +233,11 @@ public:
         if (!player_) {
             return "播放器已释放";
         }
-        char text[32] = {0};
-        std::snprintf(text, sizeof(text), "%.3f", value);
+        char text[64] = {0};
+        const int written = std::snprintf(text, sizeof(text), "%.17g", value);
+        if (written < 0 || static_cast<size_t>(written) >= sizeof(text)) {
+            return "设置参数格式化失败";
+        }
         const char* command[] = {"set", name, text, nullptr};
         return mpv_command_async(player_.get(), 5, command) >= 0 ? "已提交设置请求" : "设置请求失败";
     }

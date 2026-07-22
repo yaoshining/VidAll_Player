@@ -104,7 +104,7 @@ export class PlayerSession implements VidAllPlayer {
   seekPercent(percent: number): Promise<void> {
     return this.enqueue('seekPercent', () => {
       if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
-        throw lifecycleFailure('INVALID_SEEK_PERCENT', 'Seek percent must be a finite value between 0 and 100.');
+        throw lifecycleFailure('INVALID_SEEK_PERCENT', '跳转百分比必须是 0 到 100 之间的有限值。Seek percent must be a finite value between 0 and 100.');
       }
       this.requireActiveMedia('seekPercent', percent);
     });
@@ -113,7 +113,7 @@ export class PlayerSession implements VidAllPlayer {
   setSpeed(speed: number): Promise<void> {
     return this.enqueue('setSpeed', () => {
       if (!Number.isFinite(speed) || speed <= 0) {
-        throw lifecycleFailure('INVALID_SPEED', 'Playback speed must be a finite value greater than zero.');
+        throw lifecycleFailure('INVALID_SPEED', '播放速度必须是大于零的有限值。Playback speed must be a finite value greater than zero.');
       }
       this.requireActiveMedia('setSpeed', speed);
     });
@@ -122,7 +122,7 @@ export class PlayerSession implements VidAllPlayer {
   setVolume(volume: number): Promise<void> {
     return this.enqueue('setVolume', () => {
       if (!Number.isFinite(volume) || volume < 0 || volume > 100) {
-        throw lifecycleFailure('INVALID_VOLUME', 'Volume must be a finite value between 0 and 100.');
+        throw lifecycleFailure('INVALID_VOLUME', '音量必须是 0 到 100 之间的有限值。Volume must be a finite value between 0 and 100.');
       }
     });
   }
@@ -131,8 +131,13 @@ export class PlayerSession implements VidAllPlayer {
     return this.enqueue('setMuted', () => {});
   }
 
-  selectTrack(_kind: PlayerTrackKind, _id: number | null): Promise<void> {
-    return this.enqueue('selectTrack', () => this.requireActiveMedia('selectTrack', 0));
+  selectTrack(_kind: PlayerTrackKind, id: number | null): Promise<void> {
+    return this.enqueue('selectTrack', () => {
+      if (id !== null && (!Number.isFinite(id) || !Number.isInteger(id) || id < 0)) {
+        throw lifecycleFailure('INVALID_TRACK_ID', '音轨 ID 必须是非负整数。Track id must be a non-negative integer.');
+      }
+      this.requireActiveMedia('selectTrack', id === null ? 0 : id);
+    });
   }
 
   addExternalSubtitle(subtitle: ExternalSubtitle): Promise<void> {
@@ -145,8 +150,8 @@ export class PlayerSession implements VidAllPlayer {
     });
   }
 
-  setSubtitleDelay(_delayMs: number): Promise<void> {
-    return this.enqueue('setSubtitleDelay', () => this.requireActiveMedia('setSubtitleDelay', 0));
+  setSubtitleDelay(delayMs: number): Promise<void> {
+    return this.enqueue('setSubtitleDelay', () => this.requireActiveMedia('setSubtitleDelay', delayMs));
   }
 
   subscribe(listener: (event: PlayerEvent) => void): () => void {
@@ -191,17 +196,17 @@ export class PlayerSession implements VidAllPlayer {
       !Number.isFinite(surface.width) || !Number.isFinite(surface.height) ||
       !Number.isInteger(surface.generation) || surface.generation < 1 ||
       surface.width <= 0 || surface.height <= 0) {
-      throw lifecycleFailure('INVALID_SURFACE', 'Surface must have a component id, a positive integer generation, and finite positive dimensions.');
+      throw lifecycleFailure('INVALID_SURFACE', 'Surface 必须包含组件 ID、正整数 generation 和有限的正尺寸。Surface must have a component id, a positive integer generation, and finite positive dimensions.');
     }
   }
 
   private requireActiveMedia(command: string, value: number): void {
     if (!Number.isFinite(value)) {
-      throw lifecycleFailure('INVALID_CONTROL_VALUE', `${command} requires a finite value.`);
+      throw lifecycleFailure('INVALID_CONTROL_VALUE', `${command} 需要有限数值。${command} requires a finite value.`);
     }
     const state = this.stateMachine.getState();
     if (this.source === undefined || (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering')) {
-      throw lifecycleFailure('INVALID_STATE', `${command} requires loaded media.`);
+      throw lifecycleFailure('INVALID_STATE', `${command} 需要已加载的媒体。${command} requires loaded media.`);
     }
   }
 }

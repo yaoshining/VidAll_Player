@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@ohos/hypium';
-import { createPlayer, PlayerError, PlayerEvent } from '@vidall/player';
+import { createPlayer, PlayerError, PlayerEvent, PlayerSurface } from '@vidall/player';
 
 export default function playerSessionTest() {
   describe('PlayerSessionTest', () => {
@@ -70,20 +70,64 @@ export default function playerSessionTest() {
       done();
     });
 
-    it('rejects non-finite control and surface values', 0, async (done: Function) => {
+    it('accepts control boundaries for loaded media', 0, async (done: Function) => {
       const player = createPlayer();
-      try {
-        await player.attachSurface({ componentId: 'video', generation: Number.NaN, width: 1920, height: 1080 });
-        expect(true).assertFalse();
-      } catch (_) {
-        expect(true).assertTrue();
+      await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
+      await player.seekRelative(-5.5);
+      await player.seekPercent(0);
+      await player.seekPercent(100);
+      await player.setSpeed(0.5);
+      await player.setVolume(0);
+      await player.setVolume(100);
+      await player.setMuted(true);
+      await player.setMuted(false);
+      await player.selectTrack('audio', null);
+      await player.setSubtitleDelay(-250);
+      await player.release();
+      done();
+    });
+
+    it('rejects invalid control and surface values', 0, async (done: Function) => {
+      const player = createPlayer();
+      const invalidSurfaces: PlayerSurface[] = [
+        { componentId: 'video', generation: Number.NaN, width: 1920, height: 1080 },
+        { componentId: 'video', generation: 1.5, width: 1920, height: 1080 },
+        { componentId: 'video', generation: 0, width: 1920, height: 1080 },
+        { componentId: 'video', generation: 1, width: Number.POSITIVE_INFINITY, height: 1080 },
+        { componentId: 'video', generation: 1, width: 1920, height: 0 }
+      ];
+      for (let index = 0; index < invalidSurfaces.length; index++) {
+        try {
+          await player.attachSurface(invalidSurfaces[index]);
+          expect(true).assertFalse();
+        } catch (_) {
+          expect(true).assertTrue();
+        }
       }
       await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
-      try {
-        await player.setSpeed(Number.POSITIVE_INFINITY);
-        expect(true).assertFalse();
-      } catch (_) {
-        expect(true).assertTrue();
+      const invalidControls: Array<() => Promise<void>> = [
+        () => player.seekRelative(Number.NaN),
+        () => player.seekRelative(Number.POSITIVE_INFINITY),
+        () => player.seekPercent(Number.NaN),
+        () => player.seekPercent(-1),
+        () => player.seekPercent(101),
+        () => player.setSpeed(Number.POSITIVE_INFINITY),
+        () => player.setSpeed(0),
+        () => player.setVolume(Number.NaN),
+        () => player.setVolume(-1),
+        () => player.setVolume(101),
+        () => player.selectTrack('audio', Number.NaN),
+        () => player.selectTrack('audio', 1.5),
+        () => player.selectTrack('audio', -1),
+        () => player.setSubtitleDelay(Number.POSITIVE_INFINITY)
+      ];
+      for (let index = 0; index < invalidControls.length; index++) {
+        try {
+          await invalidControls[index]();
+          expect(true).assertFalse();
+        } catch (_) {
+          expect(true).assertTrue();
+        }
       }
       await player.release();
       done();
