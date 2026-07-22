@@ -11,6 +11,23 @@ readonly WORK_DIR="$CACHE_ROOT/libmpv-ohos-build"
 readonly OUTPUT_DIR="$ROOT_DIR/dist/libmpv/arm64-v8a"
 readonly MESON_MARKER="$WORK_DIR/.vidall-player-meson-version"
 
+invalidate_dependency_cache_if_build_source_changed() {
+  local work_dir="$1"
+  local expected_commit="$2"
+  local commit_marker="$work_dir/.vidall-player-build-commit"
+
+  if [ ! -f "$commit_marker" ] || [ "$(cat "$commit_marker")" != "$expected_commit" ]; then
+    # 下载脚本会跳过已有依赖目录；来源变更时必须同时清除旧 FFmpeg 与构建目录。
+    rm -rf "$work_dir/libmpv"
+    printf '%s\n' "$expected_commit" > "$commit_marker"
+  fi
+}
+
+# Allow shell tests to import cache invalidation behavior without starting a native build.
+if [ "${BASH_SOURCE[0]}" != "$0" ]; then
+  return 0
+fi
+
 if [ ! -f "$LOCK_FILE" ]; then
   echo "未找到来源锁定文件：$LOCK_FILE" >&2
   exit 1
@@ -29,6 +46,9 @@ if [ "$actual_commit" != "$BUILD_COMMIT" ]; then
   echo "引导构建来源提交不匹配：$actual_commit" >&2
   exit 1
 fi
+
+# 上游来源变更可能切换 FFmpeg 版本或补丁；清除会被 download.sh 跳过的旧依赖。
+invalidate_dependency_cache_if_build_source_changed "$WORK_DIR" "$BUILD_COMMIT"
 
 # Meson 或上游补丁更新时使已有中间构建失效，避免缓存污染。
 if [ ! -f "$MESON_MARKER" ] || [ "$(cat "$MESON_MARKER")" != "$MESON_VERSION" ]; then

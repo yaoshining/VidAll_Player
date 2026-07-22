@@ -82,6 +82,9 @@ jobs:
           echo "缓存目录：$GITHUB_WORKSPACE/.cache/vidall-player"
           meson --version
 
+      - name: 验证构建缓存失效逻辑
+        run: bash native/tests/build-libmpv-bootstrap.test.sh
+
       - name: 构建 ARM64 libmpv
         env:
           VIDALL_PLAYER_CACHE_DIR: ${{ github.workspace }}/.cache/vidall-player
