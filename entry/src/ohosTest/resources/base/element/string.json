@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_test_desc",
+      "value": "VidAll Player 单元测试模块"
+    },
+    {
+      "name": "TestAbility_desc",
+      "value": "VidAll Player 测试能力"
+    },
+    {
+      "name": "TestAbility_label",
+      "value": "VidAll Player 测试"
+    }
+  ]
+}

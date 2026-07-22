@@ -1,0 +1,51 @@
+name: 验证 ArkTS 测试模块
+
+on:
+  pull_request:
+    paths:
+      - 'entry/src/ohosTest/**'
+      - 'entry/build-profile.json5'
+      - 'entry/oh-package.json5'
+      - 'entry/oh-package-lock.json5'
+      - 'packages/vidall-player/**'
+      - 'build-profile.json5'
+      - 'oh-package.json5'
+      - 'oh-package-lock.json5'
+      - '.github/workflows/test-player.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'entry/src/ohosTest/**'
+      - 'entry/build-profile.json5'
+      - 'entry/oh-package.json5'
+      - 'entry/oh-package-lock.json5'
+      - 'packages/vidall-player/**'
+      - 'build-profile.json5'
+      - 'oh-package.json5'
+      - 'oh-package-lock.json5'
+      - '.github/workflows/test-player.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-module:
+    name: 编译 HAR 和 Hypium 测试模块
+    # 受控运行器必须预装 DevEco Studio 与 HarmonyOS SDK。
+    runs-on: [self-hosted, macos, deveco]
+    timeout-minutes: 30
+    steps:
+      - name: 检出项目
+        uses: actions/checkout@v4
+
+      - name: 还原 ohpm 依赖并编译 HAR
+        run: devecocli build --modules vidall_player@default
+
+      - name: 编译 Hypium 测试模块
+        run: devecocli build --modules entry@ohosTest
+
+      - name: 说明端侧执行限制
+        run: |
+          echo 'GitHub 托管运行器没有 HarmonyOS 设备。'
+          echo 'Hypium 用例需在受控设备通过 aa test 执行；本任务仅验证测试模块可以构建。'
