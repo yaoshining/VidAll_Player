@@ -103,8 +103,8 @@ export class PlayerSession implements VidAllPlayer {
 
   seekPercent(percent: number): Promise<void> {
     return this.enqueue('seekPercent', () => {
-      if (percent < 0 || percent > 100) {
-        throw lifecycleFailure('INVALID_SEEK_PERCENT', 'Seek percent must be between 0 and 100.');
+      if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+        throw lifecycleFailure('INVALID_SEEK_PERCENT', 'Seek percent must be a finite value between 0 and 100.');
       }
       this.requireActiveMedia('seekPercent', percent);
     });
@@ -112,8 +112,8 @@ export class PlayerSession implements VidAllPlayer {
 
   setSpeed(speed: number): Promise<void> {
     return this.enqueue('setSpeed', () => {
-      if (speed <= 0) {
-        throw lifecycleFailure('INVALID_SPEED', 'Playback speed must be greater than zero.');
+      if (!Number.isFinite(speed) || speed <= 0) {
+        throw lifecycleFailure('INVALID_SPEED', 'Playback speed must be a finite value greater than zero.');
       }
       this.requireActiveMedia('setSpeed', speed);
     });
@@ -121,8 +121,8 @@ export class PlayerSession implements VidAllPlayer {
 
   setVolume(volume: number): Promise<void> {
     return this.enqueue('setVolume', () => {
-      if (volume < 0 || volume > 100) {
-        throw lifecycleFailure('INVALID_VOLUME', 'Volume must be between 0 and 100.');
+      if (!Number.isFinite(volume) || volume < 0 || volume > 100) {
+        throw lifecycleFailure('INVALID_VOLUME', 'Volume must be a finite value between 0 and 100.');
       }
     });
   }
@@ -187,12 +187,18 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   private validateSurface(surface: PlayerSurface): void {
-    if (surface.componentId.length === 0 || surface.generation < 1 || surface.width <= 0 || surface.height <= 0) {
-      throw lifecycleFailure('INVALID_SURFACE', 'Surface must have a component id, positive generation, and positive dimensions.');
+    if (surface.componentId.length === 0 || !Number.isFinite(surface.generation) ||
+      !Number.isFinite(surface.width) || !Number.isFinite(surface.height) ||
+      !Number.isInteger(surface.generation) || surface.generation < 1 ||
+      surface.width <= 0 || surface.height <= 0) {
+      throw lifecycleFailure('INVALID_SURFACE', 'Surface must have a component id, a positive integer generation, and finite positive dimensions.');
     }
   }
 
-  private requireActiveMedia(command: string, _value: number): void {
+  private requireActiveMedia(command: string, value: number): void {
+    if (!Number.isFinite(value)) {
+      throw lifecycleFailure('INVALID_CONTROL_VALUE', `${command} requires a finite value.`);
+    }
     const state = this.stateMachine.getState();
     if (this.source === undefined || (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering')) {
       throw lifecycleFailure('INVALID_STATE', `${command} requires loaded media.`);

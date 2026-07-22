@@ -60,6 +60,35 @@ export default function playerSessionTest() {
       done();
     });
 
+    it('keeps a newer surface when an older generation is detached', 0, async (done: Function) => {
+      const player = createPlayer();
+      await player.attachSurface({ componentId: 'video', generation: 1, width: 1920, height: 1080 });
+      await player.attachSurface({ componentId: 'video', generation: 2, width: 1920, height: 1080 });
+      await player.detachSurface(1);
+      await player.resizeSurface({ componentId: 'video', generation: 2, width: 1280, height: 720 });
+      await player.release();
+      done();
+    });
+
+    it('rejects non-finite control and surface values', 0, async (done: Function) => {
+      const player = createPlayer();
+      try {
+        await player.attachSurface({ componentId: 'video', generation: Number.NaN, width: 1920, height: 1080 });
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(true).assertTrue();
+      }
+      await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
+      try {
+        await player.setSpeed(Number.POSITIVE_INFINITY);
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(true).assertTrue();
+      }
+      await player.release();
+      done();
+    });
+
     it('rejects invalid surfaces and commands issued after release', 0, async (done: Function) => {
       const player = createPlayer();
       try {
@@ -68,6 +97,7 @@ export default function playerSessionTest() {
       } catch (_) {
         expect(true).assertTrue();
       }
+      await player.release();
       await player.release();
       try {
         await player.play();

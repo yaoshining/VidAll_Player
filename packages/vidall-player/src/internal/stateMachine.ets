@@ -52,7 +52,7 @@ export class SessionStateMachine {
 
   private canTransition(next: PlayerState): boolean {
     if (next === 'released') { return this.state !== 'released'; }
-    if (this.state === 'idle') { return next === 'preparing'; }
+    if (this.state === 'idle') { return next === 'preparing' || next === 'error'; }
     if (this.state === 'preparing') { return next === 'playing' || next === 'error' || next === 'idle'; }
     if (this.state === 'playing' || this.state === 'paused') { return next === 'playing' || next === 'paused' || next === 'buffering' || next === 'completed' || next === 'error' || next === 'idle'; }
     if (this.state === 'buffering') { return next === 'playing' || next === 'paused' || next === 'error' || next === 'idle'; }
