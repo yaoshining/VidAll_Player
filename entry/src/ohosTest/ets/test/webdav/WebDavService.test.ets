@@ -3,6 +3,7 @@ import {
   buildBasicAuthorization,
   buildRawPropfindRequest,
   createPropfindRequestOptions,
+  parseRawHttpPropfindResponse,
   joinWebDavUrl,
   parseWebDavDirectory,
   sanitizeWebDavConfig,
@@ -33,6 +34,29 @@ export default function webDavServiceTest() {
       expect(request).assertContain('Authorization: Basic token\r\n');
       expect(request).assertContain('Content-Length: 116\r\n');
       expect(request).assertContain('<propfind');
+    });
+
+    it('rejects control characters in raw HTTP request fields', 0, () => {
+      let hostRejected = false;
+      try {
+        buildRawPropfindRequest('dav.example.com\r\nX-Injected: true', 'Basic token');
+      } catch (_) {
+        hostRejected = true;
+      }
+      let authorizationRejected = false;
+      try {
+        buildRawPropfindRequest('dav.example.com', 'Basic token\nX-Injected: true');
+      } catch (_) {
+        authorizationRejected = true;
+      }
+      expect(hostRejected).assertTrue();
+      expect(authorizationRejected).assertTrue();
+    });
+
+    it('decodes a chunked raw HTTP response before XML parsing', 0, () => {
+      const response = 'HTTP/1.1 207 Multi-Status\r\nTransfer-Encoding: chunked\r\n\r\n' +
+        '6\r\n<root>\r\n7\r\nvalue</\r\n5\r\nroot>\r\n0\r\n\r\n';
+      expect(parseRawHttpPropfindResponse(response)).assertEqual('<root>value</root>');
     });
 
     it('keeps NetworkKit options for newer API levels', 0, () => {

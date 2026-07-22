@@ -192,7 +192,7 @@ public:
         if (!player_ || url.empty()) {
             return player_ ? "请输入有效的视频 URL" : "播放器已释放";
         }
-        // Configure credentials per media load so they cannot leak into later requests.
+        // 每次加载媒体时单独设置认证头，避免凭据泄漏到后续请求。
         const int headerResult = mpv_set_property_string(player_.get(), "http-header-fields", authorization.c_str());
         if (headerResult < 0) {
             return "设置网络认证失败";
@@ -1068,10 +1068,10 @@ napi_value Load(napi_env env, napi_callback_info info)
     int64_t handle = 0;
     std::string url;
     std::string authorization;
-    if (!GetHandleArgument(env, info, handle) || !GetStringArgument(env, info, 1, url) ||
-        !GetStringArgument(env, info, 2, authorization)) {
+    if (!GetHandleArgument(env, info, handle) || !GetStringArgument(env, info, 1, url)) {
         return CreateString(env, "请输入有效的视频 URL");
     }
+    GetStringArgument(env, info, 2, authorization);
 #if VIDALL_MPV_AVAILABLE
     auto session = FindSession(handle);
     return CreateString(env, session ? session->Load(url, authorization) : "播放器不存在或已释放");

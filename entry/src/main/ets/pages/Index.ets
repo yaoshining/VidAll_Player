@@ -32,6 +32,7 @@ struct Index {
   @State webDavDirectory: string = '';
   @State isWebDavLoading: boolean = false;
   @State isWebDavSource: boolean = false;
+  private webDavBrowseGeneration: number = 0;
   private framePollTimer: number = -1;
 
   aboutToAppear(): void {
@@ -105,20 +106,32 @@ struct Index {
 
   private async browseWebDav(directoryUrl?: string): Promise<void> {
     const config = this.getWebDavConfig();
+    const generation = ++this.webDavBrowseGeneration;
     this.isWebDavLoading = true;
     try {
       await new WebDavService(getContext(this)).saveConfig(config);
-      this.webDavEntries = await new WebDavService(getContext(this)).listDirectory(config, directoryUrl);
+      const entries = await new WebDavService(getContext(this)).listDirectory(config, directoryUrl);
+      if (generation !== this.webDavBrowseGeneration) {
+        return;
+      }
+      this.webDavEntries = entries;
       this.webDavDirectory = directoryUrl ?? config.endpoint;
-      this.nativeStatus = `已列出 ${this.webDavEntries.length} 个 WebDAV 项目。`;
+      this.nativeStatus = `已列出 ${entries.length} 个 WebDAV 项目。`;
     } catch (error) {
-      this.nativeStatus = error instanceof Error ? error.message : '列出 WebDAV 目录失败。';
+      if (generation === this.webDavBrowseGeneration) {
+        this.nativeStatus = error instanceof Error ? error.message : '列出 WebDAV 目录失败。';
+      }
     } finally {
-      this.isWebDavLoading = false;
+      if (generation === this.webDavBrowseGeneration) {
+        this.isWebDavLoading = false;
+      }
     }
   }
 
   private openWebDavEntry(entry: WebDavEntry): void {
+    if (this.isWebDavLoading) {
+      return;
+    }
     if (entry.isDirectory) {
       this.browseWebDav(entry.url);
       return;
@@ -139,7 +152,7 @@ struct Index {
       this.isWebDavSource ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}` : '');
     console.info(`VidAll_Player: load submitted`);
     this.isPlaying = true;
-    // Start polling for frame data (for PixelMap display)
+    // 启动帧轮询，供 PixelMap 回退渲染使用。
     this.startFramePoll();
   }
 
@@ -147,11 +160,11 @@ struct Index {
     if (this.framePollTimer >= 0) {
       return;
     }
-    // Poll frames at ~30fps for PixelMap display
+    // 以约 30fps 轮询帧数据，供 PixelMap 显示。
     this.framePollTimer = setInterval(() => {
       this.pollFrame();
     }, 33);
-    // Status poll every 3 seconds
+    // 每 3 秒轮询一次播放器状态。
     setInterval(() => this.pollStatus(), 3000);
   }
 
@@ -426,6 +439,7 @@ struct Index {
               .id(`webdav-entry-${entry.url}`)
               .width('100%')
               .height(52)
+              .enabled(!this.isWebDavLoading)
               .padding({ left: 12, right: 12 })
               .backgroundColor(entry.isDirectory ? '#1B4C79' : '#17624C')
               .borderRadius(8)

@@ -10,6 +10,11 @@ const VIDEO_EXTENSIONS: string[] = [
 ];
 const CONFIG_KEY = 'configuration';
 const PROPFIND_BODY = '<?xml version="1.0"?><propfind xmlns="DAV:"><prop><displayname/><resourcetype/><getcontentlength/></prop></propfind>';
+const MAX_HTTP_RESPONSE_BYTES = 5 * 1024 * 1024;
+
+function hasControlCharacters(value: string): boolean {
+  return /[\x00-\x1F\x7F]/.test(value);
+}
 
 export function createPropfindRequestOptions(username: string, password: string): http.HttpRequestOptions {
   return {
@@ -20,8 +25,8 @@ export function createPropfindRequestOptions(username: string, password: string)
       'Depth': '1',
       'Content-Type': 'text/xml; charset=utf-8'
     },
-    // On this project's NetworkKit SDK, extraData is the request body for POST.
-    // It is appended to an OPTIONS URL, so use POST before customMethod overrides it.
+    // 当前 NetworkKit SDK 会把 POST 的 extraData 作为请求体发送。
+    // OPTIONS 会把它拼接到 URL，因此先使用 POST 再由 customMethod 覆盖。
     extraData: PROPFIND_BODY,
     expectDataType: http.HttpDataType.STRING,
     connectTimeout: 15000,
@@ -53,8 +58,50 @@ export function buildBasicAuthorization(username: string, password: string): str
 }
 
 export function buildRawPropfindRequest(host: string, authorization: string): string {
+  if (hasControlCharacters(host) || hasControlCharacters(authorization)) {
+    throw new Error('WebDAV HTTP 请求包含无效字符。');
+  }
   const bodyBytes = new util.TextEncoder('utf-8').encode(PROPFIND_BODY);
   return `PROPFIND / HTTP/1.1\r\nHost: ${host}\r\nAuthorization: ${authorization}\r\nDepth: 1\r\nContent-Type: text/xml; charset=utf-8\r\nContent-Length: ${bodyBytes.length}\r\nConnection: close\r\n\r\n${PROPFIND_BODY}`;
+}
+
+export function parseRawHttpPropfindResponse(responseText: string): string {
+  const separator = responseText.indexOf('\r\n\r\n');
+  const status = /^HTTP\/\d(?:\.\d)?\s+(\d+)/.exec(responseText);
+  if (separator < 0 || status === null) {
+    throw new Error('WebDAV 响应格式无效。');
+  }
+  const statusCode = Number(status[1]);
+  if (statusCode !== 207 && statusCode !== 200) {
+    throw new Error(`WebDAV 请求失败（HTTP ${statusCode}）。`);
+  }
+  const headers = responseText.substring(0, separator).toLowerCase();
+  const body = responseText.substring(separator + 4);
+  if (!/(?:^|\r\n)transfer-encoding:\s*[^\r\n]*chunked/i.test(headers)) {
+    return body;
+  }
+  let position = 0;
+  let decoded = '';
+  while (true) {
+    const lineEnd = body.indexOf('\r\n', position);
+    if (lineEnd < 0) {
+      throw new Error('WebDAV 分块响应格式无效。');
+    }
+    const sizeText = body.substring(position, lineEnd).split(';')[0].trim();
+    if (!/^[0-9a-f]+$/i.test(sizeText)) {
+      throw new Error('WebDAV 分块响应长度无效。');
+    }
+    const size = parseInt(sizeText, 16);
+    position = lineEnd + 2;
+    if (size === 0) {
+      return decoded;
+    }
+    if (position + size > body.length || body.substring(position + size, position + size + 2) !== '\r\n') {
+      throw new Error('WebDAV 分块响应不完整。');
+    }
+    decoded += body.substring(position, position + size);
+    position += size + 2;
+  }
 }
 
 function isAbsoluteHttpUrl(value: string): boolean {
@@ -209,6 +256,9 @@ export class WebDavService {
       family: 1
     };
     const path = match[2] ?? '/';
+    if (hasControlCharacters(host) || hasControlCharacters(path)) {
+      throw new Error('WebDAV HTTP 地址包含无效字符。');
+    }
     const authorization = buildBasicAuthorization(config.username, config.password);
     const requestText = buildRawPropfindRequest(host, authorization).replace('PROPFIND / HTTP/1.1', `PROPFIND ${path} HTTP/1.1`);
     const tcp = socket.constructTCPSocketInstance();
@@ -227,24 +277,22 @@ export class WebDavService {
           reject(error);
           return;
         }
-        const separator = responseText.indexOf('\r\n\r\n');
-        const status = /^HTTP\/\d(?:\.\d)?\s+(\d+)/.exec(responseText);
-        if (separator < 0 || status === null) {
-          reject(new Error('WebDAV 响应格式无效。'));
-          return;
+        try {
+          resolve(parseWebDavDirectory(parseRawHttpPropfindResponse(responseText), url));
+        } catch (parseError) {
+          reject(parseError instanceof Error ? parseError : new Error('WebDAV 响应解析失败。'));
         }
-        const statusCode = Number(status[1]);
-        if (statusCode !== 207 && statusCode !== 200) {
-          reject(new Error(`WebDAV 请求失败（HTTP ${statusCode}）。`));
-          return;
-        }
-        resolve(parseWebDavDirectory(responseText.substring(separator + 4), url));
       };
       const timeoutId = setTimeout(() => finish(new Error('WebDAV 请求超时。')), 30000);
 
       tcp.on('message', (value: socket.SocketMessageInfo) => {
         if (value.message !== undefined && value.message !== null) {
-          responseText += buffer.from(value.message as ArrayBuffer).toString('utf-8');
+          const chunk = buffer.from(value.message as ArrayBuffer).toString('utf-8');
+          if (responseText.length + chunk.length > MAX_HTTP_RESPONSE_BYTES) {
+            finish(new Error('WebDAV 响应过大。'));
+            return;
+          }
+          responseText += chunk;
         }
       });
       tcp.on('close', () => finish());
