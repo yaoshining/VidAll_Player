@@ -1,6 +1,7 @@
 import libentry from 'libentry.so';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { image } from '@kit.ImageKit';
+import { buildBasicAuthorization, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
 
 interface FrameData {
   width: number;
@@ -20,6 +21,18 @@ struct Index {
   @State isPlaying: boolean = false;
   @State videoPixelMap: image.PixelMap | null = null;
   @State showVideo: boolean = false;
+  private pixelMapBuffers: image.PixelMap[] = [];
+  private pixelMapBufferIndex: number = 0;
+  private pixelMapWidth: number = 0;
+  private pixelMapHeight: number = 0;
+  @State webDavEndpoint: string = '';
+  @State webDavUsername: string = '';
+  @State webDavPassword: string = '';
+  @State webDavEntries: WebDavEntry[] = [];
+  @State webDavDirectory: string = '';
+  @State isWebDavLoading: boolean = false;
+  @State isWebDavSource: boolean = false;
+  private webDavBrowseGeneration: number = 0;
   private framePollTimer: number = -1;
 
   aboutToAppear(): void {
@@ -29,8 +42,9 @@ struct Index {
       ? 'ARM64 libmpv 已打包。等待 XComponent Surface 创建...'
       : '当前为 x86_64 模拟器：ARM64 libmpv 未打包，不能播放。';
     console.info(`VidAll_Player native: ${this.runtimeInfo}; ${this.nativeStatus}`);
+    this.loadSavedWebDavConfig();
     this.prepareLocalVideo().then(() => {
-      console.info(`VidAll_Player: prepareLocalVideo done, url = ${this.url}`);
+      console.info(`VidAll_Player: prepareLocalVideo done`);
       this.tryAutoPlay();
     }).catch((e: Error) => {
       console.error(`VidAll_Player: prepareLocalVideo failed: ${e}`);
@@ -72,17 +86,73 @@ struct Index {
     }
   }
 
+  private getWebDavConfig(): WebDavConfig {
+    return {
+      endpoint: this.webDavEndpoint.trim(),
+      username: this.webDavUsername.trim(),
+      password: this.webDavPassword
+    };
+  }
+
+  private async loadSavedWebDavConfig(): Promise<void> {
+    try {
+      const saved = await new WebDavService(getContext(this)).loadSavedConfig();
+      this.webDavEndpoint = saved.endpoint;
+      this.webDavUsername = saved.username;
+    } catch (_) {
+      this.nativeStatus = '无法读取已保存的 WebDAV 配置。';
+    }
+  }
+
+  private async browseWebDav(directoryUrl?: string): Promise<void> {
+    const config = this.getWebDavConfig();
+    const generation = ++this.webDavBrowseGeneration;
+    this.isWebDavLoading = true;
+    try {
+      await new WebDavService(getContext(this)).saveConfig(config);
+      const entries = await new WebDavService(getContext(this)).listDirectory(config, directoryUrl);
+      if (generation !== this.webDavBrowseGeneration) {
+        return;
+      }
+      this.webDavEntries = entries;
+      this.webDavDirectory = directoryUrl ?? config.endpoint;
+      this.nativeStatus = `已列出 ${entries.length} 个 WebDAV 项目。`;
+    } catch (error) {
+      if (generation === this.webDavBrowseGeneration) {
+        this.nativeStatus = error instanceof Error ? error.message : '列出 WebDAV 目录失败。';
+      }
+    } finally {
+      if (generation === this.webDavBrowseGeneration) {
+        this.isWebDavLoading = false;
+      }
+    }
+  }
+
+  private openWebDavEntry(entry: WebDavEntry): void {
+    if (this.isWebDavLoading) {
+      return;
+    }
+    if (entry.isDirectory) {
+      this.browseWebDav(entry.url);
+      return;
+    }
+    this.url = entry.url;
+    this.isWebDavSource = true;
+    this.loadVideo();
+  }
+
   private tryAutoPlay(): void {
     if (this.playerHandle <= 0 || this.url.length === 0 || this.surfaceId.length === 0) {
       return;
     }
-    console.info(`VidAll_Player: auto-playing, url = '${this.url}', surfaceId = ${this.surfaceId}`);
+    console.info(`VidAll_Player: auto-playing, surfaceId = ${this.surfaceId}`);
     this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
     console.info(`VidAll_Player: attachSurface status = ${this.nativeStatus}`);
-    this.nativeStatus = libentry.load(this.playerHandle, this.url);
-    console.info(`VidAll_Player: load status = ${this.nativeStatus}`);
+    this.nativeStatus = libentry.load(this.playerHandle, this.url,
+      this.isWebDavSource ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}` : '');
+    console.info(`VidAll_Player: load submitted`);
     this.isPlaying = true;
-    // Start polling for frame data (for PixelMap display)
+    // 启动帧轮询，供 PixelMap 回退渲染使用。
     this.startFramePoll();
   }
 
@@ -90,12 +160,27 @@ struct Index {
     if (this.framePollTimer >= 0) {
       return;
     }
-    // Poll frames at ~30fps for PixelMap display
+    // 以约 30fps 轮询帧数据，供 PixelMap 显示。
     this.framePollTimer = setInterval(() => {
       this.pollFrame();
     }, 33);
-    // Status poll every 3 seconds
+    // 每 3 秒轮询一次播放器状态。
     setInterval(() => this.pollStatus(), 3000);
+  }
+
+  private releasePixelMapBuffers(): void {
+    for (const pixelMap of this.pixelMapBuffers) {
+      try {
+        pixelMap.release();
+      } catch (_) {
+        // The PixelMap may already have been released after a failed write.
+      }
+    }
+    this.pixelMapBuffers = [];
+    this.pixelMapBufferIndex = 0;
+    this.pixelMapWidth = 0;
+    this.pixelMapHeight = 0;
+    this.videoPixelMap = null;
   }
 
   private pollFrame(): void {
@@ -103,37 +188,33 @@ struct Index {
       return;
     }
     const frameData: FrameData | null = libentry.getFrameData(this.playerHandle) as FrameData | null;
-    if (frameData === null || frameData === undefined) {
+    if (frameData === null || frameData === undefined || frameData.width <= 0 || frameData.height <= 0) {
       return;
     }
     try {
-      const w = frameData.width;
-      const h = frameData.height;
-      if (w <= 0 || h <= 0) {
-        return;
-      }
-      // Reuse existing PixelMap if dimensions match
-      if (this.videoPixelMap !== null) {
-        try {
-          // Write data directly into existing PixelMap
-          this.videoPixelMap.writeBufferToPixels(frameData.data);
-          return;
-        } catch (e) {
-          // Fallback to creating new PixelMap
-          this.videoPixelMap.release();
-          this.videoPixelMap = null;
-        }
-      }
       const opts: image.InitializationOptions = {
-        size: { width: w, height: h },
+        size: { width: frameData.width, height: frameData.height },
         srcPixelFormat: image.PixelMapFormat.RGBA_8888,
         pixelFormat: image.PixelMapFormat.RGBA_8888,
         alphaType: image.AlphaType.OPAQUE,
       };
-      this.videoPixelMap = image.createPixelMapSync(frameData.data, opts);
+      if (this.videoPixelMap !== null &&
+        (this.pixelMapWidth !== frameData.width || this.pixelMapHeight !== frameData.height)) {
+        this.releasePixelMapBuffers();
+      }
+      const nextBuffer = this.pixelMapBuffers[this.pixelMapBufferIndex];
+      if (nextBuffer === undefined) {
+        this.pixelMapBuffers.push(image.createPixelMapSync(frameData.data, opts));
+        this.pixelMapWidth = frameData.width;
+        this.pixelMapHeight = frameData.height;
+      } else {
+        nextBuffer.writeBufferToPixels(frameData.data);
+      }
+      this.videoPixelMap = this.pixelMapBuffers[this.pixelMapBufferIndex];
+      this.pixelMapBufferIndex = (this.pixelMapBufferIndex + 1) % 2;
       this.showVideo = true;
-    } catch (e) {
-      // PixelMap creation may fail on first few frames; ignore
+    } catch (_) {
+      this.releasePixelMapBuffers();
     }
   }
 
@@ -160,7 +241,8 @@ struct Index {
       return;
     }
     this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
-    this.nativeStatus = libentry.load(this.playerHandle, this.url);
+    this.nativeStatus = libentry.load(this.playerHandle, this.url,
+      this.isWebDavSource ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}` : '');
     this.isPlaying = true;
     this.startFramePoll();
   }
@@ -193,10 +275,7 @@ struct Index {
       clearInterval(this.framePollTimer);
       this.framePollTimer = -1;
     }
-    if (this.videoPixelMap !== null) {
-      this.videoPixelMap.release();
-      this.videoPixelMap = null;
-    }
+    this.releasePixelMapBuffers();
   }
 
   private pollStatus(): void {
@@ -228,7 +307,8 @@ struct Index {
   }
 
   build() {
-    Column({ space: 16 }) {
+    Scroll() {
+      Column({ space: 16 }) {
       Text('VidAll Player')
         .fontSize(36)
         .fontWeight(FontWeight.Bold)
@@ -289,13 +369,90 @@ struct Index {
         .fontColor('#8FA7C5')
         .width('88%')
 
-      TextInput({ text: this.url, placeholder: '输入 HTTP / HTTPS / WebDAV 视频 URL' })
+      TextInput({ text: this.url, placeholder: '输入 HTTP / HTTPS 视频 URL' })
         .id('video-url-input')
         .width('88%')
         .fontSize(17)
         .onChange((value: string) => {
           this.url = value;
+          this.isWebDavSource = false;
         })
+
+      Column({ space: 8 }) {
+        Text('WebDAV 媒体目录')
+          .fontSize(20)
+          .fontWeight(FontWeight.Medium)
+          .fontColor('#DDE8F8')
+          .width('100%')
+        TextInput({ text: this.webDavEndpoint, placeholder: 'WebDAV 地址，例如 https://example.com/dav/media/' })
+          .width('100%')
+          .onChange((value: string) => this.webDavEndpoint = value)
+        Row({ space: 8 }) {
+          TextInput({ text: this.webDavUsername, placeholder: '用户名' })
+            .layoutWeight(1)
+            .onChange((value: string) => this.webDavUsername = value)
+          TextInput({ text: this.webDavPassword, placeholder: '密码' })
+            .layoutWeight(1)
+            .type(InputType.Password)
+            .onChange((value: string) => this.webDavPassword = value)
+          Button(this.isWebDavLoading ? '读取中' : '列出目录')
+            .enabled(!this.isWebDavLoading)
+            .backgroundColor('#2F7DE1')
+            .onClick(() => this.browseWebDav())
+        }
+        if (this.webDavDirectory.length > 0) {
+          Text(this.webDavDirectory)
+            .fontSize(13)
+            .fontColor('#8FA7C5')
+            .maxLines(1)
+        }
+        if (this.webDavEntries.length === 0 && !this.isWebDavLoading) {
+          Text('目录中没有可播放的视频或子目录。')
+            .fontSize(15)
+            .fontColor('#8FA7C5')
+            .padding({ top: 8, bottom: 8 })
+        } else {
+          Text('选择目录继续浏览；选择视频将立即加载播放。')
+            .fontSize(14)
+            .fontColor('#AFC6E9')
+          Column({ space: 8 }) {
+            ForEach(this.webDavEntries, (entry: WebDavEntry) => {
+              Button() {
+                Row({ space: 10 }) {
+                  Text(entry.isDirectory ? '目录' : '视频')
+                    .fontSize(14)
+                    .fontColor(entry.isDirectory ? '#B9DFFF' : '#B8F4D9')
+                    .width(40)
+                  Text(entry.name)
+                    .fontSize(18)
+                    .fontColor('#F4F7FB')
+                    .layoutWeight(1)
+                    .maxLines(1)
+                  if (!entry.isDirectory && entry.size > 0) {
+                    Text(`${Math.ceil(entry.size / 1024 / 1024)} MB`)
+                      .fontSize(14)
+                      .fontColor('#B7C8DE')
+                  }
+                }
+                .width('100%')
+              }
+              .id(`webdav-entry-${entry.url}`)
+              .width('100%')
+              .height(52)
+              .enabled(!this.isWebDavLoading)
+              .padding({ left: 12, right: 12 })
+              .backgroundColor(entry.isDirectory ? '#1B4C79' : '#17624C')
+              .borderRadius(8)
+              .onClick(() => this.openWebDavEntry(entry))
+            }, (entry: WebDavEntry) => entry.url)
+          }
+          .width('100%')
+        }
+      }
+      .width('88%')
+      .padding(12)
+      .border({ width: 1, color: '#426991', radius: 10 })
+      .backgroundColor('#0C1A2A')
 
       Row({ space: 12 }) {
         Button('加载视频')
@@ -334,12 +491,14 @@ struct Index {
             }
           })
       }
+      }
+      .width('100%')
+      .justifyContent(FlexAlign.Start)
+      .alignItems(HorizontalAlign.Center)
+      .padding(28)
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
     .backgroundColor('#102033')
-    .padding(28)
   }
 }

@@ -16,7 +16,7 @@ export interface LibMpvNapi {
   createPlayer(): number;
   attachSurface(handle: number, surfaceId: string): string;
   detachSurface(handle: number): string;
-  load(handle: number, url: string): string;
+  load(handle: number, url: string, authorization: string): string;
   setPause(handle: number, paused: boolean): string;
   seekRelative(handle: number, seconds: number): string;
   seekPercent(handle: number, percent: number): string;
