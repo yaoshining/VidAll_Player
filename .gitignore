@@ -15,3 +15,17 @@ oh_modules/
 .vscode/
 .DS_Store
 *.log
+
+# Candidate release evidence (directory placeholders are tracked)
+release/**
+!release/**/.gitkeep
+
+# Generated HAR compatibility source
+packages/vidall-player/BuildProfile.ets
+
+# Keep the required empty boundary directories under version control
+!scripts/build/
+!scripts/build/.gitkeep
+!release/
+!release/**/
+!release/**/.gitkeep

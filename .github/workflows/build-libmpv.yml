@@ -3,12 +3,32 @@ name: 构建 libmpv（ARM64 OpenHarmony）
 on:
   pull_request:
     paths:
+      # Native sources, toolchain configuration, and dependency changes can alter libmpv output.
       - 'native/**'
+      - 'entry/src/main/cpp/**'
+      - 'build-profile.json5'
+      - 'hvigorfile.ts'
+      - 'oh-package.json5'
+      - 'oh-package-lock.json5'
+      - 'entry/build-profile.json5'
+      - 'entry/hvigorfile.ts'
+      - 'entry/oh-package.json5'
+      - 'entry/oh-package-lock.json5'
       - '.github/workflows/build-libmpv.yml'
   push:
     branches: [main]
     paths:
+      # Keep main artifacts current whenever inputs that affect native builds change.
       - 'native/**'
+      - 'entry/src/main/cpp/**'
+      - 'build-profile.json5'
+      - 'hvigorfile.ts'
+      - 'oh-package.json5'
+      - 'oh-package-lock.json5'
+      - 'entry/build-profile.json5'
+      - 'entry/hvigorfile.ts'
+      - 'entry/oh-package.json5'
+      - 'entry/oh-package-lock.json5'
       - '.github/workflows/build-libmpv.yml'
   workflow_dispatch:
 

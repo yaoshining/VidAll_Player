@@ -27,6 +27,17 @@ devecocli run --module entry --device <设备序列号>
 devecocli log --bundle-name com.yaoshining.vidallplayer --from 5m --tail 100
 ```
 
+## 自动化测试
+
+`entry/src/ohosTest/` 包含 `@vidall/player` 的 Hypium 端侧单元测试，覆盖媒体输入失败时的结构化脱敏错误、会话状态和事件顺序，以及释放后的命令拒绝。测试依赖真实 HarmonyOS 设备或模拟器，执行前先构建并安装测试包，再运行：
+
+```bash
+hdc shell aa test -b com.yaoshining.vidallplayer -m entry_test \
+  -s unittest OpenHarmonyTestRunner
+```
+
+GitHub Actions 的 `验证 ArkTS 测试模块` 任务会在 PR 和 `main` 的相关变更中构建 HAR 与测试模块，以防止测试代码或依赖关系失效。由于 GitHub 托管运行器没有可用的 HarmonyOS 设备，该任务不宣称已执行端侧 Hypium 用例；端侧执行仍需在受控设备运行上述命令。
+
 ## 原生构建工作流
 
 工作流 `.github/workflows/build-libmpv.yml` 在 Ubuntu 22.04 上从锁定提交构建 ARM64 OpenHarmony `libmpv.so`，并上传 `libmpv-ohos-arm64-v8a` 工件。固定来源记录在 `native/config/sources.lock.json`。
