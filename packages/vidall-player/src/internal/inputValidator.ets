@@ -58,6 +58,11 @@ function validateSubtitle(subtitle: ExternalSubtitle): void {
   parseUri(subtitle.uri);
 }
 
+function isLoopbackAuthority(authority: string): boolean {
+  return /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(authority) ||
+    /^\[::1\](?::\d+)?$/.test(authority);
+}
+
 export function validateMediaSource(source: MediaSource): void {
   if (source.uri.length === 0) {
     throw inputFailure('INVALID_URI', 'Media URI must not be empty.');
@@ -83,7 +88,7 @@ export function validateMediaSource(source: MediaSource): void {
     if (source.kind === 'https' && parsed.scheme !== 'https') {
       throw inputFailure('URI_KIND_MISMATCH', 'HTTPS media source requires an HTTPS URI.');
     }
-    if (source.kind === 'localhostProxy' && parsed.authority.indexOf('localhost') !== 0 && parsed.authority.indexOf('127.0.0.1') !== 0) {
+    if (source.kind === 'localhostProxy' && !isLoopbackAuthority(parsed.authority)) {
       throw inputFailure('INVALID_LOCALHOST_PROXY', 'Localhost proxy source must target localhost.');
     }
   }

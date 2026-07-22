@@ -9,7 +9,8 @@ import {
 import { VidAllPlayer } from '../public/playerContract';
 import { CommandQueue } from './commandQueue';
 import { validateMediaSource } from './inputValidator';
-import { lifecycleFailure } from './playerFailure';
+import { lifecycleFailure, PlayerFailure } from './playerFailure';
+import { redactError } from './redaction';
 import { SessionStateMachine } from './stateMachine';
 
 export class PlayerSession implements VidAllPlayer {
@@ -60,20 +61,17 @@ export class PlayerSession implements VidAllPlayer {
     return this.enqueue('load', () => {
       try {
         validateMediaSource(source);
-      } catch (_) {
-        this.stateMachine.transition('error');
-        this.stateMachine.emit({
-          type: 'error',
-          sequence: 0,
-          error: {
-            domain: 'input',
-            code: 'INVALID_MEDIA_SOURCE',
-            message: 'Media source validation failed.',
-            retryable: false,
-            context: {}
-          }
+      } catch (error) {
+        const failure: PlayerFailure = error instanceof PlayerFailure ? error : new PlayerFailure({
+          domain: 'input',
+          code: 'INVALID_MEDIA_SOURCE',
+          message: 'Media source validation failed.',
+          retryable: false,
+          context: {}
         });
-        throw new Error('Media source validation failed.');
+        this.stateMachine.transition('error');
+        this.stateMachine.emit({ type: 'error', sequence: 0, error: redactError(failure.playerError) });
+        throw failure;
       }
       this.source = source;
       this.stateMachine.transition('preparing');
