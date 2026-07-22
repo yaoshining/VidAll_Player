@@ -18,6 +18,11 @@ export interface LibMpvNapi {
   detachSurface(handle: number): string;
   load(handle: number, url: string): string;
   setPause(handle: number, paused: boolean): string;
+  seekRelative(handle: number, seconds: number): string;
+  seekPercent(handle: number, percent: number): string;
+  setSpeed(handle: number, speed: number): string;
+  setVolume(handle: number, volume: number): string;
+  setMuted(handle: number, muted: boolean): string;
   stop(handle: number): string;
   release(handle: number): string;
   getPlayerStatus(handle: number): string;

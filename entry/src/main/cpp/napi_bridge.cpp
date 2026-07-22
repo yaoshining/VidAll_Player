@@ -2,6 +2,7 @@
 #include <hilog/log.h>
 #include <ace/xcomponent/native_interface_xcomponent.h>
 
+#include <cmath>
 #include <cstdint>
 
 constexpr unsigned int VIDALL_LOG_DOMAIN = 0xA04d50;
@@ -110,6 +111,14 @@ bool GetHandleArgument(napi_env env, napi_callback_info info, int64_t& handle)
     return argc > 0 && napi_get_value_int64(env, args[0], &handle) == napi_ok && handle > 0;
 }
 
+bool GetFiniteDoubleArgument(napi_env env, napi_callback_info info, size_t index, double& value)
+{
+    size_t argc = 3;
+    napi_value args[3] = {nullptr, nullptr, nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    return argc > index && napi_get_value_double(env, args[index], &value) == napi_ok && std::isfinite(value);
+}
+
 #if VIDALL_MPV_AVAILABLE
 
 class PlayerSession {
@@ -205,15 +214,41 @@ public:
         return mpv_command_async(player_.get(), 3, command) >= 0 ? "已停止播放" : "停止播放失败";
     }
 
-    std::string Seek(double seconds)
+    std::string Seek(double value, const char* mode)
     {
         if (!player_) {
             return "播放器已释放";
         }
-        char position[32] = {0};
-        std::snprintf(position, sizeof(position), "%.3f", seconds);
-        const char* command[] = {"seek", position, "absolute+exact", nullptr};
+        char position[64] = {0};
+        const int written = std::snprintf(position, sizeof(position), "%.17g", value);
+        if (written < 0 || static_cast<size_t>(written) >= sizeof(position)) {
+            return "跳转参数格式化失败";
+        }
+        const char* command[] = {"seek", position, mode, nullptr};
         return mpv_command_async(player_.get(), 4, command) >= 0 ? "已提交跳转请求" : "跳转请求失败";
+    }
+
+    std::string SetOption(const char* name, double value)
+    {
+        if (!player_) {
+            return "播放器已释放";
+        }
+        char text[64] = {0};
+        const int written = std::snprintf(text, sizeof(text), "%.17g", value);
+        if (written < 0 || static_cast<size_t>(written) >= sizeof(text)) {
+            return "设置参数格式化失败";
+        }
+        const char* command[] = {"set", name, text, nullptr};
+        return mpv_command_async(player_.get(), 5, command) >= 0 ? "已提交设置请求" : "设置请求失败";
+    }
+
+    std::string SetMuted(bool muted)
+    {
+        if (!player_) {
+            return "播放器已释放";
+        }
+        const char* command[] = {"set", "mute", muted ? "yes" : "no", nullptr};
+        return mpv_command_async(player_.get(), 6, command) >= 0 ? "已提交静音设置" : "静音设置失败";
     }
 
     std::string GetPlayerStatus()
@@ -1056,6 +1091,85 @@ napi_value SetPause(napi_env env, napi_callback_info info)
 #endif
 }
 
+napi_value SeekRelative(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    double seconds = 0;
+    if (!GetHandleArgument(env, info, handle) || !GetFiniteDoubleArgument(env, info, 1, seconds)) {
+        return CreateString(env, "跳转参数无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->Seek(seconds, "relative+exact") : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value SeekPercent(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    double percent = 0;
+    if (!GetHandleArgument(env, info, handle) || !GetFiniteDoubleArgument(env, info, 1, percent) || percent < 0 || percent > 100) {
+        return CreateString(env, "百分比跳转参数无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->Seek(percent, "absolute-percent+exact") : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value SetSpeed(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    double speed = 0;
+    if (!GetHandleArgument(env, info, handle) || !GetFiniteDoubleArgument(env, info, 1, speed) || speed <= 0) {
+        return CreateString(env, "播放速度参数无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->SetOption("speed", speed) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value SetVolume(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    double volume = 0;
+    if (!GetHandleArgument(env, info, handle) || !GetFiniteDoubleArgument(env, info, 1, volume) || volume < 0 || volume > 100) {
+        return CreateString(env, "音量参数无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->SetOption("volume", volume) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value SetMuted(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2] = {nullptr, nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    int64_t handle = 0;
+    bool muted = false;
+    if (argc != 2 || napi_get_value_int64(env, args[0], &handle) != napi_ok || handle <= 0 ||
+        napi_get_value_bool(env, args[1], &muted) != napi_ok) {
+        return CreateString(env, "静音参数无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->SetMuted(muted) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
 napi_value Stop(napi_env env, napi_callback_info info)
 {
     int64_t handle = 0;
@@ -1131,6 +1245,11 @@ napi_value Init(napi_env env, napi_value exports)
         {"detachSurface", nullptr, DetachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"load", nullptr, Load, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setPause", nullptr, SetPause, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"seekRelative", nullptr, SeekRelative, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"seekPercent", nullptr, SeekPercent, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"setSpeed", nullptr, SetSpeed, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"setVolume", nullptr, SetVolume, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"setMuted", nullptr, SetMuted, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"stop", nullptr, Stop, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"release", nullptr, ReleasePlayer, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getPlayerStatus", nullptr, GetPlayerStatus, nullptr, nullptr, nullptr, napi_default, nullptr},
