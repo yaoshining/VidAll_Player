@@ -187,10 +187,15 @@ public:
         return "XComponent Surface 已解绑";
     }
 
-    std::string Load(const std::string& url)
+    std::string Load(const std::string& url, const std::string& authorization)
     {
         if (!player_ || url.empty()) {
             return player_ ? "请输入有效的视频 URL" : "播放器已释放";
+        }
+        // Configure credentials per media load so they cannot leak into later requests.
+        const int headerResult = mpv_set_property_string(player_.get(), "http-header-fields", authorization.c_str());
+        if (headerResult < 0) {
+            return "设置网络认证失败";
         }
         const char* command[] = {"loadfile", url.c_str(), "replace", nullptr};
         return mpv_command_async(player_.get(), 1, command) >= 0 ? "已提交加载请求" : "libmpv 拒绝加载请求";
@@ -1062,12 +1067,14 @@ napi_value Load(napi_env env, napi_callback_info info)
 {
     int64_t handle = 0;
     std::string url;
-    if (!GetHandleArgument(env, info, handle) || !GetStringArgument(env, info, 1, url)) {
+    std::string authorization;
+    if (!GetHandleArgument(env, info, handle) || !GetStringArgument(env, info, 1, url) ||
+        !GetStringArgument(env, info, 2, authorization)) {
         return CreateString(env, "请输入有效的视频 URL");
     }
 #if VIDALL_MPV_AVAILABLE
     auto session = FindSession(handle);
-    return CreateString(env, session ? session->Load(url) : "播放器不存在或已释放");
+    return CreateString(env, session ? session->Load(url, authorization) : "播放器不存在或已释放");
 #else
     return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
 #endif
