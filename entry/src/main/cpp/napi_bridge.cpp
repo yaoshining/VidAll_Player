@@ -304,6 +304,7 @@ public:
         mpv_node trackList{};
         if (mpv_get_property(player_.get(), "track-list", MPV_FORMAT_NODE, &trackList) < 0 ||
             trackList.format != MPV_FORMAT_NODE_ARRAY) {
+            mpv_free_node_contents(&trackList);
             return tracks;
         }
         // 读取当前选中的音轨/字幕 ID，自行计算 selected 字段。
@@ -1426,7 +1427,12 @@ napi_value GetTracks(napi_env env, napi_callback_info info)
         return tracks;
     }
     auto session = FindSession(handle);
-    return session ? session->GetTracks(env) : nullptr;
+    if (!session) {
+        napi_value tracks = nullptr;
+        napi_create_array(env, &tracks);
+        return tracks;
+    }
+    return session->GetTracks(env);
 #else
     napi_value tracks = nullptr;
     napi_create_array(env, &tracks);

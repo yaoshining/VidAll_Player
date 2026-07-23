@@ -129,11 +129,32 @@ export function parseRawHttpPropfindResponse(responseText: string): string {
       return decoded;
     }
     const chunkEnd = findUtf8ChunkEnd(body, position, size);
-    if (chunkEnd < 0 || body.substring(chunkEnd, chunkEnd + 2) !== '\r\n') {
+    // chunkEnd < 0 表示分块边界切断了 UTF-8 多字节序列，
+    // 此时可安全截断到最后一个完整字符边界，丢弃尾部不完整字节。
+    let safeEnd = chunkEnd;
+    if (chunkEnd < 0) {
+      // 回退到 position 之前的最后一个完整字符
+      let scan = position;
+      let lastSafe = position;
+      let consumed = 0;
+      while (scan < body.length && consumed < size) {
+        const charLen = utf8ByteLengthAt(body, scan);
+        if (consumed + charLen > size) {
+          break;
+        }
+        consumed += charLen;
+        const code = body.charCodeAt(scan);
+        scan += code >= 0xD800 && code <= 0xDBFF && charLen === 4 ? 2 : 1;
+        lastSafe = scan;
+      }
+      safeEnd = lastSafe;
+    }
+    const trailerPos = Math.max(safeEnd, position + size);
+    if (body.substring(trailerPos, trailerPos + 2) !== '\r\n') {
       throw new Error('WebDAV 分块响应不完整。');
     }
-    decoded += body.substring(position, chunkEnd);
-    position = chunkEnd + 2;
+    decoded += body.substring(position, safeEnd);
+    position = trailerPos + 2;
   }
 }
 

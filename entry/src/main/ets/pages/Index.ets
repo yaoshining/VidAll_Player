@@ -28,8 +28,8 @@ struct Index {
   private pixelMapWidth: number = 0;
   private pixelMapHeight: number = 0;
   @State webDavEndpoint: string = 'http://192.168.3.59:5005';
-  @State webDavUsername: string = 'yao';
-  @State webDavPassword: string = 'Ysn90881266';
+  @State webDavUsername: string = '';
+  @State webDavPassword: string = '';
   @State webDavEntries: WebDavEntry[] = [];
   @State webDavDirectory: string = '';
   @State isWebDavLoading: boolean = false;

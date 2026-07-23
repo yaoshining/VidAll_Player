@@ -59,9 +59,14 @@ const SUPPORTED_SUBTITLE_FORMATS: string[] = [
 ];
 
 export function validateExternalSubtitle(subtitle: ExternalSubtitle): void {
-  parseUri(subtitle.uri);
+  const uri = parseUri(subtitle.uri);
+  if (uri.scheme !== 'http' && uri.scheme !== 'https') {
+    throw inputFailure('UNSUPPORTED_SUBTITLE_FORMAT',
+      '外挂字幕仅支持 HTTP/HTTPS 协议 (External subtitle only supports HTTP/HTTPS).');
+  }
   if (subtitle.format !== undefined && SUPPORTED_SUBTITLE_FORMATS.indexOf(subtitle.format) < 0) {
-    throw inputFailure('UNSUPPORTED_SUBTITLE_FORMAT', 'Unsupported external subtitle format.');
+    throw inputFailure('UNSUPPORTED_SUBTITLE_FORMAT',
+      '不支持的外挂字幕格式 (Unsupported external subtitle format).');
   }
 }
 
