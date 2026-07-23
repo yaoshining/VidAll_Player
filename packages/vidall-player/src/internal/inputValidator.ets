@@ -54,8 +54,15 @@ function validateHeaders(headers?: Record<string, string>): void {
   }
 }
 
-function validateSubtitle(subtitle: ExternalSubtitle): void {
+const SUPPORTED_SUBTITLE_FORMATS: string[] = [
+  'srt', 'ass', 'ssa', 'webvtt', 'pgs', 'vobsub'
+];
+
+export function validateExternalSubtitle(subtitle: ExternalSubtitle): void {
   parseUri(subtitle.uri);
+  if (subtitle.format !== undefined && SUPPORTED_SUBTITLE_FORMATS.indexOf(subtitle.format) < 0) {
+    throw inputFailure('UNSUPPORTED_SUBTITLE_FORMAT', 'Unsupported external subtitle format.');
+  }
 }
 
 function isLoopbackAuthority(authority: string): boolean {
@@ -95,7 +102,7 @@ export function validateMediaSource(source: MediaSource): void {
   validateHeaders(source.headers);
   if (source.externalSubtitles !== undefined) {
     for (let index = 0; index < source.externalSubtitles.length; index++) {
-      validateSubtitle(source.externalSubtitles[index]);
+      validateExternalSubtitle(source.externalSubtitles[index]);
     }
   }
 }

@@ -1,6 +1,7 @@
-import libentry from 'libentry.so';
+import libentry, { LibMpvTrack } from 'libentry.so';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { image } from '@kit.ImageKit';
+import { splitTracks, trackLabel } from '../player/TrackPresentation';
 import { buildBasicAuthorization, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
 
 interface FrameData {
@@ -16,6 +17,7 @@ struct Index {
   @State nativeStatus: string = '正在检查 libmpv 原生模块...';
   @State runtimeInfo: string = '';
   @State url: string = '';
+  @State subtitleUrl: string = '';
   @State playerHandle: number = 0;
   @State surfaceId: string = '';
   @State isPlaying: boolean = false;
@@ -25,13 +27,15 @@ struct Index {
   private pixelMapBufferIndex: number = 0;
   private pixelMapWidth: number = 0;
   private pixelMapHeight: number = 0;
-  @State webDavEndpoint: string = '';
-  @State webDavUsername: string = '';
-  @State webDavPassword: string = '';
+  @State webDavEndpoint: string = 'http://192.168.3.59:5005';
+  @State webDavUsername: string = 'yao';
+  @State webDavPassword: string = 'Ysn90881266';
   @State webDavEntries: WebDavEntry[] = [];
   @State webDavDirectory: string = '';
   @State isWebDavLoading: boolean = false;
   @State isWebDavSource: boolean = false;
+  @State audioTracks: LibMpvTrack[] = [];
+  @State subtitleTracks: LibMpvTrack[] = [];
   private webDavBrowseGeneration: number = 0;
   private framePollTimer: number = -1;
 
@@ -97,8 +101,13 @@ struct Index {
   private async loadSavedWebDavConfig(): Promise<void> {
     try {
       const saved = await new WebDavService(getContext(this)).loadSavedConfig();
-      this.webDavEndpoint = saved.endpoint;
-      this.webDavUsername = saved.username;
+      // 仅在已保存配置非空时覆盖默认值，避免空配置清空占位
+      if (saved.endpoint.length > 0) {
+        this.webDavEndpoint = saved.endpoint;
+      }
+      if (saved.username.length > 0) {
+        this.webDavUsername = saved.username;
+      }
     } catch (_) {
       this.nativeStatus = '无法读取已保存的 WebDAV 配置。';
     }
@@ -119,7 +128,9 @@ struct Index {
       this.nativeStatus = `已列出 ${entries.length} 个 WebDAV 项目。`;
     } catch (error) {
       if (generation === this.webDavBrowseGeneration) {
-        this.nativeStatus = error instanceof Error ? error.message : '列出 WebDAV 目录失败。';
+        const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : JSON.stringify(error));
+        this.nativeStatus = message || '列出 WebDAV 目录失败。';
+        console.error(`VidAll_Player WebDAV browse error: ${message}`);
       }
     } finally {
       if (generation === this.webDavBrowseGeneration) {
@@ -150,8 +161,15 @@ struct Index {
     console.info(`VidAll_Player: attachSurface status = ${this.nativeStatus}`);
     this.nativeStatus = libentry.load(this.playerHandle, this.url,
       this.isWebDavSource ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}` : '');
+    // 如果填写了外挂字幕 URL，加载视频后立即附加
+    if (this.subtitleUrl.trim().length > 0) {
+      this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, this.subtitleUrl.trim());
+    }
+    this.audioTracks = [];
+    this.subtitleTracks = [];
     console.info(`VidAll_Player: load submitted`);
     this.isPlaying = true;
+    this.refreshTracksWhenReady();
     // 启动帧轮询，供 PixelMap 回退渲染使用。
     this.startFramePoll();
   }
@@ -222,6 +240,13 @@ struct Index {
     if (this.playerHandle > 0) {
       return true;
     }
+    // 先设置字体目录，确保 libass/fontconfig 能找到系统字体渲染字幕
+    try {
+      const cacheDir = getContext(this).cacheDir;
+      libentry.setDataDir(cacheDir);
+    } catch (e) {
+      console.error(`VidAll_Player: setDataDir failed: ${e}`);
+    }
     const handle = libentry.createPlayer();
     if (handle <= 0) {
       this.nativeStatus = '创建 libmpv 失败；请确认运行在 ARM64 真机且 libmpv.so 已打包。';
@@ -243,8 +268,78 @@ struct Index {
     this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
     this.nativeStatus = libentry.load(this.playerHandle, this.url,
       this.isWebDavSource ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}` : '');
+    // 如果填写了外挂字幕 URL，加载视频后立即附加
+    if (this.subtitleUrl.trim().length > 0) {
+      this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, this.subtitleUrl.trim());
+    }
+    this.audioTracks = [];
+    this.subtitleTracks = [];
     this.isPlaying = true;
+    this.refreshTracksWhenReady();
     this.startFramePoll();
+  }
+
+  private refreshTracks(): boolean {
+    if (this.playerHandle <= 0) {
+      return false;
+    }
+    const groups = splitTracks(libentry.getTracks(this.playerHandle));
+    this.audioTracks = groups.audio;
+    this.subtitleTracks = groups.subtitle;
+    return this.audioTracks.length > 0 || this.subtitleTracks.length > 0;
+  }
+
+  private refreshTracksWhenReady(): void {
+    let attempts = 0;
+    const timer = setInterval(() => {
+      attempts++;
+      if (this.refreshTracks() || attempts >= 10) {
+        clearInterval(timer);
+      }
+    }, 500);
+  }
+
+  private selectAudioTrack(track: LibMpvTrack): void {
+    if (this.playerHandle <= 0 || track.id === undefined) {
+      return;
+    }
+    this.nativeStatus = libentry.selectAudioTrack(this.playerHandle, track.id);
+    this.pollTracksAfterSwitch();
+  }
+
+  private loadExternalSubtitle(): void {
+    if (this.playerHandle <= 0) {
+      this.nativeStatus = '请先加载视频。';
+      return;
+    }
+    const uri = this.subtitleUrl.trim();
+    if (uri.length === 0) {
+      this.nativeStatus = '请先填写外挂字幕 URL。';
+      return;
+    }
+    this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, uri);
+    // 字幕加载后刷新轨道列表，让新字幕出现在字幕轨面板中
+    this.pollTracksAfterSwitch();
+  }
+
+  private selectSubtitleTrack(track: LibMpvTrack | null): void {
+    if (this.playerHandle <= 0) {
+      return;
+    }
+    this.nativeStatus = libentry.selectSubtitleTrack(this.playerHandle, track?.id ?? null);
+    this.pollTracksAfterSwitch();
+  }
+
+  private pollTracksAfterSwitch(): void {
+    this.refreshTracks();
+    let attempts = 0;
+    const timer = setInterval(() => {
+      attempts++;
+      this.refreshTracks();
+      if (attempts >= 4) {
+        clearInterval(timer);
+      }
+    }, 250);
   }
 
   private togglePlayback(): void {
@@ -254,6 +349,14 @@ struct Index {
     }
     this.isPlaying = !this.isPlaying;
     this.nativeStatus = libentry.setPause(this.playerHandle, !this.isPlaying);
+  }
+
+  private seekBy(deltaSeconds: number): void {
+    if (this.playerHandle <= 0) {
+      this.nativeStatus = '请先加载视频。';
+      return;
+    }
+    this.nativeStatus = libentry.seekRelative(this.playerHandle, deltaSeconds);
   }
 
   private stopPlayback(): void {
@@ -354,6 +457,39 @@ struct Index {
       .border({ width: 2, color: '#426991', radius: 12 })
       .backgroundColor('#07121F')
 
+      // 播放控制栏：紧贴视频画面，方便操作
+      Row({ space: 10 }) {
+        Button(this.isPlaying ? '暂停' : '播放')
+          .id('toggle-playback-button')
+          .fontSize(16)
+          .backgroundColor('#1A9A78')
+          .enabled(this.playerHandle > 0)
+          .onClick(() => this.togglePlayback())
+
+        Button('快退 10s')
+          .id('seek-backward-button')
+          .fontSize(16)
+          .backgroundColor('#4B6C8A')
+          .enabled(this.playerHandle > 0)
+          .onClick(() => this.seekBy(-10))
+
+        Button('快进 10s')
+          .id('seek-forward-button')
+          .fontSize(16)
+          .backgroundColor('#4B6C8A')
+          .enabled(this.playerHandle > 0)
+          .onClick(() => this.seekBy(10))
+
+        Button('停止')
+          .id('stop-video-button')
+          .fontSize(16)
+          .backgroundColor('#9B6A2F')
+          .enabled(this.playerHandle > 0)
+          .onClick(() => this.stopPlayback())
+      }
+      .width('88%')
+      .justifyContent(FlexAlign.Center)
+
       Text(this.runtimeInfo)
         .fontSize(15)
         .fontColor('#8FA7C5')
@@ -369,6 +505,62 @@ struct Index {
         .fontColor('#8FA7C5')
         .width('88%')
 
+      Column({ space: 8 }) {
+        Row() {
+          Text('音轨与字幕')
+            .fontSize(20)
+            .fontWeight(FontWeight.Medium)
+            .fontColor('#DDE8F8')
+            .layoutWeight(1)
+          Button('刷新轨道')
+            .id('refresh-tracks-button')
+            .enabled(this.playerHandle > 0)
+            .backgroundColor('#2F7DE1')
+            .onClick(() => this.refreshTracks())
+        }
+        if (this.audioTracks.length === 0 && this.subtitleTracks.length === 0) {
+          Text('加载包含多音轨或字幕的视频后显示轨道元数据。')
+            .fontSize(14)
+            .fontColor('#8FA7C5')
+        } else {
+          Text('音轨')
+            .fontSize(16)
+            .fontColor('#AFC6E9')
+          Row({ space: 8 }) {
+            ForEach(this.audioTracks, (track: LibMpvTrack) => {
+              Button(trackLabel(track))
+                .id(`audio-track-${track.id}`)
+                .fontSize(15)
+                .backgroundColor(track.selected ? '#1A9A78' : '#315473')
+                .onClick(() => this.selectAudioTrack(track))
+            }, (track: LibMpvTrack) => `audio-${track.id}-${track.selected}`)
+          }
+          .width('100%')
+          Text('字幕')
+            .fontSize(16)
+            .fontColor('#AFC6E9')
+          Row({ space: 8 }) {
+            Button('关闭字幕')
+              .id('subtitle-track-off')
+              .fontSize(15)
+              .backgroundColor(this.subtitleTracks.every((track: LibMpvTrack) => !track.selected) ? '#9B6A2F' : '#315473')
+              .onClick(() => this.selectSubtitleTrack(null))
+            ForEach(this.subtitleTracks, (track: LibMpvTrack) => {
+              Button(trackLabel(track))
+                .id(`subtitle-track-${track.id}`)
+                .fontSize(15)
+                .backgroundColor(track.selected ? '#1A9A78' : '#315473')
+                .onClick(() => this.selectSubtitleTrack(track))
+            }, (track: LibMpvTrack) => `subtitle-${track.id}-${track.selected}`)
+          }
+          .width('100%')
+        }
+      }
+      .width('88%')
+      .padding(12)
+      .border({ width: 1, color: '#426991', radius: 10 })
+      .backgroundColor('#0C1A2A')
+
       TextInput({ text: this.url, placeholder: '输入 HTTP / HTTPS 视频 URL' })
         .id('video-url-input')
         .width('88%')
@@ -377,6 +569,23 @@ struct Index {
           this.url = value;
           this.isWebDavSource = false;
         })
+
+      Row({ space: 8 }) {
+        TextInput({ text: this.subtitleUrl, placeholder: '外挂字幕 URL（可选，如 http://…/movie.srt）' })
+          .id('subtitle-url-input')
+          .layoutWeight(1)
+          .fontSize(15)
+          .onChange((value: string) => {
+            this.subtitleUrl = value;
+          })
+        Button('加载外挂字幕')
+          .id('load-external-subtitle-button')
+          .fontSize(15)
+          .enabled(this.playerHandle > 0 && this.subtitleUrl.trim().length > 0)
+          .backgroundColor('#2F7DE1')
+          .onClick(() => this.loadExternalSubtitle())
+      }
+      .width('88%')
 
       Column({ space: 8 }) {
         Text('WebDAV 媒体目录')
@@ -460,18 +669,6 @@ struct Index {
           .fontSize(18)
           .backgroundColor('#2F7DE1')
           .onClick(() => this.loadVideo())
-
-        Button(this.isPlaying ? '暂停' : '播放')
-          .id('toggle-playback-button')
-          .fontSize(18)
-          .backgroundColor('#1A9A78')
-          .onClick(() => this.togglePlayback())
-
-        Button('停止')
-          .id('stop-video-button')
-          .fontSize(18)
-          .backgroundColor('#9B6A2F')
-          .onClick(() => this.stopPlayback())
 
         Button('释放')
           .id('release-mpv-button')

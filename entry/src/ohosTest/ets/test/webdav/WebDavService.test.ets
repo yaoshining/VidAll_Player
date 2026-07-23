@@ -59,6 +59,12 @@ export default function webDavServiceTest() {
       expect(parseRawHttpPropfindResponse(response)).assertEqual('<root>value</root>');
     });
 
+    it('uses byte lengths when decoding UTF-8 chunked responses', 0, () => {
+      const response = 'HTTP/1.1 207 Multi-Status\r\nTransfer-Encoding: chunked\r\n\r\n' +
+        '6\r\n电影\r\n0\r\n\r\n';
+      expect(parseRawHttpPropfindResponse(response)).assertEqual('电影');
+    });
+
     it('keeps NetworkKit options for newer API levels', 0, () => {
       const options = createPropfindRequestOptions('alice', 'secret');
 

@@ -9,11 +9,15 @@ constexpr unsigned int VIDALL_LOG_DOMAIN = 0xA04d50;
 constexpr const char* VIDALL_LOG_TAG = "VidAllPlayer";
 #define MPV_LOG(level, ...) OH_LOG_Print(LOG_APP, level, VIDALL_LOG_DOMAIN, VIDALL_LOG_TAG, __VA_ARGS__)
 #include <cstdio>
+#include <cstdlib>
+#include <fstream>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <sys/stat.h>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 
 #if VIDALL_MPV_AVAILABLE
 #include <chrono>
@@ -144,6 +148,11 @@ public:
         mpv_set_option_string(player_.get(), "config", "no");
         mpv_set_option_string(player_.get(), "vo", "libmpv");
         mpv_set_option_string(player_.get(), "hwdec", "auto-safe");
+        // 字幕字体：libass 需要能找到字体才渲染。指向 HarmonyOS 系统字体目录。
+        mpv_set_option_string(player_.get(), "sub-fonts-dir", "/system/fonts");
+        mpv_set_option_string(player_.get(), "sub-font", "HarmonyOS Sans SC");
+        // 强制 ASS 字幕用默认样式，避免引用不存在的字体导致空白。
+        mpv_set_option_string(player_.get(), "sub-ass-override", "force");
         if (mpv_initialize(player_.get()) < 0) {
             player_.reset();
             error = "libmpv 初始化失败";
@@ -256,6 +265,103 @@ public:
         return mpv_command_async(player_.get(), 6, command) >= 0 ? "已提交静音设置" : "静音设置失败";
     }
 
+    std::string SelectTrack(const char* property, int64_t id)
+    {
+        if (!player_) {
+            return "播放器已释放";
+        }
+        int rc = 0;
+        if (id < 0) {
+            rc = mpv_set_property_string(player_.get(), property, "no");
+        } else {
+            rc = mpv_set_property(player_.get(), property, MPV_FORMAT_INT64, &id);
+        }
+        // 选字幕时确保可见性开启，避免之前被关闭后选了也不渲染。
+        if (rc >= 0 && std::string(property) == "sid" && id >= 0) {
+            mpv_set_property_string(player_.get(), "sub-visibility", "yes");
+        }
+        return rc >= 0 ? "已切换轨道" : "轨道切换失败";
+    }
+
+    std::string AddExternalSubtitle(const std::string& uri)
+    {
+        if (!player_ || uri.empty()) {
+            return player_ ? "字幕地址无效" : "播放器已释放";
+        }
+        // 使用同步命令而非异步，确保外挂字幕加载完成后才返回。
+        // sub-add 带 "select" 标志表示加载后立即选中该字幕轨。
+        const char* command[] = {"sub-add", uri.c_str(), "select", nullptr};
+        return mpv_command(player_.get(), command) >= 0 ? "已加载外挂字幕" : "外挂字幕加载失败";
+    }
+
+    napi_value GetTracks(napi_env env)
+    {
+        napi_value tracks = nullptr;
+        napi_create_array(env, &tracks);
+        if (!player_) {
+            return tracks;
+        }
+        mpv_node trackList{};
+        if (mpv_get_property(player_.get(), "track-list", MPV_FORMAT_NODE, &trackList) < 0 ||
+            trackList.format != MPV_FORMAT_NODE_ARRAY) {
+            return tracks;
+        }
+        // 读取当前选中的音轨/字幕 ID，自行计算 selected 字段。
+        // mpv 在某些版本下 track-list/N/selected 不会随 aid/sid 立即更新，
+        // 用属性值判断最可靠。
+        int64_t currentAid = 0;
+        int64_t currentSid = 0;
+        mpv_get_property(player_.get(), "aid", MPV_FORMAT_INT64, &currentAid);
+        mpv_get_property(player_.get(), "sid", MPV_FORMAT_INT64, &currentSid);
+        uint32_t outputIndex = 0;
+        for (int index = 0; index < trackList.u.list->num; index++) {
+            const mpv_node& item = trackList.u.list->values[index];
+            if (item.format != MPV_FORMAT_NODE_MAP) {
+                continue;
+            }
+            napi_value track = nullptr;
+            napi_create_object(env, &track);
+            int64_t trackId = 0;
+            std::string trackType;
+            for (int field = 0; field < item.u.list->num; field++) {
+                const char* key = item.u.list->keys[field];
+                const mpv_node& value = item.u.list->values[field];
+                if (key == nullptr) {
+                    continue;
+                }
+                if (std::string(key) == "id" && value.format == MPV_FORMAT_INT64) {
+                    trackId = value.u.int64;
+                } else if (std::string(key) == "type" && value.format == MPV_FORMAT_STRING && value.u.string != nullptr) {
+                    trackType = value.u.string;
+                }
+                napi_value property = nullptr;
+                if (value.format == MPV_FORMAT_INT64) {
+                    napi_create_int64(env, value.u.int64, &property);
+                } else if (value.format == MPV_FORMAT_FLAG) {
+                    napi_get_boolean(env, value.u.flag != 0, &property);
+                } else if (value.format == MPV_FORMAT_STRING && value.u.string != nullptr) {
+                    property = CreateString(env, value.u.string);
+                }
+                if (property != nullptr) {
+                    napi_set_named_property(env, track, key, property);
+                }
+            }
+            // 用 aid/sid 属性覆盖 selected，确保与实际选择一致。
+            bool selected = false;
+            if (trackType == "audio" && trackId == currentAid) {
+                selected = true;
+            } else if (trackType == "sub" && trackId == currentSid) {
+                selected = true;
+            }
+            napi_value selectedValue = nullptr;
+            napi_get_boolean(env, selected, &selectedValue);
+            napi_set_named_property(env, track, "selected", selectedValue);
+            napi_set_element(env, tracks, outputIndex++, track);
+        }
+        mpv_free_node_contents(&trackList);
+        return tracks;
+    }
+
     std::string GetPlayerStatus()
     {
         if (!player_) {
@@ -303,12 +409,40 @@ public:
             status += demuxer;
         }
         if (demuxer) mpv_free(demuxer);
+        int64_t aid = 0, sid = 0;
+        mpv_get_property(player_.get(), "aid", MPV_FORMAT_INT64, &aid);
+        mpv_get_property(player_.get(), "sid", MPV_FORMAT_INT64, &sid);
+        int subVisFlag = 0;
+        mpv_get_property(player_.get(), "sub-visibility", MPV_FORMAT_FLAG, &subVisFlag);
+        char trackInfo[96] = {0};
+        std::snprintf(trackInfo, sizeof(trackInfo), " aid:%lld sid:%lld subvis:%d",
+                      (long long)aid, (long long)sid, subVisFlag);
+        status += trackInfo;
         char* errorMsg = mpv_get_property_string(player_.get(), "error-text");
         if (errorMsg && errorMsg[0]) {
             status += " 错误:";
             status += errorMsg;
         }
         if (errorMsg) mpv_free(errorMsg);
+        // 当前字幕文本，用于诊断字幕是否被解码
+        char* subText = mpv_get_property_string(player_.get(), "sub-text");
+        if (subText && subText[0]) {
+            status += " 字幕文本:";
+            std::string st = subText;
+            if (st.length() > 50) {
+                st = st.substr(0, 50) + "…";
+            }
+            // 替换换行避免状态栏断行
+            for (char& c : st) {
+                if (c == '\n' || c == '\r') {
+                    c = ' ';
+                }
+            }
+            status += st;
+        } else {
+            status += " 字幕文本:(空)";
+        }
+        if (subText) mpv_free(subText);
         double cacheSpeed = 0;
         mpv_get_property(player_.get(), "cache-speed", MPV_FORMAT_DOUBLE, &cacheSpeed);
         char cacheInfo[64] = {0};
@@ -1177,6 +1311,73 @@ napi_value SetMuted(napi_env env, napi_callback_info info)
 #endif
 }
 
+napi_value SelectTrack(napi_env env, napi_callback_info info, const char* property)
+{
+    int64_t handle = 0;
+    if (!GetHandleArgument(env, info, handle)) {
+        return CreateString(env, "播放器句柄无效");
+    }
+    size_t argc = 2;
+    napi_value args[2] = {nullptr, nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    int64_t trackId = -1;
+    if (argc != 2) {
+        return CreateString(env, "轨道参数无效");
+    }
+    napi_valuetype argumentType = napi_undefined;
+    napi_typeof(env, args[1], &argumentType);
+    if (argumentType != napi_null &&
+        (napi_get_value_int64(env, args[1], &trackId) != napi_ok || trackId < 0)) {
+        return CreateString(env, "轨道参数无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->SelectTrack(property, trackId) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value SelectAudioTrack(napi_env env, napi_callback_info info)
+{
+    return SelectTrack(env, info, "aid");
+}
+
+napi_value SelectSubtitleTrack(napi_env env, napi_callback_info info)
+{
+    return SelectTrack(env, info, "sid");
+}
+
+napi_value AddExternalSubtitle(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    std::string uri;
+    if (!GetHandleArgument(env, info, handle) || !GetStringArgument(env, info, 1, uri)) {
+        return CreateString(env, "字幕地址无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->AddExternalSubtitle(uri) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value SetSubtitleDelay(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    double delaySeconds = 0;
+    if (!GetHandleArgument(env, info, handle) || !GetFiniteDoubleArgument(env, info, 1, delaySeconds)) {
+        return CreateString(env, "字幕延迟参数无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->SetOption("sub-delay", delaySeconds) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
 napi_value Stop(napi_env env, napi_callback_info info)
 {
     int64_t handle = 0;
@@ -1215,6 +1416,24 @@ napi_value ReleasePlayer(napi_env env, napi_callback_info info)
 #endif
 }
 
+napi_value GetTracks(napi_env env, napi_callback_info info)
+{
+#if VIDALL_MPV_AVAILABLE
+    int64_t handle = 0;
+    if (!GetHandleArgument(env, info, handle)) {
+        napi_value tracks = nullptr;
+        napi_create_array(env, &tracks);
+        return tracks;
+    }
+    auto session = FindSession(handle);
+    return session ? session->GetTracks(env) : nullptr;
+#else
+    napi_value tracks = nullptr;
+    napi_create_array(env, &tracks);
+    return tracks;
+#endif
+}
+
 napi_value GetPlayerStatus(napi_env env, napi_callback_info info)
 {
     int64_t handle = 0;
@@ -1233,8 +1452,7 @@ napi_value GetFrameData(napi_env env, napi_callback_info info)
 {
 #if VIDALL_MPV_AVAILABLE
     int64_t handle = 0;
-    if (!GetHandleArgument(env, info, handle)) {
-        return nullptr;
+    if (!GetHandleArgument(env, info, handle)) {        return nullptr;
     }
     auto session = FindSession(handle);
     return session ? session->GetFrameData(env) : nullptr;
@@ -1243,10 +1461,81 @@ napi_value GetFrameData(napi_env env, napi_callback_info info)
 #endif
 }
 
+// 设置字体搜索目录：fontconfig 内嵌配置指向 XDG_DATA_HOME/fonts，
+// 需要在 mpv_initialize 之前设置环境变量并拷贝系统字体到可写目录。
+napi_value SetDataDir(napi_env env, napi_callback_info info)
+{
+    std::string dataDir;
+    if (!GetStringArgument(env, info, 0, dataDir) || dataDir.empty()) {
+        return CreateString(env, "数据目录参数无效");
+    }
+    // 确保目录存在
+    mkdir(dataDir.c_str(), 0755);
+    std::string fontsDir = dataDir + "/fonts";
+    mkdir(fontsDir.c_str(), 0755);
+    std::string fontconfigDir = dataDir + "/fontconfig";
+    mkdir(fontconfigDir.c_str(), 0755);
+    // 设置 XDG 环境变量，让 fontconfig 在 <dataDir>/fonts 查找字体
+    setenv("XDG_DATA_HOME", dataDir.c_str(), 1);
+    setenv("XDG_CACHE_HOME", dataDir.c_str(), 1);
+    setenv("HOME", dataDir.c_str(), 1);
+    // 生成 fontconfig 配置文件，直接指向系统字体目录，绕过编译时路径
+    std::string confPath = fontconfigDir + "/fonts.conf";
+    std::ofstream confOut(confPath);
+    if (confOut.good()) {
+        confOut << "<?xml version=\"1.0\"?>\n"
+                << "<!DOCTYPE fontconfig SYSTEM \"fonts.dtd\">\n"
+                << "<fontconfig>\n"
+                << "  <dir>/system/fonts</dir>\n"
+                << "  <dir>" << fontsDir << "</dir>\n"
+                << "  <cachedir>" << dataDir << "/font-cache</cachedir>\n"
+                << "  <config></config>\n"
+                << "</fontconfig>\n";
+        confOut.close();
+        setenv("FONTCONFIG_FILE", confPath.c_str(), 1);
+        MPV_LOG(LOG_INFO, "SetDataDir: FONTCONFIG_FILE=%{public}s", confPath.c_str());
+    }
+#if VIDALL_MPV_AVAILABLE
+    // 从 /system/fonts 拷贝关键字体到可写目录（fontconfig 需要可读的字体文件）
+    const std::vector<std::string> fontFiles = {
+        "HarmonyOS_Sans_SC.ttf",
+        "HarmonyOS_Sans.ttf",
+        "NotoSansCJK-Regular.ttc"
+    };
+    int copied = 0;
+    for (const std::string& fontFile : fontFiles) {
+        std::string dst = fontsDir + "/" + fontFile;
+        // 已存在则跳过
+        std::ifstream existTest(dst);
+        if (existTest.good()) {
+            existTest.close();
+            copied++;
+            continue;
+        }
+        existTest.close();
+        std::string src = "/system/fonts/" + fontFile;
+        std::ifstream in(src, std::ios::binary);
+        std::ofstream out(dst, std::ios::binary);
+        if (in.good() && out.good()) {
+            out << in.rdbuf();
+            copied++;
+            MPV_LOG(LOG_INFO, "SetDataDir: copied %{public}s", fontFile.c_str());
+        }
+        in.close();
+        out.close();
+    }
+    MPV_LOG(LOG_INFO, "SetDataDir: dataDir=%{public}s fontsCopied=%{public}d", dataDir.c_str(), copied);
+    return CreateString(env, "字体目录已设置，拷贝 " + std::to_string(copied) + " 个字体");
+#else
+    return CreateString(env, "字体目录已设置（非 ARM64 环境）");
+#endif
+}
+
 napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptors[] = {
         {"getBuildInfo", nullptr, GetBuildInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"setDataDir", nullptr, SetDataDir, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"createPlayer", nullptr, CreatePlayer, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"attachSurface", nullptr, AttachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"detachSurface", nullptr, DetachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
@@ -1257,6 +1546,11 @@ napi_value Init(napi_env env, napi_value exports)
         {"setSpeed", nullptr, SetSpeed, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setVolume", nullptr, SetVolume, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setMuted", nullptr, SetMuted, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"selectAudioTrack", nullptr, SelectAudioTrack, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"selectSubtitleTrack", nullptr, SelectSubtitleTrack, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"addExternalSubtitle", nullptr, AddExternalSubtitle, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"setSubtitleDelay", nullptr, SetSubtitleDelay, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getTracks", nullptr, GetTracks, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"stop", nullptr, Stop, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"release", nullptr, ReleasePlayer, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getPlayerStatus", nullptr, GetPlayerStatus, nullptr, nullptr, nullptr, napi_default, nullptr},

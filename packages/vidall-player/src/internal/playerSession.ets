@@ -8,7 +8,7 @@ import {
 } from '../public/types';
 import { VidAllPlayer } from '../public/playerContract';
 import { CommandQueue } from './commandQueue';
-import { validateMediaSource } from './inputValidator';
+import { validateExternalSubtitle, validateMediaSource } from './inputValidator';
 import { lifecycleFailure, PlayerFailure } from './playerFailure';
 import { redactError } from './redaction';
 import { SessionStateMachine } from './stateMachine';
@@ -18,6 +18,7 @@ export class PlayerSession implements VidAllPlayer {
   private readonly stateMachine: SessionStateMachine = new SessionStateMachine();
   private surface?: PlayerSurface;
   private source?: MediaSource;
+  private tracks: PlayerTrack[] = [];
 
   constructor(options?: PlayerOptions) {
     if (options?.eventListener !== undefined) {
@@ -74,7 +75,11 @@ export class PlayerSession implements VidAllPlayer {
         throw failure;
       }
       this.source = source;
+      this.tracks = this.createExternalSubtitleTracks(source.externalSubtitles);
       this.stateMachine.transition('preparing');
+      if (this.tracks.length > 0) {
+        this.emitTracks();
+      }
     });
   }
 
@@ -131,12 +136,20 @@ export class PlayerSession implements VidAllPlayer {
     return this.enqueue('setMuted', () => {});
   }
 
-  selectTrack(_kind: PlayerTrackKind, id: number | null): Promise<void> {
+  selectTrack(kind: PlayerTrackKind, id: number | null): Promise<void> {
     return this.enqueue('selectTrack', () => {
+      this.requireActiveMedia('selectTrack', id === null ? 0 : id);
       if (id !== null && (!Number.isFinite(id) || !Number.isInteger(id) || id < 0)) {
         throw lifecycleFailure('INVALID_TRACK_ID', '音轨 ID 必须是非负整数。Track id must be a non-negative integer.');
       }
-      this.requireActiveMedia('selectTrack', id === null ? 0 : id);
+      const candidates = this.tracks.filter((track: PlayerTrack) => track.kind === kind);
+      if (id !== null && candidates.every((track: PlayerTrack) => track.id !== id)) {
+        throw lifecycleFailure('TRACK_NOT_FOUND', '指定的音轨或字幕轨道不存在。The requested track does not exist.');
+      }
+      for (let index = 0; index < candidates.length; index++) {
+        candidates[index].selected = id !== null && candidates[index].id === id;
+      }
+      this.emitTracks();
     });
   }
 
@@ -145,8 +158,16 @@ export class PlayerSession implements VidAllPlayer {
       if (this.source === undefined) {
         throw lifecycleFailure('INVALID_STATE', 'Adding subtitles requires loaded media.');
       }
-      const subtitleKind = subtitle.uri.indexOf('https://') === 0 ? 'https' : 'http';
-      validateMediaSource({ kind: subtitleKind, uri: subtitle.uri });
+      validateExternalSubtitle(subtitle);
+      const nextId = this.nextTrackId();
+      this.tracks.push({
+        id: nextId,
+        kind: 'subtitle',
+        title: subtitle.title,
+        selected: false,
+        recognitionStatus: subtitle.format === 'pgs' || subtitle.format === 'vobsub' ? 'recognized' : 'renderable'
+      });
+      this.emitTracks();
     });
   }
 
@@ -180,6 +201,7 @@ export class PlayerSession implements VidAllPlayer {
       this.stateMachine.release();
       this.surface = undefined;
       this.source = undefined;
+      this.tracks = [];
       resolve();
     });
   }
@@ -189,6 +211,36 @@ export class PlayerSession implements VidAllPlayer {
       operation();
       return Promise.resolve();
     });
+  }
+
+  private createExternalSubtitleTracks(subtitles?: ExternalSubtitle[]): PlayerTrack[] {
+    if (subtitles === undefined) {
+      return [];
+    }
+    const tracks: PlayerTrack[] = [];
+    for (let index = 0; index < subtitles.length; index++) {
+      const subtitle = subtitles[index];
+      tracks.push({
+        id: index + 1,
+        kind: 'subtitle',
+        title: subtitle.title,
+        selected: false,
+        recognitionStatus: subtitle.format === 'pgs' || subtitle.format === 'vobsub' ? 'recognized' : 'renderable'
+      });
+    }
+    return tracks;
+  }
+
+  private nextTrackId(): number {
+    let highestId = 0;
+    for (let index = 0; index < this.tracks.length; index++) {
+      highestId = Math.max(highestId, this.tracks[index].id);
+    }
+    return highestId + 1;
+  }
+
+  private emitTracks(): void {
+    this.stateMachine.emit({ type: 'tracks', sequence: 0, tracks: this.tracks.slice() });
   }
 
   private validateSurface(surface: PlayerSurface): void {
