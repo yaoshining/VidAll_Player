@@ -95,6 +95,17 @@ main() {
   [ "$(cat "$dep_dir/ffmpeg/file.txt")" = 'original' ] || fail '.git 文件形式的仓库也应被还原'
   assert_missing "$dep_dir/ffmpeg/untracked_file.txt"
 
+  # 父仓库的子目录（无 .git）不应被还原，避免 git -C 误操作父仓库
+  rm -rf "$dep_dir/ffmpeg" "$main_repo"
+  mkdir -p "$work_dir/.git"
+  printf 'config' > "$work_dir/.git/config"
+  mkdir -p "$dep_dir/arm64-build"
+  printf 'build-output\n' > "$dep_dir/arm64-build/output.txt"
+  printf 'modified\n' > "$dep_dir/arm64-build/output.txt"
+  reset_dependency_sources "$work_dir"
+  [ "$(cat "$dep_dir/arm64-build/output.txt")" = 'modified' ] || fail '无 .git 的子目录不应被还原（否则会误操作父仓库）'
+  rm -rf "$work_dir/.git"
+
   # libmpv 不存在时应正常退出
   rm -rf "$dep_dir"
   reset_dependency_sources "$work_dir"

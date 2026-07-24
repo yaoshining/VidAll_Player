@@ -36,6 +36,7 @@ mark_dependency_cache_prepared() {
 
 # 还原依赖源码到下载时的干净状态，确保补丁可以幂等应用。
 # 缓存命中时 download.sh 会跳过已有目录，但 patch.sh 需要干净的工作树。
+# 仅对独立 git 仓库（.git 存在的目录）执行还原，避免误操作父仓库的子目录。
 reset_dependency_sources() {
   local work_dir="$1"
   local dep_dir="$work_dir/libmpv"
@@ -45,7 +46,7 @@ reset_dependency_sources() {
   fi
 
   for dep in "$dep_dir"/*/; do
-    if git -C "$dep" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if [ -e "$dep/.git" ]; then
       echo "还原 $dep 到干净状态..."
       git -C "$dep" reset --hard
       git -C "$dep" clean -fd
