@@ -5,7 +5,7 @@ readonly ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly LOCK_FILE="$ROOT_DIR/native/config/sources.lock.json"
 readonly BUILD_REPOSITORY='https://github.com/mpv-ohos/libmpv-ohos-build.git'
 readonly BUILD_COMMIT='1bab837e662ffa47ce51efd0720d3ed7c4988944'
-readonly DEPENDENCY_CACHE_SCHEMA='2'
+readonly DEPENDENCY_CACHE_SCHEMA='4'
 readonly MESON_VERSION='1.7.0'
 readonly CACHE_ROOT="${VIDALL_PLAYER_CACHE_DIR:-${HOME:-$ROOT_DIR}/.cache/vidall-player}"
 readonly WORK_DIR="$CACHE_ROOT/libmpv-ohos-build"
@@ -32,6 +32,31 @@ mark_dependency_cache_prepared() {
 
   printf '%s\n' "$expected_commit" > "$temporary_marker"
   mv -- "$temporary_marker" "$commit_marker"
+}
+
+# 还原依赖源码到下载时的干净状态，确保补丁可以幂等应用。
+# 缓存命中时 download.sh 会跳过已有目录，但 patch.sh 需要干净的工作树。
+# 仅对 patches/<dep>/ 存在的依赖执行还原：重置无补丁的依赖（如 freetype）
+# 会触发不必要的重新构建，可能因缓存中残留的 pkg-config 文件改变构建配置
+# （例如 freetype 重新检测到 harfbuzz），最终导致链接错误。
+reset_dependency_sources() {
+  local work_dir="$1"
+  local dep_dir="$work_dir/libmpv"
+  local patches_dir="$work_dir/patches"
+
+  if [ ! -d "$dep_dir" ] || [ ! -d "$patches_dir" ]; then
+    return 0
+  fi
+
+  for patch_dep in "$patches_dir"/*/; do
+    [ -d "$patch_dep" ] || continue
+    local dep="$dep_dir/$(basename "$patch_dep")"
+    if [ -e "$dep/.git" ]; then
+      echo "还原 $dep 到干净状态..."
+      git -C "$dep" reset --hard
+      git -C "$dep" clean -fd
+    fi
+  done
 }
 
 # 供 shell 测试导入缓存失效逻辑，避免触发原生构建。
@@ -70,6 +95,7 @@ fi
 cd "$WORK_DIR"
 chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 ./download.sh
+reset_dependency_sources "$WORK_DIR"
 ./patch.sh
 mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA"
 ./build.sh
