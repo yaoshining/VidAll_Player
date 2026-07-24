@@ -72,7 +72,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             .cache/vidall-player
-          key: libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', '.github/workflows/build-libmpv.yml') }}
+          key: libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', 'native/patches/build/*.patch', '.github/workflows/build-libmpv.yml') }}
           restore-keys: |
             libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-
 
@@ -84,6 +84,11 @@ jobs:
 
       - name: 验证构建缓存失效逻辑
         run: bash native/tests/build-libmpv-bootstrap.test.sh
+
+      - name: 验证构建脚本补丁
+        # issue #21：冷构建冒烟，不依赖依赖缓存，确保 build.sh 依赖顺序与 FFmpeg configure
+        # 在每次提交都能稳定通过（libxml2 早于 ffmpeg、harfbuzz 早于 freetype、dash demuxer 启用）。
+        run: bash native/tests/build-libmpv-patches.test.sh
 
       - name: 构建 ARM64 libmpv
         env:
@@ -97,6 +102,15 @@ jobs:
           file dist/libmpv/arm64-v8a/libmpv.so
           sha256sum --check dist/libmpv/arm64-v8a/libmpv.so.sha256
 
+      - name: 验证 libmpv.so 关键符号
+        # issue #21：确认 FFmpeg DASH demuxer 已编译进 libmpv.so，.mpd 流才能播放。
+        run: |
+          strings dist/libmpv/arm64-v8a/libmpv.so | grep -q 'ff_dash_demuxer' || {
+            echo 'libmpv.so 缺少 ff_dash_demuxer 符号，DASH(.mpd) 流无法播放' >&2
+            exit 1
+          }
+          echo 'ff_dash_demuxer 符号存在，DASH demuxer 已编译'
+
       - name: 上传 libmpv 产物
         uses: actions/upload-artifact@v4
         with:
@@ -105,3 +119,53 @@ jobs:
           path: |
             dist/libmpv/arm64-v8a/libmpv.so
             dist/libmpv/arm64-v8a/libmpv.so.sha256
+
+  cold-build-smoke:
+    name: 冷构建冒烟（不依赖依赖缓存）
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    # issue #21：不阻塞合并，但每次提交都跑，稳定暴露缓存命中会掩盖的 HarfBuzz 链接 bug。
+    continue-on-error: true
+    steps:
+      - name: 检出项目
+        uses: actions/checkout@v4
+
+      - name: 恢复 Python 与 Rust 下载缓存
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: libmpv-tools-${{ runner.os }}-meson-1.7.0-${{ hashFiles('.github/workflows/build-libmpv.yml') }}
+          restore-keys: |
+            libmpv-tools-${{ runner.os }}-meson-1.7.0-
+
+      - name: 安装构建依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gperf ninja-build python3-pip unzip wget
+          python3 -m pip install --user --upgrade 'meson==1.7.0'
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/meson" --version
+
+      - name: 运行构建脚本补丁测试
+        run: bash native/tests/build-libmpv-patches.test.sh
+
+      - name: 冷构建 ARM64 libmpv
+        # 强制冷：清除依赖缓存，不命中 build-libmpv 的缓存，确保链接阶段被实际执行。
+        env:
+          VIDALL_PLAYER_CACHE_DIR: ${{ github.workspace }}/.cache/vidall-player
+        run: |
+          rm -rf "$VIDALL_PLAYER_CACHE_DIR"
+          native/scripts/build-libmpv-bootstrap.sh
+
+      - name: 验证产物与关键符号
+        run: |
+          test -f dist/libmpv/arm64-v8a/libmpv.so
+          file dist/libmpv/arm64-v8a/libmpv.so
+          strings dist/libmpv/arm64-v8a/libmpv.so | grep -q 'ff_dash_demuxer' || {
+            echo 'libmpv.so 缺少 ff_dash_demuxer 符号' >&2
+            exit 1
+          }
+          echo '冷构建产物含 ff_dash_demuxer 符号'
