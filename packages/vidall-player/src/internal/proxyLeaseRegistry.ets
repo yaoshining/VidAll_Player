@@ -4,6 +4,11 @@ import { parseUri } from './inputValidator';
 // http://localhost:PORT/smb/... 并把 proxyLeaseId 与内置 HTTP 服务器的一次租约绑定。
 // SDK 只负责在会话内关联租约，并在切源、停止、释放或网络失败时清理关联，
 // 让业务层可以据此关闭代理连接、回收端口，避免旧租约泄漏。
+// 租约记录的保留策略：作为审计轨迹保留最近 MAX_LEASE_RECORDS 条（含已释放），
+// 超出时丢弃最旧记录，保证长生命周期会话频繁切源时内存占用有上界。
+// active()/records() 语义不变；会话 release() 时整表随对象回收。
+const MAX_LEASE_RECORDS = 64;
+
 export interface ProxyLeaseRecord {
   leaseId: string;
   // 仅保留 authority（host:port），不记录路径和查询，避免敏感信息进入事件或日志。
@@ -35,6 +40,10 @@ export class ProxyLeaseRegistry {
       }
     }
     this.leaseRecords.push({ leaseId: leaseId, host: host, trackedAt: Date.now() });
+    // 有界保留：超出审计上限时丢弃最旧记录，避免无限累积。
+    if (this.leaseRecords.length > MAX_LEASE_RECORDS) {
+      this.leaseRecords.splice(0, this.leaseRecords.length - MAX_LEASE_RECORDS);
+    }
   }
 
   release(leaseId: string, reason: string): ProxyLeaseRecord | undefined {

@@ -167,9 +167,9 @@ export class PlayerSession implements VidAllPlayer {
 
   addExternalSubtitle(subtitle: ExternalSubtitle): Promise<void> {
     return this.enqueue('addExternalSubtitle', () => {
-      if (this.source === undefined) {
-        throw lifecycleFailure('INVALID_STATE', 'Adding subtitles requires loaded media.');
-      }
+      // 网络失败或停止后进入 error/idle 状态：source 可能仍存在，但会话已不可
+      // 继续编辑轨道，需与 selectTrack/setSubtitleDelay 一致地要求活跃状态。
+      this.requireActiveSessionState('addExternalSubtitle');
       validateExternalSubtitle(subtitle);
       const nextId = this.nextTrackId();
       this.tracks.push({
@@ -368,13 +368,17 @@ export class PlayerSession implements VidAllPlayer {
     }
   }
 
-  private requireActiveMedia(command: string, value: number): void {
-    if (!Number.isFinite(value)) {
-      throw lifecycleFailure('INVALID_CONTROL_VALUE', `${command} 需要有限数值。${command} requires a finite value.`);
-    }
+  private requireActiveSessionState(command: string): void {
     const state = this.stateMachine.getState();
     if (this.source === undefined || (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering')) {
       throw lifecycleFailure('INVALID_STATE', `${command} 需要已加载的媒体。${command} requires loaded media.`);
     }
+  }
+
+  private requireActiveMedia(command: string, value: number): void {
+    if (!Number.isFinite(value)) {
+      throw lifecycleFailure('INVALID_CONTROL_VALUE', `${command} 需要有限数值。${command} requires a finite value.`);
+    }
+    this.requireActiveSessionState(command);
   }
 }

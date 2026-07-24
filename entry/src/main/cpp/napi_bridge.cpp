@@ -238,7 +238,7 @@ public:
     }
 
     // 按媒体类型加载（US4）：
-    // - hls：主播放列表选择最高码率变体（hls-bitrate=highest）；运行期自适应
+    // - hls：主播放列表选择最高码率变体（hls-bitrate=max）；运行期自适应
     //   切换依赖 FFmpeg HLS demuxer 构建，真机效果标记为已构建待验证。
     // - dash：交给 FFmpeg DASH demuxer 默认自适应策略，不额外设置专有选项。
     // - localhostProxy：关联 SMB 代理租约 ID，并尽量强制可跳转；跳转能力最终
@@ -255,8 +255,17 @@ public:
         if (headerResult < 0) {
             return "设置网络认证失败";
         }
+        // 切源时复位上一次按类型设置的 mpv 选项，避免 HLS/代理专有选项跨来源残留：
+        // hls-bitrate 仅影响 HLS demuxer，force-seekable 会作用到任意可跳转来源，
+        // 复位为各自默认值（max / no）后再按本次 kind 覆盖。
+        if (mpv_set_property_string(player_.get(), "hls-bitrate", "max") < 0) {
+            MPV_LOG(LOG_WARN, "LoadMedia: hls-bitrate 复位失败，保持默认变体选择");
+        }
+        if (mpv_set_property_string(player_.get(), "force-seekable", "no") < 0) {
+            MPV_LOG(LOG_WARN, "LoadMedia: force-seekable 复位失败，跳转按来源默认行为");
+        }
         if (kind == "hls") {
-            if (mpv_set_property_string(player_.get(), "hls-bitrate", "highest") < 0) {
+            if (mpv_set_property_string(player_.get(), "hls-bitrate", "max") < 0) {
                 MPV_LOG(LOG_WARN, "LoadMedia: hls-bitrate 设置失败，退回默认变体选择");
             }
         } else if (kind == "localhostProxy") {
@@ -589,19 +598,23 @@ public:
             napi_set_named_property(env, result, "pausedForCache", pausedValue);
         }
         mpv_node cacheState{};
-        if (mpv_get_property(player_.get(), "demuxer-cache-state", MPV_FORMAT_NODE, &cacheState) >= 0 &&
-            cacheState.format == MPV_FORMAT_NODE_MAP) {
-            for (int index = 0; index < cacheState.u.list->num; index++) {
-                const std::string key = cacheState.u.list->keys[index];
-                const mpv_node& value = cacheState.u.list->values[index];
-                if (key == "buffering" && value.format == MPV_FORMAT_FLAG) {
-                    napi_value bufferingValue = nullptr;
-                    napi_get_boolean(env, value.u.flag != 0, &bufferingValue);
-                    napi_set_named_property(env, result, "demuxerBuffering", bufferingValue);
-                } else if (key == "cache-end" && value.format == MPV_FORMAT_DOUBLE) {
-                    napi_value cacheEndValue = nullptr;
-                    napi_create_double(env, value.u.double_, &cacheEndValue);
-                    napi_set_named_property(env, result, "cacheDurationSeconds", cacheEndValue);
+        const int cacheResult = mpv_get_property(player_.get(), "demuxer-cache-state", MPV_FORMAT_NODE, &cacheState);
+        if (cacheResult >= 0) {
+            // 只要 mpv_get_property 成功就需释放 node，避免演示层轮询时按 format
+            // 差异遗漏 mpv_free_node_contents 造成原生内存长期增长。
+            if (cacheState.format == MPV_FORMAT_NODE_MAP) {
+                for (int index = 0; index < cacheState.u.list->num; index++) {
+                    const std::string key = cacheState.u.list->keys[index];
+                    const mpv_node& value = cacheState.u.list->values[index];
+                    if (key == "buffering" && value.format == MPV_FORMAT_FLAG) {
+                        napi_value bufferingValue = nullptr;
+                        napi_get_boolean(env, value.u.flag != 0, &bufferingValue);
+                        napi_set_named_property(env, result, "demuxerBuffering", bufferingValue);
+                    } else if (key == "cache-end" && value.format == MPV_FORMAT_DOUBLE) {
+                        napi_value cacheEndValue = nullptr;
+                        napi_create_double(env, value.u.double_, &cacheEndValue);
+                        napi_set_named_property(env, result, "cacheDurationSeconds", cacheEndValue);
+                    }
                 }
             }
             mpv_free_node_contents(&cacheState);

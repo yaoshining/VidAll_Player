@@ -123,6 +123,30 @@ export default function streamingInternalsTest() {
       done();
     });
 
+    it('rejects external subtitle edits after a reported network failure', 0, async (done: Function) => {
+      let errored = false;
+      const session = new PlayerSession({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'error') {
+            errored = true;
+          }
+        }
+      });
+      await session.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
+      const failure = classifyNetworkFailure('HTTP_AUTH_REQUIRED', 'Authorization: Basic secret');
+      session.reportNetworkFailure(failure);
+      expect(errored).assertTrue();
+
+      try {
+        await session.addExternalSubtitle({ uri: 'https://example.com/subtitle.srt', format: 'srt' });
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(true).assertTrue();
+      }
+      await session.release();
+      done();
+    });
+
     it('tracks and releases proxy leases with audit records', 0, () => {
       const registry = new ProxyLeaseRegistry();
       registry.track('lease-a', 'http://127.0.0.1:58080/smb/a.mp4');
