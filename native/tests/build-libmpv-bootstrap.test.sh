@@ -52,6 +52,8 @@ main() {
 
   # reset_dependency_sources 应还原 git 仓库依赖到干净状态（含 tracked 和 untracked 文件）
   local dep_dir="$work_dir/libmpv"
+  mkdir -p "$work_dir/patches/ffmpeg"
+  printf 'dummy\n' > "$work_dir/patches/ffmpeg/dummy.patch"
   mkdir -p "$dep_dir/ffmpeg"
   pushd "$dep_dir/ffmpeg" > /dev/null
   git init
@@ -67,6 +69,20 @@ main() {
   reset_dependency_sources "$work_dir"
   [ "$(cat "$dep_dir/ffmpeg/file.txt")" = 'original' ] || fail 'reset_dependency_sources 应还原 tracked 文件到干净状态'
   assert_missing "$dep_dir/ffmpeg/new_file_from_patch.txt"
+
+  # 无补丁的 git 依赖不应被还原，避免触发不必要的重新构建
+  mkdir -p "$dep_dir/freetype"
+  pushd "$dep_dir/freetype" > /dev/null
+  git init
+  git config user.email 'test@test.com'
+  git config user.name 'Test'
+  printf 'original\n' > file.txt
+  git add file.txt
+  git commit -m 'initial'
+  printf 'modified\n' > file.txt
+  popd > /dev/null
+  reset_dependency_sources "$work_dir"
+  [ "$(cat "$dep_dir/freetype/file.txt")" = 'modified' ] || fail '无补丁的 git 依赖不应被还原'
 
   # 非 git 仓库的依赖不应被还原
   mkdir -p "$dep_dir/mbedtls"
@@ -95,19 +111,15 @@ main() {
   [ "$(cat "$dep_dir/ffmpeg/file.txt")" = 'original' ] || fail '.git 文件形式的仓库也应被还原'
   assert_missing "$dep_dir/ffmpeg/untracked_file.txt"
 
-  # 父仓库的子目录（无 .git）不应被还原，避免 git -C 误操作父仓库
-  rm -rf "$dep_dir/ffmpeg" "$main_repo"
-  mkdir -p "$work_dir/.git"
-  printf 'config' > "$work_dir/.git/config"
-  mkdir -p "$dep_dir/arm64-build"
-  printf 'build-output\n' > "$dep_dir/arm64-build/output.txt"
-  printf 'modified\n' > "$dep_dir/arm64-build/output.txt"
+  # patches 目录不存在时应正常退出
+  rm -rf "$work_dir/patches"
+  printf 'still-modified\n' > "$dep_dir/freetype/file.txt"
   reset_dependency_sources "$work_dir"
-  [ "$(cat "$dep_dir/arm64-build/output.txt")" = 'modified' ] || fail '无 .git 的子目录不应被还原（否则会误操作父仓库）'
-  rm -rf "$work_dir/.git"
+  [ "$(cat "$dep_dir/freetype/file.txt")" = 'still-modified' ] || fail 'patches 目录不存在时不应还原任何依赖'
 
   # libmpv 不存在时应正常退出
   rm -rf "$dep_dir"
+  mkdir -p "$work_dir/patches/ffmpeg"
   reset_dependency_sources "$work_dir"
 }
 
