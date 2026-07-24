@@ -11,8 +11,17 @@ export interface FrameData {
   data: ArrayBuffer;
 }
 
+export interface LibMpvTrack {
+  id?: number;
+  type?: string;
+  lang?: string;
+  title?: string;
+  selected?: boolean;
+}
+
 export interface LibMpvNapi {
   getBuildInfo(): LibMpvBuildInfo;
+  setDataDir(path: string): string;
   createPlayer(): number;
   attachSurface(handle: number, surfaceId: string): string;
   detachSurface(handle: number): string;
@@ -23,6 +32,11 @@ export interface LibMpvNapi {
   setSpeed(handle: number, speed: number): string;
   setVolume(handle: number, volume: number): string;
   setMuted(handle: number, muted: boolean): string;
+  selectAudioTrack(handle: number, id: number | null): string;
+  selectSubtitleTrack(handle: number, id: number | null): string;
+  addExternalSubtitle(handle: number, uri: string): string;
+  setSubtitleDelay(handle: number, delaySeconds: number): string;
+  getTracks(handle: number): LibMpvTrack[];
   stop(handle: number): string;
   release(handle: number): string;
   getPlayerStatus(handle: number): string;

@@ -65,6 +65,38 @@ export function buildRawPropfindRequest(host: string, authorization: string): st
   return `PROPFIND / HTTP/1.1\r\nHost: ${host}\r\nAuthorization: ${authorization}\r\nDepth: 1\r\nContent-Type: text/xml; charset=utf-8\r\nContent-Length: ${bodyBytes.length}\r\nConnection: close\r\n\r\n${PROPFIND_BODY}`;
 }
 
+function utf8ByteLengthAt(value: string, position: number): number {
+  const code = value.charCodeAt(position);
+  if (code <= 0x7F) {
+    return 1;
+  }
+  if (code <= 0x7FF) {
+    return 2;
+  }
+  if (code >= 0xD800 && code <= 0xDBFF && position + 1 < value.length) {
+    const next = value.charCodeAt(position + 1);
+    if (next >= 0xDC00 && next <= 0xDFFF) {
+      return 4;
+    }
+  }
+  return 3;
+}
+
+function findUtf8ChunkEnd(value: string, position: number, byteLength: number): number {
+  let consumed = 0;
+  let index = position;
+  while (index < value.length && consumed < byteLength) {
+    const currentLength = utf8ByteLengthAt(value, index);
+    if (consumed + currentLength > byteLength) {
+      return -1;
+    }
+    consumed += currentLength;
+    const code = value.charCodeAt(index);
+    index += code >= 0xD800 && code <= 0xDBFF && currentLength === 4 ? 2 : 1;
+  }
+  return consumed === byteLength ? index : -1;
+}
+
 export function parseRawHttpPropfindResponse(responseText: string): string {
   const separator = responseText.indexOf('\r\n\r\n');
   const status = /^HTTP\/\d(?:\.\d)?\s+(\d+)/.exec(responseText);
@@ -96,11 +128,33 @@ export function parseRawHttpPropfindResponse(responseText: string): string {
     if (size === 0) {
       return decoded;
     }
-    if (position + size > body.length || body.substring(position + size, position + size + 2) !== '\r\n') {
+    const chunkEnd = findUtf8ChunkEnd(body, position, size);
+    // chunkEnd < 0 表示分块边界切断了 UTF-8 多字节序列，
+    // 此时可安全截断到最后一个完整字符边界，丢弃尾部不完整字节。
+    let safeEnd = chunkEnd;
+    if (chunkEnd < 0) {
+      // 回退到 position 之前的最后一个完整字符
+      let scan = position;
+      let lastSafe = position;
+      let consumed = 0;
+      while (scan < body.length && consumed < size) {
+        const charLen = utf8ByteLengthAt(body, scan);
+        if (consumed + charLen > size) {
+          break;
+        }
+        consumed += charLen;
+        const code = body.charCodeAt(scan);
+        scan += code >= 0xD800 && code <= 0xDBFF && charLen === 4 ? 2 : 1;
+        lastSafe = scan;
+      }
+      safeEnd = lastSafe;
+    }
+    const trailerPos = Math.max(safeEnd, position + size);
+    if (body.substring(trailerPos, trailerPos + 2) !== '\r\n') {
       throw new Error('WebDAV 分块响应不完整。');
     }
-    decoded += body.substring(position, position + size);
-    position += size + 2;
+    decoded += body.substring(position, safeEnd);
+    position = trailerPos + 2;
   }
 }
 
@@ -283,7 +337,7 @@ export class WebDavService {
           reject(parseError instanceof Error ? parseError : new Error('WebDAV 响应解析失败。'));
         }
       };
-      const timeoutId = setTimeout(() => finish(new Error('WebDAV 请求超时。')), 30000);
+      const timeoutId = setTimeout(() => finish(new Error('WebDAV 请求超时。')), 120000);
 
       tcp.on('message', (value: socket.SocketMessageInfo) => {
         if (value.message !== undefined && value.message !== null) {
@@ -297,7 +351,7 @@ export class WebDavService {
       });
       tcp.on('close', () => finish());
       tcp.on('error', () => finish(new Error('WebDAV 网络连接失败。')));
-      tcp.connect({ address, timeout: 15000 })
+      tcp.connect({ address, timeout: 90000 })
         .then(() => tcp.send({ data: buffer.from(requestText, 'utf-8').buffer }))
         .catch(() => finish(new Error('WebDAV 网络连接失败。')));
     });

@@ -87,6 +87,55 @@ export default function playerSessionTest() {
       done();
     });
 
+    it('announces external subtitles as renderable tracks and updates selection', 0, async (done: Function) => {
+      const trackEvents: PlayerEvent[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'tracks') {
+            trackEvents.push(event);
+          }
+        }
+      });
+
+      await player.load({
+        kind: 'https',
+        uri: 'https://example.com/video.mp4',
+        externalSubtitles: [{ uri: 'https://example.com/subtitle.srt', title: 'Chinese', format: 'srt' }]
+      });
+      await player.selectTrack('subtitle', 1);
+      await player.selectTrack('subtitle', null);
+
+      expect(trackEvents.length).assertEqual(3);
+      expect(trackEvents[0].tracks![0].title).assertEqual('Chinese');
+      expect(trackEvents[0].tracks![0].recognitionStatus).assertEqual('renderable');
+      expect(trackEvents[1].tracks![0].selected).assertTrue();
+      expect(trackEvents[2].tracks![0].selected).assertFalse();
+      await player.release();
+      done();
+    });
+
+    it('adds supported external subtitles and rejects invalid tracks and formats', 0, async (done: Function) => {
+      const player = createPlayer();
+      await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
+      await player.addExternalSubtitle({ uri: 'https://example.com/subtitle.ass', format: 'ass' });
+
+      const invalidCommands: Array<() => Promise<void>> = [
+        () => player.selectTrack('subtitle', 2),
+        () => player.selectTrack('audio', 1),
+        () => player.addExternalSubtitle({ uri: 'https://example.com/subtitle.txt', format: 'txt' as 'srt' })
+      ];
+      for (let index = 0; index < invalidCommands.length; index++) {
+        try {
+          await invalidCommands[index]();
+          expect(true).assertFalse();
+        } catch (_) {
+          expect(true).assertTrue();
+        }
+      }
+      await player.release();
+      done();
+    });
+
     it('rejects invalid control and surface values', 0, async (done: Function) => {
       const player = createPlayer();
       const invalidSurfaces: PlayerSurface[] = [

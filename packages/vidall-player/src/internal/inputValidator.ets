@@ -54,8 +54,20 @@ function validateHeaders(headers?: Record<string, string>): void {
   }
 }
 
-function validateSubtitle(subtitle: ExternalSubtitle): void {
-  parseUri(subtitle.uri);
+const SUPPORTED_SUBTITLE_FORMATS: string[] = [
+  'srt', 'ass', 'ssa', 'webvtt', 'pgs', 'vobsub'
+];
+
+export function validateExternalSubtitle(subtitle: ExternalSubtitle): void {
+  const uri = parseUri(subtitle.uri);
+  if (uri.scheme !== 'http' && uri.scheme !== 'https') {
+    throw inputFailure('UNSUPPORTED_SUBTITLE_FORMAT',
+      '外挂字幕仅支持 HTTP/HTTPS 协议 (External subtitle only supports HTTP/HTTPS).');
+  }
+  if (subtitle.format !== undefined && SUPPORTED_SUBTITLE_FORMATS.indexOf(subtitle.format) < 0) {
+    throw inputFailure('UNSUPPORTED_SUBTITLE_FORMAT',
+      '不支持的外挂字幕格式 (Unsupported external subtitle format).');
+  }
 }
 
 function isLoopbackAuthority(authority: string): boolean {
@@ -95,7 +107,7 @@ export function validateMediaSource(source: MediaSource): void {
   validateHeaders(source.headers);
   if (source.externalSubtitles !== undefined) {
     for (let index = 0; index < source.externalSubtitles.length; index++) {
-      validateSubtitle(source.externalSubtitles[index]);
+      validateExternalSubtitle(source.externalSubtitles[index]);
     }
   }
 }

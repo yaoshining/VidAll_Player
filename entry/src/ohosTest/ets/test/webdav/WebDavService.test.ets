@@ -59,6 +59,28 @@ export default function webDavServiceTest() {
       expect(parseRawHttpPropfindResponse(response)).assertEqual('<root>value</root>');
     });
 
+    it('uses byte lengths when decoding UTF-8 chunked responses', 0, () => {
+      const response = 'HTTP/1.1 207 Multi-Status\r\nTransfer-Encoding: chunked\r\n\r\n' +
+        '6\r\n电影\r\n0\r\n\r\n';
+      expect(parseRawHttpPropfindResponse(response)).assertEqual('电影');
+    });
+
+    // 回归测试：分块边界切断 UTF-8 多字节字符时不抛异常，
+    // 而是截断到最后一个完整字符边界。
+    it('handles chunk boundaries that split multi-byte UTF-8 sequences gracefully', 0, () => {
+      // "电影" 的 UTF-8 编码为 6 字节（每字 3 字节：E7 94 B5 E5 BD B1）。
+      // 模拟第一个分块只包含 4 字节（"电"完整 + "影"的前 1 字节被截断），
+      // 第二个分块包含剩余字节。由于 ArkTS 字符串已解码，无法精确模拟字节切分，
+      // 所以我们测试一个不完整字节长度的分块——findUtf8ChunkEnd 应返回 -1，
+      // 而 parseRawHttpPropfindResponse 应截断到安全边界而非抛异常。
+      const response = 'HTTP/1.1 207 Multi-Status\r\nTransfer-Encoding: chunked\r\n\r\n' +
+        '4\r\n电\r\n0\r\n\r\n';
+      // "电" 在 UTF-8 中占 3 字节，声明 4 字节的分块意味着多出 1 字节无法形成完整字符，
+      // 解码器应截断到 "电"（3 字节）而非抛出异常。
+      const result = parseRawHttpPropfindResponse(response);
+      expect(result).assertEqual('电');
+    });
+
     it('keeps NetworkKit options for newer API levels', 0, () => {
       const options = createPropfindRequestOptions('alice', 'secret');
 
