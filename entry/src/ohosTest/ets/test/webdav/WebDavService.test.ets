@@ -71,8 +71,8 @@ export default function webDavServiceTest() {
       // "电影" 的 UTF-8 编码为 6 字节（每字 3 字节：E7 94 B5 E5 BD B1）。
       // 模拟第一个分块只包含 4 字节（"电"完整 + "影"的前 1 字节被截断），
       // 第二个分块包含剩余字节。由于 ArkTS 字符串已解码，无法精确模拟字节切分，
-      // 所以我们测试一个不完整字节长度的分块——findUtf8ChunkEnd 应返回 -1，
-      // 而 parseRawHttpPropfindResponse 应截断到安全边界而非抛异常。
+      // 所以我们测试一个不完整字节长度的分块——解码器应以 trailer \r\n 为锚点，
+      // 截断到安全边界而非抛异常。
       const response = 'HTTP/1.1 207 Multi-Status\r\nTransfer-Encoding: chunked\r\n\r\n' +
         '4\r\n电\r\n0\r\n\r\n';
       // "电" 在 UTF-8 中占 3 字节，声明 4 字节的分块意味着多出 1 字节无法形成完整字符，

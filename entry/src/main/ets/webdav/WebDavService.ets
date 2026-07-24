@@ -82,19 +82,22 @@ function utf8ByteLengthAt(value: string, position: number): number {
   return 3;
 }
 
-function findUtf8ChunkEnd(value: string, position: number, byteLength: number): number {
-  let consumed = 0;
+// 从 position 起按字节预算消费完整 UTF-8 字符，返回数据结尾的字符下标。
+// chunk 大小以字节计，而 body 已是解码后的字符串，逐字符累加字节长度，
+// 在恰好消费 size 字节或即将切断某个字符时停止。
+function stepChunkDataEnd(body: string, position: number, size: number): number {
   let index = position;
-  while (index < value.length && consumed < byteLength) {
-    const currentLength = utf8ByteLengthAt(value, index);
-    if (consumed + currentLength > byteLength) {
-      return -1;
+  let consumed = 0;
+  while (index < body.length && consumed < size) {
+    const charLen = utf8ByteLengthAt(body, index);
+    if (consumed + charLen > size) {
+      break;
     }
-    consumed += currentLength;
-    const code = value.charCodeAt(index);
-    index += code >= 0xD800 && code <= 0xDBFF && currentLength === 4 ? 2 : 1;
+    consumed += charLen;
+    const code = body.charCodeAt(index);
+    index += code >= 0xD800 && code <= 0xDBFF && charLen === 4 ? 2 : 1;
   }
-  return consumed === byteLength ? index : -1;
+  return index;
 }
 
 export function parseRawHttpPropfindResponse(responseText: string): string {
@@ -128,32 +131,19 @@ export function parseRawHttpPropfindResponse(responseText: string): string {
     if (size === 0) {
       return decoded;
     }
-    const chunkEnd = findUtf8ChunkEnd(body, position, size);
-    // chunkEnd < 0 表示分块边界切断了 UTF-8 多字节序列，
-    // 此时可安全截断到最后一个完整字符边界，丢弃尾部不完整字节。
-    let safeEnd = chunkEnd;
-    if (chunkEnd < 0) {
-      // 回退到 position 之前的最后一个完整字符
-      let scan = position;
-      let lastSafe = position;
-      let consumed = 0;
-      while (scan < body.length && consumed < size) {
-        const charLen = utf8ByteLengthAt(body, scan);
-        if (consumed + charLen > size) {
-          break;
-        }
-        consumed += charLen;
-        const code = body.charCodeAt(scan);
-        scan += code >= 0xD800 && code <= 0xDBFF && charLen === 4 ? 2 : 1;
-        lastSafe = scan;
-      }
-      safeEnd = lastSafe;
-    }
-    const trailerPos = Math.max(safeEnd, position + size);
+    // 按字节预算走到数据结尾，正常情况下 trailer \r\n 紧跟其后。
+    let dataEnd = stepChunkDataEnd(body, position, size);
+    let trailerPos = dataEnd;
     if (body.substring(trailerPos, trailerPos + 2) !== '\r\n') {
-      throw new Error('WebDAV 分块响应不完整。');
+      // 声明字节数把 trailer 字节误算进数据，或切断了多字节序列：
+      // 以数据区内最后一个 \r\n 为锚点，截断到其前的完整字符边界。
+      const anchored = body.lastIndexOf('\r\n', dataEnd);
+      if (anchored < position) {
+        throw new Error('WebDAV 分块响应不完整。');
+      }
+      trailerPos = anchored;
     }
-    decoded += body.substring(position, safeEnd);
+    decoded += body.substring(position, trailerPos);
     position = trailerPos + 2;
   }
 }
