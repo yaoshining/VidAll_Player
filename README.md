@@ -7,7 +7,25 @@ HarmonyOS TV `libmpv` 播放 SDK 的受控构建项目与最小应用示例。
 - 初始 HarmonyOS 应用可构建并在启动时输出 `VidAll_Player` 生命周期日志。
 - 支持手机和 TV 安装声明；`compatibleSdkVersion` 为 HarmonyOS 5.0.3 / API 15，`targetSdkVersion` 为 API 22。
 - GitHub Actions 从固定提交的 OpenHarmony `libmpv` 源码构建流程生成 ARM64 `libmpv.so` 与 SHA-256 文件；构建下载和中间目录会按系统、ABI、SDK、Meson 版本及锁定输入缓存，不缓存最终发布制品。
-- 当前为构建骨架，未接入 NAPI、XComponent、WebDAV 浏览或实际播放能力；这些能力均为“已构建待验证”或尚未实现，不能视为已支持。
+- US4 流媒体与 SMB 代理已实现：HLS/DASH/HTTP(S) 直链与 SMB localhost HTTP 代理的加载路径、租约清理、缓冲事件与网络失败分类；真机播放结论见下方支持矩阵。
+
+## 支持矩阵
+
+能力结论使用三态：**已通过真机样本** / **已构建待验证** / **不支持或暂缓**（FR-037）。
+构建成功不等于已支持；缺少 ARM64 真机证据的能力不得标记为已通过。
+
+| 能力 | 结论 | 说明 |
+|---|---|---|
+| 本地文件播放 | 已构建待验证 | US1/US2 已实现，待 ARM64 真机样本 |
+| HTTP/HTTPS 直链 | 已构建待验证 | 认证头逐次设置、重定向凭据过滤；seek/断网恢复待真机 |
+| HLS（master/media、fMP4/TS） | 已构建待验证 | `hls-bitrate=highest` 选择最高码率变体；运行期自适应切换依赖 FFmpeg 构建，待真机 |
+| DASH（MPD） | 已构建待验证 | 自适应选择交给 FFmpeg DASH demuxer 默认策略，待真机 |
+| SMB localhost HTTP 代理 | 已构建待验证 | `localhostProxy` 仅限环回明文 HTTP；租约关联/清理已覆盖；策略与验收用例见 `docs/smb-localhost-http-proxy.md` |
+| 外挂字幕（HTTP/HTTPS/本地缓存 file://） | 已构建待验证 | `sub-add` 远程 URL；本地缓存 file URI 校验已覆盖 |
+| 外挂音频（HTTP/HTTPS） | 已构建待验证 | `audio-add` 远程 URL，加载后自动选中 |
+| 缓冲状态事件（paused-for-cache） | 已构建待验证 | `getBufferingState` + `buffering` 事件；SDK 事件顺序已覆盖 |
+| 网络中断恢复 | 已构建待验证 | 失败分类（可重试/不可恢复）+ 重新 `load()` 恢复；清理事件顺序已覆盖 |
+| RTSP / UDP / SRT / RTMP | 不支持或暂缓（可选未验证） | 输入校验以 `PROTOCOL_NOT_VERIFIED` 拒绝；完成单独真机验证前不宣称支持 |
 
 ## 本地构建应用
 
@@ -47,4 +65,5 @@ GitHub Actions 的 `验证 ArkTS 测试模块` 任务会在 PR 和 `main` 的相
 ## 文档与规划
 
 - 功能规格：`specs/001-harmonyos-mpv-sdk/spec.md`
+- SMB localhost HTTP 代理策略与验收用例：`docs/smb-localhost-http-proxy.md`
 - 宪章：`.specify/memory/constitution.md`

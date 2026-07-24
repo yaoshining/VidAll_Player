@@ -8,8 +8,10 @@ function isSensitiveName(name: string): boolean {
 }
 
 export function redactText(value: string): string {
-  let redacted = value.replace(/(authorization\s*[:=]\s*)([^\s,;]+)/gi, '$1[REDACTED]');
-  redacted = redacted.replace(/(password\s*[:=]\s*)([^\s,;]+)/gi, '$1[REDACTED]');
+  // 头部值可能包含多个以空格分隔的 token（如 `Basic <base64>`），
+  // 需要整体脱敏到分隔符（逗号/分号/行尾），避免凭据后半段泄漏。
+  let redacted = value.replace(/(authorization\s*[:=]\s*)([^\s,;]+(?:[ \t]+[^\s,;]+)*)/gi, '$1[REDACTED]');
+  redacted = redacted.replace(/(password\s*[:=]\s*)([^\s,;]+(?:[ \t]+[^\s,;]+)*)/gi, '$1[REDACTED]');
   redacted = redacted.replace(/([?&](?:access_token|apikey|api_key|auth|password|token)=[^&#\s]*)/gi, '[REDACTED_QUERY]');
   redacted = redacted.replace(/file:\/\/[^\s'"?]+/gi, 'file://[REDACTED_PATH]');
   return redacted;

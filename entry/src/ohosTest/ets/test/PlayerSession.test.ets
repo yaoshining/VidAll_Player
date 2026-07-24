@@ -114,6 +114,36 @@ export default function playerSessionTest() {
       done();
     });
 
+    it('emitted tracks snapshots are immutable across later selection changes', 0, async (done: Function) => {
+      const trackEvents: PlayerEvent[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'tracks') {
+            trackEvents.push(event);
+          }
+        }
+      });
+
+      await player.load({
+        kind: 'https',
+        uri: 'https://example.com/video.mp4',
+        externalSubtitles: [{ uri: 'https://example.com/subtitle.srt', title: 'Chinese', format: 'srt' }]
+      });
+      expect(trackEvents.length).assertEqual(1);
+      const firstSnapshot = trackEvents[0].tracks!;
+      expect(firstSnapshot[0].selected).assertFalse();
+
+      await player.selectTrack('subtitle', 1);
+      // 回归断言：selectTrack 只能改当前轨道状态，不得回溯污染早先投递的快照。
+      expect(trackEvents[1].tracks![0].selected).assertTrue();
+      expect(firstSnapshot[0].selected).assertFalse();
+
+      await player.selectTrack('subtitle', null);
+      expect(firstSnapshot[0].selected).assertFalse();
+      await player.release();
+      done();
+    });
+
     it('adds supported external subtitles and rejects invalid tracks and formats', 0, async (done: Function) => {
       const player = createPlayer();
       await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
