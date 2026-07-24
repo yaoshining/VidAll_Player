@@ -9,16 +9,21 @@ import {
 import { VidAllPlayer } from '../public/playerContract';
 import { CommandQueue } from './commandQueue';
 import { validateExternalSubtitle, validateMediaSource } from './inputValidator';
+import { NetworkRecoveryController } from './networkRecovery';
 import { lifecycleFailure, PlayerFailure } from './playerFailure';
-import { redactError } from './redaction';
+import { leaseReleaseMessage, ProxyLeaseRegistry } from './proxyLeaseRegistry';
+import { redactError, redactText } from './redaction';
 import { SessionStateMachine } from './stateMachine';
 
 export class PlayerSession implements VidAllPlayer {
   private readonly queue: CommandQueue = new CommandQueue();
   private readonly stateMachine: SessionStateMachine = new SessionStateMachine();
+  private readonly leases: ProxyLeaseRegistry = new ProxyLeaseRegistry();
+  private readonly recovery: NetworkRecoveryController = new NetworkRecoveryController();
   private surface?: PlayerSurface;
   private source?: MediaSource;
   private tracks: PlayerTrack[] = [];
+  private resumeState?: 'playing' | 'paused';
 
   constructor(options?: PlayerOptions) {
     if (options?.eventListener !== undefined) {
@@ -74,9 +79,16 @@ export class PlayerSession implements VidAllPlayer {
         this.stateMachine.emit({ type: 'error', sequence: 0, error: redactError(failure.playerError) });
         throw failure;
       }
+      // 串行切源：先终止旧媒体、释放旧 SMB 代理租约并清空轨道与恢复记录，
+      // 避免旧连接、旧租约或旧轨道泄漏到新媒体会话。
+      this.abortActiveMedia('source-switch');
       this.source = source;
       this.tracks = this.createExternalSubtitleTracks(source.externalSubtitles);
+      this.recovery.clear();
       this.stateMachine.transition('preparing');
+      if (source.kind === 'localhostProxy' && source.proxyLeaseId !== undefined) {
+        this.leases.track(source.proxyLeaseId, source.uri);
+      }
       if (this.tracks.length > 0) {
         this.emitTracks();
       }
@@ -188,7 +200,8 @@ export class PlayerSession implements VidAllPlayer {
       if (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering') {
         throw lifecycleFailure('INVALID_STATE', 'Stop requires an active media session.');
       }
-      this.stateMachine.transition('idle');
+      this.abortActiveMedia('stop');
+      this.source = undefined;
     });
   }
 
@@ -198,6 +211,8 @@ export class PlayerSession implements VidAllPlayer {
     }
     this.queue.close();
     return new Promise<void>((resolve) => {
+      // 关闭前清理 SMB 代理租约，释放记录仍以日志事件投递给监听器。
+      this.releaseLeases('release');
       this.stateMachine.release();
       this.surface = undefined;
       this.source = undefined;
@@ -206,11 +221,93 @@ export class PlayerSession implements VidAllPlayer {
     });
   }
 
+  // 供原生适配层上报 paused-for-cache / cache-buffering-state：
+  // paused=true 进入 buffering 并记住恢复目标，paused=false 恢复原状态。
+  reportBuffering(paused: boolean, percent?: number): void {
+    if (this.stateMachine.getReleasePhase() !== 'open') {
+      return;
+    }
+    const state = this.stateMachine.getState();
+    if (paused) {
+      if (state === 'playing' || state === 'paused') {
+        this.resumeState = state;
+        this.stateMachine.transition('buffering');
+        this.emitBuffering(true, percent);
+      } else if (state === 'buffering') {
+        this.emitBuffering(true, percent);
+      }
+      return;
+    }
+    if (state === 'buffering') {
+      const resume = this.resumeState === 'paused' ? 'paused' : 'playing';
+      this.resumeState = undefined;
+      this.stateMachine.transition(resume);
+      this.emitBuffering(false, percent);
+    }
+  }
+
+  // 供原生适配层上报网络失败：清理旧连接/旧媒体状态后进入 error，
+  // 事件的 retryable 与稳定码决定消费者重试还是展示不可恢复原因。
+  reportNetworkFailure(failure: PlayerFailure): void {
+    if (this.stateMachine.getReleasePhase() !== 'open') {
+      return;
+    }
+    const state = this.stateMachine.getState();
+    if (state === 'idle' || state === 'released' || state === 'error') {
+      return;
+    }
+    this.recovery.recordFailure(failure);
+    if (this.tracks.length > 0) {
+      this.tracks = [];
+      this.emitTracks();
+    }
+    this.releaseLeases('network-failure');
+    this.resumeState = undefined;
+    this.stateMachine.transition('error');
+    this.stateMachine.emit({ type: 'error', sequence: 0, error: redactError(failure.playerError) });
+  }
+
+  networkRecovery(): NetworkRecoveryController {
+    return this.recovery;
+  }
+
   private enqueue(_name: string, operation: () => void): Promise<void> {
     return this.queue.enqueue(() => {
       operation();
       return Promise.resolve();
     });
+  }
+
+  private abortActiveMedia(reason: string): void {
+    this.releaseLeases(reason);
+    if (this.tracks.length > 0) {
+      this.tracks = [];
+      this.emitTracks();
+    }
+    this.resumeState = undefined;
+    const state = this.stateMachine.getState();
+    if (state === 'playing' || state === 'paused' || state === 'buffering' || state === 'preparing') {
+      this.stateMachine.transition('idle');
+    }
+  }
+
+  private releaseLeases(reason: string): void {
+    const released = this.leases.releaseAll(reason);
+    for (let index = 0; index < released.length; index++) {
+      this.emitLog(leaseReleaseMessage(released[index]));
+    }
+  }
+
+  private emitBuffering(paused: boolean, percent?: number): void {
+    const event: PlayerEvent = { type: 'buffering', sequence: 0, paused: paused };
+    if (percent !== undefined && Number.isFinite(percent)) {
+      event.percent = percent;
+    }
+    this.stateMachine.emit(event);
+  }
+
+  private emitLog(message: string): void {
+    this.stateMachine.emit({ type: 'log', sequence: 0, message: redactText(message) });
   }
 
   private createExternalSubtitleTracks(subtitles?: ExternalSubtitle[]): PlayerTrack[] {
@@ -240,7 +337,26 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   private emitTracks(): void {
-    this.stateMachine.emit({ type: 'tracks', sequence: 0, tracks: this.tracks.slice() });
+    // 深拷贝轨道快照：监听器可能保留事件对象，后续 selected 等字段
+    // 变更不能污染已投递事件中的轨道状态。
+    const snapshot: PlayerTrack[] = [];
+    for (let index = 0; index < this.tracks.length; index++) {
+      const track = this.tracks[index];
+      const copy: PlayerTrack = {
+        id: track.id,
+        kind: track.kind,
+        selected: track.selected,
+        recognitionStatus: track.recognitionStatus
+      };
+      if (track.language !== undefined) {
+        copy.language = track.language;
+      }
+      if (track.title !== undefined) {
+        copy.title = track.title;
+      }
+      snapshot.push(copy);
+    }
+    this.stateMachine.emit({ type: 'tracks', sequence: 0, tracks: snapshot });
   }
 
   private validateSurface(surface: PlayerSurface): void {

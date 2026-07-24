@@ -133,12 +133,12 @@
 
 ### Implementation for User Story 4
 
-- [ ] T053 [US4] 在 `native/media/` 实现 HLS 支持：master/media playlist、fMP4/TS 分段、缓存和跳转
-- [ ] T054 [US4] 在 `native/media/` 实现 DASH 支持：MPD 清单解析、自适应流选择、缓存和跳转
-- [ ] T055 [US4] 在 `native/media/` 实现 SMB localhost HTTP 代理策略：`localhostProxy` 媒体类型、proxyLeaseId 关联与清理
-- [ ] T056 [US4] 在 `packages/vidall-player/src/public/` 实现 `MediaSource.kind` 的 `hls`、`dash`、`localhostProxy` 类型处理
-- [ ] T057 [US4] 在 `packages/vidall-player/src/internal/` 实现网络中断恢复：旧连接/旧媒体状态清理、重试或显示不可恢复原因
-- [ ] T058 [US4] 在 `native/media/` 实现外挂音频/字幕网络 URL 支持：`audio-files`、`sub-files` 远程文件与本地缓存
+- [x] T053 [US4] 在 `native/media/` 实现 HLS 支持：master/media playlist、fMP4/TS 分段、缓存和跳转
+- [x] T054 [US4] 在 `native/media/` 实现 DASH 支持：MPD 清单解析、自适应流选择、缓存和跳转
+- [x] T055 [US4] 在 `native/media/` 实现 SMB localhost HTTP 代理策略：`localhostProxy` 媒体类型、proxyLeaseId 关联与清理
+- [x] T056 [US4] 在 `packages/vidall-player/src/public/` 实现 `MediaSource.kind` 的 `hls`、`dash`、`localhostProxy` 类型处理
+- [x] T057 [US4] 在 `packages/vidall-player/src/internal/` 实现网络中断恢复：旧连接/旧媒体状态清理、重试或显示不可恢复原因
+- [x] T058 [US4] 在 `native/media/` 实现外挂音频/字幕网络 URL 支持：`audio-files`、`sub-files` 远程文件与本地缓存
 - [ ] T059 [US4] 验证 HTTPS 直链、HLS、DASH、SMB localhost HTTP 代理的加载/跳转/认证/断网恢复
 - [ ] T060 [US4] 验证外挂字幕网络 URL 和本地缓存文件的加载与错误处理
 

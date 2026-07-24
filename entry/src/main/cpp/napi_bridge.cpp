@@ -123,6 +123,32 @@ bool GetFiniteDoubleArgument(napi_env env, napi_callback_info info, size_t index
     return argc > index && napi_get_value_double(env, args[index], &value) == napi_ok && std::isfinite(value);
 }
 
+// 缓冲状态默认快照：模拟器桩路径与无效句柄共用，保证演示层轮询不崩溃。
+napi_value DefaultBufferingState(napi_env env)
+{
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    napi_value falseValue = nullptr;
+    napi_get_boolean(env, false, &falseValue);
+    napi_set_named_property(env, result, "pausedForCache", falseValue);
+    napi_value falseValue2 = nullptr;
+    napi_get_boolean(env, false, &falseValue2);
+    napi_set_named_property(env, result, "demuxerBuffering", falseValue2);
+    napi_value zeroValue = nullptr;
+    napi_create_double(env, 0.0, &zeroValue);
+    napi_set_named_property(env, result, "cacheDurationSeconds", zeroValue);
+    napi_value falseValue3 = nullptr;
+    napi_get_boolean(env, false, &falseValue3);
+    napi_set_named_property(env, result, "eofReached", falseValue3);
+    napi_value trueValue = nullptr;
+    napi_get_boolean(env, true, &trueValue);
+    napi_set_named_property(env, result, "idleActive", trueValue);
+    napi_set_named_property(env, result, "mediaKind", CreateString(env, ""));
+    napi_set_named_property(env, result, "proxyLeaseId", CreateString(env, ""));
+    napi_set_named_property(env, result, "errorText", CreateString(env, ""));
+    return result;
+}
+
 #if VIDALL_MPV_AVAILABLE
 
 class PlayerSession {
@@ -201,6 +227,7 @@ public:
         if (!player_ || url.empty()) {
             return player_ ? "请输入有效的视频 URL" : "播放器已释放";
         }
+        ClearProxyLease("source-switch");
         // 每次加载媒体时单独设置认证头，避免凭据泄漏到后续请求。
         const int headerResult = mpv_set_property_string(player_.get(), "http-header-fields", authorization.c_str());
         if (headerResult < 0) {
@@ -208,6 +235,67 @@ public:
         }
         const char* command[] = {"loadfile", url.c_str(), "replace", nullptr};
         return mpv_command_async(player_.get(), 1, command) >= 0 ? "已提交加载请求" : "libmpv 拒绝加载请求";
+    }
+
+    // 按媒体类型加载（US4）：
+    // - hls：主播放列表选择最高码率变体（hls-bitrate=highest）；运行期自适应
+    //   切换依赖 FFmpeg HLS demuxer 构建，真机效果标记为已构建待验证。
+    // - dash：交给 FFmpeg DASH demuxer 默认自适应策略，不额外设置专有选项。
+    // - localhostProxy：关联 SMB 代理租约 ID，并尽量强制可跳转；跳转能力最终
+    //   取决于业务层代理的 Range 支持，force-seekable 失败不阻断加载。
+    // 旧租约在切源时先清理，避免旧代理连接/端口泄漏。
+    std::string LoadMedia(const std::string& kind, const std::string& url,
+                          const std::string& authorization, const std::string& proxyLeaseId)
+    {
+        if (!player_ || url.empty()) {
+            return player_ ? "请输入有效的视频 URL" : "播放器已释放";
+        }
+        ClearProxyLease("source-switch");
+        const int headerResult = mpv_set_property_string(player_.get(), "http-header-fields", authorization.c_str());
+        if (headerResult < 0) {
+            return "设置网络认证失败";
+        }
+        if (kind == "hls") {
+            if (mpv_set_property_string(player_.get(), "hls-bitrate", "highest") < 0) {
+                MPV_LOG(LOG_WARN, "LoadMedia: hls-bitrate 设置失败，退回默认变体选择");
+            }
+        } else if (kind == "localhostProxy") {
+            if (mpv_set_property_string(player_.get(), "force-seekable", "yes") < 0) {
+                MPV_LOG(LOG_WARN, "LoadMedia: force-seekable 不可用，跳转取决于代理 Range 支持");
+            }
+        }
+        currentMediaKind_ = kind;
+        currentProxyLeaseId_ = proxyLeaseId;
+        if (!currentProxyLeaseId_.empty()) {
+            // 只记录租约 ID 与类型，不记录 URL/凭据。
+            MPV_LOG(LOG_INFO, "LoadMedia: 关联 SMB 代理租约 lease=%{public}s kind=%{public}s",
+                    currentProxyLeaseId_.c_str(), currentMediaKind_.c_str());
+        }
+        const char* command[] = {"loadfile", url.c_str(), "replace", nullptr};
+        return mpv_command_async(player_.get(), 1, command) >= 0 ? "已提交加载请求" : "libmpv 拒绝加载请求";
+    }
+
+    std::string AddExternalAudio(const std::string& uri)
+    {
+        if (!player_ || uri.empty()) {
+            return player_ ? "音频地址无效" : "播放器已释放";
+        }
+        // 与外挂字幕一致：同步命令，audio-add 带 "select" 加载后立即选中该音轨。
+        const char* command[] = {"audio-add", uri.c_str(), "select", nullptr};
+        return mpv_command(player_.get(), command) >= 0 ? "已加载外挂音频" : "外挂音频加载失败";
+    }
+
+    // 清理当前 SMB 代理租约关联：日志只含租约 ID 与原因（不含 URL/凭据），
+    // 业务层据此关闭代理连接、回收端口。
+    void ClearProxyLease(const char* reason)
+    {
+        currentMediaKind_.clear();
+        if (currentProxyLeaseId_.empty()) {
+            return;
+        }
+        MPV_LOG(LOG_INFO, "SMB 代理租约已释放 lease=%{public}s reason=%{public}s",
+                currentProxyLeaseId_.c_str(), reason);
+        currentProxyLeaseId_.clear();
     }
 
     std::string SetPause(bool paused)
@@ -224,6 +312,7 @@ public:
         if (!player_) {
             return "播放器已释放";
         }
+        ClearProxyLease("stop");
         const char* command[] = {"stop", nullptr};
         return mpv_command_async(player_.get(), 3, command) >= 0 ? "已停止播放" : "停止播放失败";
     }
@@ -484,8 +573,64 @@ public:
         return status;
     }
 
+    // 缓冲/缓存状态快照（US4）：演示层轮询后映射为 buffering 事件。
+    // pausedForCache 来自 paused-for-cache；demuxerBuffering 与 cacheDurationSeconds
+    // 来自 demuxer-cache-state（mpv 0.40 已移除 cache-buffering-state，改读该节点）。
+    napi_value GetBufferingState(napi_env env)
+    {
+        napi_value result = DefaultBufferingState(env);
+        if (!player_) {
+            return result;
+        }
+        int pausedFlag = 0;
+        if (mpv_get_property(player_.get(), "paused-for-cache", MPV_FORMAT_FLAG, &pausedFlag) >= 0) {
+            napi_value pausedValue = nullptr;
+            napi_get_boolean(env, pausedFlag != 0, &pausedValue);
+            napi_set_named_property(env, result, "pausedForCache", pausedValue);
+        }
+        mpv_node cacheState{};
+        if (mpv_get_property(player_.get(), "demuxer-cache-state", MPV_FORMAT_NODE, &cacheState) >= 0 &&
+            cacheState.format == MPV_FORMAT_NODE_MAP) {
+            for (int index = 0; index < cacheState.u.list->num; index++) {
+                const std::string key = cacheState.u.list->keys[index];
+                const mpv_node& value = cacheState.u.list->values[index];
+                if (key == "buffering" && value.format == MPV_FORMAT_FLAG) {
+                    napi_value bufferingValue = nullptr;
+                    napi_get_boolean(env, value.u.flag != 0, &bufferingValue);
+                    napi_set_named_property(env, result, "demuxerBuffering", bufferingValue);
+                } else if (key == "cache-end" && value.format == MPV_FORMAT_DOUBLE) {
+                    napi_value cacheEndValue = nullptr;
+                    napi_create_double(env, value.u.double_, &cacheEndValue);
+                    napi_set_named_property(env, result, "cacheDurationSeconds", cacheEndValue);
+                }
+            }
+            mpv_free_node_contents(&cacheState);
+        }
+        int eofFlag = 0;
+        if (mpv_get_property(player_.get(), "eof-reached", MPV_FORMAT_FLAG, &eofFlag) >= 0) {
+            napi_value eofValue = nullptr;
+            napi_get_boolean(env, eofFlag != 0, &eofValue);
+            napi_set_named_property(env, result, "eofReached", eofValue);
+        }
+        int idleFlag = 0;
+        if (mpv_get_property(player_.get(), "idle-active", MPV_FORMAT_FLAG, &idleFlag) >= 0) {
+            napi_value idleValue = nullptr;
+            napi_get_boolean(env, idleFlag != 0, &idleValue);
+            napi_set_named_property(env, result, "idleActive", idleValue);
+        }
+        napi_set_named_property(env, result, "mediaKind", CreateString(env, currentMediaKind_));
+        napi_set_named_property(env, result, "proxyLeaseId", CreateString(env, currentProxyLeaseId_));
+        char* errorMsg = mpv_get_property_string(player_.get(), "error-text");
+        if (errorMsg != nullptr) {
+            napi_set_named_property(env, result, "errorText", CreateString(env, errorMsg));
+            mpv_free(errorMsg);
+        }
+        return result;
+    }
+
     void Release()
     {
+        ClearProxyLease("release");
         StopRenderer();
         {
             std::lock_guard<std::mutex> lock(lifecycleMutex_);
@@ -1088,6 +1233,9 @@ private:
     int frameHeight_ = 0;
     bool frameReady_ = false;
     int framesRendered_ = 0;
+    // 当前媒体类型与 SMB 代理租约关联（US4）：切源/停止/释放时清理。
+    std::string currentMediaKind_;
+    std::string currentProxyLeaseId_;
 };
 
 std::mutex g_sessionsMutex;
@@ -1212,6 +1360,63 @@ napi_value Load(napi_env env, napi_callback_info info)
     return CreateString(env, session ? session->Load(url, authorization) : "播放器不存在或已释放");
 #else
     return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value LoadMedia(napi_env env, napi_callback_info info)
+{
+    size_t argc = 5;
+    napi_value args[5] = {nullptr, nullptr, nullptr, nullptr, nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    int64_t handle = 0;
+    std::string kind;
+    std::string url;
+    std::string authorization;
+    std::string proxyLeaseId;
+    if (argc < 3 || napi_get_value_int64(env, args[0], &handle) != napi_ok || handle <= 0 ||
+        !ReadString(env, args[1], kind) || !ReadString(env, args[2], url)) {
+        return CreateString(env, "请输入有效的媒体类型与 URL");
+    }
+    if (argc >= 4) {
+        ReadString(env, args[3], authorization);
+    }
+    if (argc >= 5) {
+        ReadString(env, args[4], proxyLeaseId);
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->LoadMedia(kind, url, authorization, proxyLeaseId) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value AddExternalAudio(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    std::string uri;
+    if (!GetHandleArgument(env, info, handle) || !GetStringArgument(env, info, 1, uri)) {
+        return CreateString(env, "音频地址无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->AddExternalAudio(uri) : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value GetBufferingState(napi_env env, napi_callback_info info)
+{
+    int64_t handle = 0;
+    if (!GetHandleArgument(env, info, handle)) {
+        return DefaultBufferingState(env);
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return session ? session->GetBufferingState(env) : DefaultBufferingState(env);
+#else
+    return DefaultBufferingState(env);
 #endif
 }
 
@@ -1546,6 +1751,9 @@ napi_value Init(napi_env env, napi_value exports)
         {"attachSurface", nullptr, AttachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"detachSurface", nullptr, DetachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"load", nullptr, Load, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"loadMedia", nullptr, LoadMedia, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"addExternalAudio", nullptr, AddExternalAudio, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getBufferingState", nullptr, GetBufferingState, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setPause", nullptr, SetPause, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"seekRelative", nullptr, SeekRelative, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"seekPercent", nullptr, SeekPercent, nullptr, nullptr, nullptr, napi_default, nullptr},

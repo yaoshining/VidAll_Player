@@ -54,4 +54,6 @@ export interface PlayerEvent {
   paused?: boolean;
   tracks?: PlayerTrack[];
   error?: PlayerError;
+  // 仅用于 log 事件的脱敏文本载荷（如 SMB 代理租约释放记录）。
+  message?: string;
 }

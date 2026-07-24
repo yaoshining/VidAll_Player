@@ -19,6 +19,19 @@ export interface LibMpvTrack {
   selected?: boolean;
 }
 
+// 缓冲/缓存状态快照（US4）：pausedForCache 对应 mpv paused-for-cache，
+// demuxerBuffering 与 cacheDurationSeconds 对应 demuxer-cache-state 节点。
+export interface BufferingState {
+  pausedForCache: boolean;
+  demuxerBuffering: boolean;
+  cacheDurationSeconds: number;
+  eofReached: boolean;
+  idleActive: boolean;
+  mediaKind: string;
+  proxyLeaseId: string;
+  errorText: string;
+}
+
 export interface LibMpvNapi {
   getBuildInfo(): LibMpvBuildInfo;
   setDataDir(path: string): string;
@@ -26,6 +39,9 @@ export interface LibMpvNapi {
   attachSurface(handle: number, surfaceId: string): string;
   detachSurface(handle: number): string;
   load(handle: number, url: string, authorization: string): string;
+  loadMedia(handle: number, kind: string, url: string, authorization: string, proxyLeaseId: string): string;
+  addExternalAudio(handle: number, uri: string): string;
+  getBufferingState(handle: number): BufferingState;
   setPause(handle: number, paused: boolean): string;
   seekRelative(handle: number, seconds: number): string;
   seekPercent(handle: number, percent: number): string;

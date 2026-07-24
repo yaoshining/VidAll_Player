@@ -1,6 +1,7 @@
-import libentry, { LibMpvTrack } from 'libentry.so';
+import libentry, { BufferingState, LibMpvTrack } from 'libentry.so';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { image } from '@kit.ImageKit';
+import { detectMediaKind, newProxyLeaseId } from '../player/MediaKindDetection';
 import { splitTracks, trackLabel } from '../player/TrackPresentation';
 import { buildBasicAuthorization, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
 
@@ -18,6 +19,10 @@ struct Index {
   @State runtimeInfo: string = '';
   @State url: string = '';
   @State subtitleUrl: string = '';
+  @State externalAudioUrl: string = '';
+  @State currentMediaKind: string = '';
+  @State currentProxyLeaseId: string = '';
+  @State bufferingInfo: string = '';
   @State playerHandle: number = 0;
   @State surfaceId: string = '';
   @State isPlaying: boolean = false;
@@ -159,19 +164,39 @@ struct Index {
     console.info(`VidAll_Player: auto-playing, surfaceId = ${this.surfaceId}`);
     this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
     console.info(`VidAll_Player: attachSurface status = ${this.nativeStatus}`);
-    this.nativeStatus = libentry.load(this.playerHandle, this.url,
-      this.isWebDavSource ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}` : '');
-    // 如果填写了外挂字幕 URL，加载视频后立即附加
-    if (this.subtitleUrl.trim().length > 0) {
-      this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, this.subtitleUrl.trim());
-    }
-    this.audioTracks = [];
-    this.subtitleTracks = [];
+    this.submitLoad();
     console.info(`VidAll_Player: load submitted`);
     this.isPlaying = true;
     this.refreshTracksWhenReady();
     // 启动帧轮询，供 PixelMap 回退渲染使用。
     this.startFramePoll();
+  }
+
+  // 统一的媒体提交入口（US4）：按 URL 识别 hls/dash/localhostProxy/http/https，
+  // SMB localhost 代理生成租约 ID 交给原生层关联，凭据仍只走 Authorization 头。
+  private submitLoad(): void {
+    const targetUrl = this.url.trim();
+    if (targetUrl.length === 0) {
+      this.nativeStatus = '请先输入或选择媒体地址。';
+      return;
+    }
+    const kind = detectMediaKind(targetUrl);
+    const authorization = this.isWebDavSource
+      ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}`
+      : '';
+    const proxyLeaseId = kind === 'localhostProxy' ? newProxyLeaseId() : '';
+    this.currentMediaKind = kind;
+    this.currentProxyLeaseId = proxyLeaseId;
+    this.nativeStatus = libentry.loadMedia(this.playerHandle, kind, targetUrl, authorization, proxyLeaseId);
+    // 如果填写了外挂字幕/音频 URL，加载视频后立即附加（支持网络 URL）。
+    if (this.subtitleUrl.trim().length > 0) {
+      this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, this.subtitleUrl.trim());
+    }
+    if (this.externalAudioUrl.trim().length > 0) {
+      this.nativeStatus = libentry.addExternalAudio(this.playerHandle, this.externalAudioUrl.trim());
+    }
+    this.audioTracks = [];
+    this.subtitleTracks = [];
   }
 
   private startFramePoll(): void {
@@ -266,14 +291,7 @@ struct Index {
       return;
     }
     this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
-    this.nativeStatus = libentry.load(this.playerHandle, this.url,
-      this.isWebDavSource ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}` : '');
-    // 如果填写了外挂字幕 URL，加载视频后立即附加
-    if (this.subtitleUrl.trim().length > 0) {
-      this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, this.subtitleUrl.trim());
-    }
-    this.audioTracks = [];
-    this.subtitleTracks = [];
+    this.submitLoad();
     this.isPlaying = true;
     this.refreshTracksWhenReady();
     this.startFramePoll();
@@ -319,6 +337,21 @@ struct Index {
     }
     this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, uri);
     // 字幕加载后刷新轨道列表，让新字幕出现在字幕轨面板中
+    this.pollTracksAfterSwitch();
+  }
+
+  private loadExternalAudio(): void {
+    if (this.playerHandle <= 0) {
+      this.nativeStatus = '请先加载视频。';
+      return;
+    }
+    const uri = this.externalAudioUrl.trim();
+    if (uri.length === 0) {
+      this.nativeStatus = '请先填写外挂音频 URL。';
+      return;
+    }
+    this.nativeStatus = libentry.addExternalAudio(this.playerHandle, uri);
+    // 音轨加载后刷新轨道列表，让新音轨出现在音轨面板中
     this.pollTracksAfterSwitch();
   }
 
@@ -383,8 +416,18 @@ struct Index {
 
   private pollStatus(): void {
     if (this.playerHandle > 0) {
-      const status = libentry.getPlayerStatus(this.playerHandle);
-      this.nativeStatus = status;
+      this.nativeStatus = libentry.getPlayerStatus(this.playerHandle);
+      // 缓冲/缓存状态（US4）：paused-for-cache 表示等待缓存，demuxer 预读显示已缓存时长。
+      const buffering: BufferingState = libentry.getBufferingState(this.playerHandle);
+      this.currentMediaKind = buffering.mediaKind;
+      this.currentProxyLeaseId = buffering.proxyLeaseId;
+      if (buffering.pausedForCache) {
+        this.bufferingInfo = '缓冲中：等待缓存恢复 (paused-for-cache)';
+      } else if (buffering.demuxerBuffering) {
+        this.bufferingInfo = `预读中：已缓存 ${buffering.cacheDurationSeconds.toFixed(1)} 秒`;
+      } else {
+        this.bufferingInfo = '';
+      }
     }
   }
 
@@ -505,6 +548,21 @@ struct Index {
         .fontColor('#8FA7C5')
         .width('88%')
 
+      if (this.currentMediaKind.length > 0) {
+        Text(`媒体类型: ${this.currentMediaKind}${this.currentProxyLeaseId.length > 0 ? ` | SMB 代理租约: ${this.currentProxyLeaseId}` : ''}`)
+          .id('media-kind-info')
+          .fontSize(14)
+          .fontColor('#8FA7C5')
+          .width('88%')
+      }
+      if (this.bufferingInfo.length > 0) {
+        Text(this.bufferingInfo)
+          .id('buffering-info')
+          .fontSize(15)
+          .fontColor('#E0B34D')
+          .width('88%')
+      }
+
       Column({ space: 8 }) {
         Row() {
           Text('音轨与字幕')
@@ -561,7 +619,7 @@ struct Index {
       .border({ width: 1, color: '#426991', radius: 10 })
       .backgroundColor('#0C1A2A')
 
-      TextInput({ text: this.url, placeholder: '输入 HTTP / HTTPS 视频 URL' })
+      TextInput({ text: this.url, placeholder: '输入视频 URL（HTTP/HTTPS、HLS .m3u8、DASH .mpd 或 SMB 代理 http://127.0.0.1…）' })
         .id('video-url-input')
         .width('88%')
         .fontSize(17)
@@ -584,6 +642,23 @@ struct Index {
           .enabled(this.playerHandle > 0 && this.subtitleUrl.trim().length > 0)
           .backgroundColor('#2F7DE1')
           .onClick(() => this.loadExternalSubtitle())
+      }
+      .width('88%')
+
+      Row({ space: 8 }) {
+        TextInput({ text: this.externalAudioUrl, placeholder: '外挂音频 URL（可选，如 http://…/movie.m4a）' })
+          .id('external-audio-url-input')
+          .layoutWeight(1)
+          .fontSize(15)
+          .onChange((value: string) => {
+            this.externalAudioUrl = value;
+          })
+        Button('加载外挂音频')
+          .id('load-external-audio-button')
+          .fontSize(15)
+          .enabled(this.playerHandle > 0 && this.externalAudioUrl.trim().length > 0)
+          .backgroundColor('#2F7DE1')
+          .onClick(() => this.loadExternalAudio())
       }
       .width('88%')
 
