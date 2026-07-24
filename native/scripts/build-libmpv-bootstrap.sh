@@ -45,9 +45,10 @@ reset_dependency_sources() {
   fi
 
   for dep in "$dep_dir"/*/; do
-    if [ -d "$dep/.git" ]; then
+    if git -C "$dep" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
       echo "还原 $dep 到干净状态..."
-      git -C "$dep" checkout -- .
+      git -C "$dep" reset --hard
+      git -C "$dep" clean -fd
     fi
   done
 }
