@@ -5,7 +5,7 @@ readonly ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly LOCK_FILE="$ROOT_DIR/native/config/sources.lock.json"
 readonly BUILD_REPOSITORY='https://github.com/mpv-ohos/libmpv-ohos-build.git'
 readonly BUILD_COMMIT='1bab837e662ffa47ce51efd0720d3ed7c4988944'
-readonly DEPENDENCY_CACHE_SCHEMA='2'
+readonly DEPENDENCY_CACHE_SCHEMA='3'
 readonly MESON_VERSION='1.7.0'
 readonly CACHE_ROOT="${VIDALL_PLAYER_CACHE_DIR:-${HOME:-$ROOT_DIR}/.cache/vidall-player}"
 readonly WORK_DIR="$CACHE_ROOT/libmpv-ohos-build"
@@ -32,6 +32,24 @@ mark_dependency_cache_prepared() {
 
   printf '%s\n' "$expected_commit" > "$temporary_marker"
   mv -- "$temporary_marker" "$commit_marker"
+}
+
+# 还原依赖源码到下载时的干净状态，确保补丁可以幂等应用。
+# 缓存命中时 download.sh 会跳过已有目录，但 patch.sh 需要干净的工作树。
+reset_dependency_sources() {
+  local work_dir="$1"
+  local dep_dir="$work_dir/libmpv"
+
+  if [ ! -d "$dep_dir" ]; then
+    return 0
+  fi
+
+  for dep in "$dep_dir"/*/; do
+    if [ -d "$dep/.git" ]; then
+      echo "还原 $dep 到干净状态..."
+      git -C "$dep" checkout -- .
+    fi
+  done
 }
 
 # 供 shell 测试导入缓存失效逻辑，避免触发原生构建。
@@ -70,6 +88,7 @@ fi
 cd "$WORK_DIR"
 chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 ./download.sh
+reset_dependency_sources "$WORK_DIR"
 ./patch.sh
 mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA"
 ./build.sh

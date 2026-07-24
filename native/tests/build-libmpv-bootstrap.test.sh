@@ -49,6 +49,32 @@ main() {
   invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit:2'
   assert_missing "$work_dir/libmpv/ffmpeg"
   assert_missing "$work_dir/.vidall-player-build-commit"
+
+  # reset_dependency_sources 应还原有 .git 目录的依赖到干净状态
+  local dep_dir="$work_dir/libmpv"
+  mkdir -p "$dep_dir/ffmpeg"
+  pushd "$dep_dir/ffmpeg" > /dev/null
+  git init
+  git config user.email 'test@test.com'
+  git config user.name 'Test'
+  printf 'original\n' > file.txt
+  git add file.txt
+  git commit -m 'initial'
+  printf 'modified\n' > file.txt
+  popd > /dev/null
+
+  reset_dependency_sources "$work_dir"
+  [ "$(cat "$dep_dir/ffmpeg/file.txt")" = 'original' ] || fail 'reset_dependency_sources 应还原依赖到干净状态'
+
+  # 无 .git 目录的依赖不应被还原
+  mkdir -p "$dep_dir/mbedtls"
+  printf 'unchanged\n' > "$dep_dir/mbedtls/file.txt"
+  reset_dependency_sources "$work_dir"
+  [ "$(cat "$dep_dir/mbedtls/file.txt")" = 'unchanged' ] || fail '无 .git 目录的依赖不应被还原'
+
+  # libmpv 不存在时应正常退出
+  rm -rf "$dep_dir"
+  reset_dependency_sources "$work_dir"
 }
 
 main "$@"
