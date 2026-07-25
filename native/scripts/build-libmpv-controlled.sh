@@ -50,7 +50,7 @@ else
 fi
 "$MANIFEST_TOOL" --lock "$LOCK_FILE" --source "$source_dir" --output "$output_dir/feature-manifest.json" --abi arm64-v8a --min-sdk 15
 "$SBOM_TOOL" --lock "$LOCK_FILE" --format spdx --output "$output_dir/sbom.spdx.json"
-"$SBOM_TOOL" --lock "$LOCK_FILE" --format cyclonedx --output "$output_dir/sbom.cyclonedx.json"
+"$SBOM_TOOL" --lock "$LOCK_FILE" --format cyclonedx --output "$output_dir/sbom.cdx.json"
 "$LICENSE_TOOL" --lock "$LOCK_FILE" --output "$output_dir/license-audit.json"
 "$NOTICE_TOOL" --lock "$LOCK_FILE" --output "$output_dir/NOTICE"
 "$ELF_AUDIT_TOOL" --input "$output_dir/libmpv.so" --output "$output_dir/elf-audit.json" --allow libc++.so --allow libhilog_ndk.z.so

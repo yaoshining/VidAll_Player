@@ -111,6 +111,31 @@ PY
     fail 'ELF 审计必须拒绝不存在的输入'
   fi
 
+  local mock_bin
+  mock_bin="$temp_dir/mock-bin"
+  mkdir -p "$mock_bin"
+  cat > "$mock_bin/readelf" <<'EOF'
+#!/usr/bin/env bash
+case "$1" in
+  -d) printf ' 0x0000000000000001 (NEEDED)             Shared library: [libc++.so]\n' ;;
+  --dyn-syms) python3 -c 'print("\n".join(f"    1: 00000000     0 FUNC    GLOBAL DEFAULT    1 symbol_{i:07d}" for i in range(300000)))' ;;
+esac
+EOF
+  chmod +x "$mock_bin/readelf"
+  : > "$temp_dir/mock-libmpv.so"
+  PATH="$mock_bin:$PATH" "$ELF_AUDIT_TOOL" --input "$temp_dir/mock-libmpv.so" --output "$output_dir/elf-audit-large.json" --allow libc++.so
+  assert_json "$output_dir/elf-audit-large.json"
+  python3 - "$output_dir/elf-audit-large.json" <<'PY'
+import json
+import sys
+report = json.load(open(sys.argv[1], encoding='utf-8'))
+assert report['status'] == 'passed'
+assert len(report['exportedDynamicSymbols']) == 299997
+PY
+
+  grep -Fq 'sbom.cdx.json' "$CONTROLLED_BUILD" || fail '受控构建必须使用统一的 CycloneDX SBOM 文件名'
+  grep -Fq 'sbom.cdx.json' "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" || fail 'CI 必须使用统一的 CycloneDX SBOM 文件名'
+
   printf 'same artifact\n' > "$temp_dir/first.so"
   cp "$temp_dir/first.so" "$temp_dir/second.so"
   "$REPRODUCIBILITY_TOOL" --first "$temp_dir/first.so" --second "$temp_dir/second.so" --output "$output_dir/reproducibility.json"
