@@ -32,6 +32,32 @@ export default function demoLifecycleTest() {
       expect(controller.onSurfaceCreated()).assertFalse();
     });
 
+    it('preserves the loaded source when playback resumes after URL editing', 0, () => {
+      const controller = new DemoLifecycleController();
+      controller.markPlaybackStarted('https://example.com/loaded.mp4');
+      controller.markPlaybackStopped();
+      controller.markPlaybackStarted('');
+      expect(controller.getActiveSource()).assertEqual('https://example.com/loaded.mp4');
+      expect(controller.onBackground()).assertTrue();
+      expect(controller.onForeground()).assertTrue();
+    });
+
+    it('does not request a Surface recovery after playback is stopped', 0, () => {
+      const controller = new DemoLifecycleController();
+      controller.markPlaybackStarted('https://example.com/one.mp4');
+      controller.markPlaybackStopped();
+      expect(controller.onSurfaceDestroyed()).assertFalse();
+      expect(controller.onSurfaceCreated()).assertFalse();
+    });
+
+    it('keeps background state from resuming while the Surface is detached', 0, () => {
+      const controller = new DemoLifecycleController();
+      controller.markPlaybackStarted('https://example.com/one.mp4');
+      expect(controller.onSurfaceDestroyed()).assertTrue();
+      expect(controller.onBackground()).assertTrue();
+      expect(controller.onForeground()).assertFalse();
+    });
+
     it('wraps TV focus navigation at list boundaries', 0, () => {
       const controller = new DemoLifecycleController();
       expect(controller.moveFocus(0, 3, -1)).assertEqual(2);

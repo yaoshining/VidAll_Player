@@ -5,8 +5,11 @@ export class DemoLifecycleController {
   private inBackground: boolean = false;
 
   markPlaybackStarted(source: string): void {
-    this.activeSource = source;
-    this.playing = source.length > 0;
+    const normalizedSource = source.trim();
+    if (normalizedSource.length > 0) {
+      this.activeSource = normalizedSource;
+    }
+    this.playing = true;
     this.surfaceDetached = false;
   }
 

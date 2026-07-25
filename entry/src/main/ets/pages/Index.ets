@@ -34,6 +34,7 @@ struct Index {
   @State surfaceId: string = '';
   @State isPlaying: boolean = false;
   @State videoPixelMap: image.PixelMap | null = null;
+  private activePlaybackUrl: string = '';
   @State showVideo: boolean = false;
   private pixelMapBuffers: image.PixelMap[] = [];
   private pixelMapBufferIndex: number = 0;
@@ -173,10 +174,14 @@ struct Index {
     console.info(`VidAll_Player: auto-playing, surfaceId = ${this.surfaceId}`);
     this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
     console.info(`VidAll_Player: attachSurface status = ${this.nativeStatus}`);
+    this.startOrReloadMedia();
+  }
+
+  private startOrReloadMedia(): void {
     this.submitLoad();
     console.info(`VidAll_Player: load submitted`);
     this.isPlaying = true;
-    this.lifecycle.markPlaybackStarted(this.url.trim());
+    this.lifecycle.markPlaybackStarted(this.activePlaybackUrl);
     this.refreshTracksWhenReady();
     // 启动帧轮询，供 PixelMap 回退渲染使用。
     this.startFramePoll();
@@ -197,6 +202,7 @@ struct Index {
     const proxyLeaseId = kind === 'localhostProxy' ? newProxyLeaseId() : '';
     this.currentMediaKind = kind;
     this.currentProxyLeaseId = proxyLeaseId;
+    this.activePlaybackUrl = targetUrl;
     this.nativeStatus = libentry.loadMedia(this.playerHandle, kind, targetUrl, authorization, proxyLeaseId);
     // 如果填写了外挂字幕/音频 URL，加载视频后立即附加（支持网络 URL）。
     if (this.subtitleUrl.trim().length > 0) {
@@ -332,11 +338,7 @@ struct Index {
       return;
     }
     this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
-    this.submitLoad();
-    this.isPlaying = true;
-    this.lifecycle.markPlaybackStarted(this.url.trim());
-    this.refreshTracksWhenReady();
-    this.startFramePoll();
+    this.startOrReloadMedia();
   }
 
   private refreshTracks(): boolean {
@@ -425,7 +427,7 @@ struct Index {
     this.isPlaying = !this.isPlaying;
     this.nativeStatus = libentry.setPause(this.playerHandle, !this.isPlaying);
     if (this.isPlaying) {
-      this.lifecycle.markPlaybackStarted(this.url.trim());
+      this.lifecycle.markPlaybackStarted(this.activePlaybackUrl);
     } else {
       this.lifecycle.markPlaybackStopped();
     }
@@ -492,7 +494,8 @@ struct Index {
     const surfaceId = this.surfaceController.getXComponentSurfaceId();
     console.info(`VidAll_Player attachSurface: surfaceId = ${surfaceId}`);
     this.surfaceId = surfaceId;
-    if (this.playerHandle <= 0) {
+    const createdPlayer = this.playerHandle <= 0;
+    if (createdPlayer) {
       console.info(`VidAll_Player attachSurface: creating player...`);
       if (!this.createPlayer()) {
         console.error(`VidAll_Player attachSurface: createPlayer FAILED`);
@@ -500,10 +503,17 @@ struct Index {
       }
       console.info(`VidAll_Player attachSurface: createPlayer returned ${this.playerHandle}`);
     }
+    this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
+    if (createdPlayer) {
+      this.tryAutoPlay();
+      return;
+    }
     if (this.lifecycle.onSurfaceCreated()) {
       this.nativeStatus = 'Surface 已重建，正在恢复播放。';
+      this.isPlaying = true;
+      this.nativeStatus = libentry.setPause(this.playerHandle, false);
+      this.startFramePoll();
     }
-    this.tryAutoPlay();
   }
 
   private setPlayerError(code: number, message: string): void {
