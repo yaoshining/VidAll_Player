@@ -2,6 +2,7 @@ import playerSessionTest from './PlayerSession.test';
 import streamingSessionTest from './StreamingSession.test';
 import streamingInternalsTest from './StreamingInternals.test';
 import mediaKindDetectionTest from './player/MediaKindDetection.test';
+import demoLifecycleTest from './player/DemoLifecycle.test';
 import trackPresentationTest from './TrackPresentation.test';
 import webDavServiceTest from './webdav/WebDavService.test';
 
@@ -10,6 +11,7 @@ export default function testsuite(): void {
   streamingSessionTest();
   streamingInternalsTest();
   mediaKindDetectionTest();
+  demoLifecycleTest();
   trackPresentationTest();
   webDavServiceTest();
 }

@@ -35,10 +35,12 @@ export default class EntryAbility extends UIAbility {
   }
 
   onForeground(): void {
+    AppStorage.SetOrCreate('vidallAppForeground', true);
     hilog.info(DOMAIN, TAG, '应用进入前台。');
   }
 
   onBackground(): void {
+    AppStorage.SetOrCreate('vidallAppForeground', false);
     hilog.info(DOMAIN, TAG, '应用进入后台。');
   }
 }
