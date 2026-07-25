@@ -19,7 +19,6 @@ oh_modules/
 # Candidate release evidence (directory placeholders are tracked)
 release/**
 !release/**/.gitkeep
-
 # Generated HAR compatibility source
 packages/vidall-player/BuildProfile.ets
 
@@ -29,3 +28,4 @@ packages/vidall-player/BuildProfile.ets
 !release/
 !release/**/
 !release/**/.gitkeep
+!release/capabilities/arm64-tv-capability-evidence.json

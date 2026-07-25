@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "sdkVersion": "1.0.0",
+    "sourceCommit": "未发布候选版本",
+    "lockDigest": "待候选构建生成",
+    "targetAbi": "aarch64-linux-ohos",
+    "apiCompatibility": [15, 19, 22]
+  },
+  "performance": {
+    "firstFrame": {"status": "已构建待验证", "threshold": "与 IJK 同一匿名样本比较；记录 loadfile 至 file-loaded 和首帧渲染的毫秒数", "knownLimitations": "尚无目标 ARM64 TV 真机样本。"},
+    "seek": {"status": "已构建待验证", "threshold": "分别记录 absolute、relative、percent 跳转在 MP4、MKV、TS 的完成时间；与 IJK 同样本比较", "knownLimitations": "尚无目标 ARM64 TV 真机样本。"},
+    "bufferRecovery": {"status": "已构建待验证", "threshold": "记录 paused-for-cache 至恢复播放的毫秒数；与 IJK 同网络条件比较", "knownLimitations": "尚无目标 ARM64 TV 网络受控样本。"},
+    "resourceUsage": {"status": "已构建待验证", "threshold": "记录 1080p、4K、10-bit、60fps 的 CPU 峰值、平均值和 PSS；不得只以构建选项推断", "knownLimitations": "尚无目标 ARM64 TV 性能采样。"},
+    "longPlayback": {"status": "已构建待验证", "threshold": "4K 样本连续播放至少 1 小时，记录崩溃、内存增长和播放中断；与 IJK 基线比较", "knownLimitations": "尚未完成 1 小时 ARM64 TV 长播。"}
+  },
+  "capabilities": {
+    "containersVideo": [
+      {"feature": "MP4/MKV/TS/AVI/FLV/MPEG-PS 与 H.264/HEVC/VP9/AV1，含 1080p/4K/10-bit/60fps", "status": "已构建待验证", "knownLimitations": "构建输入不能证明目标设备的容器、解码或性能表现。"}
+    ],
+    "audio": [
+      {"feature": "AAC/MP3/FLAC/ALAC/Vorbis/Opus/PCM", "status": "已构建待验证", "knownLimitations": "待真机记录可解码、转码、静音、失败或直通结论。"},
+      {"feature": "AC-3/E-AC-3/DTS/DTS-HD/TrueHD/MLP/Audio Vivid", "status": "不支持或暂缓", "knownLimitations": "未完成许可、音频路由和 ARM64 TV 真机验证，不作支持承诺。"}
+    ],
+    "subtitles": [
+      {"feature": "SRT/ASS/WebVTT", "status": "已构建待验证", "knownLimitations": "待验证轨道识别、正确渲染和 CJK 字体回退。"},
+      {"feature": "PGS/VobSub", "status": "已构建待验证", "knownLimitations": "构建输入可能包含识别组件，渲染结论仍需真机样本。"}
+    ],
+    "network": [
+      {"feature": "HTTP/HTTPS/WebDAV/HLS/DASH/SMB localhost HTTP 代理", "status": "已构建待验证", "knownLimitations": "待逐项验证认证、重定向、Range、缓存和断网恢复。"}
+    ],
+    "hdrColor": [
+      {"feature": "SDR 基线", "status": "已构建待验证", "knownLimitations": "待以目标显示设备和受控样本验证色彩正确性。"},
+      {"feature": "HDR10/HLG/Dolby Vision", "status": "已构建待验证", "knownLimitations": "未完成 ARM64 TV 显示链路验证，不作 HDR 支持承诺。"}
+    ],
+    "ijkCompatibility": [
+      {"feature": "媒体浏览、WebDAV、SMB 代理、音轨字幕、音频路由、硬解回退、播放控制和生命周期", "status": "已构建待验证", "knownLimitations": "按 compatibility-matrix.md 的每个场景采集独立证据前，集成方必须保留 IJK 回退。"}
+    ]
+  }
+}
