@@ -15,12 +15,14 @@ while [ "$#" -gt 0 ]; do
 done
 [ -f "$input" ] || usage
 
-python3 - "$input" <<'PY'
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+python3 - "$input" "$project_root" <<'PY'
 import json
+import os
 import re
 import sys
 
-path = sys.argv[1]
+path, project_root = sys.argv[1:]
 with open(path, encoding='utf-8') as handle:
     data = json.load(handle)
 
@@ -49,8 +51,17 @@ def validate_row(row, location):
                 fail(f'{location} 标为真机通过时缺少 {field}')
         if not re.fullmatch(r'ARM64-TV-[A-Za-z0-9_-]+', row['device']):
             fail(f'{location} 的 device 必须为匿名 ARM64 TV 标识')
-    elif any(row.get(field) for field in ('device', 'sampleId', 'executedAt', 'evidenceFile')):
-        fail(f'{location} 未经真机验证时不得填写设备或证据')
+        if not re.fullmatch(r'ARM64-TV-SAMPLE-[A-Za-z0-9_-]+', row['sampleId']):
+            fail(f'{location} 的 sampleId 必须为匿名样本标识')
+        evidence_file = row['evidenceFile']
+        if not isinstance(evidence_file, str) or not re.fullmatch(r'release/capabilities/evidence/[A-Za-z0-9][A-Za-z0-9._/-]*', evidence_file):
+            fail(f'{location} 的 evidenceFile 必须位于 release/capabilities/evidence/')
+        evidence_path = os.path.realpath(os.path.join(project_root, evidence_file))
+        evidence_root = os.path.realpath(os.path.join(project_root, 'release/capabilities/evidence'))
+        if not evidence_path.startswith(evidence_root + os.sep) or not os.path.isfile(evidence_path):
+            fail(f'{location} 的 evidenceFile 必须引用已提交的能力证据文件')
+    elif any(row.get(field) for field in ('device', 'sampleId', 'executedAt', 'evidenceFile', 'metrics')):
+        fail(f'{location} 未经真机验证时不得填写设备、样本、指标或证据')
 
 if data.get('schemaVersion') != 1:
     fail('schemaVersion 必须为 1')
