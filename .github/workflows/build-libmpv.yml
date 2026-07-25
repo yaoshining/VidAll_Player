@@ -5,12 +5,14 @@ on:
     paths:
       - 'native/**'
       - 'docs/controlled-libmpv-release.md'
+      - 'release/capabilities/**'
       - '.github/workflows/build-libmpv.yml'
   push:
     branches: [main]
     paths:
       - 'native/**'
       - 'docs/controlled-libmpv-release.md'
+      - 'release/capabilities/**'
       - '.github/workflows/build-libmpv.yml'
   workflow_dispatch:
 
@@ -24,6 +26,8 @@ jobs:
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
+      - name: 验证能力证据门禁
+        run: bash native/tests/capability-evidence.test.sh
       - name: 验证受控发布工具
         run: bash native/tests/controlled-release.test.sh
       - name: 验证既有补丁与打包约束

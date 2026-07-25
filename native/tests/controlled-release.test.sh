@@ -11,6 +11,8 @@ readonly LICENSE_TOOL="$PROJECT_ROOT/native/scripts/audit-licenses.sh"
 readonly ELF_AUDIT_TOOL="$PROJECT_ROOT/native/scripts/audit-libmpv-elf.sh"
 readonly REPRODUCIBILITY_TOOL="$PROJECT_ROOT/native/scripts/verify-reproducible-artifacts.sh"
 readonly NOTICE_TOOL="$PROJECT_ROOT/native/scripts/collect-licenses.sh"
+readonly CAPABILITY_EVIDENCE_VALIDATOR="$PROJECT_ROOT/native/scripts/validate-capability-evidence.sh"
+readonly CAPABILITY_EVIDENCE="$PROJECT_ROOT/release/capabilities/arm64-tv-capability-evidence.json"
 
 fail() {
   echo "测试失败：$*" >&2
@@ -40,6 +42,9 @@ main() {
   test -x "$ELF_AUDIT_TOOL" || fail "缺少 ELF 审计工具"
   test -x "$REPRODUCIBILITY_TOOL" || fail "缺少可重复构建验证工具"
   test -x "$NOTICE_TOOL" || fail "缺少许可证收集工具"
+  test -x "$CAPABILITY_EVIDENCE_VALIDATOR" || fail "缺少能力证据校验工具"
+  test -f "$CAPABILITY_EVIDENCE" || fail "缺少 ARM64 TV 能力证据"
+  "$CAPABILITY_EVIDENCE_VALIDATOR" --input "$CAPABILITY_EVIDENCE"
 
   assert_json "$LOCK_FILE"
   python3 - "$LOCK_FILE" <<'PY'

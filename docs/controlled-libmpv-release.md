@@ -19,6 +19,15 @@ native/scripts/build-libmpv-controlled.sh \
 
 该命令生成 `libmpv.so.sha256`、feature manifest、SPDX/CycloneDX SBOM、`NOTICE`、许可证审计和 ELF 审计报告。ELF 审计只允许 `libc++.so` 与 `libhilog_ndk.z.so`；新动态依赖必须先完成安全与兼容性审查。
 
+候选发布前还必须校验 `release/capabilities/arm64-tv-capability-evidence.json`：
+
+```bash
+native/scripts/validate-capability-evidence.sh \
+  --input release/capabilities/arm64-tv-capability-evidence.json
+```
+
+校验器只接受"已通过真机样本"、"已构建待验证"和"不支持或暂缓"。真机通过项必须提供匿名 ARM64 TV、匿名样本、执行时间、指标和证据文件；未验证项禁止填充这些字段，也禁止在 README 或发布说明中宣称已支持。
+
 随后验证两次独立制品：
 
 ```bash
