@@ -5,12 +5,28 @@ readonly ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly LOCK_FILE="$ROOT_DIR/native/config/sources.lock.json"
 readonly BUILD_REPOSITORY='https://github.com/mpv-ohos/libmpv-ohos-build.git'
 readonly BUILD_COMMIT='1bab837e662ffa47ce51efd0720d3ed7c4988944'
-readonly DEPENDENCY_CACHE_SCHEMA='4'
+readonly DEPENDENCY_CACHE_SCHEMA='5'
 readonly MESON_VERSION='1.7.0'
 readonly CACHE_ROOT="${VIDALL_PLAYER_CACHE_DIR:-${HOME:-$ROOT_DIR}/.cache/vidall-player}"
 readonly WORK_DIR="$CACHE_ROOT/libmpv-ohos-build"
 readonly OUTPUT_DIR="$ROOT_DIR/dist/libmpv/arm64-v8a"
 readonly MESON_MARKER="$WORK_DIR/.vidall-player-meson-version"
+readonly PATCHES_DIR="$ROOT_DIR/native/patches/libmpv-ohos-build"
+
+# 计算构建脚本补丁集合摘要并拼入缓存 marker：补丁内容变更即触发依赖缓存失效，
+# 避免每次改补丁都要手动 bump DEPENDENCY_CACHE_SCHEMA。
+compute_patchset_digest() {
+  if [ ! -d "$1" ] || ! ls "$1"/*.patch >/dev/null 2>&1; then
+    printf 'none'
+    return
+  fi
+  if command -v sha256sum >/dev/null 2>&1; then
+    cat "$1"/*.patch | sha256sum
+  else
+    cat "$1"/*.patch | shasum -a 256
+  fi | cut -d' ' -f1 | cut -c1-16
+}
+readonly PATCHSET_DIGEST="$(compute_patchset_digest "$PATCHES_DIR")"
 
 invalidate_dependency_cache_if_build_source_changed() {
   local work_dir="$1"
@@ -59,6 +75,35 @@ reset_dependency_sources() {
   done
 }
 
+# 应用本仓库维护的构建脚本补丁到 libmpv-ohos-build 工作区，
+# 修正 issue #21 的依赖顺序与 FFmpeg configure（DASH demuxer + HarfBuzz 链接）：
+#   - libxml2 须先于 ffmpeg 构建，FFmpeg dash demuxer 才能链接 libxml2 解析 MPD XML；
+#   - harfbuzz 须先于 freetype 构建，freetype 才能稳定检测并链接 harfbuzz shaping，
+#     避免缓存命中时启用 shaping 但链接未带入 libharfbuzz.a 的间歇性失败。
+apply_build_script_patches() {
+  local work_dir="$1"
+  local patches_dir="$2"
+
+  if [ ! -d "$patches_dir" ]; then
+    return 0
+  fi
+
+  local patch
+  for patch in "$patches_dir"/*.patch; do
+    [ -f "$patch" ] || continue
+    # 幂等：补丁已应用（可反向应用）则跳过，避免重复应用报错。
+    if git -C "$work_dir" apply --reverse --check "$patch" 2>/dev/null; then
+      echo "构建脚本补丁已应用，跳过：$(basename "$patch")"
+      continue
+    fi
+    echo "应用构建脚本补丁：$(basename "$patch")"
+    git -C "$work_dir" apply "$patch" || {
+      echo "构建脚本补丁应用失败：$patch" >&2
+      return 1
+    }
+  done
+}
+
 # 供 shell 测试导入缓存失效逻辑，避免触发原生构建。
 if [ "${BASH_SOURCE[0]}" != "$0" ]; then
   return 0
@@ -67,6 +112,11 @@ fi
 if [ ! -f "$LOCK_FILE" ]; then
   echo "未找到来源锁定文件：$LOCK_FILE" >&2
   exit 1
+fi
+
+# 仅在直接执行时运行构建主流程；被 source 时只暴露函数与常量，供测试加载。
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+  return 0 2>/dev/null || true
 fi
 
 mkdir -p "$CACHE_ROOT"
@@ -84,7 +134,7 @@ if [ "$actual_commit" != "$BUILD_COMMIT" ]; then
 fi
 
 # 上游来源变更或缓存方案升级可能切换 FFmpeg 版本或补丁；清除会被 download.sh 跳过的旧依赖。
-invalidate_dependency_cache_if_build_source_changed "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA"
+invalidate_dependency_cache_if_build_source_changed "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA:$PATCHSET_DIGEST"
 
 # Meson 或上游补丁更新时使已有中间构建失效，避免缓存污染。
 if [ ! -f "$MESON_MARKER" ] || [ "$(cat "$MESON_MARKER")" != "$MESON_VERSION" ]; then
@@ -97,7 +147,8 @@ chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 ./download.sh
 reset_dependency_sources "$WORK_DIR"
 ./patch.sh
-mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA"
+apply_build_script_patches "$WORK_DIR" "$ROOT_DIR/native/patches/libmpv-ohos-build"
+mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA:$PATCHSET_DIGEST"
 ./build.sh
 (
   cd libmpv/arm64-build

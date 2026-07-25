@@ -19,7 +19,7 @@ HarmonyOS TV `libmpv` 播放 SDK 的受控构建项目与最小应用示例。
 | 本地文件播放 | 已构建待验证 | US1/US2 已实现，待 ARM64 真机样本 |
 | HTTP/HTTPS 直链 | 已构建待验证 | 认证头逐次设置、重定向凭据过滤；seek/断网恢复待真机 |
 | HLS（master/media、fMP4/TS） | 已构建待验证 | `hls-bitrate=highest` 选择最高码率变体；运行期自适应切换依赖 FFmpeg 构建，待真机 |
-| DASH（MPD） | 已构建待验证 | 自适应选择交给 FFmpeg DASH demuxer 默认策略，待真机 |
+| DASH（MPD） | 已构建待验证 | `ff_dash_demuxer` 符号已构建期验证（#21）；自适应交给 FFmpeg DASH demuxer 默认策略，待真机 |
 | SMB localhost HTTP 代理 | 已构建待验证 | `localhostProxy` 仅限环回明文 HTTP；租约关联/清理已覆盖；策略与验收用例见 `docs/smb-localhost-http-proxy.md` |
 | 外挂字幕（HTTP/HTTPS/本地缓存 file://） | 已构建待验证 | `sub-add` 远程 URL；本地缓存 file URI 校验已覆盖 |
 | 外挂音频（HTTP/HTTPS） | 已构建待验证 | `audio-add` 远程 URL，加载后自动选中 |
