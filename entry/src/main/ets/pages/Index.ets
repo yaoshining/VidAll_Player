@@ -464,16 +464,11 @@ struct Index {
     this.surfaceId = surfaceId;
     if (this.playerHandle <= 0) {
       console.info(`VidAll_Player attachSurface: creating player...`);
-      const handle = libentry.createPlayer();
-      console.info(`VidAll_Player attachSurface: createPlayer returned ${handle}`);
-      if (handle > 0) {
-        this.playerHandle = handle;
-        this.nativeStatus = `libmpv 已创建，句柄 #${handle}`;
-      } else {
-        this.nativeStatus = '创建 libmpv 失败；请确认运行在 ARM64 真机且 libmpv.so 已打包。';
+      if (!this.createPlayer()) {
         console.error(`VidAll_Player attachSurface: createPlayer FAILED`);
         return;
       }
+      console.info(`VidAll_Player attachSurface: createPlayer returned ${this.playerHandle}`);
     }
     this.tryAutoPlay();
   }

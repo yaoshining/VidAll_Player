@@ -662,12 +662,15 @@ public:
         }
         std::lock_guard<std::mutex> lock(eventCallbackMutex_);
         if (eventTsfn_ != nullptr) {
-            napi_release_threadsafe_function(eventTsfn_, napi_tsfn_abort);
+            const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release);
+            if (releaseStatus != napi_ok) {
+                MPV_LOG(LOG_WARN, "SetEventCallback: 释放旧事件回调失败，状态=%{public}d", releaseStatus);
+            }
             eventTsfn_ = nullptr;
         }
         napi_value resourceName = CreateString(env, "VidAllMpvEvent");
         const napi_status status = napi_create_threadsafe_function(
-            env, callback, nullptr, resourceName, 32, 1, this, nullptr, this,
+            env, callback, nullptr, resourceName, 0, 1, this, nullptr, this,
             PlayerSession::CallEventCallback, &eventTsfn_);
         return status == napi_ok ? "事件回调已注册" : "注册事件回调失败";
     }
@@ -690,7 +693,10 @@ public:
         {
             std::lock_guard<std::mutex> eventLock(eventCallbackMutex_);
             if (eventTsfn_ != nullptr) {
-                napi_release_threadsafe_function(eventTsfn_, napi_tsfn_abort);
+                const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release);
+                if (releaseStatus != napi_ok) {
+                    MPV_LOG(LOG_WARN, "Release: 释放事件回调失败，状态=%{public}d", releaseStatus);
+                }
                 eventTsfn_ = nullptr;
             }
         }

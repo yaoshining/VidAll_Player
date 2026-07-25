@@ -23,6 +23,8 @@ main() {
   assert_contains "$BRIDGE" "napi_create_threadsafe_function"
   assert_contains "$BRIDGE" "napi_call_threadsafe_function"
   assert_contains "$BRIDGE" "napi_release_threadsafe_function"
+  assert_contains "$BRIDGE" "napi_tsfn_release"
+  assert_contains "$BRIDGE" "resourceName, 0, 1"
   assert_contains "$BRIDGE" "MPV_EVENT_END_FILE"
   assert_contains "$BRIDGE" "MPV_END_FILE_REASON_ERROR"
   assert_contains "$BRIDGE" "MPV_EVENT_LOG_MESSAGE"
@@ -32,6 +34,7 @@ main() {
   assert_contains "$BRIDGE" "setEventCallback"
   assert_contains "$TYPES" "setEventCallback(handle: number, callback: NativeEventCallback): string;"
   assert_contains "$PAGE" "libentry.setEventCallback(handle"
+  assert_contains "$PAGE" "if (!this.createPlayer())"
 }
 
 main "$@"
