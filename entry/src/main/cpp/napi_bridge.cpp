@@ -2,6 +2,7 @@
 #include <hilog/log.h>
 #include <ace/xcomponent/native_interface_xcomponent.h>
 
+#include <atomic>
 #include <cmath>
 #include <cstdint>
 
@@ -153,6 +154,12 @@ napi_value DefaultBufferingState(napi_env env)
 
 class PlayerSession {
 public:
+    struct NativeEvent {
+        std::string type;
+        std::string message;
+        int errorCode = 0;
+    };
+
     PlayerSession()
         : player_(mpv_create(), mpv_terminate_destroy)
     {
@@ -184,6 +191,12 @@ public:
             error = "libmpv 初始化失败";
             return false;
         }
+        if (mpv_request_log_messages(player_.get(), "warn") < 0) {
+            MPV_LOG(LOG_WARN, "Initialize: 无法请求 libmpv warn 日志");
+        }
+        mpv_observe_property(player_.get(), 100, "paused-for-cache", MPV_FORMAT_FLAG);
+        mpv_observe_property(player_.get(), 101, "demuxer-cache-state", MPV_FORMAT_NODE);
+        mpv_observe_property(player_.get(), 102, "track-list", MPV_FORMAT_NODE);
         // Start mpv event loop thread to drive render callbacks
         eventThread_ = std::thread(&PlayerSession::EventLoop, this);
         return true;
@@ -641,18 +654,50 @@ public:
         return result;
     }
 
+    std::string SetEventCallback(napi_env env, napi_value callback)
+    {
+        napi_valuetype type = napi_undefined;
+        if (callback == nullptr || napi_typeof(env, callback, &type) != napi_ok || type != napi_function) {
+            return "事件回调必须是函数";
+        }
+        std::lock_guard<std::mutex> lock(eventCallbackMutex_);
+        if (eventTsfn_ != nullptr) {
+            const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release);
+            if (releaseStatus != napi_ok) {
+                MPV_LOG(LOG_WARN, "SetEventCallback: 释放旧事件回调失败，状态=%{public}d", releaseStatus);
+            }
+            eventTsfn_ = nullptr;
+        }
+        napi_value resourceName = CreateString(env, "VidAllMpvEvent");
+        const napi_status status = napi_create_threadsafe_function(
+            env, callback, nullptr, resourceName, 0, 1, this, nullptr, this,
+            PlayerSession::CallEventCallback, &eventTsfn_);
+        return status == napi_ok ? "事件回调已注册" : "注册事件回调失败";
+    }
+
     void Release()
     {
         ClearProxyLease("release");
         StopRenderer();
+        stopEventLoop_.store(true);
+        if (player_) {
+            mpv_wakeup(player_.get());
+        }
+        if (eventThread_.joinable()) {
+            eventThread_.join();
+        }
         {
             std::lock_guard<std::mutex> lock(lifecycleMutex_);
-            if (eventThread_.joinable()) {
-                // mpv_terminate_destroy will cause mpv_wait_event to return MPV_EVENT_SHUTDOWN
-                player_.reset();
-                eventThread_.join();
-            } else {
-                player_.reset();
+            player_.reset();
+        }
+        {
+            std::lock_guard<std::mutex> eventLock(eventCallbackMutex_);
+            if (eventTsfn_ != nullptr) {
+                const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release);
+                if (releaseStatus != napi_ok) {
+                    MPV_LOG(LOG_WARN, "Release: 释放事件回调失败，状态=%{public}d", releaseStatus);
+                }
+                eventTsfn_ = nullptr;
             }
         }
     }
@@ -662,13 +707,32 @@ public:
     void EventLoop()
     {
         MPV_LOG(LOG_INFO, "EventLoop: starting");
-        while (true) {
+        while (!stopEventLoop_.load()) {
             mpv_event* event = mpv_wait_event(player_.get(), 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) {
                 MPV_LOG(LOG_INFO, "EventLoop: shutdown received");
                 break;
             }
-            // Process other events (log-message, property-change, etc.) — no-op for now
+            if (event->event_id == MPV_EVENT_END_FILE) {
+                const auto* endFile = static_cast<mpv_event_end_file*>(event->data);
+                if (endFile != nullptr && endFile->reason == MPV_END_FILE_REASON_ERROR) {
+                    DispatchEvent("error", mpv_error_string(endFile->error), endFile->error);
+                }
+            } else if (event->event_id == MPV_EVENT_LOG_MESSAGE) {
+                const auto* log = static_cast<mpv_event_log_message*>(event->data);
+                if (log != nullptr && log->text != nullptr) {
+                    DispatchEvent("log", log->text);
+                }
+            } else if (event->event_id == MPV_EVENT_PROPERTY_CHANGE) {
+                const auto* property = static_cast<mpv_event_property*>(event->data);
+                if (property != nullptr && property->name != nullptr) {
+                    if (std::string(property->name) == "track-list") {
+                        DispatchEvent("tracks", "track-list changed");
+                    } else {
+                        DispatchEvent("buffering", "cache state changed");
+                    }
+                }
+            }
         }
         MPV_LOG(LOG_INFO, "EventLoop: exiting");
     }
@@ -705,6 +769,35 @@ public:
     }
 
 private:
+    void DispatchEvent(const std::string& type, const char* message, int errorCode = 0)
+    {
+        std::lock_guard<std::mutex> lock(eventCallbackMutex_);
+        if (eventTsfn_ == nullptr) {
+            return;
+        }
+        auto* event = new NativeEvent{type, message == nullptr ? "未知 libmpv 错误" : message, errorCode};
+        if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) {
+            delete event;
+        }
+    }
+
+    static void CallEventCallback(napi_env env, napi_value callback, void*, void* data)
+    {
+        std::unique_ptr<NativeEvent> event(static_cast<NativeEvent*>(data));
+        if (env == nullptr || callback == nullptr || !event) {
+            return;
+        }
+        napi_value payload = nullptr;
+        napi_create_object(env, &payload);
+        napi_set_named_property(env, payload, "type", CreateString(env, event->type));
+        napi_set_named_property(env, payload, "message", CreateString(env, event->message));
+        napi_value errorCode = nullptr;
+        napi_create_int32(env, event->errorCode, &errorCode);
+        napi_set_named_property(env, payload, "errorCode", errorCode);
+        napi_value ignored = nullptr;
+        napi_call_function(env, nullptr, callback, 1, &payload, &ignored);
+    }
+
     // GetProcAddress callback for mpv_opengl_init_params. Only uses
     // eglGetProcAddress — this is the standard way to resolve GL and EGL
     // extension functions. On devices with a broken GPU driver (e.g.
@@ -1220,6 +1313,9 @@ private:
 
     std::unique_ptr<mpv_handle, decltype(&mpv_terminate_destroy)> player_{nullptr, mpv_terminate_destroy};
     std::mutex lifecycleMutex_;
+    std::atomic<bool> stopEventLoop_{false};
+    std::mutex eventCallbackMutex_;
+    napi_threadsafe_function eventTsfn_ = nullptr;
     std::thread eventThread_;
     std::thread renderThread_;
     std::mutex renderMutex_;
@@ -1354,6 +1450,23 @@ napi_value DetachSurface(napi_env env, napi_callback_info info)
 #if VIDALL_MPV_AVAILABLE
     auto session = FindSession(handle);
     return CreateString(env, session ? session->DetachSurface() : "播放器不存在或已释放");
+#else
+    return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
+#endif
+}
+
+napi_value SetEventCallback(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2] = {nullptr, nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    int64_t handle = 0;
+    if (argc != 2 || napi_get_value_int64(env, args[0], &handle) != napi_ok || handle <= 0) {
+        return CreateString(env, "播放器句柄无效");
+    }
+#if VIDALL_MPV_AVAILABLE
+    auto session = FindSession(handle);
+    return CreateString(env, session ? session->SetEventCallback(env, args[1]) : "播放器不存在或已释放");
 #else
     return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
 #endif
@@ -1761,6 +1874,7 @@ napi_value Init(napi_env env, napi_value exports)
         {"getBuildInfo", nullptr, GetBuildInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setDataDir", nullptr, SetDataDir, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"createPlayer", nullptr, CreatePlayer, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"setEventCallback", nullptr, SetEventCallback, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"attachSurface", nullptr, AttachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"detachSurface", nullptr, DetachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"load", nullptr, Load, nullptr, nullptr, nullptr, napi_default, nullptr},
