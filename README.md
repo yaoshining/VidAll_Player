@@ -58,9 +58,9 @@ GitHub Actions 的 `验证 ArkTS 测试模块` 任务会在 PR 和 `main` 的相
 
 ## 原生构建工作流
 
-工作流 `.github/workflows/build-libmpv.yml` 在 Ubuntu 22.04 上从锁定提交构建 ARM64 OpenHarmony `libmpv.so`，并上传 `libmpv-ohos-arm64-v8a` 工件。固定来源记录在 `native/config/sources.lock.json`。
+工作流 `.github/workflows/build-libmpv.yml` 在 Ubuntu 与 macOS 清洁环境验证受控构建工具，并上传来源锁、feature manifest、SPDX/CycloneDX SBOM、`NOTICE` 与许可证审计报告。完整不可变来源锁记录在 `native/config/sources.lock.json`；实际发布制品还会附带 SHA-256、ELF 审计与可重复构建报告。
 
-该工作流是初始引导链：正式发布前必须补齐全部传递依赖锁定、许可证/SBOM、ELF 动态依赖白名单和可复现性审计。
+`native/scripts/build-libmpv-controlled.sh` 只接受已在受控 SDK 环境检出的锁定来源和本地生成的 `libmpv.so`，绝不下载或执行外部 `bundle.sh`。目前 OpenHarmony 交叉编译适配层仍待纳入本仓库；因此该脚本会明确拒绝未提供的编译输入，而不会伪造构建成功。发布流程、许可证限制和可重复性验证见 `docs/controlled-libmpv-release.md`。
 
 ## 文档与规划
 

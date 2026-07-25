@@ -1,218 +1,67 @@
-name: 构建 libmpv（ARM64 OpenHarmony）
+name: 验证受控 libmpv 发布制品
 
 on:
   pull_request:
     paths:
-      # Native sources, toolchain configuration, and dependency changes can alter libmpv output.
       - 'native/**'
-      - 'entry/src/main/cpp/**'
-      - 'build-profile.json5'
-      - 'hvigorfile.ts'
-      - 'oh-package.json5'
-      - 'oh-package-lock.json5'
-      - 'entry/build-profile.json5'
-      - 'entry/hvigorfile.ts'
-      - 'entry/oh-package.json5'
-      - 'entry/oh-package-lock.json5'
+      - 'docs/controlled-libmpv-release.md'
       - '.github/workflows/build-libmpv.yml'
   push:
     branches: [main]
     paths:
-      # Keep main artifacts current whenever inputs that affect native builds change.
       - 'native/**'
-      - 'entry/src/main/cpp/**'
-      - 'build-profile.json5'
-      - 'hvigorfile.ts'
-      - 'oh-package.json5'
-      - 'oh-package-lock.json5'
-      - 'entry/build-profile.json5'
-      - 'entry/hvigorfile.ts'
-      - 'entry/oh-package.json5'
-      - 'entry/oh-package-lock.json5'
+      - 'docs/controlled-libmpv-release.md'
       - '.github/workflows/build-libmpv.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
-  detect-changes:
-    name: 检测改动范围
+  native-contracts:
+    name: 原生受控构建契约
     runs-on: ubuntu-22.04
-    outputs:
-      mpv-paths: ${{ steps.filter.outputs.mpv-paths }}
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
-      - name: 路径过滤
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            mpv-paths:
-              - 'native/patches/**'
-              - 'native/scripts/build-libmpv-bootstrap.sh'
-              - 'native/config/sources.lock.json'
-              # workflow-only 改动不触发全量构建（见 issue #21）：workflow 结构改动不应影响 mpv 产物
+      - name: 验证受控发布工具
+        run: bash native/tests/controlled-release.test.sh
+      - name: 验证既有补丁与打包约束
+        run: |
+          bash native/tests/build-libmpv-bootstrap.test.sh
+          bash native/tests/build-libmpv-patches.test.sh
+          bash native/tests/libmpv-packaging.test.sh
 
-  quick-check:
-    name: 快速验证（补丁+符号，~2 分钟）
-    needs: detect-changes
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
+  clean-environment:
+    name: 清洁环境元数据验证 (${{ matrix.os }})
+    needs: native-contracts
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
-
-      - name: 验证构建缓存失效逻辑
-        run: bash native/tests/build-libmpv-bootstrap.test.sh
-
-      - name: 验证构建脚本补丁
-        # issue #21：验证补丁能正确应用（libxml2 早于 ffmpeg、harfbuzz 早于 freetype、dash demuxer 启用）。
-        run: bash native/tests/build-libmpv-patches.test.sh
-
-      - name: 验证已提交 libmpv.so 关键符号
-        # issue #21：确认仓库内 libmpv.so 含 ff_dash_demuxer 符号。非 mpv 路径改动只需此快速验证。
-        run: |
-          SO=entry/src/main/cpp/third_party/libmpv/arm64-v8a/libmpv.so
-          test -f "$SO" || { echo "libmpv.so 不存在：$SO" >&2; exit 1; }
-          strings "$SO" | grep -q 'ff_dash_demuxer' || {
-            echo 'libmpv.so 缺少 ff_dash_demuxer 符号，DASH(.mpd) 流无法播放' >&2
-            exit 1
-          }
-          echo 'ff_dash_demuxer 符号存在，DASH demuxer 已编译'
-
-  full-build:
-    name: 全量构建（缓存路径）
-    needs: [detect-changes, quick-check]
-    # 仅在 mpv 相关路径改动、push 到 main、或手动触发时跑全量构建。
-    if: |
-      needs.detect-changes.outputs.mpv-paths == 'true' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    runs-on: ubuntu-22.04
-    timeout-minutes: 90
-    steps:
-      - name: 检出项目
-        uses: actions/checkout@v4
-
-      - name: 恢复 Python 与 Rust 下载缓存
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: libmpv-tools-${{ runner.os }}-meson-1.7.0-${{ hashFiles('.github/workflows/build-libmpv.yml') }}
-          restore-keys: |
-            libmpv-tools-${{ runner.os }}-meson-1.7.0-
-
-      - name: 安装构建依赖
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes gperf ninja-build python3-pip unzip wget
-          python3 -m pip install --user --upgrade 'meson==1.7.0'
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/meson" --version
-
-      - name: 恢复构建下载与中间缓存
-        id: libmpv-cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.cargo/registry
-            ~/.cargo/git
-            .cache/vidall-player
-          key: libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', 'native/patches/libmpv-ohos-build/*.patch') }}
-          restore-keys: |
-            libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-
-
-      - name: 输出缓存诊断
-        run: |
-          echo "libmpv 缓存命中：${{ steps.libmpv-cache.outputs.cache-hit }}"
-          echo "缓存目录：$GITHUB_WORKSPACE/.cache/vidall-player"
-          meson --version
-
-      - name: 构建 ARM64 libmpv
+      - name: 验证锁定来源与生成制品
         env:
-          VIDALL_PLAYER_CACHE_DIR: ${{ github.workspace }}/.cache/vidall-player
-        run: native/scripts/build-libmpv-bootstrap.sh
-
-      - name: 验证产物
+          AUDIT_DIR: ${{ runner.temp }}/libmpv-release-audit
         run: |
-          test -f dist/libmpv/arm64-v8a/libmpv.so
-          test -f dist/libmpv/arm64-v8a/libmpv.so.sha256
-          file dist/libmpv/arm64-v8a/libmpv.so
-          sha256sum --check dist/libmpv/arm64-v8a/libmpv.so.sha256
-
-      - name: 验证 libmpv.so 关键符号
-        # issue #21：确认 FFmpeg DASH demuxer 已编译进 libmpv.so，.mpd 流才能播放。
-        run: |
-          strings dist/libmpv/arm64-v8a/libmpv.so | grep -q 'ff_dash_demuxer' || {
-            echo 'libmpv.so 缺少 ff_dash_demuxer 符号，DASH(.mpd) 流无法播放' >&2
-            exit 1
-          }
-          echo 'ff_dash_demuxer 符号存在，DASH demuxer 已编译'
-
-      - name: 上传 libmpv 产物
+          rm -rf "$AUDIT_DIR"
+          mkdir -p "$AUDIT_DIR/source/mpv" "$AUDIT_DIR/source/ffmpeg"
+          printf '%s\n' --enable-static > "$AUDIT_DIR/source/ffmpeg/configure-options.txt"
+          printf '%s\n' -Dgpl=false > "$AUDIT_DIR/source/mpv/meson-options.txt"
+          native/scripts/generate-libmpv-manifest.sh --lock native/config/sources.lock.json --source "$AUDIT_DIR/source" --output "$AUDIT_DIR/feature-manifest.json" --abi arm64-v8a --min-sdk 15 --build-time 0
+          native/scripts/generate-sbom.sh --lock native/config/sources.lock.json --format spdx --output "$AUDIT_DIR/sbom.spdx.json"
+          native/scripts/generate-sbom.sh --lock native/config/sources.lock.json --format cyclonedx --output "$AUDIT_DIR/sbom.cyclonedx.json"
+          native/scripts/audit-licenses.sh --lock native/config/sources.lock.json --output "$AUDIT_DIR/license-audit.json"
+          native/scripts/collect-licenses.sh --lock native/config/sources.lock.json --output "$AUDIT_DIR/NOTICE"
+          test -s "$AUDIT_DIR/NOTICE"
+      - name: 上传审计制品
         uses: actions/upload-artifact@v4
         with:
-          name: libmpv-ohos-arm64-v8a
+          name: libmpv-release-audit-${{ matrix.os }}
+          path: ${{ runner.temp }}/libmpv-release-audit
           if-no-files-found: error
-          path: |
-            dist/libmpv/arm64-v8a/libmpv.so
-            dist/libmpv/arm64-v8a/libmpv.so.sha256
-
-  cold-build-smoke:
-    name: 冷构建冒烟（不依赖依赖缓存）
-    needs: [detect-changes, quick-check]
-    if: |
-      needs.detect-changes.outputs.mpv-paths == 'true' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    runs-on: ubuntu-22.04
-    timeout-minutes: 120
-    # issue #21：不阻塞合并，但 mpv 相关改动时跑，稳定暴露缓存命中会掩盖的 HarfBuzz 链接 bug。
-    continue-on-error: true
-    steps:
-      - name: 检出项目
-        uses: actions/checkout@v4
-
-      - name: 恢复 Python 与 Rust 下载缓存
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: libmpv-tools-${{ runner.os }}-meson-1.7.0-${{ hashFiles('.github/workflows/build-libmpv.yml') }}
-          restore-keys: |
-            libmpv-tools-${{ runner.os }}-meson-1.7.0-
-
-      - name: 安装构建依赖
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes gperf ninja-build python3-pip unzip wget
-          python3 -m pip install --user --upgrade 'meson==1.7.0'
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/meson" --version
-
-      - name: 冷构建 ARM64 libmpv
-        # 强制冷：清除依赖缓存，不命中 build-libmpv 的缓存，确保链接阶段被实际执行。
-        env:
-          VIDALL_PLAYER_CACHE_DIR: ${{ github.workspace }}/.cache/vidall-player
-        run: |
-          rm -rf "$VIDALL_PLAYER_CACHE_DIR"
-          native/scripts/build-libmpv-bootstrap.sh
-
-      - name: 验证产物与关键符号
-        run: |
-          test -f dist/libmpv/arm64-v8a/libmpv.so
-          file dist/libmpv/arm64-v8a/libmpv.so
-          strings dist/libmpv/arm64-v8a/libmpv.so | grep -q 'ff_dash_demuxer' || {
-            echo 'libmpv.so 缺少 ff_dash_demuxer 符号' >&2
-            exit 1
-          }
-          echo '冷构建产物含 ff_dash_demuxer 符号'
+      - name: 说明交叉构建门禁
+        run: echo '实际 OpenHarmony 交叉编译仅在包含锁定 SDK 的受控发布环境执行；该 CI 验证所有可移植的锁定、审计及制品生成契约。'
