@@ -7,7 +7,7 @@ readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 readonly CMAKE_FILE="$PROJECT_ROOT/entry/src/main/cpp/CMakeLists.txt"
 readonly DUPLICATE_LIBRARY="$PROJECT_ROOT/entry/libs/arm64-v8a/libmpv.so"
 
-rg -q --fixed-strings 'IMPORTED_LOCATION ${LIBMPV_ROOT}/libmpv.so' "$CMAKE_FILE"
+grep -Fq 'IMPORTED_LOCATION ${LIBMPV_ROOT}/libmpv.so' "$CMAKE_FILE"
 test ! -e "$DUPLICATE_LIBRARY" || {
   echo "重复打包输入存在：$DUPLICATE_LIBRARY" >&2
   exit 1

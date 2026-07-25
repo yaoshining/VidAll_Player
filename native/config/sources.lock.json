@@ -1,39 +1,152 @@
 {
-  "schemaVersion": 2,
-  "description": "初始 CI 引导构建的不可变来源锁定；生产发布前需扩展为全部传递依赖与 SHA-256 清单。",
+  "schemaVersion": 3,
+  "description": "libmpv OpenHarmony 受控构建的不可变来源锁。每个生产依赖必须固定为 40 位 Git commit；tag 仅供人工识别，构建不得解析浮动分支或 tag。",
   "sources": {
-    "ohosMpvBuild": {
-      "repository": "https://github.com/mpv-ohos/libmpv-ohos-build.git",
-      "commit": "1bab837e662ffa47ce51efd0720d3ed7c4988944",
-      "purpose": "提供 OpenHarmony ARM64 libmpv 源码交叉构建脚本参考。"
-    },
     "mpv": {
       "repository": "https://github.com/mpv-player/mpv.git",
       "tag": "v0.40.0",
-      "commit": "e48ac7ce08462f5e33af6ef9deeac6fa87eef01e",
-      "purpose": "生产构建目标的上游版本基线；当前引导工作流尚未替换参考构建仓库内的 MPV 补丁来源。"
+      "commit": "287d7cdb78975ae350d7c2a287eae3c2072c93f7",
+      "license": "GPL-2.0-or-later",
+      "purpose": "libmpv 播放器核心"
+    },
+    "ffmpeg": {
+      "repository": "https://github.com/FFmpeg/FFmpeg.git",
+      "tag": "n7.1.1",
+      "commit": "a1328e68877e12ab5a6e5d92a84aefa566783ea5",
+      "license": "LGPL-2.1-or-later",
+      "purpose": "解封装、协议与编解码"
+    },
+    "libass": {
+      "repository": "https://github.com/libass/libass.git",
+      "tag": "0.17.3",
+      "commit": "01ae90a8028545704848fcb19b680ccb3964948d",
+      "license": "ISC",
+      "purpose": "ASS/SSA 字幕渲染"
+    },
+    "dav1d": {
+      "repository": "https://code.videolan.org/videolan/dav1d.git",
+      "tag": "1.5.0",
+      "commit": "27ed87f37977ea73782ccf7a2b59492a24c87d4f",
+      "license": "BSD-2-Clause",
+      "purpose": "AV1 解码"
+    },
+    "mbedtls": {
+      "repository": "https://github.com/Mbed-TLS/mbedtls.git",
+      "tag": "mbedtls-3.6.2",
+      "commit": "34e66e1b7b97f9dc69c19f6f14c9f91e588dc31a",
+      "license": "Apache-2.0",
+      "purpose": "TLS"
+    },
+    "libplacebo": {
+      "repository": "https://code.videolan.org/videolan/libplacebo.git",
+      "tag": "v7.349.0",
+      "commit": "9c4b6bbd7a1e223ffdd61affc4e5d463d42d4345",
+      "license": "LGPL-2.1-or-later",
+      "purpose": "视频渲染"
+    },
+    "dovi_tools": {
+      "repository": "https://github.com/quietvoid/dovi_tool.git",
+      "tag": "libdovi-3.3.0",
+      "commit": "108f7892fa9c5c5b24caec29f2289cf805e52119",
+      "license": "MIT",
+      "purpose": "Dolby Vision 元数据"
+    },
+    "freetype": {
+      "repository": "https://github.com/freetype/freetype.git",
+      "tag": "VER-2-13-3",
+      "commit": "534ad3456055ee1f65ecde3bcf22a656a31514d1",
+      "license": "FTL",
+      "purpose": "字体光栅化"
+    },
+    "harfbuzz": {
+      "repository": "https://github.com/harfbuzz/harfbuzz.git",
+      "tag": "10.2.0",
+      "commit": "818890f8f6c364ed111689a40ad510c415e559a1",
+      "license": "MIT",
+      "purpose": "文字整形"
+    },
+    "fribidi": {
+      "repository": "https://github.com/fribidi/fribidi.git",
+      "tag": "v1.0.16",
+      "commit": "9123b467f080c7ea15509bd7cbd457817544a7e1",
+      "license": "LGPL-2.1-or-later",
+      "purpose": "双向文本"
+    },
+    "fontconfig": {
+      "repository": "https://gitlab.freedesktop.org/fontconfig/fontconfig.git",
+      "tag": "2.16.0",
+      "commit": "fca6349c9a9ca4b0b14233de6e178909a4f44843",
+      "license": "MIT",
+      "purpose": "字体发现与配置"
+    },
+    "lua": {
+      "repository": "https://github.com/lua/lua.git",
+      "tag": "v5.4.7",
+      "commit": "1ab3208a1fceb12fca8f24ba57d6e13c5bff15e3",
+      "license": "MIT",
+      "purpose": "mpv Lua 脚本运行时"
+    },
+    "libxml2": {
+      "repository": "https://github.com/GNOME/libxml2.git",
+      "tag": "v2.13.5",
+      "commit": "912cb0a6552b5dd099e283a234447208638c2209",
+      "license": "MIT",
+      "purpose": "DASH MPD XML 解析"
+    },
+    "lcms2": {
+      "repository": "https://github.com/mm2/Little-CMS.git",
+      "tag": "lcms2.16",
+      "commit": "453bafeb85b4ef96498866b7a8eadcc74dff9223",
+      "license": "MIT",
+      "purpose": "色彩管理"
+    },
+    "shaderc": {
+      "repository": "https://github.com/google/shaderc.git",
+      "tag": "v2024.3",
+      "commit": "7223dc3d5e34bbcc44f3150546dbfa8a5da58c4c",
+      "license": "Apache-2.0",
+      "purpose": "着色器编译"
+    },
+    "glslang": {
+      "repository": "https://github.com/KhronosGroup/glslang.git",
+      "tag": "14.3.0",
+      "commit": "fa9c3deb49e035a8abcabe366f26aac010f6cbfb",
+      "license": "BSD-3-Clause",
+      "purpose": "GLSL 解析"
+    },
+    "spirv_tools": {
+      "repository": "https://github.com/KhronosGroup/SPIRV-Tools.git",
+      "tag": "v2024.4",
+      "commit": "4d2f0b40bfe290dea6c6904dafdf7fd8328ba346",
+      "license": "Apache-2.0",
+      "purpose": "SPIR-V 工具"
+    },
+    "zlib": {
+      "repository": "https://github.com/madler/zlib.git",
+      "tag": "v1.3.1",
+      "commit": "925af44f3cde53c6b076611c297850091b5dc7bb",
+      "license": "Zlib",
+      "purpose": "压缩"
+    },
+    "libpng": {
+      "repository": "https://github.com/pnggroup/libpng.git",
+      "tag": "v1.6.44",
+      "commit": "a7e0c0c883f61b48cb09e276e8b70262278a331a",
+      "license": "Libpng",
+      "purpose": "PNG 编码"
     }
   },
-  "buildPatches": {
-    "description": "本仓库维护的构建脚本补丁，在引导脚本中应用到 ohosMpvBuild 工作区，修正 issue #21 的依赖顺序、FFmpeg configure 与 mpv meson 重新配置。",
-    "target": "ohosMpvBuild 工作区根（build.sh、scripts/ffmpeg.sh 与 scripts/mpv.sh）",
-    "patches": [
-      {
-        "path": "native/patches/libmpv-ohos-build/0001-reorder-libxml2-before-ffmpeg.patch",
-        "purpose": "将 libxml2.sh 移到 ffmpeg.sh 之前构建，使 FFmpeg dash demuxer 能链接 libxml2 解析 MPD XML。"
-      },
-      {
-        "path": "native/patches/libmpv-ohos-build/0002-reorder-harfbuzz-before-freetype.patch",
-        "purpose": "将 harfbuzz.sh 移到 freetype.sh 之前构建，使 freetype 稳定检测并链接 harfbuzz shaping，避免缓存命中时链接缺 libharfbuzz.a 的间歇性失败。"
-      },
-      {
-        "path": "native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch",
-        "purpose": "FFmpeg configure 显式启用 libxml2 与 dash demuxer，确保 libavformat/dashdec.c 被编译并导出 ff_dash_demuxer 符号。"
-      },
-      {
-        "path": "native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch",
-        "purpose": "mpv.sh 的 meson setup 加 --wipe，强制每次重新 configure，避免缓存命中时复用 stale .build 导致 build.ninja 退化为只构建静态库（libmpv.a），mv libmpv.so 失败。"
-      }
-    ]
+  "tools": {
+    "meson": "1.7.0",
+    "ninja": "1.11.1",
+    "python": "3.10"
+  },
+  "licensePolicy": {
+    "releaseRequiresReview": [
+      "GPL-2.0-or-later",
+      "LGPL-2.1-or-later"
+    ],
+    "noticeRequired": true,
+    "sourceOfferRequired": true
   }
 }
