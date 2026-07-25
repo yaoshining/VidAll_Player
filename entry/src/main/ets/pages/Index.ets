@@ -1,4 +1,4 @@
-import libentry, { BufferingState, LibMpvTrack } from 'libentry.so';
+import libentry, { BufferingState, LibMpvTrack, NativePlayerEvent } from 'libentry.so';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { image } from '@kit.ImageKit';
 import { detectMediaKind, newProxyLeaseId } from '../player/MediaKindDetection';
@@ -278,8 +278,34 @@ struct Index {
       return false;
     }
     this.playerHandle = handle;
+    const eventStatus = libentry.setEventCallback(handle, (event: NativePlayerEvent) => this.onNativePlayerEvent(event));
+    if (eventStatus !== '事件回调已注册') {
+      this.nativeStatus = `libmpv 事件回调注册失败：${eventStatus}`;
+      libentry.release(handle);
+      this.playerHandle = 0;
+      return false;
+    }
     this.nativeStatus = `libmpv 已创建，句柄 #${handle}`;
     return true;
+  }
+
+  private onNativePlayerEvent(event: NativePlayerEvent): void {
+    if (event.type === 'error') {
+      this.isPlaying = false;
+      this.showVideo = false;
+      this.nativeStatus = `媒体加载失败：${event.message} (${event.errorCode})`;
+      console.error(`VidAll_Player libmpv error: ${event.message} (${event.errorCode})`);
+      return;
+    }
+    if (event.type === 'tracks') {
+      this.refreshTracks();
+      return;
+    }
+    if (event.type === 'buffering') {
+      this.pollStatus();
+      return;
+    }
+    console.warn(`VidAll_Player libmpv: ${event.message}`);
   }
 
   private loadVideo(): void {

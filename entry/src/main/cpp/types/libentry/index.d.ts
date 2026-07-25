@@ -19,6 +19,14 @@ export interface LibMpvTrack {
   selected?: boolean;
 }
 
+export interface NativePlayerEvent {
+  type: 'error' | 'log' | 'buffering' | 'tracks';
+  message: string;
+  errorCode: number;
+}
+
+export type NativeEventCallback = (event: NativePlayerEvent) => void;
+
 // 缓冲/缓存状态快照（US4）：pausedForCache 对应 mpv paused-for-cache，
 // demuxerBuffering 与 cacheDurationSeconds 对应 demuxer-cache-state 节点。
 export interface BufferingState {
@@ -36,6 +44,7 @@ export interface LibMpvNapi {
   getBuildInfo(): LibMpvBuildInfo;
   setDataDir(path: string): string;
   createPlayer(): number;
+  setEventCallback(handle: number, callback: NativeEventCallback): string;
   attachSurface(handle: number, surfaceId: string): string;
   detachSurface(handle: number): string;
   load(handle: number, url: string, authorization: string): string;
