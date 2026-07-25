@@ -54,7 +54,7 @@ jobs:
               - 'native/patches/**'
               - 'native/scripts/build-libmpv-bootstrap.sh'
               - 'native/config/sources.lock.json'
-              - '.github/workflows/build-libmpv.yml'
+              # workflow-only 改动不触发全量构建（见 issue #21）：workflow 结构改动不应影响 mpv 产物
 
   quick-check:
     name: 快速验证（补丁+符号，~2 分钟）
@@ -125,7 +125,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             .cache/vidall-player
-          key: libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', 'native/patches/libmpv-ohos-build/*.patch', '.github/workflows/build-libmpv.yml') }}
+          key: libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', 'native/patches/libmpv-ohos-build/*.patch') }}
           restore-keys: |
             libmpv-bootstrap-${{ runner.os }}-arm64-v8a-ohos-6.0-release-meson-1.7.0-
 

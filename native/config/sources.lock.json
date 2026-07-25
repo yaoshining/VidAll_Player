@@ -15,8 +15,8 @@
     }
   },
   "buildPatches": {
-    "description": "本仓库维护的构建脚本补丁，在引导脚本中应用到 ohosMpvBuild 工作区，修正 issue #21 的依赖顺序与 FFmpeg configure。",
-    "target": "ohosMpvBuild 工作区根（build.sh 与 scripts/ffmpeg.sh）",
+    "description": "本仓库维护的构建脚本补丁，在引导脚本中应用到 ohosMpvBuild 工作区，修正 issue #21 的依赖顺序、FFmpeg configure 与 mpv meson 重新配置。",
+    "target": "ohosMpvBuild 工作区根（build.sh、scripts/ffmpeg.sh 与 scripts/mpv.sh）",
     "patches": [
       {
         "path": "native/patches/libmpv-ohos-build/0001-reorder-libxml2-before-ffmpeg.patch",
@@ -29,6 +29,10 @@
       {
         "path": "native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch",
         "purpose": "FFmpeg configure 显式启用 libxml2 与 dash demuxer，确保 libavformat/dashdec.c 被编译并导出 ff_dash_demuxer 符号。"
+      },
+      {
+        "path": "native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch",
+        "purpose": "mpv.sh 的 meson setup 加 --wipe，强制每次重新 configure，避免缓存命中时复用 stale .build 导致 build.ninja 退化为只构建静态库（libmpv.a），mv libmpv.so 失败。"
       }
     ]
   }

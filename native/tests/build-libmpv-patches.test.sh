@@ -5,6 +5,8 @@
 #     （FFmpeg dash_demuxer_deps="libxml2"，缺 libxml2 则 dashdec.c 不编译）
 #   - 问题 B：harfbuzz 必须在 freetype 之前构建，freetype 才能稳定检测并链接 harfbuzz shaping
 #     （否则缓存命中时 freetype 启用 shaping 但链接未带入 libharfbuzz.a，间歇性失败）
+#   - 问题 C：mpv.sh 的 meson setup 须带 --wipe，缓存命中时复用 stale .build 会让
+#     build.ninja 退化为只构建静态库（libmpv.a），导致 mv libmpv.so 失败
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -110,6 +112,47 @@ popd
 ORIGINAL_FFMPEG_SH
 }
 
+# 来自 libmpv-ohos-build commit 1bab837e 的原始 mpv.sh。
+# 补丁 0004 在 meson setup 加 --wipe，强制每次重新 configure，避免缓存命中时复用 stale .build。
+write_original_mpv_sh() {
+cat > "$1" <<'ORIGINAL_MPV_SH'
+#!/bin/bash
+
+set -eu
+
+ROOT_DIR=$(cd $(dirname "$0")/..; pwd)
+
+. $ROOT_DIR/env.sh
+
+pushd $ROOT_DIR/libmpv/mpv
+
+if [ "$1" == "build" ]; then
+	echo -e "\nBuilding mpv..."
+elif [ "$1" == "clean" ]; then
+	rm -rf .build
+	exit 0
+else
+	exit 1
+fi
+
+mkdir -p .build
+cd .build
+
+meson setup .. \
+  --cross-file $ROOT_DIR/libmpv/arm64-crossfile.ini \
+  --prefix=$DEST/mpv \
+  --default-library shared \
+  --strip \
+  -Dohos=enabled \
+  -Dgpl=false
+
+ninja
+meson install
+
+popd
+ORIGINAL_MPV_SH
+}
+
 line_of_first_match() {
   grep -n -- "$1" "$2" | head -1 | cut -d: -f1
 }
@@ -126,6 +169,7 @@ main() {
   git -C "$work_dir" config user.name Test
   write_original_build_sh "$work_dir/build.sh"
   write_original_ffmpeg_sh "$work_dir/scripts/ffmpeg.sh"
+  write_original_mpv_sh "$work_dir/scripts/mpv.sh"
   git -C "$work_dir" add -A
   git -C "$work_dir" commit -qm initial
 
@@ -158,6 +202,11 @@ main() {
   ffmpeg_sh="$work_dir/scripts/ffmpeg.sh"
   grep -q -- '--enable-libxml2' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-libxml2"
   grep -q -- '--enable-demuxer=dash' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-demuxer=dash"
+
+  # 问题 C：mpv.sh 的 meson setup 须带 --wipe，避免缓存命中时复用 stale .build
+  # 导致 build.ninja 退化为只构建静态库（libmpv.a），mv libmpv.so 失败
+  local mpv_sh="$work_dir/scripts/mpv.sh"
+  grep -q -- '--wipe' "$mpv_sh" || fail "mpv.sh 缺少 --wipe（缓存命中时 meson 会复用 stale .build 配置）"
 
   # 幂等性：重复应用已应用补丁应跳过而非报错
   apply_build_script_patches "$work_dir" "$PATCHES_DIR" \
