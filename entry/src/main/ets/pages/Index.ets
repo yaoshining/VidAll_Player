@@ -1,7 +1,10 @@
 import libentry, { BufferingState, LibMpvTrack, NativePlayerEvent } from 'libentry.so';
-import { fileIo as fs } from '@kit.CoreFileKit';
+import { fileIo as fs, picker } from '@kit.CoreFileKit';
+import { common } from '@kit.AbilityKit';
+import { KeyCode } from '@kit.InputKit';
 import { image } from '@kit.ImageKit';
 import { detectMediaKind, newProxyLeaseId } from '../player/MediaKindDetection';
+import { DemoLifecycleController } from '../player/DemoLifecycle';
 import { splitTracks, trackLabel } from '../player/TrackPresentation';
 import { buildBasicAuthorization, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
 
@@ -23,10 +26,15 @@ struct Index {
   @State currentMediaKind: string = '';
   @State currentProxyLeaseId: string = '';
   @State bufferingInfo: string = '';
+  @State errorCode: string = '';
+  @State errorDescription: string = '';
+  @State errorRetryable: boolean = false;
+  @StorageLink('vidallAppForeground') @Watch('onAppForegroundChanged') private appForeground: boolean = true;
   @State playerHandle: number = 0;
   @State surfaceId: string = '';
   @State isPlaying: boolean = false;
   @State videoPixelMap: image.PixelMap | null = null;
+  private activePlaybackUrl: string = '';
   @State showVideo: boolean = false;
   private pixelMapBuffers: image.PixelMap[] = [];
   private pixelMapBufferIndex: number = 0;
@@ -43,6 +51,8 @@ struct Index {
   @State subtitleTracks: LibMpvTrack[] = [];
   private webDavBrowseGeneration: number = 0;
   private framePollTimer: number = -1;
+  private readonly lifecycle: DemoLifecycleController = new DemoLifecycleController();
+  private statusPollTimer: number = -1;
 
   aboutToAppear(): void {
     const buildInfo = libentry.getBuildInfo();
@@ -164,9 +174,14 @@ struct Index {
     console.info(`VidAll_Player: auto-playing, surfaceId = ${this.surfaceId}`);
     this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
     console.info(`VidAll_Player: attachSurface status = ${this.nativeStatus}`);
+    this.startOrReloadMedia();
+  }
+
+  private startOrReloadMedia(): void {
     this.submitLoad();
     console.info(`VidAll_Player: load submitted`);
     this.isPlaying = true;
+    this.lifecycle.markPlaybackStarted(this.activePlaybackUrl);
     this.refreshTracksWhenReady();
     // 启动帧轮询，供 PixelMap 回退渲染使用。
     this.startFramePoll();
@@ -187,6 +202,7 @@ struct Index {
     const proxyLeaseId = kind === 'localhostProxy' ? newProxyLeaseId() : '';
     this.currentMediaKind = kind;
     this.currentProxyLeaseId = proxyLeaseId;
+    this.activePlaybackUrl = targetUrl;
     this.nativeStatus = libentry.loadMedia(this.playerHandle, kind, targetUrl, authorization, proxyLeaseId);
     // 如果填写了外挂字幕/音频 URL，加载视频后立即附加（支持网络 URL）。
     if (this.subtitleUrl.trim().length > 0) {
@@ -208,7 +224,9 @@ struct Index {
       this.pollFrame();
     }, 33);
     // 每 3 秒轮询一次播放器状态。
-    setInterval(() => this.pollStatus(), 3000);
+    if (this.statusPollTimer < 0) {
+      this.statusPollTimer = setInterval(() => this.pollStatus(), 3000);
+    }
   }
 
   private releasePixelMapBuffers(): void {
@@ -286,6 +304,7 @@ struct Index {
       return false;
     }
     this.nativeStatus = `libmpv 已创建，句柄 #${handle}`;
+    this.clearPlayerError();
     return true;
   }
 
@@ -293,6 +312,8 @@ struct Index {
     if (event.type === 'error') {
       this.isPlaying = false;
       this.showVideo = false;
+      this.lifecycle.markPlaybackStopped();
+      this.setPlayerError(event.errorCode, event.message);
       this.nativeStatus = `媒体加载失败：${event.message} (${event.errorCode})`;
       console.error(`VidAll_Player libmpv error: ${event.message} (${event.errorCode})`);
       return;
@@ -317,10 +338,7 @@ struct Index {
       return;
     }
     this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
-    this.submitLoad();
-    this.isPlaying = true;
-    this.refreshTracksWhenReady();
-    this.startFramePoll();
+    this.startOrReloadMedia();
   }
 
   private refreshTracks(): boolean {
@@ -408,6 +426,11 @@ struct Index {
     }
     this.isPlaying = !this.isPlaying;
     this.nativeStatus = libentry.setPause(this.playerHandle, !this.isPlaying);
+    if (this.isPlaying) {
+      this.lifecycle.markPlaybackStarted(this.activePlaybackUrl);
+    } else {
+      this.lifecycle.markPlaybackStopped();
+    }
   }
 
   private seekBy(deltaSeconds: number): void {
@@ -423,6 +446,7 @@ struct Index {
       this.nativeStatus = libentry.stop(this.playerHandle);
       this.isPlaying = false;
       this.showVideo = false;
+      this.lifecycle.markPlaybackStopped();
     }
   }
 
@@ -437,7 +461,12 @@ struct Index {
       clearInterval(this.framePollTimer);
       this.framePollTimer = -1;
     }
+    if (this.statusPollTimer >= 0) {
+      clearInterval(this.statusPollTimer);
+      this.statusPollTimer = -1;
+    }
     this.releasePixelMapBuffers();
+    this.lifecycle.markReleased();
   }
 
   private pollStatus(): void {
@@ -454,6 +483,9 @@ struct Index {
       } else {
         this.bufferingInfo = '';
       }
+      if (buffering.errorText.length > 0) {
+        this.setPlayerError(-1, buffering.errorText);
+      }
     }
   }
 
@@ -462,7 +494,8 @@ struct Index {
     const surfaceId = this.surfaceController.getXComponentSurfaceId();
     console.info(`VidAll_Player attachSurface: surfaceId = ${surfaceId}`);
     this.surfaceId = surfaceId;
-    if (this.playerHandle <= 0) {
+    const createdPlayer = this.playerHandle <= 0;
+    if (createdPlayer) {
       console.info(`VidAll_Player attachSurface: creating player...`);
       if (!this.createPlayer()) {
         console.error(`VidAll_Player attachSurface: createPlayer FAILED`);
@@ -470,7 +503,69 @@ struct Index {
       }
       console.info(`VidAll_Player attachSurface: createPlayer returned ${this.playerHandle}`);
     }
-    this.tryAutoPlay();
+    this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
+    if (createdPlayer) {
+      this.tryAutoPlay();
+      return;
+    }
+    if (this.lifecycle.onSurfaceCreated()) {
+      this.nativeStatus = 'Surface 已重建，正在恢复播放。';
+      this.isPlaying = true;
+      this.nativeStatus = libentry.setPause(this.playerHandle, false);
+      this.startFramePoll();
+    }
+  }
+
+  private setPlayerError(code: number, message: string): void {
+    this.errorCode = code >= 0 ? `MPV_${code}` : 'NETWORK_OR_PLAYBACK_ERROR';
+    this.errorDescription = message.length > 0 ? message : '播放器无法继续播放当前媒体。';
+    this.errorRetryable = code < 0 || /network|timeout|cache|connect/i.test(message);
+  }
+
+  private clearPlayerError(): void {
+    this.errorCode = '';
+    this.errorDescription = '';
+    this.errorRetryable = false;
+  }
+
+  private retryPlayback(): void {
+    if (!this.errorRetryable) {
+      return;
+    }
+    this.clearPlayerError();
+    this.loadVideo();
+  }
+
+  private async pickLocalVideo(): Promise<void> {
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const result = await new picker.DocumentViewPicker(context).select();
+      if (result.length === 0) {
+        return;
+      }
+      this.url = result[0];
+      this.isWebDavSource = false;
+      this.nativeStatus = '已选择本地视频，请点击“加载视频”。';
+    } catch (error) {
+      this.setPlayerError(-1, '无法选择本地视频文件。');
+      console.error(`VidAll_Player local picker error: ${JSON.stringify(error)}`);
+    }
+  }
+
+  onAppForegroundChanged(): void {
+    if (this.appForeground && this.lifecycle.onForeground()) {
+      this.nativeStatus = '已回到前台，正在恢复渲染。';
+      if (this.playerHandle > 0) {
+        this.nativeStatus = libentry.setPause(this.playerHandle, false);
+      }
+      return;
+    }
+    if (!this.appForeground && this.lifecycle.onBackground()) {
+      this.nativeStatus = '应用进入后台，已暂停渲染。';
+      if (this.playerHandle > 0) {
+        libentry.setPause(this.playerHandle, true);
+      }
+    }
   }
 
   build() {
@@ -500,6 +595,7 @@ struct Index {
             if (this.playerHandle > 0) {
               this.nativeStatus = libentry.detachSurface(this.playerHandle);
             }
+            this.lifecycle.onSurfaceDestroyed();
             this.surfaceId = '';
           })
         // PixelMap overlay for emulator display (when NativeWindow BufferQueue is broken)

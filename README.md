@@ -2,6 +2,8 @@
 
 HarmonyOS TV `libmpv` 播放 SDK 的受控构建项目与最小应用示例。
 
+示例应用同时支持 TV 遥控器焦点操作和手机触屏操作，提供 WebDAV 目录浏览、本地文件选择、Surface 重建与前后台恢复、缓冲/错误展示及播放器释放后重建验证。
+
 ## 当前状态
 
 - 初始 HarmonyOS 应用可构建并在启动时输出 `VidAll_Player` 生命周期日志。
