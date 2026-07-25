@@ -36,8 +36,60 @@ permissions:
   contents: read
 
 jobs:
-  build-libmpv:
-    name: 从锁定源码构建 libmpv.so
+  detect-changes:
+    name: 检测改动范围
+    runs-on: ubuntu-22.04
+    outputs:
+      mpv-paths: ${{ steps.filter.outputs.mpv-paths }}
+    steps:
+      - name: 检出项目
+        uses: actions/checkout@v4
+      - name: 路径过滤
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            mpv-paths:
+              - 'native/patches/**'
+              - 'native/scripts/build-libmpv-bootstrap.sh'
+              - 'native/config/sources.lock.json'
+              - '.github/workflows/build-libmpv.yml'
+
+  quick-check:
+    name: 快速验证（补丁+符号，~2 分钟）
+    needs: detect-changes
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: 检出项目
+        uses: actions/checkout@v4
+
+      - name: 验证构建缓存失效逻辑
+        run: bash native/tests/build-libmpv-bootstrap.test.sh
+
+      - name: 验证构建脚本补丁
+        # issue #21：验证补丁能正确应用（libxml2 早于 ffmpeg、harfbuzz 早于 freetype、dash demuxer 启用）。
+        run: bash native/tests/build-libmpv-patches.test.sh
+
+      - name: 验证已提交 libmpv.so 关键符号
+        # issue #21：确认仓库内 libmpv.so 含 ff_dash_demuxer 符号。非 mpv 路径改动只需此快速验证。
+        run: |
+          SO=entry/src/main/cpp/third_party/libmpv/arm64-v8a/libmpv.so
+          test -f "$SO" || { echo "libmpv.so 不存在：$SO" >&2; exit 1; }
+          strings "$SO" | grep -q 'ff_dash_demuxer' || {
+            echo 'libmpv.so 缺少 ff_dash_demuxer 符号，DASH(.mpd) 流无法播放' >&2
+            exit 1
+          }
+          echo 'ff_dash_demuxer 符号存在，DASH demuxer 已编译'
+
+  full-build:
+    name: 全量构建（缓存路径）
+    needs: [detect-changes, quick-check]
+    # 仅在 mpv 相关路径改动、push 到 main、或手动触发时跑全量构建。
+    if: |
+      needs.detect-changes.outputs.mpv-paths == 'true' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-22.04
     timeout-minutes: 90
     steps:
@@ -82,14 +134,6 @@ jobs:
           echo "缓存目录：$GITHUB_WORKSPACE/.cache/vidall-player"
           meson --version
 
-      - name: 验证构建缓存失效逻辑
-        run: bash native/tests/build-libmpv-bootstrap.test.sh
-
-      - name: 验证构建脚本补丁
-        # issue #21：冷构建冒烟，不依赖依赖缓存，确保 build.sh 依赖顺序与 FFmpeg configure
-        # 在每次提交都能稳定通过（libxml2 早于 ffmpeg、harfbuzz 早于 freetype、dash demuxer 启用）。
-        run: bash native/tests/build-libmpv-patches.test.sh
-
       - name: 构建 ARM64 libmpv
         env:
           VIDALL_PLAYER_CACHE_DIR: ${{ github.workspace }}/.cache/vidall-player
@@ -122,9 +166,14 @@ jobs:
 
   cold-build-smoke:
     name: 冷构建冒烟（不依赖依赖缓存）
+    needs: [detect-changes, quick-check]
+    if: |
+      needs.detect-changes.outputs.mpv-paths == 'true' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-22.04
     timeout-minutes: 120
-    # issue #21：不阻塞合并，但每次提交都跑，稳定暴露缓存命中会掩盖的 HarfBuzz 链接 bug。
+    # issue #21：不阻塞合并，但 mpv 相关改动时跑，稳定暴露缓存命中会掩盖的 HarfBuzz 链接 bug。
     continue-on-error: true
     steps:
       - name: 检出项目
@@ -148,9 +197,6 @@ jobs:
           python3 -m pip install --user --upgrade 'meson==1.7.0'
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           "$HOME/.local/bin/meson" --version
-
-      - name: 运行构建脚本补丁测试
-        run: bash native/tests/build-libmpv-patches.test.sh
 
       - name: 冷构建 ARM64 libmpv
         # 强制冷：清除依赖缓存，不命中 build-libmpv 的缓存，确保链接阶段被实际执行。
