@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 验证 native/patches/build/*.patch 修正了 libmpv-ohos-build 的依赖顺序与 FFmpeg configure，
+# 验证 native/patches/libmpv-ohos-build/*.patch 修正了 libmpv-ohos-build 的依赖顺序与 FFmpeg configure，
 # 解决 issue #21：
 #   - 问题 A：libxml2 必须在 ffmpeg 之前构建，且 ffmpeg.sh 显式 --enable-libxml2 --enable-demuxer=dash
 #     （FFmpeg dash_demuxer_deps="libxml2"，缺 libxml2 则 dashdec.c 不编译）
@@ -10,7 +10,8 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 readonly BOOTSTRAP_SCRIPT="$PROJECT_ROOT/native/scripts/build-libmpv-bootstrap.sh"
-readonly PATCHES_DIR="$PROJECT_ROOT/native/patches/libmpv-ohos-build"
+
+# PATCHES_DIR 由 bootstrap 脚本定义（source 后可用），避免重复声明导致 readonly 冲突。
 
 fail() {
   echo "测试失败：$*" >&2

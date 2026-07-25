@@ -11,6 +11,22 @@ readonly CACHE_ROOT="${VIDALL_PLAYER_CACHE_DIR:-${HOME:-$ROOT_DIR}/.cache/vidall
 readonly WORK_DIR="$CACHE_ROOT/libmpv-ohos-build"
 readonly OUTPUT_DIR="$ROOT_DIR/dist/libmpv/arm64-v8a"
 readonly MESON_MARKER="$WORK_DIR/.vidall-player-meson-version"
+readonly PATCHES_DIR="$ROOT_DIR/native/patches/libmpv-ohos-build"
+
+# 计算构建脚本补丁集合摘要并拼入缓存 marker：补丁内容变更即触发依赖缓存失效，
+# 避免每次改补丁都要手动 bump DEPENDENCY_CACHE_SCHEMA。
+compute_patchset_digest() {
+  if [ ! -d "$1" ] || ! ls "$1"/*.patch >/dev/null 2>&1; then
+    printf 'none'
+    return
+  fi
+  if command -v sha256sum >/dev/null 2>&1; then
+    cat "$1"/*.patch | sha256sum
+  else
+    cat "$1"/*.patch | shasum -a 256
+  fi | cut -d' ' -f1 | cut -c1-16
+}
+readonly PATCHSET_DIGEST="$(compute_patchset_digest "$PATCHES_DIR")"
 
 invalidate_dependency_cache_if_build_source_changed() {
   local work_dir="$1"
@@ -98,6 +114,11 @@ if [ ! -f "$LOCK_FILE" ]; then
   exit 1
 fi
 
+# 仅在直接执行时运行构建主流程；被 source 时只暴露函数与常量，供测试加载。
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+  return 0 2>/dev/null || true
+fi
+
 mkdir -p "$CACHE_ROOT"
 if [ ! -d "$WORK_DIR/.git" ]; then
   git clone --no-checkout "$BUILD_REPOSITORY" "$WORK_DIR"
@@ -113,7 +134,7 @@ if [ "$actual_commit" != "$BUILD_COMMIT" ]; then
 fi
 
 # 上游来源变更或缓存方案升级可能切换 FFmpeg 版本或补丁；清除会被 download.sh 跳过的旧依赖。
-invalidate_dependency_cache_if_build_source_changed "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA"
+invalidate_dependency_cache_if_build_source_changed "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA:$PATCHSET_DIGEST"
 
 # Meson 或上游补丁更新时使已有中间构建失效，避免缓存污染。
 if [ ! -f "$MESON_MARKER" ] || [ "$(cat "$MESON_MARKER")" != "$MESON_VERSION" ]; then
@@ -127,7 +148,7 @@ chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 reset_dependency_sources "$WORK_DIR"
 ./patch.sh
 apply_build_script_patches "$WORK_DIR" "$ROOT_DIR/native/patches/libmpv-ohos-build"
-mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA"
+mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA:$PATCHSET_DIGEST"
 ./build.sh
 (
   cd libmpv/arm64-build
