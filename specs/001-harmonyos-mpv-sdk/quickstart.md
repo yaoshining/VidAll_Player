@@ -11,7 +11,13 @@
 bash native/tests/contract-baseline.test.sh
 ```
 
-`release/audits/har-native-packaging-spike.json` 状态为 `blocked` 时，真实 bridge 不得启用；构建成功或模拟状态机均不能替代 HAR 内部 native 装入和受控设备证据。
+`release/audits/tdd-baseline.json` 记录公开契约的预期失败和修正后通过；可通过以下命令验证 loopback HTTP/WebDAV、认证、Range 与 chunked 夹具：
+
+```bash
+bash scripts/test/network-fixtures/network-fixtures.test.sh
+```
+
+`release/audits/har-native-packaging-spike.json` 状态为 `blocked` 时，真实 bridge 不得启用；构建成功、网络夹具或模拟状态机均不能替代 HAR 内部 native 装入和受控设备证据。
 
 ## 前置条件
 

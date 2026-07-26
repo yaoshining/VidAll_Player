@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "status": "recorded",
+  "scope": "Issue #32 candidate SDK contract baseline",
+  "t008": {
+    "redPhase": {
+      "command": "public SDK contract export check",
+      "result": "failed-as-expected",
+      "failure": "The root SDK entry did not export ExternalAudio, PlayerEventType, PlayerLog, ProxyLeaseStatus, VideoParams, and AudioParams required by the candidate contract.",
+      "recordedAt": "2026-07-26T16:13:22+08:00",
+      "sourceCommit": "091ace8ec9ea7e0d0752bb725ff54084e3167010"
+    },
+    "greenPhase": {
+      "command": "bash native/tests/contract-baseline.test.sh",
+      "result": "passed",
+      "recordedAt": "2026-07-26T16:13:22+08:00",
+      "sourceCommit": "091ace8ec9ea7e0d0752bb725ff54084e3167010"
+    }
+  },
+  "t006": {
+    "outcome": "blocked",
+    "realBridgeAllowed": false,
+    "evidenceRecord": "release/audits/har-native-packaging-spike.json"
+  }
+}

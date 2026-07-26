@@ -23,11 +23,11 @@
 - [x] T001 冻结候选包名、语义版本策略和唯一公开导出清单，并将登记前的 `@vidall/player` 标记为候选，更新 `packages/vidall-player/oh-package.json5`、`packages/vidall-player/Index.ets`、`specs/001-harmonyos-mpv-sdk/contracts/arkts-sdk.md`
 - [x] T002 [P] 建立 ArkTS SDK 契约测试项目及测试命令，覆盖仅可导入公开 API、禁止导入 NAPI/NativeWindow/EGL/libmpv，更新 `packages/vidall-player/oh-package.json5`、`packages/vidall-player/test/contract/public-api.test.ets`
 - [x] T003 [P] 建立原生 C++ 单元/生命周期测试目标和失败测试命令，更新 `native/tests/CMakeLists.txt`、`native/tests/session_lifecycle_test.cpp`
-- [x] T004 [P] 建立受控网络测试夹具（HTTP、WebDAV、重定向、Range、超时、chunked），且不写入真实凭据，更新 `scripts/test/network-fixtures/README.md`、`scripts/test/network-fixtures/docker-compose.yml`
+- [x] T004 [P] 建立仅绑定 loopback 的受控网络测试夹具（HTTP、WebDAV Basic Auth/PROPFIND、重定向、Range、超时、chunked），使用 fixture 专用固定值而不写入真实凭据，并由 `scripts/test/network-fixtures/network-fixtures.test.sh` 验证，更新 `scripts/test/network-fixtures/README.md`、`scripts/test/network-fixtures/docker-compose.yml`
 - [x] T005 [P] 建立候选证据目录及“无证据即未通过”的校验约定，更新 `release/.gitkeep`、`scripts/evidence/validate-evidence.sh`、`specs/001-harmonyos-mpv-sdk/quickstart.md`
-- [x] T006 配置并执行 HAR 内部 native packaging spike 的最小实验构建与隔离装入，仅验证 HAR 内部原生库的装入边界而非宣称可发布；记录 HAR 内容、ABI、命令/回调结果与失败原因，更新 `packages/vidall-player/build-profile.json5`、`packages/vidall-player/src/native/NativeBridge.ets`、`native/CMakeLists.txt`、`release/audits/har-native-packaging-spike.json`
+- [x] T006 记录 HAR 内部 native packaging spike 的阻断结论并禁止真实 bridge；在 HAR 内容、ABI、隔离 consumer 装入和命令/回调结果缺失时不得宣称构建或发布成功，更新 `packages/vidall-player/build-profile.json5`、`packages/vidall-player/src/native/NativeBridge.ets`、`native/CMakeLists.txt`、`release/audits/har-native-packaging-spike.json`
 - [x] T007 [P] 写出 API 15 安装、API 19 审查、API 22 认证的机器可读审查基线，更新 `native/config/api-review.json`、`specs/001-harmonyos-mpv-sdk/contracts/release-manifest.md`
-- [x] T008 在运行 T002–T007 的失败前测试/检查并记录预期失败原因后，最小化修正测试入口与空实现；若 T006 未证明 HAR 内部 native 装入，则记录阻断结论并禁止进入真实 bridge 实现，更新 `packages/vidall-player/test/contract/public-api.test.ets`、`native/tests/session_lifecycle_test.cpp`、`release/audits/har-native-packaging-spike.json`
+- [x] T008 先记录公开根入口缺少候选类型导出的预期失败，再最小化修正并记录 `contract-baseline` 通过；该红绿记录位于 `release/audits/tdd-baseline.json`，且 T006 未证明 HAR 内部 native 装入时继续保持阻断并禁止真实 bridge，更新 `packages/vidall-player/test/contract/public-api.test.ets`、`native/tests/session_lifecycle_test.cpp`、`release/audits/tdd-baseline.json`
 
 **Checkpoint**: 候选公开面、TDD 命令和证据边界明确；任何尚无真实构建或设备证明的条目均未完成。
 
