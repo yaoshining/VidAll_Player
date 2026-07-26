@@ -40,7 +40,7 @@
 | 性能与质量 | UI 线程禁止阻塞任务；清洁构建、单元/契约/集成/真机门禁和资源审计纳入候选门禁。 | 通过 |
 | 中文文档与交付纪律 | 本功能文档、矩阵、发布/风险/验收记录均使用中文；法律及协议原文保留并加中文说明。 | 通过 |
 
-**Phase 0 结论**：无未解决澄清项或需要例外的宪章违反。现有 bootstrap CI 的不完整供应链控制是已识别风险，实施必须替换，不能以现状绕过门禁。
+**Phase 0 结论**：存在必须在实施前通过 spike 或产品/发布决策关闭的关键待确认项：HAR 是否能以候选形态内部携带并装入所需 NAPI/native 库、公开 XComponent surface 接入形态、SMB proxy lease 的续期/确认协议、ARM64 API 22 TV 真机与受控样本可用性，以及 GPL/LGPL 的发布、NOTICE 与 source offer 审批。现有 bootstrap CI 的不完整供应链控制是已识别风险，实施必须替换，不能以现状绕过门禁。
 
 ## 项目结构
 
@@ -55,6 +55,7 @@ specs/001-harmonyos-mpv-sdk/
 ├── quickstart.md
 └── contracts/
     ├── arkts-sdk.md
+    ├── native-bridge.md                 # 内部 ArkTS-NAPI wire schema 与释放协议
     ├── release-manifest.md
     └── compatibility-matrix.md
 ```
@@ -116,15 +117,16 @@ release/                                # 由 CI 生成且不提交的候选/发
 
 **验收**：契约测试能覆盖状态迁移、重复 stop/release、无效 URI、零尺寸/销毁 surface、乱序事件与脱敏错误。
 
-### 阶段 B：实现 NAPI、会话与渲染生命周期
+### 阶段 B：验证内部 native 打包并实现 NAPI、会话与渲染生命周期
 
-1. 建立每会话独立的 `mpv_handle`、受控命令队列、订阅表和渲染实例；禁止全局播放器和全局 EGL context。
-2. 在 NAPI 桥接层建立线程安全事件投递，所有 libmpv 事件先进入原生队列，再按会话序号进入 ArkTS；释放时撤销投递并使旧任务失效。
-3. 在渲染线程管理 NativeWindow、EGLDisplay、EGLContext、EGLSurface 和 libmpv render API；以 surface generation 防止销毁后使用。
-4. 按固定顺序完成释放：拒绝新命令、停止媒体/回调、解绑渲染、销毁 EGL surface/context/display、终止 mpv、清除 NAPI 引用和队列。
-5. 映射本地/HTTP(S)/HLS/DASH/localhost 代理、轨道、外挂字幕、硬解回退和错误；网络认证头不写入 URL、日志或持久化。
+1. 先完成 HAR 内部 native packaging spike：证明候选 HAR 可在不依赖 `entry` 私有 `.so` 的情况下装入所需 NAPI/native 库，记录 HAR 内容、ABI、装入结果与失败原因。spike 失败时停止后续 bridge 实现，改为明确的受控降级或重新决策，不把内存状态机包装为播放器。
+2. 按 [`contracts/native-bridge.md`](./contracts/native-bridge.md) 建立每会话独立的 `mpv_handle`、受控命令队列、订阅表和渲染实例；禁止全局播放器、NativeWindow、EGL context 或渲染队列。
+3. 在 NAPI 桥接层建立线程安全事件投递，所有 libmpv/渲染器事件先进入原生队列，携带会话 epoch、序号和 surface generation 后进入 ArkTS；ArkTS 丢弃陈旧事件。命令成功只确认原生接受/完成阶段，绝不伪造播放或首帧。
+4. 在渲染线程管理每会话 NativeWindow、EGLDisplay、EGLContext、EGLSurface 和 libmpv render API；只有当前 generation 提交真实画面才能投递 `firstFrame`。
+5. 按固定顺序完成释放：拒绝新命令、停止事件源和回调、解绑渲染、销毁 EGL surface/context/display、终止 mpv、清除 NAPI 引用和队列。release Promise 完成后必须无回调。
+6. 映射本地/HTTP(S)/WebDAV/HLS/DASH/localhost proxy、轨道、外挂字幕、硬解回退和错误；网络认证头不写入 URL、日志或持久化。SMB proxy 的 lease 只由 SDK 消费、续期和释放协作，业务侧仍负责启动代理。
 
-**验收**：原生单元与集成测试证明独立会话、切源、surface 重建、后台/异常释放、连续控制、无悬垂回调；所有长耗时路径不在 UI 线程执行。
+**验收**：失败测试先行的原生单元、桥接契约与端到端测试证明独立会话、真实事件来源、切源、surface 重建、后台/异常释放、连续控制、无悬垂回调；所有长耗时路径不在 UI 线程执行。
 
 ### 阶段 C：替换 bootstrap 为受控可复现构建
 
@@ -139,7 +141,7 @@ release/                                # 由 CI 生成且不提交的候选/发
 ### 阶段 D：示例、消费者和兼容证据
 
 1. 建立 TV/手机最小示例，封装 WebDAV 安全配置、目录选择、XComponent 画面、播放错误、重试、资源释放；TV 页面对遥控器焦点、确认和返回明确验收。
-2. 建立隔离 `consumer-smoke`，仅从批准私有 ohpm 源安装候选 HAR，验证“创建 -> 附着 -> 加载 -> 播放 -> 释放”，不得访问 `native/` 或任何 VidAll_TV 内容。
+2. 建立隔离 `consumer-smoke`，先从受控验证构件安装 HAR 以取得发布门禁证据；候选发布后再从批准私有 ohpm 源回读安装。两者均验证“创建 -> 附着 -> 加载 -> 播放 -> 释放”，不得访问 `native/` 或任何 VidAll_TV 内容。
 3. 建立 IJK 兼容矩阵，以 `contracts/compatibility-matrix.md` 列出媒体浏览、WebDAV、SMB localhost HTTP、音轨/字幕、音频路由、硬解回退、跳转、控制和生命周期；每行关联 SDK、样本、设备、证据和三态。
 4. 定义由消费方持有的 `playerEngine=ijk|vidall` 渐进迁移开关与回退规则。本库只保证公开契约，不修改 VidAll_TV。
 5. 记录本地/HTTP(S)/WebDAV/HLS/DASH/SMB 样本、容器/编解码器、字幕、4K/10-bit/60fps/HDR/高规格音频的真机结论，未实测只能标“已构建待验证”或“不支持或暂缓”。
@@ -149,8 +151,8 @@ release/                                # 由 CI 生成且不提交的候选/发
 ### 阶段 E：候选制品与双渠道发布
 
 1. 将现有 `.github/workflows/build-libmpv.yml` 作为待删除风险基线，替换为 PR 验证、tag 候选和批准发布三条受控工作流；所有 action 和构建工具同样锁定不可变版本/摘要。
-2. 受保护 tag 只生成一个不可变候选制品集合及 `release-manifest.json`，先完成构建、审计、敏感信息扫描、安装和真机证据校验，再请求批准。
-3. 批准后使用同一候选清单上传 GitHub Release 和批准私有 ohpm 制品源；私有源名称、凭据和审批人不写入仓库。
+2. 受保护 tag 先生成一个不可变验证构件及 `verification-manifest.json`，完成构建、审计、内部装入、consumer-smoke、敏感信息扫描和真机证据校验。验证构件不得上传或标称候选。
+3. 全部门禁通过后，从同一验证构件生成 `release-manifest.json` 和不可变候选，再使用该候选清单上传 GitHub Release 和批准私有 ohpm 制品源；私有源名称、凭据和审批人不写入仓库。
 4. 两渠道完成后回读版本、来源提交、HAR SHA、SBOM 和发布说明；完全一致才写入 `published` 回执。
 5. 任一上传或回读失败保留 `candidate`/`failed`，输出脱敏处置报告，不宣称已发布；不可变远端版本仅由批准人工补偿流程处理。
 
@@ -167,6 +169,12 @@ release/                                # 由 CI 生成且不提交的候选/发
 | 构建供应链 | macOS/Linux clean build、锁定、SBOM、NOTICE、SHA、ELF 审计 | 浮动依赖、哈希/ABI/符号/动态依赖不匹配。 |
 | ARM64 TV 真机 | API 15 安装、API 19 审查、API 22 认证、遥控器、播放/切源/重建/后台/网络/释放 | 缺少证据，或未验证能力标记为支持。 |
 | 发布 | 候选批准、GitHub/私有 ohpm 上传和回读 | 双渠道任一失败或清单不一致。 |
+
+## 实施前 Spike 与 TDD 规则
+
+- 每个功能变更必须先增加或更新能复现预期行为的自动化测试，确认其在现状失败后再写最小实现；每组测试必须覆盖正常、关键边界和失败路径。真机、清洁构建和发布门禁不得用模拟测试替代。
+- HAR internal native packaging spike 是所有真实 bridge 工作的阻断前置：它必须在隔离消费者中证明 native 库随验证构件 HAR 的装入、命令调用和回调边界，且不访问 `entry`、私有 NAPI 或 VidAll_TV。
+- native bridge、surface、网络与发布阶段均以当前仓库事实为起点。设计中的每会话所有权、release 后静默和受控供应链是目标架构，不能被描述为既有实现或既有证据。
 
 ## Phase 1 后宪章复核
 
