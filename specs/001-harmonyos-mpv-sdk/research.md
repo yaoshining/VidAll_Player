@@ -1,5 +1,12 @@
 # 研究记录：VidAll_Player 可发布组件库
 
+## 当前实现偏差（2026-07-26 只读调研）
+
+- **事实**：当前 `@vidall/player` 的 `createPlayer()` 返回 ArkTS 内存 `PlayerSession`，可主动发出 `preparing`、`playing`、轨道和缓冲事件；它没有创建 native handle 或调用 NAPI。因此当前 HAR 不是可独立消费的真实 libmpv 播放器，不能把这些状态机事件当作播放、首帧或真机验证证据。
+- **事实**：真实 libmpv/NAPI/渲染实现位于 `entry/src/main/cpp/napi_bridge.cpp`，由示例通过私有 `libentry.so` 直接调用。HAR 目前没有随包可用的 native module，`entry` 同时依赖本地 HAR 与私有 `.so`；这不满足独立 consumer-only HAR 边界。
+- **事实**：现有原生 Surface 管理含全局 NativeWindow 模式，事件类型与公开事件 payload 不完整；现有测试大多验证 ArkTS 状态机或静态 NAPI 符号，不等同于 native 播放集成测试。
+- **结论**：以下“决策”均是候选目标架构，而非对当前实现的描述。实现前必须先完成 HAR internal native packaging spike；失败时不能以模拟状态机替代。
+
 ## 原生播放架构
 
 - **决策**：公开 `@vidall/player` ArkTS 只提供强类型会话、命令、事件和错误；NAPI、XComponent NativeWindow、EGL/GLES 和 libmpv 保持内部实现。每个会话独立拥有命令队列、`mpv_handle`、渲染器和订阅表。
@@ -69,4 +76,12 @@
 - **决策**：能力的唯一状态为“已通过真机样本”“已构建待验证”“不支持或暂缓”。每个结论绑定 SDK/组件版本、锁定摘要、ARM64 TV 设备匿名标识、API 层、测试素材匿名标识、执行时间、指标、日志摘要和限制。IJK 行为矩阵由经授权的基线证据填写，VidAll_Player 仅提供独立 consumer-smoke 和消费方可选 `playerEngine=ijk|vidall` 开关契约。
 - **依据**：编译成功不能证明电视硬解、字幕、HDR、音频路由或网络恢复实际可用；在本仓库独立验证并让开关归消费者所有，可避免改动 VidAll_TV 并允许灰度回退。
 - **备选方案**：以构建选项声明支持，或在本仓库直接改 VidAll_TV 验证。前者会误报能力，后者违反范围和 FR-040，均不采用。
-- **ARM64 门禁**：API 22 ARM64 TV 上必须安装 API 15 兼容包，执行 100 次核心生命周期冒烟以及来源、遥控器、后台、网络和释放用例。没有该真机证据，候选不得进入发布审批。
+- **ARM64 门禁**：API 22 ARM64 TV 上必须安装 API 15 兼容包，执行 100 次核心生命周期冒烟以及来源、遥控器、后台、网络和释放用例。当前仅发现 API 19 TV 模拟器，未取得 ARM64 真机播放日志、性能或生命周期证据；模拟器不可替代此门禁。没有该真机证据，候选不得进入发布审批。
+
+## 待关闭的实现与发布决策
+
+- **HAR native 交付**：通过最小 spike 验证 HarmonyOS HAR 是否可随候选制品内部装入 NAPI/native 库、如何声明 ABI 和如何被隔离 consumer 解析。未验证前，不承诺最终打包形态。
+- **公开 Surface 接入**：冻结消费者交付 `componentId`、尺寸和 generation 的 XComponent 适配流程，确认不暴露 NativeWindow 或将渲染生命周期推回消费方。
+- **SMB lease 协作**：与业务层确定 `acquired`、续期、`releaseRequested`、`released`、超时和异常回收的确认格式与重试责任。SDK 不启动 SMB proxy，也不承担业务层协议恢复。
+- **发布许可**：在候选前取得 GPL-2.0-or-later libmpv 与相关 LGPL 依赖的许可证结论、NOTICE、source offer 和制品分发审批。
+- **真实样本与设备**：取得可使用的 ARM64 API 22 TV、脱敏 HTTP/WebDAV/SMB proxy 样本及指标采集方式。
