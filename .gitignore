@@ -19,6 +19,8 @@ oh_modules/
 # Candidate release evidence (directory placeholders are tracked)
 release/**
 !release/**/.gitkeep
+!release/audits/har-native-packaging-spike.json
+!release/audits/tdd-baseline.json
 # Generated HAR compatibility source
 packages/vidall-player/BuildProfile.ets
 

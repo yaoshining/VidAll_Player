@@ -1,8 +1,8 @@
 export type PlayerState = 'idle' | 'preparing' | 'playing' | 'paused' |
   'buffering' | 'completed' | 'error' | 'released';
 export type PlayerTrackKind = 'audio' | 'video' | 'subtitle';
-export type PlayerEventType = 'state' | 'position' | 'buffering' | 'tracks' |
-  'videoParams' | 'audioParams' | 'log' | 'closed' | 'error';
+export type PlayerEventType = 'state' | 'firstFrame' | 'position' | 'buffering' | 'tracks' |
+  'videoParams' | 'audioParams' | 'proxyLease' | 'log' | 'closed' | 'error';
 
 export interface PlayerSurface {
   componentId: string;
@@ -17,8 +17,15 @@ export interface MediaSource {
   kind: 'localFile' | 'http' | 'https' | 'hls' | 'dash' | 'localhostProxy';
   uri: string;
   headers?: Record<string, string>;
+  externalAudio?: ExternalAudio[];
   externalSubtitles?: ExternalSubtitle[];
   proxyLeaseId?: string;
+}
+
+export interface ExternalAudio {
+  uri: string;
+  title?: string;
+  language?: string;
 }
 
 export interface ExternalSubtitle {
@@ -44,16 +51,48 @@ export interface PlayerError {
   context: Record<string, string | number | boolean>;
 }
 
+export interface VideoParams {
+  width: number;
+  height: number;
+  pixelFormat?: string;
+  rotation?: number;
+  decoder?: string;
+  hardwareDecoding?: 'active' | 'fallback' | 'unavailable';
+}
+
+export interface AudioParams {
+  sampleRate?: number;
+  channels?: number;
+  channelLayout?: string;
+  codec?: string;
+}
+
+export interface PlayerLog {
+  level: 'debug' | 'info' | 'warn' | 'error';
+  module: string;
+  message: string;
+}
+
+export interface ProxyLeaseStatus {
+  leaseId: string;
+  state: 'acquired' | 'renewed' | 'releaseRequested' | 'released' | 'expired' | 'cleanupFailed';
+  retryable: boolean;
+}
+
 export interface PlayerEvent {
   type: PlayerEventType;
   sequence: number;
+  eventEpoch?: number;
+  surfaceGeneration?: number;
   state?: PlayerState;
   positionMs?: number;
   durationMs?: number;
   percent?: number;
   paused?: boolean;
   tracks?: PlayerTrack[];
+  params?: VideoParams | AudioParams;
+  lease?: ProxyLeaseStatus;
+  log?: PlayerLog;
   error?: PlayerError;
-  // 仅用于 log 事件的脱敏文本载荷（如 SMB 代理租约释放记录）。
   message?: string;
 }

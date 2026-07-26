@@ -51,6 +51,18 @@ devecocli run --module entry --device <设备序列号>
 devecocli log --bundle-name com.yaoshining.vidallplayer --from 5m --tail 100
 ```
 
+## 候选 SDK 契约
+
+`@vidall/player` 当前冻结为 `0.1.0` 候选；`packages/vidall-player/Index.ets` 是唯一公开入口。候选阶段禁止消费者导入 NAPI、NativeWindow、EGL/GLES、libmpv 或 `src/internal`。
+
+以下命令验证公开 API、原生生命周期测试目标、API 15/19/22 审查基线和“无 HAR 内部 native 装入证据即阻断真实 bridge”的记录：
+
+```bash
+bash native/tests/contract-baseline.test.sh
+```
+
+受控网络夹具位于 `scripts/test/network-fixtures/`，只监听 loopback 且不含真实凭据；WebDAV/认证/chunked 场景必须由运行时受控环境注入。
+
 ## 自动化测试
 
 `entry/src/ohosTest/` 包含 `@vidall/player` 的 Hypium 端侧单元测试，覆盖媒体输入失败时的结构化脱敏错误、会话状态和事件顺序，以及释放后的命令拒绝。测试依赖真实 HarmonyOS 设备或模拟器，执行前先构建并安装测试包，再运行：

@@ -1,4 +1,5 @@
 import {
+  ExternalAudio,
   ExternalSubtitle,
   MediaSource,
   PlayerEvent,
@@ -8,7 +9,7 @@ import {
 } from '../public/types';
 import { VidAllPlayer } from '../public/playerContract';
 import { CommandQueue } from './commandQueue';
-import { validateExternalSubtitle, validateMediaSource } from './inputValidator';
+import { validateExternalAudio, validateExternalSubtitle, validateMediaSource } from './inputValidator';
 import { NetworkRecoveryController } from './networkRecovery';
 import { lifecycleFailure, PlayerFailure } from './playerFailure';
 import { leaseReleaseMessage, ProxyLeaseRegistry } from './proxyLeaseRegistry';
@@ -83,7 +84,9 @@ export class PlayerSession implements VidAllPlayer {
       // 避免旧连接、旧租约或旧轨道泄漏到新媒体会话。
       this.abortActiveMedia('source-switch');
       this.source = source;
-      this.tracks = this.createExternalSubtitleTracks(source.externalSubtitles);
+      this.tracks = this.createExternalAudioTracks(source.externalAudio).concat(
+        this.createExternalSubtitleTracks(source.externalSubtitles, source.externalAudio?.length ?? 0)
+      );
       this.recovery.clear();
       this.stateMachine.transition('preparing');
       if (source.kind === 'localhostProxy' && source.proxyLeaseId !== undefined) {
@@ -127,12 +130,12 @@ export class PlayerSession implements VidAllPlayer {
     });
   }
 
-  setSpeed(speed: number): Promise<void> {
-    return this.enqueue('setSpeed', () => {
-      if (!Number.isFinite(speed) || speed <= 0) {
-        throw lifecycleFailure('INVALID_SPEED', '播放速度必须是大于零的有限值。Playback speed must be a finite value greater than zero.');
+  setRate(rate: number): Promise<void> {
+    return this.enqueue('setRate', () => {
+      if (!Number.isFinite(rate) || rate <= 0) {
+        throw lifecycleFailure('INVALID_RATE', '播放速度必须是大于零的有限值。Playback rate must be a finite value greater than zero.');
       }
-      this.requireActiveMedia('setSpeed', speed);
+      this.requireActiveMedia('setRate', rate);
     });
   }
 
@@ -144,8 +147,8 @@ export class PlayerSession implements VidAllPlayer {
     });
   }
 
-  setMuted(_muted: boolean): Promise<void> {
-    return this.enqueue('setMuted', () => {});
+  mute(_muted: boolean): Promise<void> {
+    return this.enqueue('mute', () => {});
   }
 
   selectTrack(kind: PlayerTrackKind, id: number | null): Promise<void> {
@@ -161,6 +164,15 @@ export class PlayerSession implements VidAllPlayer {
       for (let index = 0; index < candidates.length; index++) {
         candidates[index].selected = id !== null && candidates[index].id === id;
       }
+      this.emitTracks();
+    });
+  }
+
+  addExternalAudio(audio: ExternalAudio): Promise<void> {
+    return this.enqueue('addExternalAudio', () => {
+      this.requireActiveSessionState('addExternalAudio');
+      validateExternalAudio(audio);
+      this.tracks.push({ id: this.nextTrackId(), kind: 'audio', title: audio.title, language: audio.language, selected: false, recognitionStatus: 'recognized' });
       this.emitTracks();
     });
   }
@@ -307,10 +319,35 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   private emitLog(message: string): void {
-    this.stateMachine.emit({ type: 'log', sequence: 0, message: redactText(message) });
+    const redacted = redactText(message);
+    this.stateMachine.emit({
+      type: 'log',
+      sequence: 0,
+      log: { level: 'info', module: 'player-session', message: redacted },
+      message: redacted
+    });
   }
 
-  private createExternalSubtitleTracks(subtitles?: ExternalSubtitle[]): PlayerTrack[] {
+  private createExternalAudioTracks(audioTracks?: ExternalAudio[]): PlayerTrack[] {
+    if (audioTracks === undefined) {
+      return [];
+    }
+    const tracks: PlayerTrack[] = [];
+    for (let index = 0; index < audioTracks.length; index++) {
+      const audio = audioTracks[index];
+      tracks.push({
+        id: index + 1,
+        kind: 'audio',
+        title: audio.title,
+        language: audio.language,
+        selected: false,
+        recognitionStatus: 'recognized'
+      });
+    }
+    return tracks;
+  }
+
+  private createExternalSubtitleTracks(subtitles?: ExternalSubtitle[], startId: number = 0): PlayerTrack[] {
     if (subtitles === undefined) {
       return [];
     }
@@ -318,7 +355,7 @@ export class PlayerSession implements VidAllPlayer {
     for (let index = 0; index < subtitles.length; index++) {
       const subtitle = subtitles[index];
       tracks.push({
-        id: index + 1,
+        id: startId + index + 1,
         kind: 'subtitle',
         title: subtitle.title,
         selected: false,

@@ -76,11 +76,11 @@ export default function playerSessionTest() {
       await player.seekRelative(-5.5);
       await player.seekPercent(0);
       await player.seekPercent(100);
-      await player.setSpeed(0.5);
+      await player.setRate(0.5);
       await player.setVolume(0);
       await player.setVolume(100);
-      await player.setMuted(true);
-      await player.setMuted(false);
+      await player.mute(true);
+      await player.mute(false);
       await player.selectTrack('audio', null);
       await player.setSubtitleDelay(-250);
       await player.release();
@@ -144,6 +144,77 @@ export default function playerSessionTest() {
       done();
     });
 
+    it('loads and selects external audio while rejecting invalid audio URIs', 0, async (done: Function) => {
+      const trackEvents: PlayerEvent[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'tracks') {
+            trackEvents.push(event);
+          }
+        }
+      });
+      await player.load({
+        kind: 'https',
+        uri: 'https://example.com/video.mp4',
+        externalAudio: [{ uri: 'https://example.com/audio.aac', title: 'Chinese', language: 'zh' }]
+      });
+      await player.selectTrack('audio', 1);
+      expect(trackEvents.length).assertEqual(2);
+      expect(trackEvents[0].tracks![0].kind).assertEqual('audio');
+      expect(trackEvents[0].tracks![0].language).assertEqual('zh');
+      expect(trackEvents[1].tracks![0].selected).assertTrue();
+      await player.release();
+
+      const invalidPlayer = createPlayer();
+      try {
+        await invalidPlayer.load({
+          kind: 'https',
+          uri: 'https://example.com/video.mp4',
+          externalAudio: [{ uri: '' }]
+        });
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(true).assertTrue();
+      }
+      await invalidPlayer.release();
+      done();
+    });
+
+    it('rejects an invalid external audio URI added after load', 0, async (done: Function) => {
+      const player = createPlayer();
+      await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
+      try {
+        await player.addExternalAudio({ uri: '' });
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(true).assertTrue();
+      }
+      await player.release();
+      done();
+    });
+
+    it('emits structured log payloads while preserving the legacy message', 0, async (done: Function) => {
+      const logEvents: PlayerEvent[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'log') {
+            logEvents.push(event);
+          }
+        }
+      });
+      await player.load({
+        kind: 'localhostProxy',
+        uri: 'http://127.0.0.1:18080/smb/video.mp4',
+        proxyLeaseId: 'lease-1'
+      });
+      await player.release();
+      expect(logEvents.length).assertEqual(1);
+      expect(logEvents[0].log!.level).assertEqual('info');
+      expect(logEvents[0].log!.module).assertEqual('player-session');
+      expect(logEvents[0].log!.message).assertEqual(logEvents[0].message!);
+      done();
+    });
+
     it('adds supported external subtitles and rejects invalid tracks and formats', 0, async (done: Function) => {
       const player = createPlayer();
       await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
@@ -190,8 +261,8 @@ export default function playerSessionTest() {
         () => player.seekPercent(Number.NaN),
         () => player.seekPercent(-1),
         () => player.seekPercent(101),
-        () => player.setSpeed(Number.POSITIVE_INFINITY),
-        () => player.setSpeed(0),
+        () => player.setRate(Number.POSITIVE_INFINITY),
+        () => player.setRate(0),
         () => player.setVolume(Number.NaN),
         () => player.setVolume(-1),
         () => player.setVolume(101),

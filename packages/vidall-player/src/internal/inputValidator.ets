@@ -1,4 +1,4 @@
-import { ExternalSubtitle, MediaSource } from '../public/types';
+import { ExternalAudio, ExternalSubtitle, MediaSource } from '../public/types';
 import { PlayerFailure } from './playerFailure';
 
 const AUTHORIZATION_HEADER = 'authorization';
@@ -57,6 +57,17 @@ function validateHeaders(headers?: Record<string, string>): void {
 const SUPPORTED_SUBTITLE_FORMATS: string[] = [
   'srt', 'ass', 'ssa', 'webvtt', 'pgs', 'vobsub'
 ];
+
+export function validateExternalAudio(audio: ExternalAudio): void {
+  if (audio.uri.length === 0) {
+    throw inputFailure('INVALID_EXTERNAL_AUDIO', 'External audio URI must not be empty.');
+  }
+  const uri = parseUri(audio.uri);
+  if (uri.scheme !== 'http' && uri.scheme !== 'https') {
+    throw inputFailure('UNSUPPORTED_EXTERNAL_AUDIO_PROTOCOL',
+      '外挂音频仅支持 HTTP/HTTPS (External audio only supports HTTP/HTTPS).');
+  }
+}
 
 export function validateExternalSubtitle(subtitle: ExternalSubtitle): void {
   if (subtitle.uri.indexOf('file://') === 0) {
@@ -136,6 +147,11 @@ export function validateMediaSource(source: MediaSource): void {
     }
   }
   validateHeaders(source.headers);
+  if (source.externalAudio !== undefined) {
+    for (let index = 0; index < source.externalAudio.length; index++) {
+      validateExternalAudio(source.externalAudio[index]);
+    }
+  }
   if (source.externalSubtitles !== undefined) {
     for (let index = 0; index < source.externalSubtitles.length; index++) {
       validateExternalSubtitle(source.externalSubtitles[index]);

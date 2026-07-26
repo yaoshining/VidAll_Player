@@ -1,4 +1,4 @@
-import { ExternalSubtitle, MediaSource, PlayerEvent, PlayerSurface, PlayerTrack, PlayerTrackKind } from './types';
+import { ExternalAudio, ExternalSubtitle, MediaSource, PlayerEvent, PlayerSurface, PlayerTrackKind } from './types';
 
 export interface VidAllPlayer {
   attachSurface(surface: PlayerSurface): Promise<void>;
@@ -9,10 +9,11 @@ export interface VidAllPlayer {
   pause(): Promise<void>;
   seekRelative(seconds: number): Promise<void>;
   seekPercent(percent: number): Promise<void>;
-  setSpeed(speed: number): Promise<void>;
+  setRate(rate: number): Promise<void>;
   setVolume(volume: number): Promise<void>;
-  setMuted(muted: boolean): Promise<void>;
+  mute(muted: boolean): Promise<void>;
   selectTrack(kind: PlayerTrackKind, id: number | null): Promise<void>;
+  addExternalAudio(audio: ExternalAudio): Promise<void>;
   addExternalSubtitle(subtitle: ExternalSubtitle): Promise<void>;
   setSubtitleDelay(delayMs: number): Promise<void>;
   subscribe(listener: (event: PlayerEvent) => void): () => void;
