@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked",
+  "candidatePackage": "@vidall/player",
+  "candidateVersion": "0.1.0",
+  "scope": "HAR 内部 native 装入边界最小实验",
+  "realBridgeAllowed": false,
+  "reason": "尚未在隔离 consumer 中取得 HAR 内部 native 库装入、ABI、最小命令和回调的真实构建证据；不得将模拟状态机或 bootstrap CI 作为替代证据。",
+  "requiredEvidence": ["har-content", "abi", "consumer-load-log", "command-callback-result"],
+  "recordedAt": null
+}

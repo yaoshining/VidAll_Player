@@ -144,7 +144,7 @@ export default function playerSessionTest() {
       done();
     });
 
-    it('adds external audio as an independently selectable public track', 0, async (done: Function) => {
+    it('loads and selects external audio while rejecting invalid audio URIs', 0, async (done: Function) => {
       const trackEvents: PlayerEvent[] = [];
       const player = createPlayer({
         eventListener: (event: PlayerEvent) => {
@@ -153,14 +153,65 @@ export default function playerSessionTest() {
           }
         }
       });
-      await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
-      await player.addExternalAudio({ uri: 'https://example.com/audio.aac', title: 'Chinese', language: 'zh' });
+      await player.load({
+        kind: 'https',
+        uri: 'https://example.com/video.mp4',
+        externalAudio: [{ uri: 'https://example.com/audio.aac', title: 'Chinese', language: 'zh' }]
+      });
       await player.selectTrack('audio', 1);
       expect(trackEvents.length).assertEqual(2);
       expect(trackEvents[0].tracks![0].kind).assertEqual('audio');
       expect(trackEvents[0].tracks![0].language).assertEqual('zh');
       expect(trackEvents[1].tracks![0].selected).assertTrue();
       await player.release();
+
+      const invalidPlayer = createPlayer();
+      try {
+        await invalidPlayer.load({
+          kind: 'https',
+          uri: 'https://example.com/video.mp4',
+          externalAudio: [{ uri: '' }]
+        });
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(true).assertTrue();
+      }
+      await invalidPlayer.release();
+      done();
+    });
+
+    it('rejects an invalid external audio URI added after load', 0, async (done: Function) => {
+      const player = createPlayer();
+      await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
+      try {
+        await player.addExternalAudio({ uri: '' });
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(true).assertTrue();
+      }
+      await player.release();
+      done();
+    });
+
+    it('emits structured log payloads while preserving the legacy message', 0, async (done: Function) => {
+      const logEvents: PlayerEvent[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'log') {
+            logEvents.push(event);
+          }
+        }
+      });
+      await player.load({
+        kind: 'localhostProxy',
+        uri: 'http://127.0.0.1:18080/smb/video.mp4',
+        proxyLeaseId: 'lease-1'
+      });
+      await player.release();
+      expect(logEvents.length).assertEqual(1);
+      expect(logEvents[0].log!.level).assertEqual('info');
+      expect(logEvents[0].log!.module).assertEqual('player-session');
+      expect(logEvents[0].log!.message).assertEqual(logEvents[0].message!);
       done();
     });
 
