@@ -1,4 +1,5 @@
 import {
+  ExternalAudio,
   ExternalSubtitle,
   MediaSource,
   PlayerEvent,
@@ -127,12 +128,12 @@ export class PlayerSession implements VidAllPlayer {
     });
   }
 
-  setSpeed(speed: number): Promise<void> {
-    return this.enqueue('setSpeed', () => {
-      if (!Number.isFinite(speed) || speed <= 0) {
-        throw lifecycleFailure('INVALID_SPEED', '播放速度必须是大于零的有限值。Playback speed must be a finite value greater than zero.');
+  setRate(rate: number): Promise<void> {
+    return this.enqueue('setRate', () => {
+      if (!Number.isFinite(rate) || rate <= 0) {
+        throw lifecycleFailure('INVALID_RATE', '播放速度必须是大于零的有限值。Playback rate must be a finite value greater than zero.');
       }
-      this.requireActiveMedia('setSpeed', speed);
+      this.requireActiveMedia('setRate', rate);
     });
   }
 
@@ -144,8 +145,8 @@ export class PlayerSession implements VidAllPlayer {
     });
   }
 
-  setMuted(_muted: boolean): Promise<void> {
-    return this.enqueue('setMuted', () => {});
+  mute(_muted: boolean): Promise<void> {
+    return this.enqueue('mute', () => {});
   }
 
   selectTrack(kind: PlayerTrackKind, id: number | null): Promise<void> {
@@ -161,6 +162,17 @@ export class PlayerSession implements VidAllPlayer {
       for (let index = 0; index < candidates.length; index++) {
         candidates[index].selected = id !== null && candidates[index].id === id;
       }
+      this.emitTracks();
+    });
+  }
+
+  addExternalAudio(audio: ExternalAudio): Promise<void> {
+    return this.enqueue('addExternalAudio', () => {
+      this.requireActiveSessionState('addExternalAudio');
+      if (audio.uri.length === 0) {
+        throw lifecycleFailure('INVALID_EXTERNAL_AUDIO', 'External audio URI must not be empty.');
+      }
+      this.tracks.push({ id: this.nextTrackId(), kind: 'audio', title: audio.title, language: audio.language, selected: false, recognitionStatus: 'recognized' });
       this.emitTracks();
     });
   }

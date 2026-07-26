@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "candidateStatus": "blocked-until-evidence",
+  "installationCompatibilityApi": 15,
+  "sensitiveApiReviewLevel": 19,
+  "certificationTargetApi": 22,
+  "reviewScope": "@vidall/player candidate public SDK",
+  "capabilities": [],
+  "requiredEvidence": [
+    "api-15-install-result",
+    "api-19-sensitive-api-review",
+    "api-22-certification-result"
+  ],
+  "reviewInstructions": "任何 API 19 以上能力必须记录运行时探测、API 15-18 降级行为和可审计证据；缺少任一证据即禁止候选发布。"
+}

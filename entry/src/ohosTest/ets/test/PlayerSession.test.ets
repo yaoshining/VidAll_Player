@@ -76,11 +76,11 @@ export default function playerSessionTest() {
       await player.seekRelative(-5.5);
       await player.seekPercent(0);
       await player.seekPercent(100);
-      await player.setSpeed(0.5);
+      await player.setRate(0.5);
       await player.setVolume(0);
       await player.setVolume(100);
-      await player.setMuted(true);
-      await player.setMuted(false);
+      await player.mute(true);
+      await player.mute(false);
       await player.selectTrack('audio', null);
       await player.setSubtitleDelay(-250);
       await player.release();
@@ -144,6 +144,26 @@ export default function playerSessionTest() {
       done();
     });
 
+    it('adds external audio as an independently selectable public track', 0, async (done: Function) => {
+      const trackEvents: PlayerEvent[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'tracks') {
+            trackEvents.push(event);
+          }
+        }
+      });
+      await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
+      await player.addExternalAudio({ uri: 'https://example.com/audio.aac', title: 'Chinese', language: 'zh' });
+      await player.selectTrack('audio', 1);
+      expect(trackEvents.length).assertEqual(2);
+      expect(trackEvents[0].tracks![0].kind).assertEqual('audio');
+      expect(trackEvents[0].tracks![0].language).assertEqual('zh');
+      expect(trackEvents[1].tracks![0].selected).assertTrue();
+      await player.release();
+      done();
+    });
+
     it('adds supported external subtitles and rejects invalid tracks and formats', 0, async (done: Function) => {
       const player = createPlayer();
       await player.load({ kind: 'https', uri: 'https://example.com/video.mp4' });
@@ -190,8 +210,8 @@ export default function playerSessionTest() {
         () => player.seekPercent(Number.NaN),
         () => player.seekPercent(-1),
         () => player.seekPercent(101),
-        () => player.setSpeed(Number.POSITIVE_INFINITY),
-        () => player.setSpeed(0),
+        () => player.setRate(Number.POSITIVE_INFINITY),
+        () => player.setRate(0),
         () => player.setVolume(Number.NaN),
         () => player.setVolume(-1),
         () => player.setVolume(101),

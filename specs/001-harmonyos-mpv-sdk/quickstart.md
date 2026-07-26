@@ -2,6 +2,17 @@
 
 本指南先验证可安装但不可发布的验证构件，再验证由其派生的候选制品；不代表当前仓库已经发布或通过真机认证。
 
+
+## 0. 候选契约基线
+
+在进入真实 bridge 或候选发布前，先运行以下本地门禁。该命令会检查唯一公开导出、原生会话生命周期边界、API 15/19/22 基线和 HAR 内部 native 装入的阻断记录：
+
+```bash
+bash native/tests/contract-baseline.test.sh
+```
+
+`release/audits/har-native-packaging-spike.json` 状态为 `blocked` 时，真实 bridge 不得启用；构建成功或模拟状态机均不能替代 HAR 内部 native 装入和受控设备证据。
+
 ## 前置条件
 
 - macOS 与 Linux 各一台干净环境，安装锁定的 DevEco SDK、Node/ohpm、C/C++ 工具链和审计工具版本。

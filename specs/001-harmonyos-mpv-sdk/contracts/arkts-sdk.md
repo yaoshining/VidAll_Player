@@ -1,6 +1,6 @@
 # ArkTS SDK 契约
 
-包名暂定为 `@vidall/player`，最终名称须经批准私有 ohpm 源登记后冻结。只导出下列 ArkTS 类型和 `createPlayer`；不导出 NAPI、NativeWindow、EGL/GLES 或 libmpv 句柄。
+候选包名为 `@vidall/player`，候选语义版本为 `0.1.0`；仅在批准私有 ohpm 源登记后才可冻结正式包名和版本。只导出下列 ArkTS 类型和 `createPlayer`；不导出 NAPI、NativeWindow、EGL/GLES 或 libmpv 句柄。
 
 ```ts
 export type PlayerState = 'idle' | 'preparing' | 'playing' | 'paused' |
@@ -65,4 +65,4 @@ export function createPlayer(options?: PlayerOptions): VidAllPlayer;
 - `localhostProxy` 仅允许 loopback plain HTTP URI。`proxyLeaseId` 是业务层已启动代理的匿名 lease 标识；SDK 只消费、关联并在切源、失败、stop 或 release 时请求释放，不实现 SMB、代理启动、协议恢复或解码之外的业务逻辑。
 - lease 协作通过 `proxyLease` 事件向消费者公开 `acquired`、`renewed`、`releaseRequested`、`released`、`expired` 和 `cleanupFailed` 结果；业务层以提供给 `MediaSource` 的 lease 标识关联其代理协议。无法续期、代理不可用或未确认释放必须产生结构化错误/脱敏日志，并记录到候选证据；消费者不直接调用私有 NAPI。
 
-当前包名和 API 仅为候选契约；正式发布前需在批准私有 ohpm 源登记后冻结语义版本和包名。内部 wire schema、线程所有权和释放屏障见 [`native-bridge.md`](./native-bridge.md)。
+当前包名、版本和 API 均为候选契约。`Index.ets` 是唯一公开入口；不得导出或由消费者导入 NAPI、NativeWindow、EGL/GLES、libmpv 句柄或任意内部实现。正式发布前需在批准私有 ohpm 源登记后冻结语义版本和包名。内部 wire schema、线程所有权和释放屏障见 [`native-bridge.md`](./native-bridge.md)。

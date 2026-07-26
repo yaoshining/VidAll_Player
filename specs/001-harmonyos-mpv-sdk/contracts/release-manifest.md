@@ -6,6 +6,10 @@
 {"schemaVersion":3,"candidateId":"<immutable-candidate-id>","derivedFromVerificationArtifact":"<immutable-verification-id>","package":"@vidall/player","version":"0.0.0","sourceTag":"v0.0.0","sourceCommit":"<40位提交ID>","lockDigest":"<64位SHA-256>","target":{"abi":"aarch64-linux-ohos","compatibleApi":15,"api19Reviewed":true,"certificationApi":22},"artifacts":[{"path":"packages/vidall-player-0.0.0.har","sha256":"<64位SHA-256>","role":"consumer-package"},{"path":"packages/vidall-player/native/<module>.so","sha256":"<64位SHA-256>","role":"internal-napi","consumerDirectDependency":false},{"path":"third-party/libmpv.so","sha256":"<64位SHA-256>","role":"internal-runtime","consumerDirectDependency":false}],"nativeBinding":{"harPath":"packages/vidall-player-0.0.0.har","module":"<internal-napi-module>","abi":"aarch64-linux-ohos","loadEvidence":"har-native-packaging-spike.json","publicExportsOnly":true},"attestations":{"sourceProvenance":"provenance.json","sbom":"sbom.cdx.json","licenses":"licenses.json","notice":"NOTICE","capabilities":"capabilities.json","elfAudit":"elf-audit.json","compatibilityMatrix":"ijk-compatibility-matrix.json","consumerSmoke":"consumer-smoke.json","deviceEvidence":"arm64-tv-evidence.json"},"releaseNotesSha256":"<64位SHA-256>","status":"candidate"}
 ```
 
+## API 审查基线
+
+候选 SDK 的机器可读 API 审查基线固定在 `native/config/api-review.json`：API 15 为安装兼容下限、API 19 为敏感 API 审查点、API 22 为认证目标。基线状态为 `blocked-until-evidence`；必须分别附上 API 15 安装、API 19 审查和 API 22 认证证据。缺少任一证据时，清单不得标记为候选或发布通过。
+
 ## 不变量与状态
 
 - `verification-manifest.json` 的验证构件 ID、`sourceCommit`、`lockDigest`、每个工件和附件的 SHA-256 创建后不可修改。它可供受控 consumer-smoke 与真机安装，但不能上传到发布渠道或标称候选。

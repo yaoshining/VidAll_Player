@@ -1,7 +1,7 @@
 {
   "name": "@vidall/player",
-  "version": "1.0.0",
-  "description": "VidAll Player ArkTS public contract foundation; package name is provisional until private registry approval.",
+  "version": "0.1.0",
+  "description": "VidAll Player ArkTS 候选公开契约；仅在批准私有 ohpm 源登记后才可冻结正式包名和版本。",
   "main": "Index.ets",
   "author": "VidAll",
   "license": "Apache-2.0",
