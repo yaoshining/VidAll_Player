@@ -54,6 +54,74 @@ jobs:
           bash native/tests/build-libmpv-patches.test.sh
           bash native/tests/libmpv-packaging.test.sh
 
+  build-libsmbclient:
+    name: 交叉构建 libsmbclient (OpenHarmony ARM64)
+    needs: native-contracts
+    # 仅在预装 DevEco Studio 的 self-hosted macOS 运行器上手动触发；
+    # 从源码交叉构建 zlib→popt→gmp→nettle→libtasn1→gnutls→Samba/libsmbclient 全静态闭包。
+    if: ${{ inputs.run_cross_build }}
+    runs-on: [self-hosted, macos, deveco]
+    timeout-minutes: 120
+    steps:
+      - name: 检出项目
+        uses: actions/checkout@v4
+      - name: 验证 OpenHarmony NDK 与构建前置工具
+        run: |
+          test -n "${OHOS_NDK:-}" || {
+            echo 'OHOS_NDK 环境变量未设置；请在 self-hosted macos-deveco 运行器上预装 DevEco Studio。' >&2
+            exit 1
+          }
+          test -x "$OHOS_NDK/native/llvm/bin/clang"
+          command -v pkg-config
+          command -v python3
+          command -v bison || command -v yacc
+          command -v flex
+          command -v autopoint
+          command -v glibtoolize || command -v libtoolize
+      - name: 验证 Samba 依赖闭包已锁定
+        run: |
+          python3 - native/config/sources.lock.json <<'PY'
+          import json, sys
+          samba = json.load(open(sys.argv[1], encoding='utf-8'))['sources']['samba']
+          status = samba['build']['dependencyClosureStatus']
+          if status != 'complete':
+              raise SystemExit('Samba/libsmbclient 传递依赖闭包尚未锁定，拒绝执行真实交叉构建。')
+          PY
+      - name: 缓存依赖源码与 sysroot
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/vidall-player/smb-src
+            ~/.cache/vidall-player/smb-sysroot
+          key: libsmbclient-ohos-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libsmbclient-controlled.sh') }}
+          restore-keys: |
+            libsmbclient-ohos-
+      - name: 交叉构建 libsmbclient 静态闭包
+        env:
+          OHOS_NDK: ${{ env.OHOS_NDK }}
+        run: |
+          native/scripts/build-libsmbclient-controlled.sh
+          test -s "$HOME/.cache/vidall-player/smb-sysroot/lib/libsmbclient.a"
+          test -f "$HOME/.cache/vidall-player/smb-sysroot/lib/pkgconfig/smbclient.pc"
+          test -f "$HOME/.cache/vidall-player/smb-sysroot/include/libsmbclient.h"
+      - name: 校验 libsmbclient 仅为 ARM64 ELF 且 smbc_* 可见
+        run: |
+          NM="$OHOS_NDK/native/llvm/bin/llvm-nm"
+          AR="$OHOS_NDK/native/llvm/bin/llvm-ar"
+          "$NM" --defined-only "$HOME/.cache/vidall-player/smb-sysroot/lib/libsmbclient.a" \
+            | grep -E ' T smbc_(init|open|read|write|opendir|readdir|stat|close)' >/dev/null
+          # 静态归档内不得混入宿主 Mach-O 目标。
+          ! "$AR" t "$HOME/.cache/vidall-player/smb-sysroot/lib/libsmbclient.a" | head -1 | grep -q '\.dylib'
+      - name: 上传 libsmbclient sysroot 制品
+        uses: actions/upload-artifact@v4
+        with:
+          name: libsmbclient-ohos-sysroot
+          path: |
+            ~/.cache/vidall-player/smb-sysroot/lib/libsmbclient.a
+            ~/.cache/vidall-player/smb-sysroot/lib/pkgconfig/smbclient.pc
+            ~/.cache/vidall-player/smb-sysroot/include/libsmbclient.h
+          if-no-files-found: error
+
   cross-build-prerequisites:
     name: OpenHarmony ARM64 交叉构建前置条件
     needs: native-contracts

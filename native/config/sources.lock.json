@@ -26,8 +26,15 @@
         "target": "aarch64-linux-ohos",
         "pkgConfigModule": "smbclient",
         "linkage": "static",
-        "dependencyClosureStatus": "pending-cross-build-resolution",
-        "transitiveDependencies": ["gnutls", "popt", "zlib"]
+        "dependencyClosureStatus": "complete",
+        "transitiveDependencies": [
+          "zlib",
+          "popt",
+          "gmp",
+          "nettle",
+          "libtasn1",
+          "gnutls"
+        ]
       }
     },
     "gnutls": {
