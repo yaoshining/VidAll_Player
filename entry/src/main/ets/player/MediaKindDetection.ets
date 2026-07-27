@@ -1,6 +1,6 @@
 // 演示层媒体类型识别：根据 URI 的扩展名与主机推断 MediaSource.kind，
 // 与 @vidall/player 的输入校验规则保持一致（localhostProxy 仅限环回明文 HTTP）。
-export type DetectedMediaKind = 'hls' | 'dash' | 'localhostProxy' | 'https' | 'http';
+export type DetectedMediaKind = 'hls' | 'dash' | 'localhostProxy' | 'smb' | 'https' | 'http';
 
 function pathWithoutQuery(uri: string): string {
   const schemeIndex = uri.indexOf('://');
@@ -56,6 +56,9 @@ export function detectMediaKind(uri: string): DetectedMediaKind {
   const lowerUri = uri.toLowerCase();
   if (lowerUri.indexOf('http://') === 0 && isLoopbackHost(hostOf(uri))) {
     return 'localhostProxy';
+  }
+  if (lowerUri.indexOf('smb://') === 0) {
+    return 'smb';
   }
   return lowerUri.indexOf('https://') === 0 ? 'https' : 'http';
 }

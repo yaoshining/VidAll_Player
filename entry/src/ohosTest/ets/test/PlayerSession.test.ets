@@ -37,6 +37,50 @@ export default function playerSessionTest() {
       done();
     });
 
+    it('accepts credential-free SMB syntax but refuses unavailable native support', 0, async (done: Function) => {
+      const errors: PlayerError[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'error' && event.error !== undefined) {
+            errors.push(event.error);
+          }
+        }
+      });
+
+      try {
+        await player.load({ kind: 'smb', uri: 'smb://files.example/media/video.mkv' });
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(errors.length).assertEqual(1);
+        expect(errors[0].code).assertEqual('PROTOCOL_NOT_AVAILABLE');
+        expect(errors[0].message.indexOf('files.example') < 0).assertTrue();
+      }
+      await player.release();
+      done();
+    });
+
+    it('rejects SMB userinfo before checking native support', 0, async (done: Function) => {
+      const errors: PlayerError[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'error' && event.error !== undefined) {
+            errors.push(event.error);
+          }
+        }
+      });
+
+      try {
+        await player.load({ kind: 'smb', uri: 'smb://user:secret@files.example/media/video.mkv' });
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(errors.length).assertEqual(1);
+        expect(errors[0].code).assertEqual('URL_USERINFO_FORBIDDEN');
+        expect(errors[0].message.indexOf('secret') < 0).assertTrue();
+      }
+      await player.release();
+      done();
+    });
+
     it('emits ordered state and closed events for a normal session', 0, async (done: Function) => {
       const events: PlayerEvent[] = [];
       const player = createPlayer({ eventListener: (event: PlayerEvent) => events.push(event) });

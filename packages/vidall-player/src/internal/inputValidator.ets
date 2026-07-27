@@ -109,6 +109,12 @@ function isLoopbackAuthority(authority: string): boolean {
 // 在输入校验直接拒绝并给出稳定错误码，避免静默失败或误导消费者宣称支持。
 const UNVERIFIED_OPTIONAL_PROTOCOLS: string[] = ['rtsp', 'rtmp', 'udp', 'srt'];
 
+// direct SMB 只有在受控 libmpv 制品携带并验证能力证明后才可开放。
+// 当前 ArkTS bridge 尚未接入该制品，因此必须稳定拒绝而不是伪造加载成功。
+function isDirectSmbAvailable(): boolean {
+  return false;
+}
+
 export function validateMediaSource(source: MediaSource): void {
   if (source.uri.length === 0) {
     throw inputFailure('INVALID_URI', 'Media URI must not be empty.');
@@ -137,6 +143,13 @@ export function validateMediaSource(source: MediaSource): void {
     }
     if (source.kind === 'https' && parsed.scheme !== 'https') {
       throw inputFailure('URI_KIND_MISMATCH', 'HTTPS media source requires an HTTPS URI.');
+    }
+    if (source.kind === 'smb' && parsed.scheme !== 'smb') {
+      throw inputFailure('URI_KIND_MISMATCH', 'SMB media source requires an SMB URI.');
+    }
+    if (source.kind === 'smb' && !isDirectSmbAvailable()) {
+      throw inputFailure('PROTOCOL_NOT_AVAILABLE',
+        'Direct SMB is unavailable because the controlled native capability is not verified.');
     }
     if (source.kind === 'localhostProxy' && parsed.scheme !== 'http') {
       throw inputFailure('URI_KIND_MISMATCH',

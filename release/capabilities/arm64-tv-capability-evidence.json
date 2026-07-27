@@ -27,7 +27,8 @@
       {"feature": "PGS/VobSub", "status": "已构建待验证", "knownLimitations": "构建输入可能包含识别组件，渲染结论仍需真机样本。"}
     ],
     "network": [
-      {"feature": "HTTP/HTTPS/WebDAV/HLS/DASH/SMB localhost HTTP 代理", "status": "已构建待验证", "knownLimitations": "待逐项验证认证、重定向、Range、缓存和断网恢复。"}
+      {"feature": "HTTP/HTTPS/WebDAV/HLS/DASH/SMB localhost HTTP 代理", "status": "已构建待验证", "knownLimitations": "待逐项验证认证、重定向、Range、缓存和断网恢复。"},
+      {"feature": "direct smb://（Samba/libsmbclient）", "status": "不支持或暂缓", "knownLimitations": "Samba 传递依赖闭包、OpenHarmony ARM64 交叉构建、原生凭据回调和签名真机验证尚未完成；SDK 仅接受无凭据 URI 并稳定拒绝加载。"}
     ],
     "hdrColor": [
       {"feature": "SDR 基线", "status": "已构建待验证", "knownLimitations": "待以目标显示设备和受控样本验证色彩正确性。"},

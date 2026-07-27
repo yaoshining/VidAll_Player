@@ -16,6 +16,10 @@ export default function mediaKindDetectionTest() {
       expect(detectMediaKind('http://[::1]:58080/smb/movie.mp4')).assertEqual('localhostProxy');
     });
 
+    it('detects credential-free direct SMB links', 0, () => {
+      expect(detectMediaKind('smb://files.example/media/video.mkv')).assertEqual('smb');
+    });
+
     it('falls back to https and http for direct links', 0, () => {
       expect(detectMediaKind('https://example.com/video.mp4')).assertEqual('https');
       expect(detectMediaKind('http://192.168.1.10/media/video.mkv')).assertEqual('http');

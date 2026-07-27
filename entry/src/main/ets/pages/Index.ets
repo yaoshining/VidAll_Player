@@ -7,6 +7,7 @@ import { detectMediaKind, newProxyLeaseId } from '../player/MediaKindDetection';
 import { DemoLifecycleController } from '../player/DemoLifecycle';
 import { splitTracks, trackLabel } from '../player/TrackPresentation';
 import { buildBasicAuthorization, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
+import { buildSmbMediaUri, SmbConfig, SmbService } from '../smb/SmbService';
 
 interface FrameData {
   width: number;
@@ -47,6 +48,11 @@ struct Index {
   @State webDavDirectory: string = '';
   @State isWebDavLoading: boolean = false;
   @State isWebDavSource: boolean = false;
+  @State smbHost: string = '';
+  @State smbShare: string = '';
+  @State smbPath: string = '';
+  @State smbUsername: string = '';
+  @State smbPassword: string = '';
   @State audioTracks: LibMpvTrack[] = [];
   @State subtitleTracks: LibMpvTrack[] = [];
   private webDavBrowseGeneration: number = 0;
@@ -62,6 +68,7 @@ struct Index {
       : '当前为 x86_64 模拟器：ARM64 libmpv 未打包，不能播放。';
     console.info(`VidAll_Player native: ${this.runtimeInfo}; ${this.nativeStatus}`);
     this.loadSavedWebDavConfig();
+    this.loadSavedSmbConfig();
     this.prepareLocalVideo().then(() => {
       console.info(`VidAll_Player: prepareLocalVideo done`);
       this.tryAutoPlay();
@@ -125,6 +132,45 @@ struct Index {
       }
     } catch (_) {
       this.nativeStatus = '无法读取已保存的 WebDAV 配置。';
+    }
+  }
+
+  private getSmbConfig(): SmbConfig {
+    return {
+      host: this.smbHost.trim(),
+      share: this.smbShare.trim(),
+      path: this.smbPath.trim(),
+      username: this.smbUsername.trim(),
+      password: this.smbPassword
+    };
+  }
+
+  private async loadSavedSmbConfig(): Promise<void> {
+    try {
+      const saved = await new SmbService(getContext(this)).loadSavedConfig();
+      this.smbHost = saved.host;
+      this.smbShare = saved.share;
+      this.smbPath = saved.path;
+      this.smbUsername = saved.username;
+    } catch (_) {
+      this.nativeStatus = '无法读取已保存的 SMB 配置。';
+    }
+  }
+
+  private async loadSmbVideo(): Promise<void> {
+    const config = this.getSmbConfig();
+    try {
+      const uri = buildSmbMediaUri(config);
+      await new SmbService(getContext(this)).saveConfig(config);
+      this.url = uri;
+      this.isWebDavSource = false;
+      this.currentMediaKind = 'smb';
+      // 当前受控 libmpv 制品尚未提供 direct SMB 能力；认证信息不会拼入 URI 或日志。
+      this.nativeStatus = config.username.length > 0
+        ? 'SMB 凭据已在本次会话中保留，但当前受控原生 SMB 能力尚未验证，无法播放。'
+        : '已生成无凭据 SMB 地址；当前受控原生 SMB 能力尚未验证，无法播放。';
+    } catch (error) {
+      this.nativeStatus = error instanceof Error ? error.message : 'SMB 配置无效。';
     }
   }
 
@@ -736,7 +782,7 @@ struct Index {
       .border({ width: 1, color: '#426991', radius: 10 })
       .backgroundColor('#0C1A2A')
 
-      TextInput({ text: this.url, placeholder: '输入视频 URL（HTTP/HTTPS、HLS .m3u8、DASH .mpd 或 SMB 代理 http://127.0.0.1…）' })
+      TextInput({ text: this.url, placeholder: '输入视频 URL（HTTP/HTTPS、HLS .m3u8、DASH .mpd 或 smb://…）' })
         .id('video-url-input')
         .width('88%')
         .fontSize(17)
@@ -778,6 +824,51 @@ struct Index {
           .onClick(() => this.loadExternalAudio())
       }
       .width('88%')
+
+      Column({ space: 8 }) {
+        Text('SMB 直连媒体')
+          .fontSize(20)
+          .fontWeight(FontWeight.Medium)
+          .fontColor('#DDE8F8')
+          .width('100%')
+        Text('填写服务器、共享和文件路径。地址不会包含用户名或密码；密码只保留在当前会话且不会保存。')
+          .fontSize(14)
+          .fontColor('#AFC6E9')
+          .width('100%')
+        Row({ space: 8 }) {
+          TextInput({ text: this.smbHost, placeholder: '服务器，例如 192.168.1.10' })
+            .layoutWeight(1)
+            .onChange((value: string) => this.smbHost = value)
+          TextInput({ text: this.smbShare, placeholder: '共享名，例如 Media' })
+            .layoutWeight(1)
+            .onChange((value: string) => this.smbShare = value)
+        }
+        TextInput({ text: this.smbPath, placeholder: '视频路径，例如 Movies/movie.mkv（可选）' })
+          .width('100%')
+          .onChange((value: string) => this.smbPath = value)
+        Row({ space: 8 }) {
+          TextInput({ text: this.smbUsername, placeholder: '用户名（认证共享需要）' })
+            .layoutWeight(1)
+            .onChange((value: string) => this.smbUsername = value)
+          TextInput({ text: this.smbPassword, placeholder: '密码（仅当前会话）' })
+            .layoutWeight(1)
+            .type(InputType.Password)
+            .onChange((value: string) => this.smbPassword = value)
+          Button('配置 SMB')
+            .backgroundColor('#2F7DE1')
+            .onClick(() => this.loadSmbVideo())
+        }
+        if (this.currentMediaKind === 'smb' && this.url.length > 0) {
+          Text(`SMB 地址: ${this.url}`)
+            .fontSize(13)
+            .fontColor('#8FA7C5')
+            .maxLines(1)
+        }
+      }
+      .width('88%')
+      .padding(12)
+      .border({ width: 1, color: '#426991', radius: 10 })
+      .backgroundColor('#0C1A2A')
 
       Column({ space: 8 }) {
         Text('WebDAV 媒体目录')

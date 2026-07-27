@@ -5,7 +5,8 @@
 
 ## 背景与范围
 
-首期**不实现** mpv 原生 `smb://` 协议（libsmb2 未纳入受控构建，且真机验证成本高）。
+`localhostProxy` 是首期保留的兼容路径；它不依赖 mpv 原生 `smb://` 协议。
+Issue #41 的 direct SMB 路径采用 Samba/`libsmbclient`（不是 libsmb2），只有受控构建、运行时能力证明和 ARM64 TV 证据齐全后才可启用。
 业务应用（VidAll_TV）通过内置 HTTP 服务器把 SMB 文件暴露为本地环回 HTTP URL，
 播放器只消费 `http://localhost:PORT/smb/...` 形式的地址。这样 SMB 认证、
 连接池与文件访问全部由业务层控制，播放器不接触 SMB 凭据。
@@ -98,6 +99,6 @@
 
 ## 后续（不在本期范围）
 
-- mpv 原生 `smb://`（libsmb2 受控构建与真机验证）。
+- mpv 原生 `smb://` 的实际 Samba/`libsmbclient` 交叉编译、原生凭据回调与真机验证（Issue #41）。
 - 代理服务器 TLS（当前明文 HTTP 环回，不出本机，风险可控）。
 - 业务层代理服务器的独立验收（属于 VidAll_TV 仓库职责）。
