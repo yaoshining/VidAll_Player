@@ -111,7 +111,9 @@ build_zlib() {
   log "构建 zlib 1.3.1"
   local d="$WORK_DIR/zlib-1.3.1"
   [ -d "$d" ] || curl -fsSL https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz | tar xz -C "$WORK_DIR"
-  ( cd "$d" && ./configure --static --prefix="$PREFIX" && make -j"$JOBS" && make install )
+  ( cd "$d" && ./configure --static --prefix="$PREFIX" \
+    && make AR="$AR" ARFLAGS="rcs" RANLIB="$RANLIB" -j"$JOBS" \
+    && make AR="$AR" ARFLAGS="rcs" RANLIB="$RANLIB" install )
 }
 
 build_popt() {
