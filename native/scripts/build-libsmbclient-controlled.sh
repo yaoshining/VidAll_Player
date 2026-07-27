@@ -110,14 +110,14 @@ fetch_samba() {
 build_zlib() {
   log "构建 zlib 1.3.1"
   local d="$WORK_DIR/zlib-1.3.1"
-  [ -d "$d" ] || curl -fsSL https://zlib.net/zlib-1.3.1.tar.gz | tar xz -C "$WORK_DIR"
+  [ -d "$d" ] || curl -fsSL https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz | tar xz -C "$WORK_DIR"
   ( cd "$d" && ./configure --static --prefix="$PREFIX" && make -j"$JOBS" && make install )
 }
 
 build_popt() {
   log "构建 popt 1.19"
   local d="$WORK_DIR/popt-1.19"
-  [ -d "$d" ] || curl -fsSL https://ftp.osuosl.org/pub/rpm/popt/releases/popt-1.19.tar.gz | tar xz -C "$WORK_DIR"
+  [ -d "$d" ] || curl -fsSL https://ftp.osuosl.org/pub/rpm/popt/releases/popt-1.x/popt-1.19.tar.gz | tar xz -C "$WORK_DIR"
   ( cd "$d"
     # autopoint/glibtoolize 仅在 autoregen 时需要; release tarball 已含预生成 configure。
     command -v autopoint >/dev/null 2>&1 && autopoint --force || true
