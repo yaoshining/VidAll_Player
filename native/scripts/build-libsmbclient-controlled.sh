@@ -50,6 +50,15 @@ command -v glibtoolize >/dev/null 2>&1 || command -v libtoolize >/dev/null || di
 
 mkdir -p "$PREFIX/lib/pkgconfig" "$PREFIX/include" "$WORK_DIR" "$WRAPPER_DIR"
 
+# self-hosted runner 上 WORK_DIR 会跨 CI 运行残留, 旧源码可能被之前的
+# glibtoolize/autoreconf 损坏。缓存未命中需要真实构建时, 先清理所有依赖
+# 源码目录, 确保从干净 tarball 重新解压 (Samba git 仓库单独保留以加速 clone)。
+clean_src() {
+  for d in zlib-*/ popt-*/ gmp-*/ nettle-*/ libtasn1-*/ gnutls-*/ gnutls-stubs; do
+    rm -rf "$WORK_DIR/$d"
+  done
+}
+
 # ---------------- 交叉环境 ----------------
 setup_cross_env() {
   export OHOS_NDK SYSROOT TOOLCHAIN TARGET PREFIX WRAPPER_DIR
@@ -465,6 +474,7 @@ EOF
 main() {
   fetch_samba
   setup_cross_env
+  clean_src
   build_dependencies
   patch_samba_source
   write_cross_answers
