@@ -107,6 +107,15 @@ jobs:
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
+      - name: 安装构建前置工具 (Homebrew)
+        run: |
+          # autopoint 来自 gettext, glibtoolize 来自 libtool。
+          # Samba 交叉构建链需要这两个工具。
+          command -v brew >/dev/null 2>&1 || {
+            echo 'Homebrew 未安装；请在 runner 上安装 https://brew.sh' >&2
+            exit 1
+          }
+          brew install gettext libtool
       - name: 验证 OpenHarmony NDK 与构建前置工具
         run: |
           # 优先使用 runner 预配置的 OHOS_NDK 环境变量；
