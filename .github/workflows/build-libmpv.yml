@@ -17,8 +17,13 @@ on:
   workflow_dispatch:
     inputs:
       run_cross_build:
-        description: '在受控 self-hosted DevEco 运行器执行 Samba/FFmpeg/libmpv 制品门禁'
-        required: true
+        description: '手动触发 libsmbclient 交叉构建（缓存命中时跳过实际编译）'
+        required: false
+        type: boolean
+        default: false
+      force_build:
+        description: '强制重建 libsmbclient（忽略缓存命中，重新编译）'
+        required: false
         type: boolean
         default: false
       controlled_source_dir:
@@ -54,12 +59,49 @@ jobs:
           bash native/tests/build-libmpv-patches.test.sh
           bash native/tests/libmpv-packaging.test.sh
 
+  detect-build-changes:
+    name: 检测 libsmbclient 构建变更
+    needs: native-contracts
+    runs-on: ubuntu-22.04
+    outputs:
+      build-needed: ${{ steps.check.outputs.build-needed }}
+    steps:
+      - name: 检出项目
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 检测构建脚本或锁文件是否变更
+        id: check
+        run: |
+          set -eu
+          # workflow_dispatch 始终需要构建（手动触发）。
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "build-needed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          FILES="native/scripts/build-libsmbclient-controlled.sh native/config/sources.lock.json .github/workflows/build-libmpv.yml"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" 2>/dev/null || true
+            BASE="origin/${{ github.base_ref }}"
+          else
+            BASE="${{ github.event.before }}"
+            if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+              echo "build-needed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          if git diff --name-only "$BASE"...HEAD -- $FILES | grep -q .; then
+            echo "build-needed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build-needed=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build-libsmbclient:
     name: 交叉构建 libsmbclient (OpenHarmony ARM64)
-    needs: native-contracts
-    # 仅在预装 DevEco Studio 的 self-hosted macOS 运行器上手动触发；
-    # 从源码交叉构建 zlib→popt→gmp→nettle→libtasn1→gnutls→Samba/libsmbclient 全静态闭包。
-    if: ${{ inputs.run_cross_build }}
+    needs: [native-contracts, detect-build-changes]
+    # 构建脚本或锁文件变更时自动触发，或手动 workflow_dispatch 触发；
+    # 缓存命中时跳过实际编译，仅校验已缓存的 sysroot。
+    if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' }}
     runs-on: [self-hosted, macos, deveco]
     timeout-minutes: 120
     steps:
@@ -67,10 +109,24 @@ jobs:
         uses: actions/checkout@v4
       - name: 验证 OpenHarmony NDK 与构建前置工具
         run: |
+          # 优先使用 runner 预配置的 OHOS_NDK 环境变量；
+          # 否则从标准 DevEco Studio 安装路径自动探测。
+          if [ -z "${OHOS_NDK:-}" ]; then
+            for candidate in \
+              "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
+              "$HOME/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
+              "/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"; do
+              if [ -x "$candidate/native/llvm/bin/clang" ]; then
+                export OHOS_NDK="$candidate"
+                break
+              fi
+            done
+          fi
           test -n "${OHOS_NDK:-}" || {
-            echo 'OHOS_NDK 环境变量未设置；请在 self-hosted macos-deveco 运行器上预装 DevEco Studio。' >&2
+            echo '未找到 OpenHarmony NDK；请在 self-hosted macos-deveco 运行器上预装 DevEco Studio 或设置 OHOS_NDK 环境变量。' >&2
             exit 1
           }
+          echo "OHOS_NDK=$OHOS_NDK"
           test -x "$OHOS_NDK/native/llvm/bin/clang"
           command -v pkg-config
           command -v python3
@@ -78,6 +134,8 @@ jobs:
           command -v flex
           command -v autopoint
           command -v glibtoolize || command -v libtoolize
+          # 将探测结果写入 runner 环境文件, 供后续 step 继承。
+          echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
       - name: 验证 Samba 依赖闭包已锁定
         run: |
           python3 - native/config/sources.lock.json <<'PY'
@@ -88,30 +146,31 @@ jobs:
               raise SystemExit('Samba/libsmbclient 传递依赖闭包尚未锁定，拒绝执行真实交叉构建。')
           PY
       - name: 缓存依赖源码与 sysroot
+        id: cache-sysroot
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/vidall-player/smb-src
             ~/.cache/vidall-player/smb-sysroot
           key: libsmbclient-ohos-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libsmbclient-controlled.sh') }}
-          restore-keys: |
-            libsmbclient-ohos-
-      - name: 交叉构建 libsmbclient 静态闭包
+      - name: 交叉构建 libsmbclient 静态闭包（缓存未命中或强制重建时）
+        if: steps.cache-sysroot.outputs.cache-hit != 'true' || github.event.inputs.force_build == true
         env:
           OHOS_NDK: ${{ env.OHOS_NDK }}
         run: |
           native/scripts/build-libsmbclient-controlled.sh
-          test -s "$HOME/.cache/vidall-player/smb-sysroot/lib/libsmbclient.a"
-          test -f "$HOME/.cache/vidall-player/smb-sysroot/lib/pkgconfig/smbclient.pc"
-          test -f "$HOME/.cache/vidall-player/smb-sysroot/include/libsmbclient.h"
       - name: 校验 libsmbclient 仅为 ARM64 ELF 且 smbc_* 可见
         run: |
           NM="$OHOS_NDK/native/llvm/bin/llvm-nm"
+          SYSROOT="$HOME/.cache/vidall-player/smb-sysroot"
+          test -s "$SYSROOT/lib/libsmbclient.a"
+          test -f "$SYSROOT/lib/pkgconfig/smbclient.pc"
+          test -f "$SYSROOT/include/libsmbclient.h"
           AR="$OHOS_NDK/native/llvm/bin/llvm-ar"
-          "$NM" --defined-only "$HOME/.cache/vidall-player/smb-sysroot/lib/libsmbclient.a" \
+          "$NM" --defined-only "$SYSROOT/lib/libsmbclient.a" \
             | grep -E ' T smbc_(init|open|read|write|opendir|readdir|stat|close)' >/dev/null
           # 静态归档内不得混入宿主 Mach-O 目标。
-          ! "$AR" t "$HOME/.cache/vidall-player/smb-sysroot/lib/libsmbclient.a" | head -1 | grep -q '\.dylib'
+          ! "$AR" t "$SYSROOT/lib/libsmbclient.a" | head -1 | grep -q '\.dylib'
       - name: 上传 libsmbclient sysroot 制品
         uses: actions/upload-artifact@v4
         with:

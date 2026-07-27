@@ -175,7 +175,10 @@ assert 'dependencyClosureStatus' in workflow, 'CI 必须在构建前验证 Samba
 assert 'PKG_CONFIG_LIBDIR' in workflow, 'CI 必须验证隔离的 OpenHarmony pkg-config 目录'
 assert 'build-libmpv-controlled.sh' in workflow, 'CI 必须调用受控发布门禁'
 assert 'libmpv-cross-build-prerequisites' in workflow, 'CI 必须上传交叉构建前置条件审计制品'
-assert 'if: ${{ inputs.run_cross_build }}' in workflow, '真实交叉构建只能由手动受控调度触发'
+assert 'inputs.run_cross_build' in workflow, 'CI 必须保留手动受控调度入口'
+assert 'detect-build-changes' in workflow, 'CI 必须检测构建脚本变更以按需触发交叉构建'
+assert 'cache-hit' in workflow, 'CI 必须对 libsmbclient 交叉构建启用缓存命中跳过'
+assert 'force_build' in workflow, 'CI 必须支持强制重建入口'
 assert 'direct SMB 已可播放' not in workflow, 'CI 不得在未完成真机验证时宣称 direct SMB 可播放'
 PY
 
