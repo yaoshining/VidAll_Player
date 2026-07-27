@@ -59,6 +59,35 @@ export default function playerSessionTest() {
       done();
     });
 
+    it('rejects malformed SMB paths before checking native support', 0, async (done: Function) => {
+      const invalidUris: string[] = [
+        'smb://:445/media/video.mkv',
+        'smb://files.example/',
+        'smb://files.example/media/../video.mkv',
+        'smb://files.example/media/%2e%2e/video.mkv'
+      ];
+
+      for (let index = 0; index < invalidUris.length; index++) {
+        const errors: PlayerError[] = [];
+        const player = createPlayer({
+          eventListener: (event: PlayerEvent) => {
+            if (event.type === 'error' && event.error !== undefined) {
+              errors.push(event.error);
+            }
+          }
+        });
+        try {
+          await player.load({ kind: 'smb', uri: invalidUris[index] });
+          expect(true).assertFalse();
+        } catch (_) {
+          expect(errors.length).assertEqual(1);
+          expect(errors[0].code).assertEqual('INVALID_SMB_URI');
+        }
+        await player.release();
+      }
+      done();
+    });
+
     it('rejects SMB userinfo before checking native support', 0, async (done: Function) => {
       const errors: PlayerError[] = [];
       const player = createPlayer({

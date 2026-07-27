@@ -115,6 +115,31 @@ function isDirectSmbAvailable(): boolean {
   return false;
 }
 
+function validateSmbUri(parsed: ParsedUri): void {
+  const authority = parsed.authority;
+  const hostEnd = authority.indexOf(':');
+  const host = (hostEnd >= 0 ? authority.substring(0, hostEnd) : authority).trim();
+  if (host.length === 0 || parsed.path.indexOf('/') !== 0) {
+    throw inputFailure('INVALID_SMB_URI', 'SMB media URI must include a host and share path.');
+  }
+
+  const segments = parsed.path.substring(1).split('/');
+  if (segments.length === 0 || segments[0].length === 0) {
+    throw inputFailure('INVALID_SMB_URI', 'SMB media URI must include a share name.');
+  }
+  for (let index = 0; index < segments.length; index++) {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(segments[index]);
+    } catch (_) {
+      throw inputFailure('INVALID_SMB_URI', 'SMB media URI contains invalid path encoding.');
+    }
+    if (decoded.length === 0 || decoded === '.' || decoded === '..' || decoded.indexOf('/') >= 0 || decoded.indexOf('\\') >= 0) {
+      throw inputFailure('INVALID_SMB_URI', 'SMB media URI must not contain unsafe path segments.');
+    }
+  }
+}
+
 export function validateMediaSource(source: MediaSource): void {
   if (source.uri.length === 0) {
     throw inputFailure('INVALID_URI', 'Media URI must not be empty.');
@@ -146,6 +171,9 @@ export function validateMediaSource(source: MediaSource): void {
     }
     if (source.kind === 'smb' && parsed.scheme !== 'smb') {
       throw inputFailure('URI_KIND_MISMATCH', 'SMB media source requires an SMB URI.');
+    }
+    if (source.kind === 'smb') {
+      validateSmbUri(parsed);
     }
     if (source.kind === 'smb' && !isDirectSmbAvailable()) {
       throw inputFailure('PROTOCOL_NOT_AVAILABLE',
