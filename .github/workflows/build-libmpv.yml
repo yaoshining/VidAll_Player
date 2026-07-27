@@ -126,7 +126,9 @@ jobs:
     name: OpenHarmony ARM64 交叉构建前置条件
     needs: native-contracts
     # 真实交叉构建要求受控 SDK、不可变来源镜像和人工批准；PR 不自动触发。
-    if: ${{ inputs.run_cross_build }}
+    # 仅在手动提供了受控来源目录与 pkg-config 目录时运行，避免与
+    # build-libsmbclient 的自动从源码构建路径混淆。
+    if: ${{ inputs.run_cross_build && inputs.controlled_source_dir != '' && inputs.ohos_pkgconfig_dir != '' }}
     runs-on: [self-hosted, macos, deveco]
     timeout-minutes: 30
     steps:
