@@ -148,7 +148,7 @@ jobs:
           command -v python3
           command -v bison || command -v yacc
           command -v flex
-          command -v autopoint
+          command -v autopoint || echo '警告: autopoint 未安装 (popt release tarball 不需要)'
           command -v glibtoolize || command -v libtoolize
           # 将探测结果写入 runner 环境文件, 供后续 step 继承。
           echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
