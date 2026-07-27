@@ -193,7 +193,7 @@ ERRH
     ./configure --host="$HOST_TRIPLET" --prefix="$PREFIX" --enable-static --disable-shared --with-pic \
       --disable-doc --disable-tests --disable-tools --disable-cxx --disable-maintainer-mode \
       --disable-openssl --disable-padlock --disable-guile --disable-hardware-acceleration \
-      --without-p11-kit --without-idn --without-tpm --disable-nls \
+      --without-p11-kit --without-idn --without-tpm --disable-nls --with-included-unistring \
       GMP_CFLAGS="-I$PREFIX/include" GMP_LIBS="-L$PREFIX/lib -lgmp" \
       NETTLE_CFLAGS="-I$PREFIX/include" NETTLE_LIBS="-L$PREFIX/lib -lnettle" \
       HOGWEED_CFLAGS="-I$PREFIX/include" HOGWEED_LIBS="-L$PREFIX/lib -lhogweed -lnettle" \
