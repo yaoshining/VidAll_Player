@@ -56,7 +56,7 @@ mkdir -p "$PREFIX/lib/pkgconfig" "$PREFIX/include" "$WORK_DIR" "$WRAPPER_DIR"
 clean_src() {
   log "清理残留依赖源码目录..."
   for d in "$WORK_DIR"/zlib-* "$WORK_DIR"/popt-* "$WORK_DIR"/gmp-*            "$WORK_DIR"/nettle-* "$WORK_DIR"/libtasn1-* "$WORK_DIR"/gnutls-*            "$WORK_DIR"/gnutls-stubs; do
-    [ -e "$d" ] && rm -rf "$d"
+    [ -e "$d" ] && rm -rf "$d" || true
   done
 }
 
