@@ -1,11 +1,37 @@
 #include "proxy_lease_manager.h"
 
+#include <algorithm>
+#include <cctype>
+
+namespace {
+
+std::string toLowerAscii(std::string value)
+{
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char character) {
+        return static_cast<char>(std::tolower(character));
+    });
+    return value;
+}
+
+bool isDecimalPort(const std::string& port)
+{
+    return !port.empty() && std::all_of(port.begin(), port.end(), [](unsigned char character) {
+        return std::isdigit(character) != 0;
+    });
+}
+
+} // namespace
+
 namespace vidall {
 
 ProxyLeaseStatus ProxyLeaseManager::acquire(const std::string& leaseId, const std::string& uri, std::uint64_t epoch)
 {
     if (leaseId.empty() || epoch == 0 || !isLoopbackHttpUri(uri)) {
         return { leaseId, ProxyLeaseState::CleanupFailed, epoch, false };
+    }
+    const auto found = leases_.find(leaseId);
+    if (found != leases_.end() && epoch <= found->second.epoch) {
+        return currentOrMissing(leaseId);
     }
     leases_[leaseId] = { epoch, ProxyLeaseState::Acquired, true };
     return { leaseId, ProxyLeaseState::Acquired, epoch, true };
@@ -71,18 +97,45 @@ std::size_t ProxyLeaseManager::activeCount() const
 
 bool ProxyLeaseManager::isLoopbackHttpUri(const std::string& uri)
 {
+    const std::string normalizedUri = toLowerAscii(uri);
     const std::string prefix = "http://";
-    if (uri.rfind(prefix, 0) != 0) {
+    if (normalizedUri.rfind(prefix, 0) != 0) {
         return false;
     }
-    const std::string authorityAndPath = uri.substr(prefix.size());
-    const std::size_t authorityEnd = authorityAndPath.find('/');
+    const std::string authorityAndPath = normalizedUri.substr(prefix.size());
+    const std::size_t authorityEnd = authorityAndPath.find_first_of("/?#");
     const std::string authority = authorityAndPath.substr(0, authorityEnd);
     if (authority.empty() || authority.find('@') != std::string::npos) {
         return false;
     }
-    const std::size_t portSeparator = authority.rfind(':');
-    const std::string host = portSeparator == std::string::npos ? authority : authority.substr(0, portSeparator);
+
+    std::string host;
+    std::string port;
+    if (authority.front() == '[') {
+        const std::size_t bracketEnd = authority.find(']');
+        if (bracketEnd == std::string::npos) {
+            return false;
+        }
+        host = authority.substr(0, bracketEnd + 1);
+        if (bracketEnd + 1 < authority.size()) {
+            if (authority[bracketEnd + 1] != ':') {
+                return false;
+            }
+            port = authority.substr(bracketEnd + 2);
+        }
+    } else {
+        const std::size_t portSeparator = authority.rfind(':');
+        host = portSeparator == std::string::npos ? authority : authority.substr(0, portSeparator);
+        if (portSeparator != std::string::npos) {
+            port = authority.substr(portSeparator + 1);
+        }
+    }
+    if (!port.empty() && !isDecimalPort(port)) {
+        return false;
+    }
+    if (!authority.empty() && authority.back() == ':') {
+        return false;
+    }
     return host == "127.0.0.1" || host == "localhost" || host == "[::1]";
 }
 

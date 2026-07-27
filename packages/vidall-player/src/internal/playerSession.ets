@@ -312,6 +312,7 @@ export class PlayerSession implements VidAllPlayer {
     const requested = this.leases.requestReleaseAll(reason);
     for (let index = 0; index < requested.length; index++) {
       this.emitLease(requested[index]);
+      this.emitLeaseReleaseRequestedLog(requested[index]);
     }
   }
 
@@ -325,6 +326,16 @@ export class PlayerSession implements VidAllPlayer {
         epoch: record.epoch,
         retryable: record.retryable
       }
+    });
+  }
+
+  private emitLeaseReleaseRequestedLog(record: ProxyLeaseRecord): void {
+    const message = `Proxy lease ${record.leaseId} release requested.`;
+    this.stateMachine.emit({
+      type: 'log',
+      sequence: 0,
+      message: message,
+      log: { level: 'info', module: 'player-session', message: message }
     });
   }
 

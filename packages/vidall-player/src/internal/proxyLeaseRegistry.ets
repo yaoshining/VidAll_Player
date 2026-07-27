@@ -30,6 +30,9 @@ export class ProxyLeaseRegistry {
     }
     const current = this.find(leaseId);
     if (current !== undefined && current.state !== 'released' && current.state !== 'expired' && current.state !== 'cleanupFailed') {
+      if (epoch <= current.epoch) {
+        return current;
+      }
       current.host = host;
       current.epoch = epoch;
       current.state = 'renewed';

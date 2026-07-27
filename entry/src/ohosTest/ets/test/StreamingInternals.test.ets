@@ -169,6 +169,15 @@ export default function streamingInternalsTest() {
       expect(records[0].reason).assertEqual('source-switch');
     });
 
+    it('ignores stale lease acquisition epochs', 0, () => {
+      const registry = new ProxyLeaseRegistry();
+      const current = registry.track('lease-stale', 'http://127.0.0.1:58080/smb/a.mp4', 7);
+      const stale = registry.track('lease-stale', 'http://127.0.0.1:58080/smb/a.mp4', 6);
+      expect(current!.epoch).assertEqual(7);
+      expect(stale!.epoch).assertEqual(7);
+      expect(stale!.state).assertEqual('acquired');
+    });
+
     it('emits acquired and releaseRequested lease states without claiming cleanup completed', 0, async (done: Function) => {
       const leases: PlayerEvent[] = [];
       const session = new PlayerSession({ eventListener: (event: PlayerEvent) => {

@@ -26,6 +26,10 @@ int main()
     passed &= check(leases.activeCount() == 1, "acquired lease is active");
     passed &= check(leases.acceptsByteRange("lease-a", 7), "current lease accepts Range requests");
     passed &= check(!leases.acceptsByteRange("lease-a", 6), "stale epoch rejects Range requests");
+    const auto staleAcquire = leases.acquire("lease-a", "http://127.0.0.1:58080/smb/a.mp4", 6);
+    passed &= check(staleAcquire.epoch == 7 && staleAcquire.state == vidall::ProxyLeaseState::Acquired,
+        "stale acquire preserves the current lease epoch and state");
+    passed &= check(leases.acceptsByteRange("lease-a", 7), "stale acquire cannot replace the current lease");
 
     const auto renewed = leases.renew("lease-a", 7);
     passed &= check(renewed.state == vidall::ProxyLeaseState::Renewed, "active lease can renew");
@@ -55,6 +59,12 @@ int main()
     passed &= check(leases.acquire("lease-ipv6", "http://[::1]:58080/smb/a.mp4", 1).state ==
             vidall::ProxyLeaseState::Acquired,
         "IPv6 loopback proxy is accepted");
+    passed &= check(leases.acquire("lease-case", "HTTP://LOCALHOST:58080/smb/a.mp4", 1).state ==
+            vidall::ProxyLeaseState::Acquired,
+        "mixed-case loopback HTTP URI is accepted");
+    passed &= check(leases.acquire("lease-port", "http://localhost:/smb/a.mp4", 1).state ==
+            vidall::ProxyLeaseState::CleanupFailed,
+        "loopback proxy URI with an empty port is rejected");
 
     leases.acquire("lease-expired", "http://localhost:58080/smb/b.mp4", 2);
     passed &= check(leases.expire("lease-expired", 2).state == vidall::ProxyLeaseState::Expired,
