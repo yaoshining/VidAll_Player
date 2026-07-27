@@ -121,10 +121,8 @@ build_popt() {
   local d="$WORK_DIR/popt-1.19"
   [ -d "$d" ] || curl -fsSL https://ftp.osuosl.org/pub/rpm/popt/releases/popt-1.x/popt-1.19.tar.gz | tar xz -C "$WORK_DIR"
   ( cd "$d"
-    # autopoint/glibtoolize 仅在 autoregen 时需要; release tarball 已含预生成 configure。
-    command -v autopoint >/dev/null 2>&1 && autopoint --force || true
-    command -v glibtoolize >/dev/null 2>&1 && glibtoolize --force 2>/dev/null || \
-      { command -v libtoolize >/dev/null 2>&1 && libtoolize --force; } || true
+    # release tarball 已含预生成 configure/build-aux, 不再运行 autopoint/glibtoolize
+    # (glibtoolize --force 会覆盖 build-aux/compile 和 missing 导致 configure 失败)。
     ./configure --host="$HOST_TRIPLET" --prefix="$PREFIX" --enable-static --disable-shared
     make -j"$JOBS" && make install )
 }
