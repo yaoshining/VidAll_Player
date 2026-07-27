@@ -54,8 +54,9 @@ mkdir -p "$PREFIX/lib/pkgconfig" "$PREFIX/include" "$WORK_DIR" "$WRAPPER_DIR"
 # glibtoolize/autoreconf 损坏。缓存未命中需要真实构建时, 先清理所有依赖
 # 源码目录, 确保从干净 tarball 重新解压 (Samba git 仓库单独保留以加速 clone)。
 clean_src() {
-  for d in zlib-*/ popt-*/ gmp-*/ nettle-*/ libtasn1-*/ gnutls-*/ gnutls-stubs; do
-    rm -rf "$WORK_DIR/$d"
+  log "清理残留依赖源码目录..."
+  for d in "$WORK_DIR"/zlib-* "$WORK_DIR"/popt-* "$WORK_DIR"/gmp-*            "$WORK_DIR"/nettle-* "$WORK_DIR"/libtasn1-* "$WORK_DIR"/gnutls-*            "$WORK_DIR"/gnutls-stubs; do
+    [ -e "$d" ] && rm -rf "$d"
   done
 }
 
