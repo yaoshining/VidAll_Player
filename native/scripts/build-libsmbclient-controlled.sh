@@ -45,7 +45,7 @@ command -v pkg-config >/dev/null || die "缺少 pkg-config"
 command -v python3 >/dev/null || die "缺少 python3"
 command -v yacc >/dev/null 2>&1 || command -v bison >/dev/null 2>&1 || die "缺少 yacc/bison（brew install bison）"
 command -v flex >/dev/null || die "缺少 flex（brew install flex）"
-command -v gettext >/dev/null 2>&1 || command -v autopoint >/dev/null || die "缺少 autopoint（brew install gettext）"
+command -v autopoint >/dev/null 2>&1 || log "警告: autopoint 不可用, popt 构建将使用 release 预生成文件"
 command -v glibtoolize >/dev/null 2>&1 || command -v libtoolize >/dev/null || die "缺少 libtool（brew install libtool）"
 
 mkdir -p "$PREFIX/lib/pkgconfig" "$PREFIX/include" "$WORK_DIR" "$WRAPPER_DIR"
@@ -102,8 +102,10 @@ build_popt() {
   local d="$WORK_DIR/popt-1.19"
   [ -d "$d" ] || curl -fsSL https://ftp.osuosl.org/pub/rpm/popt/releases/popt-1.19.tar.gz | tar xz -C "$WORK_DIR"
   ( cd "$d"
-    autopoint --force
-    glibtoolize --force 2>/dev/null || libtoolize --force
+    # autopoint/glibtoolize 仅在 autoregen 时需要; release tarball 已含预生成 configure。
+    command -v autopoint >/dev/null 2>&1 && autopoint --force || true
+    command -v glibtoolize >/dev/null 2>&1 && glibtoolize --force 2>/dev/null || \
+      { command -v libtoolize >/dev/null 2>&1 && libtoolize --force; } || true
     ./configure --host="$HOST_TRIPLET" --prefix="$PREFIX" --enable-static --disable-shared
     make -j"$JOBS" && make install )
 }

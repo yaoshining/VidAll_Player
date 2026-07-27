@@ -111,22 +111,18 @@ jobs:
         env:
           HOMEBREW_NO_AUTO_UPDATE: '1'
         run: |
-          # autopoint 来自 gettext, glibtoolize 来自 libtool。
-          # 禁用 auto-update 避免 formula API 不兼容导致安装失败。
+          # glibtoolize 来自 libtool (Samba 构建链需要)。
+          # autopoint 来自 gettext, 但 iMac 的 Homebrew (macOS 12) 安装
+          # gettext 时崩溃, 因此 build-libsmbclient-controlled.sh 已改为
+          # autopoint 可选 (popt release tarball 已含预生成 configure)。
           command -v brew >/dev/null 2>&1 || {
             echo 'Homebrew 未安装；请在 runner 上安装 https://brew.sh' >&2
             exit 1
           }
-          # 按需安装: 仅在工具缺失时安装, 避免不必要的编译。
-          need=()
-          command -v autopoint >/dev/null 2>&1 || need+=(gettext)
-          command -v glibtoolize >/dev/null 2>&1 || need+=(libtool)
-          if [ ${#need[@]} -gt 0 ]; then
-            echo "安装缺失工具: ${need[*]}"
-            brew install --force-bottle "${need[@]}" || brew install "${need[@]}"
-          else
-            echo 'autopoint 和 glibtoolize 均已安装, 跳过。'
-          fi
+          command -v glibtoolize >/dev/null 2>&1 || command -v libtoolize >/dev/null 2>&1 || {
+            echo '安装 libtool...'
+            brew install libtool
+          }
       - name: 验证 OpenHarmony NDK 与构建前置工具
         run: |
           # 优先使用 runner 预配置的 OHOS_NDK 环境变量；
