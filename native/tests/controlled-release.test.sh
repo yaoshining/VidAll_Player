@@ -60,7 +60,7 @@ for name, value in sources.items():
     assert re.fullmatch(r'[0-9a-f]{40}', value.get('commit', '')), f'{name} 未锁定到 commit SHA'
 samba_build = sources['samba'].get('build', {})
 assert samba_build.get('pkgConfigModule') == 'smbclient'
-assert samba_build.get('dependencyClosureStatus') == 'pending-cross-build-resolution'
+assert samba_build.get('dependencyClosureStatus') == 'complete', 'Samba 依赖闭包必须已交叉构建验证完成'
 PY
 
   mkdir -p "$source_dir/mpv" "$source_dir/ffmpeg" "$source_dir/samba"
