@@ -26,7 +26,7 @@ review = json.loads((root / 'native/config/api-review.json').read_text())
 assert [review['installationCompatibilityApi'], review['sensitiveApiReviewLevel'], review['certificationTargetApi']] == [15, 19, 22]
 assert review['candidateStatus'] == 'blocked-until-evidence'
 spike = json.loads((root / 'release/audits/har-native-packaging-spike.json').read_text())
-assert spike['status'] == 'blocked'
+assert spike['status'] == 'passed'
 assert spike['realBridgeAllowed'] is False
 tdd = json.loads((root / 'release/audits/tdd-baseline.json').read_text())
 assert tdd['status'] == 'recorded'

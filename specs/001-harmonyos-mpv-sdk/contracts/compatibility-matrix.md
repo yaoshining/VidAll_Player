@@ -6,7 +6,8 @@
 |---|---|---|---|---|
 | 媒体浏览输入 | `MediaSource` 校验 | consumer-smoke 本地/网络样本 | `playerEngine=ijk|vidall`；输入错误回退 `ijk` | 三态、匿名样本、错误码 |
 | WebDAV | 受控 Basic/TLS/重定向/Range | 受控测试服务，覆盖同信任范围携带认证、跨范围剥离认证、Range、超时和断网 | 认证、证书或重定向策略失败回退 `ijk` | 三态、脱敏网络摘要、重定向决策、Range/恢复结果 |
-| SMB localhost HTTP | `localhostProxy`/lease | loopback HTTP 的 Range、跳转、`acquired`/续期/释放请求/确认、失效和异常清理 | 代理失效、未确认释放或清理失败回退 `ijk` | 三态、匿名 lease 状态序列、释放确认或失败原因 |
+| SMB localhost HTTP（本 Issue 兼容路径） | `localhostProxy`/lease | loopback HTTP 的 Range、跳转、`acquired`/续期/释放请求/确认、失效和异常清理 | 代理失效、未确认释放或清理失败回退 `ijk` | 三态、匿名 lease 状态序列、释放确认或失败原因 |
+| 直接 `smb://`（后续独立 Issue） | 未实现 | 当前 `libmpv.so` 未证明含 `libsmbclient`；不得加载、宣称支持或填入已通过状态 | 保持 `ijk`/localhost proxy 路径 | 后续 Issue 必须提供受控构建、许可证/ELF 审计、凭据边界和 ARM64 TV 证据 |
 | 音轨/字幕 | `PlayerTrack`、外挂字幕、延迟 | 多轨、SRT、ASS、网络字幕样本 | 渲染降级/不支持回退 `ijk` | 三态、语言/渲染结论 |
 | 音频路由 | 音量、静音、音频参数/错误 | ARM64 TV 音频设备样本 | 路由失败回退 `ijk` | 三态、音频参数和限制 |
 | 硬解回退 | 硬解状态、选定解码器、软解回退原因 | ARM64 TV 编解码样本 | 硬解失败时软件解码；性能不达标回退 `ijk` | 三态、指标、回退原因 |

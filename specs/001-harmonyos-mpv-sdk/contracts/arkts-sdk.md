@@ -18,7 +18,7 @@ export interface PlayerError { domain: 'input' | 'network' | 'security' | 'media
 export interface VideoParams { width: number; height: number; pixelFormat?: string; rotation?: number; decoder?: string; hardwareDecoding?: 'active' | 'fallback' | 'unavailable'; }
 export interface AudioParams { sampleRate?: number; channels?: number; channelLayout?: string; codec?: string; }
 export interface PlayerLog { level: 'debug' | 'info' | 'warn' | 'error'; module: string; message: string; }
-export interface ProxyLeaseStatus { leaseId: string; state: 'acquired' | 'renewed' | 'releaseRequested' | 'released' | 'expired' | 'cleanupFailed'; retryable: boolean; }
+export interface ProxyLeaseStatus { leaseId: string; state: 'acquired' | 'renewed' | 'releaseRequested' | 'released' | 'expired' | 'cleanupFailed'; epoch: number; retryable: boolean; }
 export interface PlayerEventBase { sequence: number; eventEpoch: number; surfaceGeneration?: number; }
 export type PlayerEvent = PlayerEventBase & (
   | { type: 'state'; state: PlayerState }
@@ -62,7 +62,7 @@ export function createPlayer(options?: PlayerOptions): VidAllPlayer;
 ## 网络与 SMB lease
 
 - URI 禁止 userinfo。认证头仅在运行时内存传递，并且只能发送给初始 URI 所属的明确受信任范围；跨主机、跨端口、降级协议或未确认范围的重定向必须剥离认证头并产生脱敏的可消费错误。
-- `localhostProxy` 仅允许 loopback plain HTTP URI。`proxyLeaseId` 是业务层已启动代理的匿名 lease 标识；SDK 只消费、关联并在切源、失败、stop 或 release 时请求释放，不实现 SMB、代理启动、协议恢复或解码之外的业务逻辑。
-- lease 协作通过 `proxyLease` 事件向消费者公开 `acquired`、`renewed`、`releaseRequested`、`released`、`expired` 和 `cleanupFailed` 结果；业务层以提供给 `MediaSource` 的 lease 标识关联其代理协议。无法续期、代理不可用或未确认释放必须产生结构化错误/脱敏日志，并记录到候选证据；消费者不直接调用私有 NAPI。
+- 本 Issue 的 SMB 兼容边界是 `localhostProxy`，仅允许 loopback plain HTTP URI。`proxyLeaseId` 是业务层已启动代理的匿名 lease 标识；SDK 只消费、关联并在切源、失败、stop 或 release 时请求释放，不实现 SMB、代理启动、协议恢复或解码之外的业务逻辑。直接 `smb://` 未实现，当前 `libmpv.so` 未经 `libsmbclient` 构建、许可证/ELF 审计与真机验证；须由后续独立 Issue 定义其公开契约。
+- lease 协作通过 `proxyLease` 事件向消费者公开 `acquired`、`renewed`、`releaseRequested`、`released`、`expired` 和 `cleanupFailed` 结果。每个状态携带单会话递增的 `epoch`；业务层必须回传相同 `leaseId` 与 `epoch` 的释放确认，陈旧确认一律丢弃。`releaseRequested` 不等于 `released`，超时应转为 `expired`，清理异常应转为 `cleanupFailed`；重复释放请求不得创建第二次清理。无法续期、代理不可用或未确认释放必须产生结构化错误/脱敏日志，并记录到候选证据；消费者不直接调用私有 NAPI。
 
 当前包名、版本和 API 均为候选契约。`Index.ets` 是唯一公开入口；不得导出或由消费者导入 NAPI、NativeWindow、EGL/GLES、libmpv 句柄或任意内部实现。正式发布前需在批准私有 ohpm 源登记后冻结语义版本和包名。内部 wire schema、线程所有权和释放屏障见 [`native-bridge.md`](./native-bridge.md)。

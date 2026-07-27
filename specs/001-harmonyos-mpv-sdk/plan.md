@@ -40,7 +40,7 @@
 | 性能与质量 | UI 线程禁止阻塞任务；清洁构建、单元/契约/集成/真机门禁和资源审计纳入候选门禁。 | 通过 |
 | 中文文档与交付纪律 | 本功能文档、矩阵、发布/风险/验收记录均使用中文；法律及协议原文保留并加中文说明。 | 通过 |
 
-**Phase 0 结论**：存在必须在实施前通过 spike 或产品/发布决策关闭的关键待确认项：HAR 是否能以候选形态内部携带并装入所需 NAPI/native 库、公开 XComponent surface 接入形态、SMB proxy lease 的续期/确认协议、ARM64 API 22 TV 真机与受控样本可用性，以及 GPL/LGPL 的发布、NOTICE 与 source offer 审批。现有 bootstrap CI 的不完整供应链控制是已识别风险，实施必须替换，不能以现状绕过门禁。
+**Phase 0 结论**：HAR 内部 native packaging spike 已在 ARM64 TV 完成最小装入、命令和 callback 验证；它只解除最小打包边界，不证明真实 libmpv bridge、首帧或发布门禁。SMB localhost proxy lease 仍是本 Issue 的兼容实现与待闭环验证边界。直接播放 `smb://` 已确定为后续路线，但当前 `libmpv.so` 尚无 `libsmbclient` 构建、ELF 审计或真机证据，必须另立 Issue，不能以本计划或当前能力声明支持。公开 XComponent surface 接入、ARM64 API 22 真机真实播放、GPL/LGPL 的发布、NOTICE 与 source offer 审批仍为待关闭项。现有 bootstrap CI 的不完整供应链控制是已识别风险，实施必须替换，不能以现状绕过门禁。
 
 ## 项目结构
 

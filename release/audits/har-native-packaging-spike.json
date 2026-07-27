@@ -1,11 +1,37 @@
 {
   "schemaVersion": 1,
-  "status": "blocked",
+  "status": "passed",
   "candidatePackage": "@vidall/player",
   "candidateVersion": "0.1.0",
   "scope": "HAR 内部 native 装入边界最小实验",
   "realBridgeAllowed": false,
-  "reason": "尚未在隔离 consumer 中取得 HAR 内部 native 库装入、ABI、最小命令和回调的真实构建证据；不得将模拟状态机或 bootstrap CI 作为替代证据。",
+  "reason": "最小内部 NAPI probe 已在 ARM64 TV 真机的 consumer 测试模块中装入并完成命令与回调验证；该结果不授权真实播放器 bridge，后续仍须满足完整候选、消费方和播放器发布门禁。",
   "requiredEvidence": ["har-content", "abi", "consumer-load-log", "command-callback-result"],
-  "recordedAt": null
+  "har-content": {
+    "artifact": "packages/vidall-player/build/default/outputs/default/vidall_player.har",
+    "sha256": "8c88cf010cd6df7498b0f963137729f9bc2c25ad45b814ec92ec72d46d83e333",
+    "internalModule": "libvidall_player_native.so",
+    "abis": ["arm64-v8a", "x86_64"]
+  },
+  "abi": {
+    "device": "arm64-v8a",
+    "consumerHap": "entry/build/default/outputs/default/entry-default-signed.hap",
+    "consumerHapSha256": "e4b5d98251aa4efc16c5d6aced7c300f81d4fe0fdf55a6a59c37a755070a4744",
+    "packagedAbis": ["arm64-v8a", "x86_64"]
+  },
+  "consumer-load-log": {
+    "device": "华为智慧屏 MateTV Pro (EDIS-790A)",
+    "serial": "192.168.3.85:5555",
+    "apiLevel": 23,
+    "test": "StreamingInternalsTest.loads the HAR-internal native probe and receives its callback",
+    "result": "pass",
+    "testHapSha256": "d424cd53cf06560e2eee4d6fcfa67fc82512cb8488ca322c46c39c8062d1b7f4"
+  },
+  "command-callback-result": {
+    "command": "har-native-ping:callback-dispatched",
+    "callback": "har-native-callback",
+    "logMarker": "HAR_NATIVE_PROBE"
+  },
+  "sourceCommit": "8424533c2f4cd3e682b667c474a72c4a1d057c17",
+  "recordedAt": "2026-07-27T15:22:43+08:00"
 }

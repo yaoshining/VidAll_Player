@@ -12,8 +12,8 @@ import { CommandQueue } from './commandQueue';
 import { validateExternalAudio, validateExternalSubtitle, validateMediaSource } from './inputValidator';
 import { NetworkRecoveryController } from './networkRecovery';
 import { lifecycleFailure, PlayerFailure } from './playerFailure';
-import { leaseReleaseMessage, ProxyLeaseRegistry } from './proxyLeaseRegistry';
-import { redactError, redactText } from './redaction';
+import { ProxyLeaseRecord, ProxyLeaseRegistry } from './proxyLeaseRegistry';
+import { redactError } from './redaction';
 import { SessionStateMachine } from './stateMachine';
 
 export class PlayerSession implements VidAllPlayer {
@@ -25,6 +25,7 @@ export class PlayerSession implements VidAllPlayer {
   private source?: MediaSource;
   private tracks: PlayerTrack[] = [];
   private resumeState?: 'playing' | 'paused';
+  private leaseEpoch: number = 0;
 
   constructor(options?: PlayerOptions) {
     if (options?.eventListener !== undefined) {
@@ -90,7 +91,11 @@ export class PlayerSession implements VidAllPlayer {
       this.recovery.clear();
       this.stateMachine.transition('preparing');
       if (source.kind === 'localhostProxy' && source.proxyLeaseId !== undefined) {
-        this.leases.track(source.proxyLeaseId, source.uri);
+        this.leaseEpoch++;
+        const lease = this.leases.track(source.proxyLeaseId, source.uri, this.leaseEpoch);
+        if (lease !== undefined) {
+          this.emitLease(lease);
+        }
       }
       if (this.tracks.length > 0) {
         this.emitTracks();
@@ -223,7 +228,7 @@ export class PlayerSession implements VidAllPlayer {
     }
     this.queue.close();
     return new Promise<void>((resolve) => {
-      // 关闭前清理 SMB 代理租约，释放记录仍以日志事件投递给监听器。
+      // 关闭前请求代理释放；只有业务层携带相同 epoch 的确认才能宣布 released。
       this.releaseLeases('release');
       this.stateMachine.release();
       this.surface = undefined;
@@ -304,10 +309,23 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   private releaseLeases(reason: string): void {
-    const released = this.leases.releaseAll(reason);
-    for (let index = 0; index < released.length; index++) {
-      this.emitLog(leaseReleaseMessage(released[index]));
+    const requested = this.leases.requestReleaseAll(reason);
+    for (let index = 0; index < requested.length; index++) {
+      this.emitLease(requested[index]);
     }
+  }
+
+  private emitLease(record: ProxyLeaseRecord): void {
+    this.stateMachine.emit({
+      type: 'proxyLease',
+      sequence: 0,
+      lease: {
+        leaseId: record.leaseId,
+        state: record.state,
+        epoch: record.epoch,
+        retryable: record.retryable
+      }
+    });
   }
 
   private emitBuffering(paused: boolean, percent?: number): void {
@@ -316,16 +334,6 @@ export class PlayerSession implements VidAllPlayer {
       event.percent = percent;
     }
     this.stateMachine.emit(event);
-  }
-
-  private emitLog(message: string): void {
-    const redacted = redactText(message);
-    this.stateMachine.emit({
-      type: 'log',
-      sequence: 0,
-      log: { level: 'info', module: 'player-session', message: redacted },
-      message: redacted
-    });
   }
 
   private createExternalAudioTracks(audioTracks?: ExternalAudio[]): PlayerTrack[] {

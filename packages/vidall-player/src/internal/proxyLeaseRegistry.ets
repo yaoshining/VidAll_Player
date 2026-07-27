@@ -1,18 +1,15 @@
 import { parseUri } from './inputValidator';
 
-// SMB localhost HTTP 代理由业务应用（VidAll_TV）维护：业务层把 SMB 文件暴露为
-// http://localhost:PORT/smb/... 并把 proxyLeaseId 与内置 HTTP 服务器的一次租约绑定。
-// SDK 只负责在会话内关联租约，并在切源、停止、释放或网络失败时清理关联，
-// 让业务层可以据此关闭代理连接、回收端口，避免旧租约泄漏。
-// 租约记录的保留策略：作为审计轨迹保留最近 MAX_LEASE_RECORDS 条（含已释放），
-// 超出时丢弃最旧记录，保证长生命周期会话频繁切源时内存占用有上界。
-// active()/records() 语义不变；会话 release() 时整表随对象回收。
 const MAX_LEASE_RECORDS = 64;
+
+export type ProxyLeaseState = 'acquired' | 'renewed' | 'releaseRequested' | 'released' | 'expired' | 'cleanupFailed';
 
 export interface ProxyLeaseRecord {
   leaseId: string;
-  // 仅保留 authority（host:port），不记录路径和查询，避免敏感信息进入事件或日志。
   host: string;
+  epoch: number;
+  state: ProxyLeaseState;
+  retryable: boolean;
   trackedAt: number;
   releasedAt?: number;
   reason?: string;
@@ -21,65 +18,97 @@ export interface ProxyLeaseRecord {
 export class ProxyLeaseRegistry {
   private readonly leaseRecords: ProxyLeaseRecord[] = [];
 
-  track(leaseId: string, uri: string): void {
-    if (leaseId.length === 0) {
-      return;
+  track(leaseId: string, uri: string, epoch: number): ProxyLeaseRecord | undefined {
+    if (leaseId.length === 0 || !Number.isInteger(epoch) || epoch < 1) {
+      return undefined;
     }
     let host = 'localhost';
     try {
       host = parseUri(uri).authority;
     } catch (_) {
-      // URI 已由上层校验；解析失败时退回占位主机名，不阻断租约跟踪。
+      return undefined;
     }
-    // 同一租约重复跟踪时刷新关联，避免重复释放记录。
-    for (let index = 0; index < this.leaseRecords.length; index++) {
-      const record = this.leaseRecords[index];
-      if (record.leaseId === leaseId && record.releasedAt === undefined) {
-        record.host = host;
-        return;
-      }
+    const current = this.find(leaseId);
+    if (current !== undefined && current.state !== 'released' && current.state !== 'expired' && current.state !== 'cleanupFailed') {
+      current.host = host;
+      current.epoch = epoch;
+      current.state = 'renewed';
+      current.retryable = true;
+      return current;
     }
-    this.leaseRecords.push({ leaseId: leaseId, host: host, trackedAt: Date.now() });
-    // 有界保留：超出审计上限时丢弃最旧记录，避免无限累积。
+    const record: ProxyLeaseRecord = {
+      leaseId: leaseId,
+      host: host,
+      epoch: epoch,
+      state: 'acquired',
+      retryable: true,
+      trackedAt: Date.now()
+    };
+    this.leaseRecords.push(record);
     if (this.leaseRecords.length > MAX_LEASE_RECORDS) {
       this.leaseRecords.splice(0, this.leaseRecords.length - MAX_LEASE_RECORDS);
     }
+    return record;
   }
 
-  release(leaseId: string, reason: string): ProxyLeaseRecord | undefined {
+  requestReleaseAll(reason: string): ProxyLeaseRecord[] {
+    const requested: ProxyLeaseRecord[] = [];
     for (let index = 0; index < this.leaseRecords.length; index++) {
       const record = this.leaseRecords[index];
-      if (record.leaseId === leaseId && record.releasedAt === undefined) {
-        record.releasedAt = Date.now();
+      if (record.state === 'acquired' || record.state === 'renewed') {
+        record.state = 'releaseRequested';
         record.reason = reason;
-        return record;
+        requested.push(record);
       }
     }
-    return undefined;
+    return requested;
   }
 
-  releaseAll(reason: string): ProxyLeaseRecord[] {
-    const released: ProxyLeaseRecord[] = [];
-    for (let index = 0; index < this.leaseRecords.length; index++) {
-      const record = this.leaseRecords[index];
-      if (record.releasedAt === undefined) {
-        record.releasedAt = Date.now();
-        record.reason = reason;
-        released.push(record);
-      }
+  confirmReleased(leaseId: string, epoch: number): ProxyLeaseRecord | undefined {
+    const record = this.find(leaseId);
+    if (record === undefined || record.epoch !== epoch || record.state !== 'releaseRequested') {
+      return undefined;
     }
-    return released;
+    record.state = 'released';
+    record.retryable = false;
+    record.releasedAt = Date.now();
+    return record;
+  }
+
+  expire(leaseId: string, epoch: number): ProxyLeaseRecord | undefined {
+    return this.terminal(leaseId, epoch, 'expired', true);
+  }
+
+  cleanupFailed(leaseId: string, epoch: number): ProxyLeaseRecord | undefined {
+    return this.terminal(leaseId, epoch, 'cleanupFailed', true);
   }
 
   active(): ProxyLeaseRecord[] {
-    return this.leaseRecords.filter((record: ProxyLeaseRecord) => record.releasedAt === undefined);
+    return this.leaseRecords.filter((record: ProxyLeaseRecord) =>
+      record.state === 'acquired' || record.state === 'renewed' || record.state === 'releaseRequested');
   }
 
   records(): ProxyLeaseRecord[] {
     return this.leaseRecords.slice();
   }
-}
 
-export function leaseReleaseMessage(record: ProxyLeaseRecord): string {
-  return `SMB 代理租约已释放 lease=${record.leaseId} host=${record.host} reason=${record.reason ?? 'unknown'}`;
+  private find(leaseId: string): ProxyLeaseRecord | undefined {
+    for (let index = this.leaseRecords.length - 1; index >= 0; index--) {
+      if (this.leaseRecords[index].leaseId === leaseId) {
+        return this.leaseRecords[index];
+      }
+    }
+    return undefined;
+  }
+
+  private terminal(leaseId: string, epoch: number, state: 'expired' | 'cleanupFailed', retryable: boolean): ProxyLeaseRecord | undefined {
+    const record = this.find(leaseId);
+    if (record === undefined || record.epoch !== epoch || record.state === 'released' || record.state === 'cleanupFailed') {
+      return undefined;
+    }
+    record.state = state;
+    record.retryable = retryable;
+    record.releasedAt = Date.now();
+    return record;
+  }
 }
