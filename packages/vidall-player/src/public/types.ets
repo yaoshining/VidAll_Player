@@ -76,6 +76,7 @@ export interface PlayerLog {
 export interface ProxyLeaseStatus {
   leaseId: string;
   state: 'acquired' | 'renewed' | 'releaseRequested' | 'released' | 'expired' | 'cleanupFailed';
+  epoch: number;
   retryable: boolean;
 }
 

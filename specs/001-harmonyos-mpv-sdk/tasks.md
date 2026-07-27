@@ -71,7 +71,7 @@
 - [ ] T029 [US1] 实现并通过 T028 的 localFile、HTTP/HTTPS 受控加载与错误映射，更新 `native/media/MediaLoader.cpp`、`native/media/PlayerErrorMapper.cpp`
 - [ ] T030 [US1] 先写并运行失败的 ArkTS 播放控制测试：load/play/pause/seek/speed/volume/mute/stop 的正常、非法状态和 release 后路径，更新 `packages/vidall-player/test/integration/basic-playback.test.ets`、`packages/vidall-player/src/public/VidAllPlayerImpl.ets`
 - [ ] T031 [US1] 实现并通过 T030 的公开播放器门面和控制命令，更新 `packages/vidall-player/src/public/VidAllPlayerImpl.ets`、`packages/vidall-player/src/public/createPlayer.ets`
-- [ ] T032 [US1] 复核 T006 的 HAR 内部 native packaging spike：在隔离 consumer 完成内部模块装入、最小命令和回调；记录真实构建日志、HAR 内容、ABI 和失败原因（如有），更新 `release/audits/har-native-packaging-spike.json`
+- [X] T032 [US1] 复核 T006 的 HAR 内部 native packaging spike：在隔离 consumer 完成内部模块装入、最小命令和回调；记录真实构建日志、HAR 内容、ABI 和失败原因（如有），更新 `release/audits/har-native-packaging-spike.json`
 - [ ] T033 [US1] 在 ARM64 TV 真机执行基础播放/生命周期验收，确认真实 `firstFrame` 而非命令返回；无设备或失败时保持未完成，更新 `release/capabilities/arm64-tv-basic-playback.json`、`release/audits/arm64-tv-basic-playback.log`
 
 **Checkpoint**: US1 是唯一 MVP；只有 T021–T033 的测试和 ARM64 TV 证据齐全时才可声称基础播放候选可用。
@@ -114,9 +114,9 @@
 
 ## Phase 6: User Story 4 — 流媒体与 SMB localhost proxy lease（Priority: P2）
 
-**Goal**: 播放 HTTPS、HLS、DASH 和业务侧 localhost HTTP SMB 代理，并释放代理 lease 与旧网络状态。
+**Goal**: 播放 HTTPS、HLS、DASH 和业务侧 localhost HTTP SMB 代理，并释放代理 lease 与旧网络状态。本阶段不实现直接 `smb://`；后者须在本 Issue 结束后以独立 Issue 覆盖 `libsmbclient` 供应链、凭据边界、许可证/ELF 审计和 ARM64 TV 验证。
 
-**Independent Test**: 每种来源验证加载、分段、跳转、认证、网络中断恢复和代理清理。
+**Independent Test**: 每种当前来源验证加载、分段、跳转、认证、网络中断恢复和代理清理；不得将 localhost proxy 通过误记为直接 SMB 支持。
 
 - [ ] T048 [US4] 先写并运行失败的 HLS/DASH 测试：有效清单、分段失败、跳转、断网后重试和结构化错误，更新 `native/tests/adaptive_streaming_test.cpp`、`native/media/AdaptiveStreaming.cpp`
 - [ ] T049 [US4] 实现并通过 T048 的 HLS/DASH 加载、缓存和跳转策略，更新 `native/media/AdaptiveStreaming.cpp`、`native/media/MediaLoader.cpp`

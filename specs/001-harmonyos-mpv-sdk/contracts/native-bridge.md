@@ -8,6 +8,7 @@
 - `attachSurface`、`resizeSurface`、`detachSurface` 只接收受控 `componentId`、`generation`、宽和高。原生层在每个会话内持有 NativeWindow 和渲染资源；禁止进程全局 NativeWindow、EGL context 或渲染队列。
 - `load`、`play`、`pause`、`seekRelative`、`seekPercent`、`setRate`、`setVolume`、`mute`、轨道选择、外挂字幕、字幕延迟、`stop` 与 `release` 均须有异步命令确认。Promise 成功仅表示原生层已接受或完成契约规定的命令阶段；播放、首帧和状态只能由后续真实内核事件确认。
 - 每个命令携带单会话递增 `commandSequence`。切源或 release 使旧媒体/旧 generation 的待执行任务失效；不得用 ArkTS 模拟状态替代原生确认。
+- 本 Issue 的 SMB 兼容路径仅为 localhost HTTP proxy lease，以 `leaseId` 与单会话递增 `epoch` 关联。同一活跃 `leaseId` 的 acquire 仅可接受更大的 epoch；相同 epoch 是幂等操作，较小 epoch 必须保留当前记录。切源、stop、release 或网络失败只能先发 `releaseRequested`；仅相同 `leaseId`/`epoch` 的业务层确认可发 `released`。超时与清理异常分别发 `expired`、`cleanupFailed`；重复请求幂等，旧 epoch 回调必须丢弃。桥接不得接受或拼接直接 `smb://`，也不得承诺当前 libmpv 具备该协议能力；未来 direct SMB 另立 Issue。
 
 ## 原生事件映射
 

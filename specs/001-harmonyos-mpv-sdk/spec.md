@@ -9,6 +9,8 @@
 
 本功能交付 VidAll_Player：供既有 VidAll_TV 使用的独立原生播放器组件库，而非改造、迁移或发布 VidAll_TV。本库必须作为可安装、可版本化的 ArkTS/ohpm 组件交付，内部受控集成 NAPI、XComponent、EGL/GLES 与 `libmpv`；对外仅暴露稳定、受限且可追踪的播放契约。兼容基线是 VidAll_TV 当前 IJKPlayer 的媒体浏览、WebDAV、SMB localhost HTTP 代理、字幕、音轨、音频路由、硬解回退、播放控制与生命周期场景。适配由 VidAll_TV 集成方在其仓库完成，本库不得修改 VidAll_TV 的源代码、配置、发布物或运行行为。
 
+**本 Issue 的 SMB 边界**：本 Issue 仅冻结并验证既有的 `localhostProxy`/lease 兼容路径，不把它表述为 mpv 原生 SMB 支持。直接播放 `smb://` 需要将 `libsmbclient` 纳入受控 FFmpeg/libmpv 构建、完成许可证/ELF 审计与 ARM64 TV 真机验证；该工作必须在本 Issue 完成后以独立 Issue 跟踪。在此之前，任何文档或能力清单不得将当前 `libmpv.so` 表述为支持 `smb://`。
+
 首期目标设备为 ARM64 电视真机。组件安装兼容下限为 HarmonyOS 5.0.3 / API 15，目标与完整认证基线为 HarmonyOS 6.0.2 / API 22；新增或敏感平台能力须检查 API 19，并为 API 15–18 提供可记录的降级。x86_64 模拟器和 Vulkan 不属于首期支持承诺。
 
 ## 用户场景与测试

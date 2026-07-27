@@ -3,6 +3,7 @@ import { PlayerEvent } from '@vidall/player';
 import { PlayerSession } from '@vidall/player/src/internal/playerSession';
 import { ProxyLeaseRegistry } from '@vidall/player/src/internal/proxyLeaseRegistry';
 import { classifyNetworkFailure } from '@vidall/player/src/internal/networkRecovery';
+import { runHarNativePackagingProbe } from '@vidall/player/src/native/harNativePackagingProbe';
 
 export default function streamingInternalsTest() {
   describe('StreamingInternalsTest', () => {
@@ -92,10 +93,10 @@ export default function streamingInternalsTest() {
       expect(errorEvents[0].error!.code).assertEqual('NETWORK_DISCONNECTED');
       const lastTracks = events.filter((event: PlayerEvent) => event.type === 'tracks').pop();
       expect(lastTracks!.tracks!.length).assertEqual(0);
-      const logMessages = events
-        .filter((event: PlayerEvent) => event.type === 'log')
-        .map((event: PlayerEvent) => event.message ?? '');
-      expect(logMessages.some((message: string) => message.indexOf('lease-failure') >= 0)).assertTrue();
+      const leaseEvents = events.filter((event: PlayerEvent) => event.type === 'proxyLease');
+      expect(leaseEvents.some((event: PlayerEvent) =>
+        event.lease!.leaseId === 'lease-failure' && event.lease!.state === 'releaseRequested'
+      )).assertTrue();
       expect(events[events.length - 2].state).assertEqual('error');
 
       await session.load({ kind: 'localhostProxy', uri: 'http://127.0.0.1:58080/smb/movie.mp4', proxyLeaseId: 'lease-retry' });
@@ -147,23 +148,59 @@ export default function streamingInternalsTest() {
       done();
     });
 
-    it('tracks and releases proxy leases with audit records', 0, () => {
+    it('tracks lease epochs and waits for the current release confirmation', 0, () => {
       const registry = new ProxyLeaseRegistry();
-      registry.track('lease-a', 'http://127.0.0.1:58080/smb/a.mp4');
-      registry.track('lease-b', 'http://localhost:58080/smb/b.mp4');
-      expect(registry.active().length).assertEqual(2);
+      const acquired = registry.track('lease-a', 'http://127.0.0.1:58080/smb/a.mp4', 7);
+      expect(acquired!.state).assertEqual('acquired');
+      expect(acquired!.epoch).assertEqual(7);
+      expect(registry.active().length).assertEqual(1);
 
-      const released = registry.releaseAll('source-switch');
-      expect(released.length).assertEqual(2);
+      const requested = registry.requestReleaseAll('source-switch');
+      expect(requested.length).assertEqual(1);
+      expect(requested[0].state).assertEqual('releaseRequested');
+      expect(registry.active().length).assertEqual(1);
+      expect(registry.requestReleaseAll('release').length).assertEqual(0);
+      expect(registry.confirmReleased('lease-a', 6) === undefined).assertTrue();
+      expect(registry.confirmReleased('lease-a', 7)!.state).assertEqual('released');
       expect(registry.active().length).assertEqual(0);
-      expect(registry.releaseAll('release').length).assertEqual(0);
 
       const records = registry.records();
-      expect(records.length).assertEqual(2);
-      expect(records[0].leaseId).assertEqual('lease-a');
       expect(records[0].host).assertEqual('127.0.0.1:58080');
       expect(records[0].reason).assertEqual('source-switch');
-      expect(records[0].releasedAt !== undefined).assertTrue();
+    });
+
+    it('ignores stale lease acquisition epochs', 0, () => {
+      const registry = new ProxyLeaseRegistry();
+      const current = registry.track('lease-stale', 'http://127.0.0.1:58080/smb/a.mp4', 7);
+      const stale = registry.track('lease-stale', 'http://127.0.0.1:58080/smb/a.mp4', 6);
+      expect(current!.epoch).assertEqual(7);
+      expect(stale!.epoch).assertEqual(7);
+      expect(stale!.state).assertEqual('acquired');
+    });
+
+    it('emits acquired and releaseRequested lease states without claiming cleanup completed', 0, async (done: Function) => {
+      const leases: PlayerEvent[] = [];
+      const session = new PlayerSession({ eventListener: (event: PlayerEvent) => {
+        if (event.type === 'proxyLease') {
+          leases.push(event);
+        }
+      }});
+      await session.load({ kind: 'localhostProxy', uri: 'http://localhost:58080/smb/movie.mp4', proxyLeaseId: 'lease-events' });
+      await session.stop();
+      expect(leases.length).assertEqual(2);
+      expect(leases[0].lease!.state).assertEqual('acquired');
+      expect(leases[1].lease!.state).assertEqual('releaseRequested');
+      expect(leases[0].lease!.epoch).assertEqual(1);
+      expect(leases[1].lease!.epoch).assertEqual(1);
+      await session.release();
+      done();
+    });
+
+    it('loads the HAR-internal native probe and receives its callback', 0, () => {
+      const result = runHarNativePackagingProbe();
+      console.info(`HAR_NATIVE_PROBE command=${result.commandResult}; callback=${result.callbackResult}`);
+      expect(result.commandResult).assertEqual('har-native-ping:callback-dispatched');
+      expect(result.callbackResult).assertEqual('har-native-callback');
     });
 
     it('accepts file URIs for cached external subtitles but rejects user information', 0, async (done: Function) => {

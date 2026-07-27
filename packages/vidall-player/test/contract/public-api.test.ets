@@ -35,7 +35,7 @@ export function compilePublicApiContract(): void {
   const audio: ExternalAudio = { uri: 'https://fixture.invalid/audio.aac' };
   const error: PlayerError = { domain: 'native', code: 'FIXTURE', message: 'fixture', retryable: false, context: {} };
   const log: PlayerLog = { level: 'info', module: 'fixture', message: 'fixture' };
-  const lease: ProxyLeaseStatus = { leaseId: 'fixture', state: 'released', retryable: false };
+  const lease: ProxyLeaseStatus = { leaseId: 'fixture', state: 'released', epoch: 1, retryable: false };
   void player.setRate(1);
   void player.mute(false);
   void player.addExternalAudio(audio);

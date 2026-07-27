@@ -5,5 +5,10 @@ add_executable(session_lifecycle_test session_lifecycle_test.cpp ../session/sess
 target_include_directories(session_lifecycle_test PRIVATE ../session)
 target_compile_features(session_lifecycle_test PRIVATE cxx_std_17)
 
+add_executable(localhost_proxy_lease_test localhost_proxy_lease_test.cpp ../media/proxy_lease_manager.cpp)
+target_include_directories(localhost_proxy_lease_test PRIVATE ../media)
+target_compile_features(localhost_proxy_lease_test PRIVATE cxx_std_17)
+
 enable_testing()
 add_test(NAME session_lifecycle_test COMMAND session_lifecycle_test)
+add_test(NAME localhost_proxy_lease_test COMMAND localhost_proxy_lease_test)

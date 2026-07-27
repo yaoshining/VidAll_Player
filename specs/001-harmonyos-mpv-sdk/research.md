@@ -3,9 +3,9 @@
 ## 当前实现偏差（2026-07-26 只读调研）
 
 - **事实**：当前 `@vidall/player` 的 `createPlayer()` 返回 ArkTS 内存 `PlayerSession`，可主动发出 `preparing`、`playing`、轨道和缓冲事件；它没有创建 native handle 或调用 NAPI。因此当前 HAR 不是可独立消费的真实 libmpv 播放器，不能把这些状态机事件当作播放、首帧或真机验证证据。
-- **事实**：真实 libmpv/NAPI/渲染实现位于 `entry/src/main/cpp/napi_bridge.cpp`，由示例通过私有 `libentry.so` 直接调用。HAR 目前没有随包可用的 native module，`entry` 同时依赖本地 HAR 与私有 `.so`；这不满足独立 consumer-only HAR 边界。
+- **事实**：真实 libmpv/NAPI/渲染实现位于 `entry/src/main/cpp/napi_bridge.cpp`，由示例通过私有 `libentry.so` 直接调用。HAR 已通过隔离的最小 native probe 在 ARM64 TV 验证随包装入、命令和 callback；该 probe 不导出为公开 API，也不证明真实 libmpv bridge 可供独立 consumer 播放。
 - **事实**：现有原生 Surface 管理含全局 NativeWindow 模式，事件类型与公开事件 payload 不完整；现有测试大多验证 ArkTS 状态机或静态 NAPI 符号，不等同于 native 播放集成测试。
-- **结论**：以下“决策”均是候选目标架构，而非对当前实现的描述。实现前必须先完成 HAR internal native packaging spike；失败时不能以模拟状态机替代。
+- **结论**：以下“决策”均是候选目标架构，而非对当前实现的描述。HAR internal native packaging spike 已关闭最小打包风险；真实 bridge、首帧与发布验证仍不得以模拟状态机替代。
 
 ## 原生播放架构
 
@@ -80,8 +80,8 @@
 
 ## 待关闭的实现与发布决策
 
-- **HAR native 交付**：通过最小 spike 验证 HarmonyOS HAR 是否可随候选制品内部装入 NAPI/native 库、如何声明 ABI 和如何被隔离 consumer 解析。未验证前，不承诺最终打包形态。
+- **HAR native 交付（已完成最小 spike）**：ARM64 TV 已验证 HAR 隔离内部 NAPI/native probe 的装入、命令与 callback，并在审计记录为 `passed`。该结果只确认内部打包边界；真实 libmpv bridge、独立 consumer 播放、首帧与发布形态仍须单独取证。
 - **公开 Surface 接入**：冻结消费者交付 `componentId`、尺寸和 generation 的 XComponent 适配流程，确认不暴露 NativeWindow 或将渲染生命周期推回消费方。
-- **SMB lease 协作**：与业务层确定 `acquired`、续期、`releaseRequested`、`released`、超时和异常回收的确认格式与重试责任。SDK 不启动 SMB proxy，也不承担业务层协议恢复。
+- **SMB lease 协作（当前 Issue 兼容路径）**：与业务层确定 `acquired`、续期、`releaseRequested`、`released`、超时和异常回收的确认格式与重试责任。SDK 不启动 SMB proxy，也不承担业务层协议恢复。直接 `smb://` 已决定转由后续独立 Issue 处理，前提是完成 `libsmbclient` 供应链、许可证/ELF 和真机验证。
 - **发布许可**：在候选前取得 GPL-2.0-or-later libmpv 与相关 LGPL 依赖的许可证结论、NOTICE、source offer 和制品分发审批。
 - **真实样本与设备**：取得可使用的 ARM64 API 22 TV、脱敏 HTTP/WebDAV/SMB proxy 样本及指标采集方式。
