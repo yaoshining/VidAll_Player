@@ -15,6 +15,22 @@ on:
       - 'release/capabilities/**'
       - '.github/workflows/build-libmpv.yml'
   workflow_dispatch:
+    inputs:
+      run_cross_build:
+        description: '在受控 self-hosted DevEco 运行器执行 Samba/FFmpeg/libmpv 制品门禁'
+        required: true
+        type: boolean
+        default: false
+      controlled_source_dir:
+        description: '运行器上已按 sources.lock.json 固定提交准备的源码目录（不下载源码）'
+        required: false
+        type: string
+        default: ''
+      ohos_pkgconfig_dir:
+        description: '运行器上 OpenHarmony ARM64 sysroot 的隔离 pkg-config 目录'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -37,6 +53,70 @@ jobs:
           bash native/tests/build-libmpv-bootstrap.test.sh
           bash native/tests/build-libmpv-patches.test.sh
           bash native/tests/libmpv-packaging.test.sh
+
+  cross-build-prerequisites:
+    name: OpenHarmony ARM64 交叉构建前置条件
+    needs: native-contracts
+    # 真实交叉构建要求受控 SDK、不可变来源镜像和人工批准；PR 不自动触发。
+    if: ${{ inputs.run_cross_build }}
+    runs-on: [self-hosted, macos, deveco]
+    timeout-minutes: 30
+    steps:
+      - name: 检出项目
+        uses: actions/checkout@v4
+      - name: 验证手动调度输入
+        env:
+          CONTROLLED_SOURCE_DIR: ${{ inputs.controlled_source_dir }}
+          OHOS_PKGCONFIG_DIR: ${{ inputs.ohos_pkgconfig_dir }}
+        run: |
+          test -n "$CONTROLLED_SOURCE_DIR"
+          test -n "$OHOS_PKGCONFIG_DIR"
+          test -d "$CONTROLLED_SOURCE_DIR"
+          test -d "$OHOS_PKGCONFIG_DIR"
+          for component in mpv ffmpeg samba; do
+            test -d "$CONTROLLED_SOURCE_DIR/$component"
+          done
+      - name: 验证 Samba 依赖闭包和交叉环境
+        env:
+          CONTROLLED_SOURCE_DIR: ${{ inputs.controlled_source_dir }}
+          PKG_CONFIG_LIBDIR: ${{ inputs.ohos_pkgconfig_dir }}
+        run: |
+          python3 - native/config/sources.lock.json <<'PY'
+          import json
+          import sys
+
+          samba = json.load(open(sys.argv[1], encoding='utf-8'))['sources']['samba']
+          status = samba['build']['dependencyClosureStatus']
+          if status != 'complete':
+              raise SystemExit(
+                  'Samba/libsmbclient 传递依赖闭包尚未锁定；'
+                  '拒绝执行真实 OpenHarmony ARM64 交叉构建。'
+              )
+          PY
+          test -f "$PKG_CONFIG_LIBDIR/smbclient.pc"
+          grep -Fx -- '--enable-libsmbclient' "$CONTROLLED_SOURCE_DIR/ffmpeg/configure-options.txt"
+      - name: 生成受控 libmpv 审计制品
+        env:
+          CONTROLLED_SOURCE_DIR: ${{ inputs.controlled_source_dir }}
+          PKG_CONFIG_LIBDIR: ${{ inputs.ohos_pkgconfig_dir }}
+          RELEASE_DIR: ${{ runner.temp }}/libmpv-cross-build
+        run: |
+          native/scripts/build-libmpv-controlled.sh \
+            --source "$CONTROLLED_SOURCE_DIR" \
+            --output "$RELEASE_DIR" \
+            --skip-compile
+          test -s "$RELEASE_DIR/libmpv.so"
+          test -s "$RELEASE_DIR/elf-audit.json"
+          test -s "$RELEASE_DIR/feature-manifest.json"
+          test -s "$RELEASE_DIR/sbom.spdx.json"
+          test -s "$RELEASE_DIR/sbom.cdx.json"
+          test -s "$RELEASE_DIR/NOTICE"
+      - name: 上传交叉构建前置条件审计制品
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmpv-cross-build-prerequisites
+          path: ${{ runner.temp }}/libmpv-cross-build
+          if-no-files-found: error
 
   clean-environment:
     name: 清洁环境元数据验证 (${{ matrix.os }})

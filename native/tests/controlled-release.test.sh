@@ -164,6 +164,21 @@ PY
   grep -Fq 'sbom.cdx.json' "$CONTROLLED_BUILD" || fail '受控构建必须使用统一的 CycloneDX SBOM 文件名'
   grep -Fq 'sbom.cdx.json' "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" || fail 'CI 必须使用统一的 CycloneDX SBOM 文件名'
 
+  python3 - "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" <<'PY'
+from pathlib import Path
+import sys
+
+workflow = Path(sys.argv[1]).read_text(encoding='utf-8')
+assert 'cross-build-prerequisites:' in workflow, 'CI 必须声明交叉构建前置条件任务'
+assert 'runs-on: [self-hosted, macos, deveco]' in workflow, '交叉构建前置条件必须使用受控 DevEco 运行器'
+assert 'dependencyClosureStatus' in workflow, 'CI 必须在构建前验证 Samba 依赖闭包'
+assert 'PKG_CONFIG_LIBDIR' in workflow, 'CI 必须验证隔离的 OpenHarmony pkg-config 目录'
+assert 'build-libmpv-controlled.sh' in workflow, 'CI 必须调用受控发布门禁'
+assert 'libmpv-cross-build-prerequisites' in workflow, 'CI 必须上传交叉构建前置条件审计制品'
+assert 'if: ${{ inputs.run_cross_build }}' in workflow, '真实交叉构建只能由手动受控调度触发'
+assert 'direct SMB 已可播放' not in workflow, 'CI 不得在未完成真机验证时宣称 direct SMB 可播放'
+PY
+
   printf 'same artifact\n' > "$temp_dir/first.so"
   cp "$temp_dir/first.so" "$temp_dir/second.so"
   "$REPRODUCIBILITY_TOOL" --first "$temp_dir/first.so" --second "$temp_dir/second.so" --output "$output_dir/reproducibility.json"
