@@ -81,10 +81,27 @@ EOF
 }
 
 # ---------------- 源码检出 ----------------
+# GitLab 偶发 503, 重试最多 5 次, 每次间隔递增。
+git_clone_retry() {
+  local url="$1" dest="$2" attempt=0 max=5
+  while [ "$attempt" -lt "$max" ]; do
+    attempt=$((attempt + 1))
+    log "git clone 尝试 $attempt/$max: $url"
+    if git clone "$url" "$dest"; then
+      return 0
+    fi
+    rm -rf "$dest"
+    [ "$attempt" -lt "$max" ] || { log "git clone 在 $max 次尝试后仍失败: $url"; return 1; }
+    local wait=$((attempt * 15))
+    log "等待 ${wait}s 后重试..."
+    sleep "$wait"
+  done
+}
+
 fetch_samba() {
   if [ ! -d "$SAMBA_DIR/.git" ]; then
     log "克隆 Samba $SAMBA_TAG ..."
-    git clone https://gitlab.com/samba-team/samba.git "$SAMBA_DIR"
+    git_clone_retry https://gitlab.com/samba-team/samba.git "$SAMBA_DIR"
   fi
   ( cd "$SAMBA_DIR" && git checkout "$SAMBA_COMMIT" )
 }
@@ -370,7 +387,7 @@ EOF
 build_host_tools() {
   log "原生预编译 host 工具 (compile_et / asn1_compile)"
   if [ ! -d "$SAMBA_HOST_DIR/.git" ]; then
-    git clone https://gitlab.com/samba-team/samba.git "$SAMBA_HOST_DIR"
+    git_clone_retry https://gitlab.com/samba-team/samba.git "$SAMBA_HOST_DIR"
   fi
   ( cd "$SAMBA_HOST_DIR" && git checkout "$SAMBA_COMMIT" )
   # 复用交叉树的 buildtools/bin/waf（rsync 已排除 bin）。
