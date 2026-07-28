@@ -436,12 +436,11 @@ PC
       PYTHONHASHSEED=1 ./configure --disable-python --without-ad-dc --disable-fault-handling \
         --without-ldb-lmdb --without-gettext --without-json --without-systemd --without-libarchive \
         --without-acl-support --without-ldap --without-ads --without-pam && \
-      PYTHONHASHSEED=1 python3 buildtools/bin/waf build \
-        --targets=ROKEN_HOSTCC,HEIMBASE_HOSTCC,LIBREPLACE_HOSTCC,HEIMDAL_VERS_HOSTCC,HEIMDAL_ASN1_GEN_HOSTCC,asn1_compile,compile_et -j$JOBS"
+      PYTHONHASHSEED=1 python3 buildtools/bin/waf build -j$JOBS"
 
   local waf_out="$SAMBA_HOST_DIR/bin/default"
   if [ ! -x "$waf_out/compile_et" ] || [ ! -x "$waf_out/asn1_compile" ]; then
-    die "host 工具生成位置不符预期: $waf_out"
+    die "host 工具生成位置不符预期: $waf_out (compile_et/asn1_compile 不存在)"
   fi
   cp "$waf_out/asn1_compile" "$SAMBA_DIR/bin/asn1_compile"
   cp "$waf_out/compile_et" "$SAMBA_DIR/bin/compile_et"
