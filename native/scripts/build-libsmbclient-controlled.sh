@@ -113,7 +113,7 @@ fetch_samba() {
     log "克隆 Samba $SAMBA_TAG ..."
     git_clone_retry https://gitlab.com/samba-team/samba.git "$SAMBA_DIR"
   fi
-  ( cd "$SAMBA_DIR" && git checkout "$SAMBA_COMMIT" )
+  ( cd "$SAMBA_DIR" && git checkout "$SAMBA_COMMIT" && git reset --hard "$SAMBA_COMMIT" && git clean -fd )
 }
 
 # ---------------- 依赖链构建 ----------------
@@ -400,7 +400,7 @@ build_host_tools() {
   if [ ! -d "$SAMBA_HOST_DIR/.git" ]; then
     git_clone_retry https://gitlab.com/samba-team/samba.git "$SAMBA_HOST_DIR"
   fi
-  ( cd "$SAMBA_HOST_DIR" && git checkout "$SAMBA_COMMIT" )
+  ( cd "$SAMBA_HOST_DIR" && git checkout "$SAMBA_COMMIT" && git reset --hard "$SAMBA_COMMIT" && git clean -fd )
   # 复用交叉树的 buildtools/bin/waf（rsync 已排除 bin）。
   [ -f "$SAMBA_HOST_DIR/buildtools/bin/waf" ] || rsync -a "$SAMBA_DIR/buildtools/bin/" "$SAMBA_HOST_DIR/buildtools/bin/"
   # bin/wscript 缺失会导致 waf ant_glob 扫描失败；占位即可。
