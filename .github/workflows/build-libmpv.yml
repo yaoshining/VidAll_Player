@@ -233,10 +233,24 @@ jobs:
         with:
           path: ~/.cache/vidall-player/libmpv-ohos-build
           key: libmpv-ohos-build-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', 'native/patches/libmpv-ohos-build/*.patch') }}
+      - name: 安装 libmpv Rust 与下载工具
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: |
+          command -v brew >/dev/null 2>&1 || {
+            echo 'Homebrew 未安装；无法准备受控 libmpv 构建工具。' >&2
+            exit 1
+          }
+          command -v wget >/dev/null 2>&1 || brew install wget rustup-init
+          command -v rustup >/dev/null 2>&1 || {
+            rustup-init -y --profile minimal --default-toolchain stable
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          }
       - name: 构建静态包含 SMB 的 libmpv
         env:
           OHOS_NDK_HOME: ${{ env.OHOS_NDK }}
           VIDALL_PLAYER_SMB_SYSROOT: ${{ runner.temp }}/smb-sysroot
+          PATH: ${{ env.PATH }}:${{ runner.home }}/.cargo/bin
         run: native/scripts/build-libmpv-bootstrap.sh
       - name: 审计 ARM64 libmpv 未动态依赖 libsmbclient
         env:
