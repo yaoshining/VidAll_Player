@@ -16,7 +16,7 @@
 #     (compile_et/asn1_compile) 会引入交叉 config.h，导致 Linux 专有头泄漏。
 #     规避方案：在独立源码树用原生 configure 预编译这两个 host 工具，再通过
 #     USING_SYSTEM_COMPILE_ET / USING_SYSTEM_ASN1_COMPILE 让交叉构建复用之，
-#     并以 SAMBA_SKIP_HOSTCC 跳过所有 hostcc 子系统。
+#     并在 Waf 的交叉构建图中跳过所有 HostCC 子系统。
 #   - 交叉回答 (cross-answers) 覆盖所有运行期探测；以 rsplit 解析含冒号的回答。
 set -euo pipefail
 
@@ -90,9 +90,8 @@ setup_cross_env() {
   export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
   export PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib"
   export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
-  # This explicit marker reaches the incorrectly scheduled HostCC tasks too.
-  export CFLAGS="-fPIC -D__MUSL__=1 -DSAMBA_OHOS_CROSS=1 -I$PREFIX/include"
-  export CXXFLAGS="-fPIC -D__MUSL__=1 -DSAMBA_OHOS_CROSS=1 -I$PREFIX/include"
+  export CFLAGS="-fPIC -D__MUSL__=1 -I$PREFIX/include"
+  export CXXFLAGS="-fPIC -D__MUSL__=1 -I$PREFIX/include"
   export LDFLAGS="-L$PREFIX/lib"
   # waf find_program('clang') 会优先命中这些包装器，确保交叉语义不被宿主 clang 覆盖。
   for w in clang clang++ cc c++; do
@@ -271,36 +270,7 @@ s=s.replace("a = line.split(':', 1)","a = line.rsplit(':', 1)")
 open(p,'w').write(s)
 PY
 
-  # 补丁 3：hostcc 钩子——在 process_source 创建任务后，为 use_hostcc 任务切到 HOSTCC。
-  #   实际跨构建中 hostcc 子系统会被 SAMBA_SKIP_HOSTCC 跳过；此钩子保留作为兜底。
-  cat >> buildtools/wafsamba/samba_waf18.py <<'PYEOF'
-
-from waflib.TaskGen import feature, after_method
-
-@feature('c', 'cxx')
-@after_method('process_source', 'apply_link', 'propagate_uselib_vars', 'process_use', 'apply_uselib_local')
-def samba_apply_hostcc(self):
-    if not getattr(self, 'samba_use_hostcc', False):
-        return
-    bld = self.bld
-    hostcc = bld.env.HOSTCC
-    if not hostcc:
-        return
-    for tsk in getattr(self, 'tasks', []):
-        tenv = tsk.env.derive()
-        tenv.CC = hostcc
-        tenv.CXX = hostcc + '++' if isinstance(hostcc, str) else list(hostcc)
-        tenv.LINK_CC = hostcc
-        tenv.LINK_CXX = hostcc
-        tenv.AR = 'ar'
-        tenv.ARFLAGS = ['rcs']
-        tenv.CFLAGS = [f for f in (tsk.env.CFLAGS or []) if '--target' not in f and '--sysroot' not in f and '__MUSL__' not in f]
-        tenv.CXXFLAGS = [f for f in (tsk.env.CXXFLAGS or []) if '--target' not in f and '--sysroot' not in f and '__MUSL__' not in f]
-        tenv.LINKFLAGS = [f for f in (tsk.env.LINKFLAGS or []) if '--target' not in f and '--sysroot' not in f and '-framework' not in f]
-        tsk.env = tenv
-PYEOF
-
-  # 补丁 4：交叉编译时不编译 charset_macosxfs.c（依赖 CoreFoundation）。
+  # 补丁 3：交叉编译时不编译 charset_macosxfs.c（依赖 CoreFoundation）。
   python3 - <<'PY'
 p='lib/util/charset/wscript_build'
 s=open(p).read()
@@ -324,7 +294,7 @@ assert old in s
 open(p,'w').write(s.replace(old,new))
 PY
 
-  # 补丁 5：使用系统 host 工具时仍设置 bld.env.COMPILE_ET / ASN1_COMPILE。
+  # 补丁 4：使用系统 host 工具时仍设置 bld.env.COMPILE_ET / ASN1_COMPILE。
   python3 - <<'PY'
 p='third_party/heimdal_build/wscript_build'
 s=open(p).read()
@@ -334,10 +304,13 @@ s=s.replace(
 s=s.replace(
 "    bld.env['COMPILE_ET'] = os.path.join(bld.bldnode.parent.abspath(), 'compile_et')\n",
 "    bld.env['COMPILE_ET'] = os.path.join(bld.bldnode.parent.abspath(), 'compile_et')\nelse:\n    bld.env['COMPILE_ET'] = os.path.join(bld.bldnode.parent.abspath(), 'compile_et')\n")
+assert "else:\n    bld.env['ASN1_COMPILE']" in s
+assert "else:\n    bld.env['COMPILE_ET']" in s
 open(p,'w').write(s)
 PY
 
-  # 补丁 6：SAMBA_SKIP_HOSTCC 时跳过所有 hostcc 子系统。
+  # 补丁 5：这两个生成器已在原生源码树预编译；交叉图不得再声明其 HostCC
+  # 依赖，否则 Waf 会把目标 config.h 泄漏给 macOS 编译器。
   python3 - <<'PY'
 p='lib/replace/wscript'
 s=open(p).read()
@@ -348,7 +321,7 @@ old="""    bld.SAMBA_SUBSYSTEM('LIBREPLACE_HOSTCC',
         group='hostcc_base_build_main',
         deps = extra_libs
     )"""
-new="""    if not bld.CONFIG_SET('SAMBA_SKIP_HOSTCC'):
+new="""    if not bld.env.CROSS_COMPILE:
         bld.SAMBA_SUBSYSTEM('LIBREPLACE_HOSTCC',
             REPLACE_HOSTCC_SOURCE,
             use_hostcc=True,
@@ -387,30 +360,20 @@ for name, block in [
        use_hostcc=True)"""),
 ]:
     assert block in s, f"缺少 {name} 块"
-    # 检测首行缩进，按相同缩进输出 guard，并把块体再缩进 4 空格。
     lines = block.splitlines()
     indent = re.match(r'^(\s*)', lines[0]).group(1)
     reindented = '\n'.join(indent + '    ' + l[len(indent):] if l.startswith(indent) else '    ' + l for l in lines)
-    s = s.replace(block, f"{indent}if not bld.CONFIG_SET('SAMBA_SKIP_HOSTCC'):\n{reindented}")
+    s = s.replace(block, f"{indent}if not bld.env.CROSS_COMPILE:\n{reindented}")
+s=s.replace(
+"if not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE'):",
+"if not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE'):", 1)
+s=s.replace(
+"if not bld.CONFIG_SET('USING_SYSTEM_COMPILE_ET'):",
+"if not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_COMPILE_ET'):", 1)
 open(p,'w').write(s)
 PY
 
-  # 补丁 7：残留 HostCC 任务会错误复用 target 配置；显式交叉构建宏同时
-  # 传给 target 与 HostCC，可靠地避免它们包含 macOS 上不可用的 malloc.h。
-  python3 - <<'PY'
-p='lib/replace/replace.h'
-s=open(p).read()
-old="""#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif"""
-new="""#if defined(HAVE_MALLOC_H) && !defined(SAMBA_OHOS_CROSS)
-#include <malloc.h>
-#endif"""
-assert old in s
-open(p,'w').write(s.replace(old,new,1))
-PY
-
-  # 补丁 8：smbclient 交叉构建时禁用 pidl --python，避免 host C 类型
+  # 补丁 6：smbclient 交叉构建时禁用 pidl --python，避免 host C 类型
   #   (timeval, files_struct, db_record, smbXsrv_tcon_table 等) 解析失败。
   python3 - <<'PY'
 p='source3/librpc/idl/wscript_build'

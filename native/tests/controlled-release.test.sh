@@ -164,8 +164,9 @@ PY
   grep -Fq 'sbom.cdx.json' "$CONTROLLED_BUILD" || fail '受控构建必须使用统一的 CycloneDX SBOM 文件名'
   grep -Fq 'sbom.cdx.json' "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" || fail 'CI 必须使用统一的 CycloneDX SBOM 文件名'
   grep -Fq 'mkdir -p "$SAMBA_DIR/bin"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '复制 host 工具前必须创建交叉树 bin 目录'
-  grep -Fq '!defined(SAMBA_OHOS_CROSS)' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'Samba 补丁必须使用显式交叉构建宏跳过 malloc.h'
-  grep -Fq -- '-DSAMBA_OHOS_CROSS=1' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉环境必须向所有 Samba 编译任务传递显式宏'
+  grep -Fq "if not bld.env.CROSS_COMPILE:" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须从 Waf 图中移除 HostCC 子系统'
+  grep -Fq "not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE')" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须复用预编译的 asn1_compile'
+  grep -Fq "not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_COMPILE_ET')" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须复用预编译的 compile_et'
 
   python3 - "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" <<'PY'
 from pathlib import Path
