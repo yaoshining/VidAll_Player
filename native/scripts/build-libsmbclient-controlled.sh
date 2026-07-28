@@ -364,12 +364,16 @@ for name, block in [
     indent = re.match(r'^(\s*)', lines[0]).group(1)
     reindented = '\n'.join(indent + '    ' + l[len(indent):] if l.startswith(indent) else '    ' + l for l in lines)
     s = s.replace(block, f"{indent}if not bld.env.CROSS_COMPILE:\n{reindented}")
-s=s.replace(
-"if not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE'):",
-"if not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE'):", 1)
-s=s.replace(
-"if not bld.CONFIG_SET('USING_SYSTEM_COMPILE_ET'):",
-"if not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_COMPILE_ET'):", 1)
+old_asn1 = "if not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE'):"
+new_asn1 = "if not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE'):"
+old_compile_et = "if not bld.CONFIG_SET('USING_SYSTEM_COMPILE_ET'):"
+new_compile_et = "if not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_COMPILE_ET'):"
+assert s.count(old_asn1) == 2, 'ASN.1 helper 或 HostCC 生成器块位置变化'
+assert s.count(old_compile_et) == 2, '错误表 helper 或 HostCC 生成器块位置变化'
+s=s.replace(old_asn1, new_asn1)
+s=s.replace(old_compile_et, new_compile_et)
+assert s.count(new_asn1) == 2
+assert s.count(new_compile_et) == 2
 open(p,'w').write(s)
 PY
 

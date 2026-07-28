@@ -167,6 +167,8 @@ PY
   grep -Fq "if not bld.env.CROSS_COMPILE:" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须从 Waf 图中移除 HostCC 子系统'
   grep -Fq "not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE')" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须复用预编译的 asn1_compile'
   grep -Fq "not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_COMPILE_ET')" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须复用预编译的 compile_et'
+  grep -Fq 'assert s.count(old_asn1) == 2' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'ASN.1 helper 和 HostCC 目标必须同时从交叉图移除'
+  grep -Fq 'assert s.count(old_compile_et) == 2' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '错误表 helper 和 HostCC 目标必须同时从交叉图移除'
 
   python3 - "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" <<'PY'
 from pathlib import Path
