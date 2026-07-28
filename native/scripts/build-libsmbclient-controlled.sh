@@ -394,7 +394,22 @@ for name, block in [
 open(p,'w').write(s)
 PY
 
-  # 补丁 7：smbclient 交叉构建时禁用 pidl --python，避免 host C 类型
+  # 补丁 7：OpenHarmony 的 malloc.h 受 SDK API 可用性约束；Samba 的
+  # configure 会把它误判为无条件可用，因此 target 构建不包含该头文件。
+  python3 - <<'PY'
+p='lib/replace/replace.h'
+s=open(p).read()
+old="""#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif"""
+new="""#if defined(HAVE_MALLOC_H) && !defined(__OHOS__)
+#include <malloc.h>
+#endif"""
+assert old in s
+open(p,'w').write(s.replace(old,new,1))
+PY
+
+  # 补丁 8：smbclient 交叉构建时禁用 pidl --python，避免 host C 类型
   #   (timeval, files_struct, db_record, smbXsrv_tcon_table 等) 解析失败。
   python3 - <<'PY'
 p='source3/librpc/idl/wscript_build'
