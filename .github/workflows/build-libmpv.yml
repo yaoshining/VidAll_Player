@@ -210,7 +210,7 @@ jobs:
           path: ${{ runner.temp }}/smb-sysroot
       - name: 验证 OpenHarmony NDK 与 SMB sysroot
         env:
-          SMB_SYSROOT: ${{ runner.temp }}/smb-sysroot
+          SMB_DOWNLOAD_ROOT: ${{ runner.temp }}/smb-sysroot
         run: |
           if [ -z "${OHOS_NDK:-}" ]; then
             for candidate in \
@@ -223,12 +223,27 @@ jobs:
               fi
             done
           fi
-          test -n "${OHOS_NDK:-}"
+          test -n "${OHOS_NDK:-}" || {
+            echo '未找到 OpenHarmony NDK。' >&2
+            exit 1
+          }
           test -x "$OHOS_NDK/native/llvm/bin/clang"
+
+          # upload-artifact/download-artifact 会随 action 版本改变是否保留顶层目录；
+          # 以唯一的静态归档标记定位实际 sysroot，而不是猜测其解压层级。
+          SMB_ARCHIVE="$(find "$SMB_DOWNLOAD_ROOT" -type f -path '*/lib/libsmbclient.a' -print -quit)"
+          test -n "$SMB_ARCHIVE" || {
+            echo '未在下载制品中找到 libsmbclient.a。' >&2
+            find "$SMB_DOWNLOAD_ROOT" -maxdepth 3 -type d -print >&2
+            exit 1
+          }
+          SMB_SYSROOT="$(cd "$(dirname "$SMB_ARCHIVE")/../.." && pwd)"
           test -s "$SMB_SYSROOT/lib/libsmbclient.a"
           test -f "$SMB_SYSROOT/lib/pkgconfig/smbclient.pc"
           test -f "$SMB_SYSROOT/include/libsmbclient.h"
           echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
+          echo "SMB_SYSROOT=$SMB_SYSROOT" >> "$GITHUB_ENV"
+          echo "SMB_SYSROOT=$SMB_SYSROOT"
       - name: 缓存锁定的 libmpv 构建源码
         uses: actions/cache@v4
         with:
@@ -250,7 +265,7 @@ jobs:
       - name: 构建静态包含 SMB 的 libmpv
         env:
           OHOS_NDK_HOME: ${{ env.OHOS_NDK }}
-          VIDALL_PLAYER_SMB_SYSROOT: ${{ runner.temp }}/smb-sysroot
+          VIDALL_PLAYER_SMB_SYSROOT: ${{ env.SMB_SYSROOT }}
           PATH: ${{ env.PATH }}:${{ runner.home }}/.cargo/bin
         run: native/scripts/build-libmpv-bootstrap.sh
       - name: 审计 ARM64 libmpv 未动态依赖 libsmbclient
