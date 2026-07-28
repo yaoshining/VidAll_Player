@@ -404,6 +404,7 @@ build_host_tools() {
   # 复用交叉树的 buildtools/bin/waf（rsync 已排除 bin）。
   [ -f "$SAMBA_HOST_DIR/buildtools/bin/waf" ] || rsync -a "$SAMBA_DIR/buildtools/bin/" "$SAMBA_HOST_DIR/buildtools/bin/"
   # bin/wscript 缺失会导致 waf ant_glob 扫描失败；占位即可。
+  mkdir -p "$SAMBA_HOST_DIR/bin"
   [ -f "$SAMBA_HOST_DIR/bin/wscript" ] || printf 'def build(bld):\n    pass\n' > "$SAMBA_HOST_DIR/bin/wscript"
 
   # 原生环境（清空交叉变量）。
