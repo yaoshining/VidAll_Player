@@ -313,7 +313,18 @@ assert old in s, 'MACOSXFS 编码器块位置变化'
 open(p,'w').write(s.replace(old,new,1))
 PY
 
-  # 补丁 5：使用系统 host 工具时仍设置 bld.env.COMPILE_ET / ASN1_COMPILE。
+  # 补丁 5：OHOS sysroot 提供 Linux ethtool 头，但缺少 Samba 使用的旧版
+  # ethtool_cmd_speed 实现；禁用这项非 SMB 必需的网卡测速功能。
+  python3 - <<'PY'
+p='lib/socket/interfaces.c'
+s=open(p).read()
+old='#ifdef HAVE_ETHTOOL\n#include "linux/sockios.h"'
+new='#if defined(HAVE_ETHTOOL) && !defined(__OHOS__)\n#include "linux/sockios.h"'
+assert s.count(old) == 2, 'ethtool 条件块位置变化'
+open(p,'w').write(s.replace(old,new))
+PY
+
+  # 补丁 6：使用系统 host 工具时仍设置 bld.env.COMPILE_ET / ASN1_COMPILE。
   python3 - <<'PY'
 p='third_party/heimdal_build/wscript_build'
 s=open(p).read()

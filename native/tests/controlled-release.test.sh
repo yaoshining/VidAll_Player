@@ -170,6 +170,7 @@ PY
   grep -Fq 'assert s.count(old_asn1) == 2' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'ASN.1 helper 和 HostCC 目标必须同时从交叉图移除'
   grep -Fq 'assert s.count(old_compile_et) == 2' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '错误表 helper 和 HostCC 目标必须同时从交叉图移除'
   grep -Fq "#if defined(DARWINOS) && !defined(__OHOS__)" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建不得注册依赖 CoreFoundation 的 MACOSXFS 编码器'
+  grep -Fq '#if defined(HAVE_ETHTOOL) && !defined(__OHOS__)' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'OHOS 交叉构建不得链接不完整的 Linux ethtool API'
   grep -Fq 'export PKG_CONFIG_BIN="$(command -v pkg-config)"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '必须导出宿主 pkg-config 的实际位置给包装器'
   grep -Fq 'exec "$PKG_CONFIG_BIN" --static "$@"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'Samba 必须解析 GnuTLS 静态传递依赖'
 
