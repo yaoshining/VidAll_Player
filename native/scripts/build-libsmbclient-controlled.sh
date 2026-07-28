@@ -508,6 +508,7 @@ PC
   if [ ! -x "$waf_out/compile_et" ] || [ ! -x "$waf_out/asn1_compile" ]; then
     die "host 工具生成位置不符预期: $waf_out (compile_et/asn1_compile 不存在)"
   fi
+  mkdir -p "$SAMBA_DIR/bin"
   cp "$waf_out/asn1_compile" "$SAMBA_DIR/bin/asn1_compile"
   cp "$waf_out/compile_et" "$SAMBA_DIR/bin/compile_et"
   chmod +x "$SAMBA_DIR/bin/asn1_compile" "$SAMBA_DIR/bin/compile_et"
