@@ -33,6 +33,7 @@ HOST_TRIPLET=aarch64-linux-musl
 SYSROOT="$OHOS_NDK/native/sysroot"
 TOOLCHAIN="$OHOS_NDK/native/llvm/bin"
 WRAPPER_DIR="$WORK_DIR/wrappers"
+export PKG_CONFIG_BIN="$(command -v pkg-config)"
 SAMBA_DIR="$WORK_DIR/samba"
 SAMBA_HOST_DIR="$WORK_DIR/samba-host"
 
@@ -97,7 +98,7 @@ setup_cross_env() {
   # nettle 等传递依赖仅会由 --static 输出，避免 Waf 链接 genrand 时漏库。
   cat > "$WRAPPER_DIR/pkg-config" <<'EOF'
 #!/usr/bin/env bash
-exec /usr/bin/pkg-config --static "$@"
+exec "$PKG_CONFIG_BIN" --static "$@"
 EOF
   chmod +x "$WRAPPER_DIR/pkg-config"
   # waf find_program('clang') 会优先命中这些包装器，确保交叉语义不被宿主 clang 覆盖。
