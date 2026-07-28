@@ -439,8 +439,12 @@ PC
       PYTHONHASHSEED=1 python3 buildtools/bin/waf build \
         --targets=ROKEN_HOSTCC,HEIMBASE_HOSTCC,LIBREPLACE_HOSTCC,HEIMDAL_VERS_HOSTCC,HEIMDAL_ASN1_GEN_HOSTCC,asn1_compile,compile_et -j$JOBS"
 
-  cp "$SAMBA_HOST_DIR/bin/asn1_compile" "$SAMBA_DIR/bin/asn1_compile"
-  cp "$SAMBA_HOST_DIR/bin/compile_et" "$SAMBA_DIR/bin/compile_et"
+  local waf_out="$SAMBA_HOST_DIR/bin/default"
+  if [ ! -x "$waf_out/compile_et" ] || [ ! -x "$waf_out/asn1_compile" ]; then
+    die "host 工具生成位置不符预期: $waf_out"
+  fi
+  cp "$waf_out/asn1_compile" "$SAMBA_DIR/bin/asn1_compile"
+  cp "$waf_out/compile_et" "$SAMBA_DIR/bin/compile_et"
   chmod +x "$SAMBA_DIR/bin/asn1_compile" "$SAMBA_DIR/bin/compile_et"
 }
 
