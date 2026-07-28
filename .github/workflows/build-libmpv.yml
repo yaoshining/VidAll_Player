@@ -237,7 +237,7 @@ jobs:
             find "$SMB_DOWNLOAD_ROOT" -maxdepth 3 -type d -print >&2
             exit 1
           }
-          SMB_SYSROOT="$(cd "$(dirname "$SMB_ARCHIVE")/../.." && pwd)"
+          SMB_SYSROOT="$(cd "$(dirname "$SMB_ARCHIVE")/.." && pwd)"
           test -s "$SMB_SYSROOT/lib/libsmbclient.a"
           test -f "$SMB_SYSROOT/lib/pkgconfig/smbclient.pc"
           test -f "$SMB_SYSROOT/include/libsmbclient.h"

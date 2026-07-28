@@ -204,6 +204,7 @@ libmpv_job = workflow.split('  build-libmpv-with-smb:', 1)[1]
 assert '"/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"' in libmpv_job, '真实 libmpv 构建必须复用带版本的 DevEco NDK 探测路径'
 assert 'VIDALL_PLAYER_SMB_SYSROOT' in workflow, '真实 libmpv 构建必须向引导脚本注入 SMB sysroot'
 assert 'SMB_DOWNLOAD_ROOT' in libmpv_job and "-path '*/lib/libsmbclient.a'" in libmpv_job, '真实 libmpv 构建必须从下载制品中定位 sysroot 根目录'
+assert 'dirname "$SMB_ARCHIVE")/.."' in libmpv_job, '定位到 lib/libsmbclient.a 后必须向上一级得到 sysroot 根目录'
 assert '未在下载制品中找到 libsmbclient.a' in libmpv_job, 'SMB sysroot 缺失时必须输出明确诊断'
 assert 'OHOS_NDK_HOME: ${{ env.OHOS_NDK }}' in workflow, '真实 libmpv 构建必须向上游脚本传递已验证的 OpenHarmony NDK'
 assert '安装 libmpv Rust 与下载工具' in workflow, '真实 libmpv 构建必须预先安装 Rust 和下载工具'
