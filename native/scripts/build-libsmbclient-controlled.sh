@@ -302,7 +302,18 @@ assert old in s
 open(p,'w').write(s.replace(old,new))
 PY
 
-  # 补丁 4：使用系统 host 工具时仍设置 bld.env.COMPILE_ET / ASN1_COMPILE。
+  # 补丁 4：目标配置仍将宿主 macOS 的 DARWINOS 宏写入 iconv.c；禁用
+  # MACOSXFS 编码器注册，避免引用已从交叉图移除的 CoreFoundation 实现。
+  python3 - <<'PY'
+p='lib/util/charset/iconv.c'
+s=open(p).read()
+old='#ifdef DARWINOS\n\t{\n\t\t.name = "MACOSXFS",'
+new='#if defined(DARWINOS) && !defined(__OHOS__)\n\t{\n\t\t.name = "MACOSXFS",'
+assert old in s, 'MACOSXFS 编码器块位置变化'
+open(p,'w').write(s.replace(old,new,1))
+PY
+
+  # 补丁 5：使用系统 host 工具时仍设置 bld.env.COMPILE_ET / ASN1_COMPILE。
   python3 - <<'PY'
 p='third_party/heimdal_build/wscript_build'
 s=open(p).read()
