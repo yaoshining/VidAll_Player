@@ -119,10 +119,34 @@ fetch_samba() {
 }
 
 # ---------------- 依赖链构建 ----------------
+# 下载到临时文件, 校验 tar 包未截断后才解压, 减少 iMac runner 网络抽风导致的失败。
+# 用法: fetch_extract <url> <label>
+fetch_extract() {
+  local url="$1" label="$2"
+  local attempt=0 max=4
+  while [ "$attempt" -lt "$max" ]; do
+    attempt=$((attempt + 1))
+    log "$label 下载 尝试 $attempt/$max: $url"
+    local tmp="$WORK_DIR/${label}.$$"
+    if curl -fsSL --retry 3 --retry-delay 5 "$url" -o "$tmp"; then
+      case "$url" in
+        *.tar.xz|*.txz) tar tJf "$tmp" >/dev/null 2>&1 && tar xJf "$tmp" -C "$WORK_DIR" && rm -f "$tmp" && return 0 ;;
+        *.tar.gz|*.tgz) tar tzf "$tmp" >/dev/null 2>&1 && tar xzf "$tmp" -C "$WORK_DIR" && rm -f "$tmp" && return 0 ;;
+        *) log "未识别的压缩格式: $url"; rm -f "$tmp"; return 1 ;;
+      esac
+    fi
+    rm -f "$tmp"
+    [ "$attempt" -lt "$max" ] || { log "$label 下载在 $max 次尝试后仍失败"; return 1; }
+    sleep $((attempt * 10))
+  done
+}
+
 build_zlib() {
   log "构建 zlib 1.3.1"
   local d="$WORK_DIR/zlib-1.3.1"
-  [ -d "$d" ] || curl -fsSL https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz | tar xz -C "$WORK_DIR"
+  if [ ! -d "$d" ]; then
+    fetch_extract https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz zlib-1.3.1 || return 1
+  fi
   ( cd "$d" && ./configure --static --prefix="$PREFIX" \
     && make AR="$AR" ARFLAGS="rcs" RANLIB="$RANLIB" -j"$JOBS" \
     && make AR="$AR" ARFLAGS="rcs" RANLIB="$RANLIB" install )
@@ -131,7 +155,9 @@ build_zlib() {
 build_popt() {
   log "构建 popt 1.19"
   local d="$WORK_DIR/popt-1.19"
-  [ -d "$d" ] || curl -fsSL https://ftp.osuosl.org/pub/rpm/popt/releases/popt-1.x/popt-1.19.tar.gz | tar xz -C "$WORK_DIR"
+  if [ ! -d "$d" ]; then
+    fetch_extract https://ftp.osuosl.org/pub/rpm/popt/releases/popt-1.x/popt-1.19.tar.gz popt-1.19 || return 1
+  fi
   ( cd "$d"
     # release tarball 已含预生成 configure/build-aux, 不再运行 autopoint/glibtoolize
     # (glibtoolize --force 会覆盖 build-aux/compile 和 missing 导致 configure 失败)。
@@ -142,7 +168,9 @@ build_popt() {
 build_gmp() {
   log "构建 gmp 6.3.0"
   local d="$WORK_DIR/gmp-6.3.0"
-  [ -d "$d" ] || curl -fsSL https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz | tar xJ -C "$WORK_DIR"
+  if [ ! -d "$d" ]; then
+    fetch_extract https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz gmp-6.3.0 || return 1
+  fi
   ( cd "$d"
     ./configure --host="$HOST_TRIPLET" --prefix="$PREFIX" --enable-static --disable-shared --with-pic
     make -j"$JOBS" && make install )
@@ -151,7 +179,9 @@ build_gmp() {
 build_nettle() {
   log "构建 nettle 3.9.1"
   local d="$WORK_DIR/nettle-3.9.1"
-  [ -d "$d" ] || curl -fsSL https://ftp.gnu.org/gnu/nettle/nettle-3.9.1.tar.gz | tar xz -C "$WORK_DIR"
+  if [ ! -d "$d" ]; then
+    fetch_extract https://ftp.gnu.org/gnu/nettle/nettle-3.9.1.tar.gz nettle-3.9.1 || return 1
+  fi
   ( cd "$d"
     ./configure --host="$HOST_TRIPLET" --prefix="$PREFIX" --enable-static --disable-shared \
       --disable-documentation --disable-openssl
@@ -161,7 +191,9 @@ build_nettle() {
 build_libtasn1() {
   log "构建 libtasn1 4.19.0"
   local d="$WORK_DIR/libtasn1-4.19.0"
-  [ -d "$d" ] || curl -fsSL https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.19.0.tar.gz | tar xz -C "$WORK_DIR"
+  if [ ! -d "$d" ]; then
+    fetch_extract https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.19.0.tar.gz libtasn1-4.19.0 || return 1
+  fi
   ( cd "$d"
     ./configure --host="$HOST_TRIPLET" --prefix="$PREFIX" --enable-static --disable-shared --with-pic
     make -j"$JOBS" && make install )
@@ -170,7 +202,9 @@ build_libtasn1() {
 build_gnutls() {
   log "构建 gnutls 3.8.7"
   local d="$WORK_DIR/gnutls-3.8.7"
-  [ -d "$d" ] || curl -fsSL https://www.gnupg.org/ftp/gcrypt/gnutls/v3.8/gnutls-3.8.7.tar.xz | tar xJ -C "$WORK_DIR"
+  if [ ! -d "$d" ]; then
+    fetch_extract https://www.gnupg.org/ftp/gcrypt/gnutls/v3.8/gnutls-3.8.7.tar.xz gnutls-3.8.7 || return 1
+  fi
   # gnutls 的 dlwrap 在未启用 zstd/brotli 时仍包含其头，需提供空桩。
   local stub="$WORK_DIR/gnutls-stubs"; mkdir -p "$stub" "$stub/brotli"
   : > "$stub/zstd.h"; : > "$stub/brotli/encode.h"; : > "$stub/brotli/decode.h"; : > "$stub/brotli/common.h"
