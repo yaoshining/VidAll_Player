@@ -88,6 +88,9 @@ exec "$TOOLCHAIN/$real" --target="$TARGET" --sysroot="$SYSROOT" "\$@"
 EOF
     chmod +x "$WRAPPER_DIR/$w"
   done
+  # Samba waf 内部硬编码调用 python, macOS 12 runner 不提供 /usr/bin/python,
+  # 提供一个指向 python3 的 symlink 以满足 waf 需要。
+  ln -sf "$(command -v python3)" "$WRAPPER_DIR/python"
 }
 
 # ---------------- 源码检出 ----------------
