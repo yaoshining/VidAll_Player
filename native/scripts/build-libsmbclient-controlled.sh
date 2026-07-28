@@ -543,6 +543,15 @@ configure_samba() {
     --without-ldb-lmdb --without-gettext --without-json \
     --without-systemd --without-libarchive --without-acl-support \
     --without-ldap --without-ads --without-pam
+
+  # Waf still schedules residual HostCC nodes with the target configuration.
+  # Their macOS compiler must not inherit Samba's cross-detected malloc.h.
+  find bin -name config.h -type f -exec sed -i.bak \
+    's/^#define HAVE_MALLOC_H 1$/\/\* #undef HAVE_MALLOC_H \*\//' {} +
+  find bin -name config.h.bak -type f -delete
+  if grep -R -q '^#define HAVE_MALLOC_H 1$' bin; then
+    die "未能禁用错误的 HAVE_MALLOC_H 配置"
+  fi
 }
 
 build_samba() {

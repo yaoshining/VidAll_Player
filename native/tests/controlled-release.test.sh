@@ -165,6 +165,8 @@ PY
   grep -Fq 'sbom.cdx.json' "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" || fail 'CI 必须使用统一的 CycloneDX SBOM 文件名'
   grep -Fq 'mkdir -p "$SAMBA_DIR/bin"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '复制 host 工具前必须创建交叉树 bin 目录'
   grep -Fq "!defined(__OHOS__)" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'Samba 补丁必须在 OpenHarmony 目标上跳过 malloc.h'
+  grep -Fq '禁用错误的 HAVE_MALLOC_H' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'Samba 配置完成后必须禁用错误的 HAVE_MALLOC_H'
+  grep -Fq 'HAVE_MALLOC_H 1' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'Samba 配置修复必须覆盖生成的 HAVE_MALLOC_H 定义'
 
   python3 - "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" <<'PY'
 from pathlib import Path
