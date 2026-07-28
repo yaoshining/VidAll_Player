@@ -318,9 +318,9 @@ PY
   python3 - <<'PY'
 p='lib/socket/interfaces.c'
 s=open(p).read()
-old='#ifdef HAVE_ETHTOOL\n#include "linux/sockios.h"'
-new='#if defined(HAVE_ETHTOOL) && !defined(__OHOS__)\n#include "linux/sockios.h"'
-assert s.count(old) == 2, 'ethtool 条件块位置变化'
+old='#ifdef HAVE_ETHTOOL'
+new='#if defined(HAVE_ETHTOOL) && !defined(__OHOS__)'
+assert s.count(old) == 3, 'ethtool 条件块位置变化'
 open(p,'w').write(s.replace(old,new))
 PY
 
