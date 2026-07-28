@@ -90,8 +90,9 @@ setup_cross_env() {
   export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
   export PKG_CONFIG_LIBDIR="$SYSROOT/usr/lib"
   export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
-  export CFLAGS="-fPIC -D__MUSL__=1 -I$PREFIX/include"
-  export CXXFLAGS="-fPIC -D__MUSL__=1 -I$PREFIX/include"
+  # This explicit marker reaches the incorrectly scheduled HostCC tasks too.
+  export CFLAGS="-fPIC -D__MUSL__=1 -DSAMBA_OHOS_CROSS=1 -I$PREFIX/include"
+  export CXXFLAGS="-fPIC -D__MUSL__=1 -DSAMBA_OHOS_CROSS=1 -I$PREFIX/include"
   export LDFLAGS="-L$PREFIX/lib"
   # waf find_program('clang') 会优先命中这些包装器，确保交叉语义不被宿主 clang 覆盖。
   for w in clang clang++ cc c++; do
@@ -394,15 +395,15 @@ for name, block in [
 open(p,'w').write(s)
 PY
 
-  # 补丁 7：OpenHarmony 的 malloc.h 受 SDK API 可用性约束；Samba 的
-  # configure 会把它误判为无条件可用，因此 target 构建不包含该头文件。
+  # 补丁 7：残留 HostCC 任务会错误复用 target 配置；显式交叉构建宏同时
+  # 传给 target 与 HostCC，可靠地避免它们包含 macOS 上不可用的 malloc.h。
   python3 - <<'PY'
 p='lib/replace/replace.h'
 s=open(p).read()
 old="""#ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif"""
-new="""#if defined(HAVE_MALLOC_H) && !defined(__OHOS__)
+new="""#if defined(HAVE_MALLOC_H) && !defined(SAMBA_OHOS_CROSS)
 #include <malloc.h>
 #endif"""
 assert old in s
@@ -543,15 +544,6 @@ configure_samba() {
     --without-ldb-lmdb --without-gettext --without-json \
     --without-systemd --without-libarchive --without-acl-support \
     --without-ldap --without-ads --without-pam
-
-  # Waf still schedules residual HostCC nodes with the target configuration.
-  # Their macOS compiler must not inherit Samba's cross-detected malloc.h.
-  find bin -name config.h -type f -exec sed -i.bak \
-    's/^#define HAVE_MALLOC_H 1$/\/\* #undef HAVE_MALLOC_H \*\//' {} +
-  find bin -name config.h.bak -type f -delete
-  if grep -R -q '^#define HAVE_MALLOC_H 1$' bin; then
-    die "未能禁用错误的 HAVE_MALLOC_H 配置"
-  fi
 }
 
 build_samba() {
