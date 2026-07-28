@@ -215,7 +215,8 @@ jobs:
           if [ -z "${OHOS_NDK:-}" ]; then
             for candidate in \
               "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
-              "$HOME/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony"; do
+              "$HOME/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
+              "/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"; do
               if [ -x "$candidate/native/llvm/bin/clang" ]; then
                 export OHOS_NDK="$candidate"
                 break

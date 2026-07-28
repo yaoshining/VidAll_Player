@@ -200,6 +200,8 @@ assert 'force_build' in workflow, 'CI 必须支持强制重建入口'
 assert 'build-libmpv-with-smb:' in workflow, 'CI 必须在 libsmbclient 成功后执行真实 libmpv 交叉构建'
 assert 'needs: [native-contracts, detect-build-changes, build-libsmbclient]' in workflow, '真实 libmpv 构建必须依赖同次运行的 libsmbclient 制品'
 assert 'name: libsmbclient-ohos-sysroot' in workflow, '真实 libmpv 构建必须下载同次运行的 SMB sysroot 制品'
+libmpv_job = workflow.split('  build-libmpv-with-smb:', 1)[1]
+assert '"/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"' in libmpv_job, '真实 libmpv 构建必须复用带版本的 DevEco NDK 探测路径'
 assert 'VIDALL_PLAYER_SMB_SYSROOT' in workflow, '真实 libmpv 构建必须向引导脚本注入 SMB sysroot'
 assert 'OHOS_NDK_HOME: ${{ env.OHOS_NDK }}' in workflow, '真实 libmpv 构建必须向上游脚本传递已验证的 OpenHarmony NDK'
 assert '安装 libmpv Rust 与下载工具' in workflow, '真实 libmpv 构建必须预先安装 Rust 和下载工具'
