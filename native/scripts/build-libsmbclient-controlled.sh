@@ -377,6 +377,17 @@ for name, block in [
     s = s.replace(block, f"{indent}if not bld.CONFIG_SET('SAMBA_SKIP_HOSTCC'):\n{reindented}")
 open(p,'w').write(s)
 PY
+
+  # 补丁 7：smbclient 交叉构建时禁用 pidl --python，避免 host C 类型
+  #   (timeval, files_struct, db_record, smbXsrv_tcon_table 等) 解析失败。
+  python3 - <<'PY'
+p='source3/librpc/idl/wscript_build'
+s=open(p).read()
+old="options='--includedir=%s --header --ndr-parser --client --python' % topinclude"
+new="options='--includedir=%s --header --ndr-parser --client' % topinclude"
+assert old in s, "smbXsrv pidl --python 选项字符串未找到"
+open(p,'w').write(s.replace(old,new,1))
+PY
 }
 
 # ---------------- 交叉回答 ----------------
