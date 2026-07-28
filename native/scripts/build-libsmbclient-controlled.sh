@@ -503,7 +503,8 @@ PC
         --without-acl-support --without-ldap --without-ads --without-pam && \
       PYTHONHASHSEED=1 python3 buildtools/bin/waf build --targets=compile_et,asn1_compile -j$JOBS"
 
-  local waf_out="$SAMBA_HOST_DIR/bin/default"
+  # HEIMDAL_BINARY 的 target 输出位于模块目录，而不是 bin/default 根目录。
+  local waf_out="$SAMBA_HOST_DIR/bin/default/third_party/heimdal_build"
   if [ ! -x "$waf_out/compile_et" ] || [ ! -x "$waf_out/asn1_compile" ]; then
     die "host 工具生成位置不符预期: $waf_out (compile_et/asn1_compile 不存在)"
   fi
