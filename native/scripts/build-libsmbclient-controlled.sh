@@ -90,7 +90,6 @@ EOF
   done
   # Samba waf 内部硬编码调用 python, macOS 12 runner 不提供 /usr/bin/python,
   # 提供一个指向 python3 的 symlink 以满足 waf 需要。
-  ln -sf "$(command -v python3)" "$WRAPPER_DIR/python"
 }
 
 # ---------------- 源码检出 ----------------
@@ -437,7 +436,7 @@ PC
       PYTHONHASHSEED=1 ./configure --disable-python --without-ad-dc --disable-fault-handling \
         --without-ldb-lmdb --without-gettext --without-json --without-systemd --without-libarchive \
         --without-acl-support --without-ldap --without-ads --without-pam && \
-      PYTHONHASHSEED=1 python buildtools/bin/waf build \
+      PYTHONHASHSEED=1 python3 buildtools/bin/waf build \
         --targets=ROKEN_HOSTCC,HEIMBASE_HOSTCC,LIBREPLACE_HOSTCC,HEIMDAL_VERS_HOSTCC,HEIMDAL_ASN1_GEN_HOSTCC,asn1_compile,compile_et -j$JOBS"
 
   cp "$SAMBA_HOST_DIR/bin/asn1_compile" "$SAMBA_DIR/bin/asn1_compile"
@@ -464,7 +463,7 @@ configure_samba() {
 build_samba() {
   log "交叉构建 Samba libsmbclient"
   cd "$SAMBA_DIR"
-  PYTHONHASHSEED=1 python buildtools/bin/waf build --targets=smbclient -j"$JOBS"
+  PYTHONHASHSEED=1 python3 buildtools/bin/waf build --targets=smbclient -j"$JOBS"
 }
 
 # ---------------- 生成静态库 + pkg-config ----------------
