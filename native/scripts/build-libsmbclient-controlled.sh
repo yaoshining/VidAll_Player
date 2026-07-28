@@ -172,23 +172,7 @@ build_gnutls() {
   # gnutls 的 dlwrap 在未启用 zstd/brotli 时仍包含其头，需提供空桩。
   local stub="$WORK_DIR/gnutls-stubs"; mkdir -p "$stub" "$stub/brotli"
   : > "$stub/zstd.h"; : > "$stub/brotli/encode.h"; : > "$stub/brotli/decode.h"; : > "$stub/brotli/common.h"
-  # musl 不提供 GNU error.h, 提供最小桩以通过 gnutls configure 检查。
-  cat > "$stub/error.h" <<'ERRH'
-#ifndef _ERROR_H_STUB
-#define _ERROR_H_STUB
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdlib.h>
-static inline void error(int status, int errnum, const char *format, ...) {
-  va_list ap; va_start(ap, format);
-  vfprintf(stderr, format, ap); va_end(ap);
-  if (errnum) fprintf(stderr, ": %s", strerror(errnum));
-  fputc('\n', stderr);
-  if (status) exit(status);
-}
-#endif
-ERRH
+  # --with-included-unistring 后 gnutls 自带 gnulib 提供 error.h/error.c, 无需手动桩
   ( cd "$d"
     ./configure --host="$HOST_TRIPLET" --prefix="$PREFIX" --enable-static --disable-shared --with-pic \
       --disable-doc --disable-tests --disable-tools --disable-cxx --disable-maintainer-mode \
