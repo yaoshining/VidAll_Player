@@ -93,6 +93,13 @@ setup_cross_env() {
   export CFLAGS="-fPIC -D__MUSL__=1 -I$PREFIX/include"
   export CXXFLAGS="-fPIC -D__MUSL__=1 -I$PREFIX/include"
   export LDFLAGS="-L$PREFIX/lib"
+  # Samba 通过 pkg-config 取得 GnuTLS 链接参数。静态 GnuTLS 的 ASN.1、zlib、
+  # nettle 等传递依赖仅会由 --static 输出，避免 Waf 链接 genrand 时漏库。
+  cat > "$WRAPPER_DIR/pkg-config" <<'EOF'
+#!/usr/bin/env bash
+exec /usr/bin/pkg-config --static "$@"
+EOF
+  chmod +x "$WRAPPER_DIR/pkg-config"
   # waf find_program('clang') 会优先命中这些包装器，确保交叉语义不被宿主 clang 覆盖。
   for w in clang clang++ cc c++; do
     local real=$w
