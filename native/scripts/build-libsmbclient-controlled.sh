@@ -407,11 +407,30 @@ build_host_tools() {
   mkdir -p "$SAMBA_HOST_DIR/bin"
   [ -f "$SAMBA_HOST_DIR/bin/wscript" ] || printf 'def build(bld):\n    pass\n' > "$SAMBA_HOST_DIR/bin/wscript"
 
-  # 原生环境（清空交叉变量）。
-  local saved_env; saved_env=$(env)
-  env -i HOME="$HOME" PATH="/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin" \
+  # host 构建只需 compile_et / asn1_compile, 不实际链接 GnuTLS。
+  # 提供占位 gnutls.pc 以通过 Samba configure 的 mandatory CHECK_CFG 版本检查。
+  # CHECK_CFG 仅调用 pkg-config 检查版本, 不编译测试程序; 后续非 mandatory 的
+  # CHECK_CODE(fips) 会失败但不阻断 configure。
+  local host_pc="$WORK_DIR/host-pkgconfig"; mkdir -p "$host_pc/gnutls"
+  cat > "$host_pc/gnutls.pc" <<'PC'
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: GnuTLS
+Description: GnuTLS placeholder for host tool build
+Version: 3.8.0
+Cflags: -I${includedir}
+Libs: -L${libdir} -lgnutls
+PC
+  : > "$host_pc/gnutls/gnutls.h"
+
+  # 原生环境（清空交叉变量）。覆盖 x64(/usr/local) 和 arm64(/opt/homebrew) Homebrew 路径。
+  env -i HOME="$HOME" PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin" \
+    PKG_CONFIG_PATH="$host_pc:/usr/local/lib/pkgconfig:/opt/homebrew/lib/pkgconfig:/usr/lib/pkgconfig" \
     bash -c "cd '$SAMBA_HOST_DIR' && \
-      unset CC CXX CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH PKG_CONFIG_LIBDIR && \
+      unset CC CXX CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_LIBDIR && \
       PYTHONHASHSEED=1 ./configure --disable-python --without-ad-dc --disable-fault-handling \
         --without-ldb-lmdb --without-gettext --without-json --without-systemd --without-libarchive \
         --without-acl-support --without-ldap --without-ads --without-pam && \
