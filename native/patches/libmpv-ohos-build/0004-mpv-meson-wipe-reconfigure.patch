@@ -1,8 +1,8 @@
 diff --git a/scripts/mpv.sh b/scripts/mpv.sh
-index 8552819..41c3632 100755
+index 786bd51..b929c0a 100755
 --- a/scripts/mpv.sh
 +++ b/scripts/mpv.sh
-@@ -21,6 +21,7 @@ mkdir -p .build
+@@ -21,12 +21,13 @@ mkdir -p .build
  cd .build
  
  meson setup .. \
@@ -10,3 +10,10 @@ index 8552819..41c3632 100755
    --cross-file $ROOT_DIR/libmpv/arm64-crossfile.ini \
    --prefix=$DEST/mpv \
    --default-library shared \
+   --strip \
+   -Dohos=enabled \
+-  -Dgpl=false
++  -Dgpl=true
+ 
+ ninja
+ meson install

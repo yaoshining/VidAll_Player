@@ -198,15 +198,19 @@ main() {
   [ "$harfbuzz_line" -lt "$freetype_line" ] || \
     fail "harfbuzz.sh（行 $harfbuzz_line）应在 freetype.sh（行 $freetype_line）之前，freetype 才能稳定链接 harfbuzz"
 
-  # FFmpeg configure 显式启用 libxml2 与 dash demuxer
+  # FFmpeg configure 显式启用 libxml2、DASH 与静态 libsmbclient。
   ffmpeg_sh="$work_dir/scripts/ffmpeg.sh"
   grep -q -- '--enable-libxml2' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-libxml2"
   grep -q -- '--enable-demuxer=dash' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-demuxer=dash"
+  grep -q -- '--enable-gpl' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-gpl（libsmbclient 为 GPLv3）"
+  grep -q -- '--enable-libsmbclient' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-libsmbclient"
 
   # 问题 C：mpv.sh 的 meson setup 须带 --wipe，避免缓存命中时复用 stale .build
   # 导致 build.ninja 退化为只构建静态库（libmpv.a），mv libmpv.so 失败
   local mpv_sh="$work_dir/scripts/mpv.sh"
   grep -q -- '--wipe' "$mpv_sh" || fail "mpv.sh 缺少 --wipe（缓存命中时 meson 会复用 stale .build 配置）"
+  grep -q -- '-Dgpl=true' "$mpv_sh" || fail "mpv.sh 缺少 -Dgpl=true"
+  ! grep -q -- '-Dgpl=false' "$mpv_sh" || fail "mpv.sh 不应禁用 GPL 功能"
 
   # 幂等性：重复应用已应用补丁应跳过而非报错
   apply_build_script_patches "$work_dir" "$PATCHES_DIR" \

@@ -39,6 +39,8 @@ native/scripts/verify-reproducible-artifacts.sh \
 
 ## 许可证门禁
 
-MPV 为 GPL-2.0-or-later，FFmpeg、libplacebo 与 FriBidi 等可能带来 LGPL 义务。`license-audit.json` 的 `review-required` 是发布阻断条件：必须确认实际链接方式、启用的 FFmpeg 编解码器、完整许可证文本、NOTICE 和对应源码获取方式后，才能签出 release tag。
+MPV 为 GPL-2.0-or-later；受控 SMB 路径静态链接 Samba `libsmbclient`（GPL-3.0-or-later），并要求 FFmpeg 使用 `--enable-gpl --enable-libsmbclient`、mpv 使用 `-Dgpl=true`。因此，包含该 SMB 路径的最终 `libmpv.so` 和随附制品按 GPLv3 发布，不能以 LGPL 或无 SMB 支持的制品描述替代。
 
-发布 tag 必须附带 changelog、已知限制、上述全部审计制品和可重复构建报告。当前受控脚本不包含交叉工具链适配层，不能将其“跳过编译”模式解释为生产构建已经完成。
+`license-audit.json` 的 `review-required` 是发布阻断条件：必须确认静态链接方式、完整 Samba 传递依赖闭包、启用的 FFmpeg 编解码器、完整许可证文本、NOTICE，以及与对应精确源码和构建脚本一同提供的源码获取方式后，才能签出 release tag。ELF 审计必须禁止动态 `libsmbclient.so`；SMB 代码只能通过受审计的静态闭包进入最终制品。
+
+发布 tag 必须附带 changelog、已知限制、上述全部审计制品、可重复构建报告和 GPLv3 源码提供说明。当前受控脚本不包含完整交叉工具链适配层，不能将其“跳过编译”模式解释为生产构建已经完成。

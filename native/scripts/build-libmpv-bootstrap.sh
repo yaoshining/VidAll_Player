@@ -50,6 +50,33 @@ mark_dependency_cache_prepared() {
   mv -- "$temporary_marker" "$commit_marker"
 }
 
+# 将经 CI 校验的静态 SMB sysroot 注入 FFmpeg 和 mpv 共用的 DEST。
+# 未设置变量时保留不含 SMB 的历史引导路径，以便基础构建仍可复用。
+prepare_smb_sysroot() {
+  local dest="$1"
+  local smb_sysroot="${VIDALL_PLAYER_SMB_SYSROOT:-}"
+
+  if [ -z "$smb_sysroot" ]; then
+    return 0
+  fi
+
+  local required
+  for required in \
+    'lib/libsmbclient.a' \
+    'lib/pkgconfig/smbclient.pc' \
+    'include/libsmbclient.h'; do
+    if [ ! -f "$smb_sysroot/$required" ]; then
+      echo "SMB sysroot 缺少必需文件：$smb_sysroot/$required" >&2
+      return 1
+    fi
+  done
+
+  mkdir -p "$dest/lib/pkgconfig" "$dest/include"
+  cp "$smb_sysroot/lib/"*.a "$dest/lib/"
+  cp "$smb_sysroot/lib/pkgconfig/smbclient.pc" "$dest/lib/pkgconfig/smbclient.pc"
+  cp "$smb_sysroot/include/"*.h "$dest/include/"
+}
+
 # 还原依赖源码到下载时的干净状态，确保补丁可以幂等应用。
 # 缓存命中时 download.sh 会跳过已有目录，但 patch.sh 需要干净的工作树。
 # 仅对 patches/<dep>/ 存在的依赖执行还原：重置无补丁的依赖（如 freetype）
@@ -148,6 +175,7 @@ chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 reset_dependency_sources "$WORK_DIR"
 ./patch.sh
 apply_build_script_patches "$WORK_DIR" "$ROOT_DIR/native/patches/libmpv-ohos-build"
+prepare_smb_sysroot "$WORK_DIR/libmpv/arm64-build"
 mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA:$PATCHSET_DIGEST"
 ./build.sh
 (

@@ -39,6 +39,25 @@ main() {
   invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit:2'
   assert_missing "$work_dir/libmpv/ffmpeg"
 
+  # 当调用方提供已验证的 SMB sysroot 时，引导脚本必须将其注入 FFmpeg 使用的 DEST。
+  local smb_sysroot="$temp_dir/smb-sysroot"
+  mkdir -p "$smb_sysroot/lib/pkgconfig" "$smb_sysroot/include"
+  printf 'archive\n' > "$smb_sysroot/lib/libsmbclient.a"
+  printf 'transitive archive\n' > "$smb_sysroot/lib/libgnutls.a"
+  printf 'pc\n' > "$smb_sysroot/lib/pkgconfig/smbclient.pc"
+  printf 'header\n' > "$smb_sysroot/include/libsmbclient.h"
+  printf 'transitive header\n' > "$smb_sysroot/include/gnutls.h"
+  VIDALL_PLAYER_SMB_SYSROOT="$smb_sysroot" prepare_smb_sysroot "$work_dir/libmpv/arm64-build"
+  assert_file_content "$work_dir/libmpv/arm64-build/lib/libsmbclient.a" 'archive'
+  assert_file_content "$work_dir/libmpv/arm64-build/lib/libgnutls.a" 'transitive archive'
+  assert_file_content "$work_dir/libmpv/arm64-build/lib/pkgconfig/smbclient.pc" 'pc'
+  assert_file_content "$work_dir/libmpv/arm64-build/include/libsmbclient.h" 'header'
+  assert_file_content "$work_dir/libmpv/arm64-build/include/gnutls.h" 'transitive header'
+
+  if VIDALL_PLAYER_SMB_SYSROOT="$temp_dir/missing-smb-sysroot" prepare_smb_sysroot "$work_dir/libmpv/arm64-build"; then
+    fail '不完整的 SMB sysroot 必须被拒绝'
+  fi
+
   mkdir -p "$work_dir/libmpv/ffmpeg"
   mark_dependency_cache_prepared "$work_dir" 'new-build-commit:2'
   assert_file_content "$work_dir/.vidall-player-build-commit" 'new-build-commit:2'

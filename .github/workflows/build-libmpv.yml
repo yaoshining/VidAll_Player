@@ -191,10 +191,73 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: libsmbclient-ohos-sysroot
+          path: ~/.cache/vidall-player/smb-sysroot
+          if-no-files-found: error
+
+  build-libmpv-with-smb:
+    name: 交叉构建 libmpv（静态 SMB，OpenHarmony ARM64）
+    needs: [native-contracts, detect-build-changes, build-libsmbclient]
+    if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' && needs.build-libsmbclient.result == 'success' }}
+    runs-on: [self-hosted, macos, deveco]
+    timeout-minutes: 180
+    steps:
+      - name: 检出项目
+        uses: actions/checkout@v4
+      - name: 下载同次构建的 libsmbclient sysroot
+        uses: actions/download-artifact@v4
+        with:
+          name: libsmbclient-ohos-sysroot
+          path: ${{ runner.temp }}/smb-sysroot
+      - name: 验证 OpenHarmony NDK 与 SMB sysroot
+        env:
+          SMB_SYSROOT: ${{ runner.temp }}/smb-sysroot
+        run: |
+          if [ -z "${OHOS_NDK:-}" ]; then
+            for candidate in \
+              "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
+              "$HOME/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony"; do
+              if [ -x "$candidate/native/llvm/bin/clang" ]; then
+                export OHOS_NDK="$candidate"
+                break
+              fi
+            done
+          fi
+          test -n "${OHOS_NDK:-}"
+          test -x "$OHOS_NDK/native/llvm/bin/clang"
+          test -s "$SMB_SYSROOT/lib/libsmbclient.a"
+          test -f "$SMB_SYSROOT/lib/pkgconfig/smbclient.pc"
+          test -f "$SMB_SYSROOT/include/libsmbclient.h"
+          echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
+      - name: 缓存锁定的 libmpv 构建源码
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/vidall-player/libmpv-ohos-build
+          key: libmpv-ohos-build-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', 'native/patches/libmpv-ohos-build/*.patch') }}
+      - name: 构建静态包含 SMB 的 libmpv
+        env:
+          OHOS_NDK_HOME: ${{ env.OHOS_NDK }}
+          VIDALL_PLAYER_SMB_SYSROOT: ${{ runner.temp }}/smb-sysroot
+        run: native/scripts/build-libmpv-bootstrap.sh
+      - name: 审计 ARM64 libmpv 未动态依赖 libsmbclient
+        env:
+          LIBMPV: dist/libmpv/arm64-v8a/libmpv.so
+        run: |
+          test -s "$LIBMPV"
+          READELF="$OHOS_NDK/native/llvm/bin/llvm-readelf"
+          "$READELF" -h "$LIBMPV" | grep -F 'Machine:' | grep -E 'AArch64|aarch64'
+          if "$READELF" -d "$LIBMPV" | grep -F 'libsmbclient.so'; then
+            echo 'libmpv 不得动态链接 libsmbclient.so。' >&2
+            exit 1
+          fi
+          "$OHOS_NDK/native/llvm/bin/llvm-nm" --defined-only "$LIBMPV" \
+            | grep -E ' smbc_(open|read|init_context|opendir|readdir|stat|close)$' >/dev/null
+      - name: 上传静态 SMB libmpv 制品
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmpv-arm64-with-smb
           path: |
-            ~/.cache/vidall-player/smb-sysroot/lib/libsmbclient.a
-            ~/.cache/vidall-player/smb-sysroot/lib/pkgconfig/smbclient.pc
-            ~/.cache/vidall-player/smb-sysroot/include/libsmbclient.h
+            dist/libmpv/arm64-v8a/libmpv.so
+            dist/libmpv/arm64-v8a/libmpv.so.sha256
           if-no-files-found: error
 
   cross-build-prerequisites:
@@ -281,7 +344,7 @@ jobs:
           rm -rf "$AUDIT_DIR"
           mkdir -p "$AUDIT_DIR/source/mpv" "$AUDIT_DIR/source/ffmpeg"
           printf '%s\n' --enable-static > "$AUDIT_DIR/source/ffmpeg/configure-options.txt"
-          printf '%s\n' -Dgpl=false > "$AUDIT_DIR/source/mpv/meson-options.txt"
+          printf '%s\n' -Dgpl=true > "$AUDIT_DIR/source/mpv/meson-options.txt"
           native/scripts/generate-libmpv-manifest.sh --lock native/config/sources.lock.json --source "$AUDIT_DIR/source" --output "$AUDIT_DIR/feature-manifest.json" --abi arm64-v8a --min-sdk 15 --build-time 0
           native/scripts/generate-sbom.sh --lock native/config/sources.lock.json --format spdx --output "$AUDIT_DIR/sbom.spdx.json"
           native/scripts/generate-sbom.sh --lock native/config/sources.lock.json --format cyclonedx --output "$AUDIT_DIR/sbom.cdx.json"

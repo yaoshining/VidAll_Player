@@ -61,11 +61,14 @@ for name, value in sources.items():
 samba_build = sources['samba'].get('build', {})
 assert samba_build.get('pkgConfigModule') == 'smbclient'
 assert samba_build.get('dependencyClosureStatus') == 'complete', 'Samba 依赖闭包必须已交叉构建验证完成'
+assert samba_build.get('linkage') == 'static', 'libsmbclient 必须静态链接进最终制品'
+policy = lock.get('licensePolicy', {})
+assert 'GPL-3.0-or-later' in policy.get('releaseRequiresReview', []), 'Samba GPLv3 必须阻断未经审查的发布'
 PY
 
   mkdir -p "$source_dir/mpv" "$source_dir/ffmpeg" "$source_dir/samba"
-  printf '%s\n' '--enable-static' '--disable-shared' '--enable-demuxer=dash' '--enable-libsmbclient' > "$source_dir/ffmpeg/configure-options.txt"
-  printf '%s\n' '-Dgpl=false' '-Dohos=enabled' > "$source_dir/mpv/meson-options.txt"
+  printf '%s\n' '--enable-static' '--disable-shared' '--enable-gpl' '--enable-demuxer=dash' '--enable-libsmbclient' > "$source_dir/ffmpeg/configure-options.txt"
+  printf '%s\n' '-Dgpl=true' '-Dohos=enabled' > "$source_dir/mpv/meson-options.txt"
   printf '%s\n' 'dash' 'hls' > "$source_dir/ffmpeg/demuxers.txt"
   printf '%s\n' 'https' 'http' 'libsmbclient' > "$source_dir/ffmpeg/protocols.txt"
   printf '%s\n' 'h264' 'hevc' > "$source_dir/ffmpeg/decoders.txt"
@@ -82,10 +85,11 @@ m = json.load(open(sys.argv[1], encoding='utf-8'))
 assert m['abi'] == 'arm64-v8a'
 assert m['minSdk'] == 15
 assert m['buildTime'] == '1970-01-01T00:00:00Z'
+assert '--enable-gpl' in m['ffmpeg']['configureOptions']
 assert '--enable-libsmbclient' in m['ffmpeg']['configureOptions']
 assert m['ffmpeg']['components']['demuxers'] == ['dash', 'hls']
 assert 'libsmbclient' in m['ffmpeg']['components']['protocols']
-assert m['mpv']['mesonOptions'] == ['-Dgpl=false', '-Dohos=enabled']
+assert m['mpv']['mesonOptions'] == ['-Dgpl=true', '-Dohos=enabled']
 assert m['dynamicDependencies'] == ['libc++.so', 'libhilog_ndk.z.so']
 PY
 
@@ -174,6 +178,9 @@ PY
   grep -Fq '#if defined(HAVE_ETHTOOL) && !defined(__OHOS__)' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'OHOS 交叉构建不得链接不完整的 Linux ethtool API'
   grep -Fq 'export PKG_CONFIG_BIN="$(command -v pkg-config)"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '必须导出宿主 pkg-config 的实际位置给包装器'
   grep -Fq 'exec "$PKG_CONFIG_BIN" --static "$@"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'Samba 必须解析 GnuTLS 静态传递依赖'
+  grep -Fq -- '--enable-gpl' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch" || fail 'FFmpeg 补丁必须启用 GPL'
+  grep -Fq -- '--enable-libsmbclient' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch" || fail 'FFmpeg 补丁必须启用 libsmbclient'
+  grep -Fq -- '-Dgpl=true' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch" || fail 'mpv 补丁必须启用 GPL'
 
   python3 - "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" <<'PY'
 from pathlib import Path
@@ -190,6 +197,16 @@ assert 'inputs.run_cross_build' in workflow, 'CI 必须保留手动受控调度�
 assert 'detect-build-changes' in workflow, 'CI 必须检测构建脚本变更以按需触发交叉构建'
 assert 'cache-hit' in workflow, 'CI 必须对 libsmbclient 交叉构建启用缓存命中跳过'
 assert 'force_build' in workflow, 'CI 必须支持强制重建入口'
+assert 'build-libmpv-with-smb:' in workflow, 'CI 必须在 libsmbclient 成功后执行真实 libmpv 交叉构建'
+assert 'needs: [native-contracts, detect-build-changes, build-libsmbclient]' in workflow, '真实 libmpv 构建必须依赖同次运行的 libsmbclient 制品'
+assert 'name: libsmbclient-ohos-sysroot' in workflow, '真实 libmpv 构建必须下载同次运行的 SMB sysroot 制品'
+assert 'VIDALL_PLAYER_SMB_SYSROOT' in workflow, '真实 libmpv 构建必须向引导脚本注入 SMB sysroot'
+assert 'OHOS_NDK_HOME: ${{ env.OHOS_NDK }}' in workflow, '真实 libmpv 构建必须向上游脚本传递已验证的 OpenHarmony NDK'
+assert 'build-libmpv-bootstrap.sh' in workflow, '真实 libmpv 构建必须执行受控引导脚本'
+assert 'llvm-readelf' in workflow and "grep -F 'libsmbclient.so'" in workflow, '真实 libmpv 构建必须拒绝动态 libsmbclient.so'
+assert 'libmpv-arm64-with-smb' in workflow, '真实 libmpv 构建必须上传 ARM64 SMB 制品'
+assert "printf '%s\\n' -Dgpl=true" in workflow, 'CI 元数据必须声明 GPL 构建选项'
+assert '-Dgpl=false' not in workflow, 'CI 不得再生成禁用 GPL 的 libmpv 元数据'
 assert 'direct SMB 已可播放' not in workflow, 'CI 不得在未完成真机验证时宣称 direct SMB 可播放'
 PY
 
