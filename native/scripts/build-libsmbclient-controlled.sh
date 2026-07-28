@@ -490,14 +490,18 @@ PC
   : > "$host_pc/gnutls/gnutls.h"
 
   # 原生环境（清空交叉变量）。覆盖 x64(/usr/local) 和 arm64(/opt/homebrew) Homebrew 路径。
+  # 同时透传 -I/-L 让 waf 完整 build 中触发 genrand.c 等引用 gnutls.h 的源文件能找到头。
+  # host build 不需要真的链接 gnutls, 仅需 include 可见。
   env -i HOME="$HOME" PATH="$PREFIX/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin" \
     PKG_CONFIG_PATH="$host_pc:/usr/local/lib/pkgconfig:/opt/homebrew/lib/pkgconfig:/usr/lib/pkgconfig" \
     bash -c "cd '$SAMBA_HOST_DIR' && \
-      unset CC CXX CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_LIBDIR && \
+      unset CC CXX PKG_CONFIG_LIBDIR && \
+      export CFLAGS='-I$PREFIX/include' CXXFLAGS='-I$PREFIX/include' \
+             CPPFLAGS='-I$PREFIX/include' LDFLAGS='-L$PREFIX/lib' && \
       PYTHONHASHSEED=1 ./configure --disable-python --without-ad-dc --disable-fault-handling \
         --without-ldb-lmdb --without-gettext --without-json --without-systemd --without-libarchive \
         --without-acl-support --without-ldap --without-ads --without-pam && \
-      PYTHONHASHSEED=1 python3 buildtools/bin/waf build -j$JOBS"
+      PYTHONHASHSEED=1 python3 buildtools/bin/waf build --targets=compile_et,asn1_compile -j$JOBS"
 
   local waf_out="$SAMBA_HOST_DIR/bin/default"
   if [ ! -x "$waf_out/compile_et" ] || [ ! -x "$waf_out/asn1_compile" ]; then
