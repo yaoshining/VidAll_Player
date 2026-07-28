@@ -60,6 +60,22 @@ clean_src() {
   done
 }
 
+# ---------------- 现代 bison（macOS 12 系统 bison 2.3 过旧） ----------------
+build_modern_bison() {
+  if bison --version | head -1 | grep -qE "GNU Bison [3-9]"; then
+    log "检测到现代 bison: $(bison --version | head -1)"
+    return 0
+  fi
+  log "构建 bison 3.8.2 (替换过旧系统版本)"
+  local d="$WORK_DIR/bison-3.8.2"
+  if [ ! -d "$d" ]; then
+    fetch_extract https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz bison-3.8.2 || return 1
+  fi
+  ( cd "$d" && ./configure --prefix="$PREFIX" --disable-doc     && make -j"$JOBS" && make install ) || return 1
+  export PATH="$PREFIX/bin:$PATH"
+  log "已安装 bison: $($PREFIX/bin/bison --version | head -1)"
+}
+
 # ---------------- 交叉环境 ----------------
 setup_cross_env() {
   export OHOS_NDK SYSROOT TOOLCHAIN TARGET PREFIX WRAPPER_DIR
@@ -474,7 +490,7 @@ PC
   : > "$host_pc/gnutls/gnutls.h"
 
   # 原生环境（清空交叉变量）。覆盖 x64(/usr/local) 和 arm64(/opt/homebrew) Homebrew 路径。
-  env -i HOME="$HOME" PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin" \
+  env -i HOME="$HOME" PATH="$PREFIX/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin" \
     PKG_CONFIG_PATH="$host_pc:/usr/local/lib/pkgconfig:/opt/homebrew/lib/pkgconfig:/usr/lib/pkgconfig" \
     bash -c "cd '$SAMBA_HOST_DIR' && \
       unset CC CXX CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_LIBDIR && \
@@ -545,6 +561,7 @@ EOF
 # ---------------- 主流程 ----------------
 main() {
   fetch_samba
+  build_modern_bison || die "无法提供现代 bison"
   setup_cross_env
   clean_src
   build_dependencies
