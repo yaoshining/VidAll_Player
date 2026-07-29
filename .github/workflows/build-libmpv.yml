@@ -267,18 +267,33 @@ jobs:
           path: ~/.cache/vidall-player/libmpv-ohos-build
           key: libmpv-ohos-build-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', 'native/patches/libmpv-ohos-build/*.patch') }}
       - name: 安装 libmpv Rust 与下载工具
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: '1'
         run: |
-          command -v brew >/dev/null 2>&1 || {
-            echo 'Homebrew 未安装；无法准备受控 libmpv 构建工具。' >&2
+          command -v curl >/dev/null 2>&1 || {
+            echo '缺少 curl，无法准备受控 libmpv 构建工具。' >&2
             exit 1
           }
-          command -v wget >/dev/null 2>&1 || brew install wget rustup-init
-          command -v rustup >/dev/null 2>&1 || {
-            rustup-init -y --profile minimal --default-toolchain stable
-            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          }
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain stable
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+          # 上游下载脚本只以 `wget -qO - <url>` 拉取 rustup；用受限 shim 避开
+          # self-hosted macOS 上损坏的 Homebrew openssl@3 依赖，其他调用会明确拒绝。
+          TOOL_DIR="$RUNNER_TEMP/libmpv-tools"
+          mkdir -p "$TOOL_DIR"
+          cat > "$TOOL_DIR/wget" <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          if [ "$#" -ne 3 ] || [ "${1:-}" != '-qO' ] || [ "${2:-}" != '-' ]; then
+            echo 'wget shim 仅支持：wget -qO - <https-url>' >&2
+            exit 2
+          fi
+          url="$3"
+          exec curl -fsSL "$url"
+          EOF
+          chmod +x "$TOOL_DIR/wget"
+          echo "$TOOL_DIR" >> "$GITHUB_PATH"
       - name: 构建静态包含 SMB 的 libmpv
         env:
           OHOS_NDK_HOME: ${{ env.OHOS_NDK }}
