@@ -50,6 +50,18 @@ mark_dependency_cache_prepared() {
   mv -- "$temporary_marker" "$commit_marker"
 }
 
+# macOS 自带 shasum 而不提供 GNU sha256sum。
+write_sha256() {
+  local input="$1"
+  local output="$2"
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$input" > "$output"
+  else
+    shasum -a 256 "$input" > "$output"
+  fi
+}
+
 # 将经 CI 校验的静态 SMB sysroot 注入 FFmpeg 和 mpv 共用的 DEST。
 # 未设置变量时保留不含 SMB 的历史引导路径，以便基础构建仍可复用。
 prepare_smb_sysroot() {
@@ -213,5 +225,6 @@ if [ -z "$LIBMPV_PATH" ]; then
   echo '构建输出中缺少 libmpv.so。' >&2
   exit 1
 fi
-sha256sum "$LIBMPV_PATH" | tee "$OUTPUT_DIR/libmpv.so.sha256"
+write_sha256 "$LIBMPV_PATH" "$OUTPUT_DIR/libmpv.so.sha256"
+cat "$OUTPUT_DIR/libmpv.so.sha256"
 echo "已生成：$LIBMPV_PATH"

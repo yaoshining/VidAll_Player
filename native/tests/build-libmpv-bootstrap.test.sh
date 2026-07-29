@@ -44,6 +44,13 @@ main() {
     fail '引导脚本不得依赖 macOS Bash 3.2 不支持的 mapfile'
   fi
 
+  # macOS 不提供 sha256sum；发布摘要必须回退到随系统提供的 shasum。
+  local hash_input="$temp_dir/libmpv.so"
+  local hash_output="$temp_dir/libmpv.so.sha256"
+  printf 'libmpv artifact\n' > "$hash_input"
+  write_sha256 "$hash_input" "$hash_output"
+  grep -Eq '^[0-9a-f]{64}[[:space:]]+' "$hash_output" || fail 'libmpv SHA-256 摘要格式无效'
+
   # 当调用方提供已验证的 SMB sysroot 时，引导脚本必须将其注入 FFmpeg 使用的 DEST。
   local smb_sysroot="$temp_dir/smb-sysroot"
   mkdir -p "$smb_sysroot/lib/pkgconfig" "$smb_sysroot/include"
