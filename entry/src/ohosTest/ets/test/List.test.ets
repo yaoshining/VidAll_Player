@@ -5,6 +5,7 @@ import mediaKindDetectionTest from './player/MediaKindDetection.test';
 import demoLifecycleTest from './player/DemoLifecycle.test';
 import trackPresentationTest from './TrackPresentation.test';
 import webDavServiceTest from './webdav/WebDavService.test';
+import sessionInfrastructureTest from './SessionInfrastructure.test';
 
 export default function testsuite(): void {
   playerSessionTest();
@@ -14,4 +15,5 @@ export default function testsuite(): void {
   demoLifecycleTest();
   trackPresentationTest();
   webDavServiceTest();
+  sessionInfrastructureTest();
 }

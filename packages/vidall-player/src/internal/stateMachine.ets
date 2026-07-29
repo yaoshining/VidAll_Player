@@ -8,10 +8,31 @@ export class SessionStateMachine {
   private state: PlayerState = 'idle';
   private phase: ReleasePhase = 'open';
   private sequence: number = 0;
+  private eventEpoch: number = 0;
+  private surfaceGeneration?: number;
   private readonly listeners: EventListener[] = [];
 
   getState(): PlayerState { return this.state; }
   getReleasePhase(): ReleasePhase { return this.phase; }
+
+  advanceEventEpoch(): number {
+    this.eventEpoch += 1;
+    return this.eventEpoch;
+  }
+
+  setSurfaceGeneration(generation: number | undefined): void {
+    this.surfaceGeneration = generation;
+  }
+
+  emitIncoming(event: PlayerEvent): boolean {
+    if (this.phase === 'closed' || event.eventEpoch !== this.eventEpoch ||
+      (event.type === 'firstFrame' && event.surfaceGeneration === undefined) ||
+      (event.surfaceGeneration !== undefined && event.surfaceGeneration !== this.surfaceGeneration)) {
+      return false;
+    }
+    this.emit(event);
+    return true;
+  }
 
   subscribe(listener: EventListener): () => void {
     this.listeners.push(listener);
@@ -46,6 +67,7 @@ export class SessionStateMachine {
     if (this.phase === 'closed' && event.type !== 'closed') { return; }
     this.sequence += 1;
     event.sequence = this.sequence;
+    event.eventEpoch = this.eventEpoch;
     const listeners = this.listeners.slice();
     for (let index = 0; index < listeners.length; index++) { listeners[index](event); }
   }
