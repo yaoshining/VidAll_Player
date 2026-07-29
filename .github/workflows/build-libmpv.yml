@@ -337,9 +337,9 @@ jobs:
               ;;
           esac
           if [ "$output" = '-' ]; then
-            exec curl -fsSL "$url"
+            exec curl -fsSL --retry 5 --retry-all-errors "$url"
           fi
-          exec curl -fsSL "$url" --output "$output"
+          exec curl -fsSL --retry 5 --retry-all-errors "$url" --output "$output"
           EOF
           chmod +x "$TOOL_DIR/wget"
           cat > "$TOOL_DIR/git" <<'EOF'
