@@ -12,9 +12,13 @@ export interface ApiLevelProvider {
 }
 
 export class CapabilityProbe {
-  constructor(private readonly apiLevelProvider: ApiLevelProvider) {}
+  private readonly apiLevelProvider: ApiLevelProvider;
 
-  evaluate(name: string, minimumApi: number, fallback: Exclude<CapabilityFallback, 'supported'>): CapabilityDecision {
+  constructor(apiLevelProvider: ApiLevelProvider) {
+    this.apiLevelProvider = apiLevelProvider;
+  }
+
+  evaluate(name: string, minimumApi: number, fallback: 'rejected' | 'no-op' | 'software-fallback'): CapabilityDecision {
     const currentApi = this.apiLevelProvider.getApiLevel();
     return {
       name,

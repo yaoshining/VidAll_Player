@@ -44,6 +44,7 @@ export class PlayerSession implements VidAllPlayer {
         return;
       }
       this.surface = surface;
+      this.stateMachine.setSurfaceGeneration(surface.generation);
     });
   }
 
@@ -54,6 +55,7 @@ export class PlayerSession implements VidAllPlayer {
         throw lifecycleFailure('INVALID_SURFACE_GENERATION', 'Surface generation is not attached.');
       }
       this.surface = surface;
+      this.stateMachine.setSurfaceGeneration(surface.generation);
     });
   }
 
@@ -61,6 +63,7 @@ export class PlayerSession implements VidAllPlayer {
     return this.enqueue('detachSurface', () => {
       if (this.surface !== undefined && this.surface.generation === generation) {
         this.surface = undefined;
+        this.stateMachine.setSurfaceGeneration(undefined);
       }
     });
   }
@@ -84,6 +87,7 @@ export class PlayerSession implements VidAllPlayer {
       // 串行切源：先终止旧媒体、释放旧 SMB 代理租约并清空轨道与恢复记录，
       // 避免旧连接、旧租约或旧轨道泄漏到新媒体会话。
       this.abortActiveMedia('source-switch');
+      this.stateMachine.advanceEventEpoch();
       this.source = source;
       this.tracks = this.createExternalAudioTracks(source.externalAudio).concat(
         this.createExternalSubtitleTracks(source.externalSubtitles, source.externalAudio?.length ?? 0)
@@ -208,6 +212,10 @@ export class PlayerSession implements VidAllPlayer {
     return this.stateMachine.subscribe(listener);
   }
 
+  reportNativeEvent(event: PlayerEvent): boolean {
+    return this.stateMachine.emitIncoming(event);
+  }
+
   stop(): Promise<void> {
     return this.enqueue('stop', () => {
       const state = this.stateMachine.getState();
@@ -232,6 +240,7 @@ export class PlayerSession implements VidAllPlayer {
       this.releaseLeases('release');
       this.stateMachine.release();
       this.surface = undefined;
+      this.stateMachine.setSurfaceGeneration(undefined);
       this.source = undefined;
       this.tracks = [];
       resolve();
