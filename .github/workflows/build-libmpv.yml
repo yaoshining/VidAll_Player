@@ -227,20 +227,37 @@ jobs:
             echo '未找到 OpenHarmony NDK。' >&2
             exit 1
           }
-          test -x "$OHOS_NDK/native/llvm/bin/clang"
+          test -x "$OHOS_NDK/native/llvm/bin/clang" || {
+            echo "OpenHarmony clang 不可执行：$OHOS_NDK/native/llvm/bin/clang" >&2
+            exit 1
+          }
 
           # upload-artifact/download-artifact 会随 action 版本改变是否保留顶层目录；
           # 以唯一的静态归档标记定位实际 sysroot，而不是猜测其解压层级。
-          SMB_ARCHIVE="$(find "$SMB_DOWNLOAD_ROOT" -type f -path '*/lib/libsmbclient.a' -print -quit)"
+          test -d "$SMB_DOWNLOAD_ROOT" || {
+            echo "缺少 SMB artifact 下载目录：$SMB_DOWNLOAD_ROOT" >&2
+            exit 1
+          }
+          SMB_ARCHIVE="$(find "$SMB_DOWNLOAD_ROOT" -type f -path '*/lib/libsmbclient.a' -print -quit 2>/dev/null || true)"
           test -n "$SMB_ARCHIVE" || {
             echo '未在下载制品中找到 libsmbclient.a。' >&2
             find "$SMB_DOWNLOAD_ROOT" -maxdepth 3 -type d -print >&2
             exit 1
           }
           SMB_SYSROOT="$(cd "$(dirname "$SMB_ARCHIVE")/.." && pwd)"
-          test -s "$SMB_SYSROOT/lib/libsmbclient.a"
-          test -f "$SMB_SYSROOT/lib/pkgconfig/smbclient.pc"
-          test -f "$SMB_SYSROOT/include/libsmbclient.h"
+          echo "SMB artifact root: $SMB_SYSROOT"
+          test -s "$SMB_SYSROOT/lib/libsmbclient.a" || {
+            echo 'libsmbclient.a 不可读或为空。' >&2
+            exit 1
+          }
+          test -f "$SMB_SYSROOT/lib/pkgconfig/smbclient.pc" || {
+            echo '缺少 smbclient.pc。' >&2
+            exit 1
+          }
+          test -f "$SMB_SYSROOT/include/libsmbclient.h" || {
+            echo '缺少 libsmbclient.h。' >&2
+            exit 1
+          }
           echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
           echo "SMB_SYSROOT=$SMB_SYSROOT" >> "$GITHUB_ENV"
           echo "SMB_SYSROOT=$SMB_SYSROOT"

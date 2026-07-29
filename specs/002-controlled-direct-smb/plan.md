@@ -10,4 +10,4 @@
 
 ## 当前可交付边界
 
-当前已完成可测试的公开 URI 校验、能力门禁，以及 ARM64 静态 Samba 依赖闭包的受控构建。FFmpeg/libmpv 的 GPLv3 构建配置与 SMB sysroot 注入已纳入构建链；CI 会在同一次 `build-libsmbclient` 成功后下载该 sysroot、执行真实 ARM64 libmpv 交叉编译，并审计 ELF 不含动态 `libsmbclient.so`。仍须取得该构建的实际成功制品和 API 22 TV 运行时验证。虽然发现一台 API 23 TV，但它不符合 API 22 验收目标，且当前 HAP 未配置签名，不能部署；因此不能生成或宣称 direct SMB 已通过运行时/真机验证。
+当前已完成可测试的公开 URI 校验、能力门禁，以及 ARM64 静态 Samba 依赖闭包的受控构建。FFmpeg/libmpv 的 GPLv3 构建配置与 SMB sysroot 注入已纳入构建链；CI 会在同一次 `build-libsmbclient` 成功后下载该 sysroot、执行真实 ARM64 libmpv 交叉编译，并审计 ELF 不含动态 `libsmbclient.so`。仍须取得该构建的实际成功制品和 API 22 TV 运行时验证。虽然发现一台 API 23 TV，但它不符合 API 22 验收目标，且当前 HAP 未配置签名，不能部署；因此不能生成或宣称 direct SMB 已通过运行时/真机验证。Run `30393247171` 仍在 SMB sysroot 校验步骤退出，日志未标示失败断言；现已为下载目录、`find` 错误、静态归档、pkg-config 文件和头文件检查加入具名诊断，并由契约测试锁定，避免继续猜测 artifact 或 runner 路径。
