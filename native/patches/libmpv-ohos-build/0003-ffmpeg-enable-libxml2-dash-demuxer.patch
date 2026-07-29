@@ -2,7 +2,8 @@ diff --git a/scripts/ffmpeg.sh b/scripts/ffmpeg.sh
 index 66f7fee..5f18fd1 100644
 --- a/scripts/ffmpeg.sh
 +++ b/scripts/ffmpeg.sh
-@@ -37,6 +37,10 @@ cd .build
+@@ -37,6 +37,11 @@ cd .build
++  --pkg-config-flags=--static \
    --extra-cflags="-I$DEST/include" \
    --extra-ldflags="-L$DEST/lib" \
 +  --enable-gpl \

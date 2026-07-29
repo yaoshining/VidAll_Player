@@ -73,7 +73,19 @@ prepare_smb_sysroot() {
 
   mkdir -p "$dest/lib/pkgconfig" "$dest/include"
   cp "$smb_sysroot/lib/"*.a "$dest/lib/"
-  cp "$smb_sysroot/lib/pkgconfig/smbclient.pc" "$dest/lib/pkgconfig/smbclient.pc"
+  # artifact 的 .pc 记录了构建时缓存路径；注入 DEST 后必须重写 prefix，
+  # 让 FFmpeg 的 pkg-config 检测使用同一份头文件和静态归档。
+  python3 - "$smb_sysroot/lib/pkgconfig/smbclient.pc" "$dest/lib/pkgconfig/smbclient.pc" "$dest" <<'PY'
+from pathlib import Path
+import sys
+
+source, output, dest = map(Path, sys.argv[1:])
+lines = source.read_text(encoding='utf-8').splitlines()
+rewritten = [f'prefix={dest}' if line.startswith('prefix=') else line for line in lines]
+if rewritten == lines:
+    raise SystemExit(f'smbclient.pc 缺少 prefix：{source}')
+output.write_text('\n'.join(rewritten) + '\n', encoding='utf-8')
+PY
   cp "$smb_sysroot/include/"*.h "$dest/include/"
 }
 

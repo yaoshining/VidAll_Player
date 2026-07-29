@@ -44,13 +44,22 @@ main() {
   mkdir -p "$smb_sysroot/lib/pkgconfig" "$smb_sysroot/include"
   printf 'archive\n' > "$smb_sysroot/lib/libsmbclient.a"
   printf 'transitive archive\n' > "$smb_sysroot/lib/libgnutls.a"
-  printf 'pc\n' > "$smb_sysroot/lib/pkgconfig/smbclient.pc"
+  cat > "$smb_sysroot/lib/pkgconfig/smbclient.pc" <<'EOF'
+prefix=/stale/smb-sysroot
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+Libs: -L${libdir} -lsmbclient
+Libs.private: -lgnutls -ltasn1
+Cflags: -I${includedir}
+EOF
   printf 'header\n' > "$smb_sysroot/include/libsmbclient.h"
   printf 'transitive header\n' > "$smb_sysroot/include/gnutls.h"
   VIDALL_PLAYER_SMB_SYSROOT="$smb_sysroot" prepare_smb_sysroot "$work_dir/libmpv/arm64-build"
   assert_file_content "$work_dir/libmpv/arm64-build/lib/libsmbclient.a" 'archive'
   assert_file_content "$work_dir/libmpv/arm64-build/lib/libgnutls.a" 'transitive archive'
-  assert_file_content "$work_dir/libmpv/arm64-build/lib/pkgconfig/smbclient.pc" 'pc'
+  grep -Fxq "prefix=$work_dir/libmpv/arm64-build" "$work_dir/libmpv/arm64-build/lib/pkgconfig/smbclient.pc" || fail 'smbclient.pc 必须使用 FFmpeg DEST 作为 prefix'
+  grep -Fxq 'Libs.private: -lgnutls -ltasn1' "$work_dir/libmpv/arm64-build/lib/pkgconfig/smbclient.pc" || fail 'smbclient.pc 必须保留静态传递依赖'
   assert_file_content "$work_dir/libmpv/arm64-build/include/libsmbclient.h" 'header'
   assert_file_content "$work_dir/libmpv/arm64-build/include/gnutls.h" 'transitive header'
 

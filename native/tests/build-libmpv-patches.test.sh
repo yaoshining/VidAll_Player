@@ -214,6 +214,7 @@ main() {
   grep -q -- '--enable-demuxer=dash' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-demuxer=dash"
   grep -q -- '--enable-gpl' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-gpl（libsmbclient 为 GPLv3）"
   grep -q -- '--enable-libsmbclient' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-libsmbclient"
+  grep -q -- '--pkg-config-flags=--static' "$ffmpeg_sh" || fail "ffmpeg.sh 必须通过静态 pkg-config 解析 libsmbclient 传递依赖"
 
   # 问题 C：mpv.sh 的 meson setup 须带 --wipe，避免缓存命中时复用 stale .build
   # 导致 build.ninja 退化为只构建静态库（libmpv.a），mv libmpv.so 失败
