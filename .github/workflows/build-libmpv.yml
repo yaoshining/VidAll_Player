@@ -38,6 +38,7 @@ on:
         default: ''
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
@@ -203,13 +204,41 @@ jobs:
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
-      - name: 清理同次 SMB sysroot 下载目录
-        run: rm -rf "${{ runner.temp }}/smb-sysroot"
-      - name: 下载同次构建的 libsmbclient sysroot
-        uses: actions/download-artifact@v4
-        with:
-          name: libsmbclient-ohos-sysroot
-          path: ${{ runner.temp }}/smb-sysroot
+      - name: 直接下载并解压同次 SMB sysroot
+        env:
+          SMB_DOWNLOAD_ROOT: ${{ runner.temp }}/smb-sysroot
+        run: |
+          set -euo pipefail
+          command -v curl >/dev/null 2>&1 || {
+            echo '缺少 curl，无法下载同次 SMB artifact。' >&2
+            exit 1
+          }
+          command -v unzip >/dev/null 2>&1 || {
+            echo '缺少 unzip，无法解压同次 SMB artifact。' >&2
+            exit 1
+          }
+
+          rm -rf "$SMB_DOWNLOAD_ROOT"
+          mkdir -p "$SMB_DOWNLOAD_ROOT"
+          SMB_ARTIFACT_ID="$(curl --fail --silent --show-error --location \
+            --header "Authorization: Bearer $GITHUB_TOKEN" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+            | python3 -c 'import json, sys; artifacts = json.load(sys.stdin).get("artifacts", []); matches = [str(item["id"]) for item in artifacts if item.get("name") == "libsmbclient-ohos-sysroot"]; print(matches[0] if len(matches) == 1 else "")')"
+          test -n "$SMB_ARTIFACT_ID" || {
+            echo '当前 workflow run 未找到唯一的 libsmbclient-ohos-sysroot artifact。' >&2
+            exit 1
+          }
+          SMB_ARTIFACT_ZIP="$RUNNER_TEMP/libsmbclient-ohos-sysroot-${SMB_ARTIFACT_ID}.zip"
+          rm -f "$SMB_ARTIFACT_ZIP"
+          curl --fail --silent --show-error --location \
+            --header "Authorization: Bearer $GITHUB_TOKEN" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/artifacts/${SMB_ARTIFACT_ID}/zip" \
+            --output "$SMB_ARTIFACT_ZIP"
+          unzip -tqq "$SMB_ARTIFACT_ZIP"
+          unzip -q "$SMB_ARTIFACT_ZIP" -d "$SMB_DOWNLOAD_ROOT"
+          rm -f "$SMB_ARTIFACT_ZIP"
       - name: 验证 OpenHarmony NDK 与 SMB sysroot
         env:
           SMB_DOWNLOAD_ROOT: ${{ runner.temp }}/smb-sysroot
