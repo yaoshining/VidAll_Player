@@ -620,6 +620,12 @@ ORIGINAL_LIBSMBCLIENT_C
   grep -q -- 'av_strlcpy(password, libsmbc->password' "$libsmbclient_source" || fail "libsmbclient 回调未复制会话密码"
   grep -q -- '"username", "set the username used for SMB authentication"' "$libsmbclient_source" || fail "libsmbclient 缺少用户名 AVOption"
   grep -q -- '"password", "set the password used for SMB authentication"' "$libsmbclient_source" || fail "libsmbclient 缺少密码 AVOption"
+  local options_start username_option timeout_option
+  options_start=$(line_of_first_match 'static const AVOption options\[\] = {' "$libsmbclient_source")
+  username_option=$(line_of_first_match '"username", "set the username used for SMB authentication"' "$libsmbclient_source")
+  timeout_option=$(line_of_first_match '"timeout",   "set timeout in ms of socket I/O operations"' "$libsmbclient_source")
+  [ "$username_option" -gt "$options_start" ] && [ "$username_option" -lt "$timeout_option" ] || \
+    fail "libsmbclient 凭据 AVOption 必须在 options 数组内部"
 
   # 问题 C：mpv.sh 的 meson setup 须带 --wipe，避免缓存命中时复用 stale .build
   # 导致 build.ninja 退化为只构建静态库（libmpv.a），mv libmpv.so 失败
