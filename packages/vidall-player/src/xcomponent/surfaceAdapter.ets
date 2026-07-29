@@ -10,6 +10,7 @@ export interface PlayerSurfaceTarget {
 export class XComponentSurfaceAdapter {
   private generation: number = 0;
   private attached: boolean = false;
+  private lifecycle: Promise<void> = Promise.resolve();
   private readonly componentId: string;
   private readonly player: PlayerSurfaceTarget;
 
@@ -21,26 +22,39 @@ export class XComponentSurfaceAdapter {
   onLoad(width: number, height: number): Promise<void> {
     this.validateSize(width, height);
     this.generation += 1;
-    return this.player.attachSurface(this.surface(width, height)).then(() => {
+    const surface = this.surface(width, height);
+    return this.schedule(() => this.player.attachSurface(surface).then(() => {
       this.attached = true;
-    });
+    }));
   }
 
   onSizeChange(width: number, height: number): Promise<void> {
-    if (!this.attached) {
-      return Promise.resolve();
-    }
-    this.validateSize(width, height);
-    return this.player.resizeSurface(this.surface(width, height));
+    const surface = this.surface(width, height);
+    return this.schedule(() => {
+      if (!this.attached) {
+        return Promise.resolve();
+      }
+      this.validateSize(width, height);
+      return this.player.resizeSurface(surface);
+    });
   }
 
   onDestroy(): Promise<void> {
-    if (!this.attached) {
-      return Promise.resolve();
-    }
-    return this.player.detachSurface(this.generation).then(() => {
-      this.attached = false;
+    const generation = this.generation;
+    return this.schedule(() => {
+      if (!this.attached) {
+        return Promise.resolve();
+      }
+      return this.player.detachSurface(generation).then(() => {
+        this.attached = false;
+      });
     });
+  }
+
+  private schedule(operation: () => Promise<void>): Promise<void> {
+    const task = this.lifecycle.catch(() => {}).then(operation);
+    this.lifecycle = task;
+    return task;
   }
 
   private surface(width: number, height: number): PlayerSurface {
@@ -49,7 +63,7 @@ export class XComponentSurfaceAdapter {
 
   private validateSize(width: number, height: number): void {
     if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-      throw lifecycleFailure('INVALID_SURFACE', 'Surface 尺寸必须是有限正数。Surface dimensions must be finite and positive.');
+      throw lifecycleFailure('INVALID_SURFACE', 'Surface dimensions must be finite and positive. Surface 尺寸必须是有限正数。');
     }
   }
 }

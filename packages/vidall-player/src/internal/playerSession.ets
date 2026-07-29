@@ -212,6 +212,10 @@ export class PlayerSession implements VidAllPlayer {
     return this.stateMachine.subscribe(listener);
   }
 
+  reportNativeEvent(event: PlayerEvent): boolean {
+    return this.stateMachine.emitIncoming(event);
+  }
+
   stop(): Promise<void> {
     return this.enqueue('stop', () => {
       const state = this.stateMachine.getState();

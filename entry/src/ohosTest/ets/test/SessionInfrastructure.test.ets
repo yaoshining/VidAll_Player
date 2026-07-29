@@ -3,6 +3,7 @@ import { createPlayer, PlayerEvent } from '@vidall/player';
 import { ApiLevelProvider, CapabilityProbe } from '@vidall/player/src/internal/capabilities';
 import { CommandQueue } from '@vidall/player/src/internal/commandQueue';
 import { SessionStateMachine } from '@vidall/player/src/internal/stateMachine';
+import { PlayerSession } from '@vidall/player/src/internal/playerSession';
 import { XComponentSurfaceAdapter, PlayerSurfaceTarget } from '@vidall/player/src/xcomponent/surfaceAdapter';
 
 class TestSurfaceTarget implements PlayerSurfaceTarget {
@@ -17,6 +18,43 @@ class Api18Provider implements ApiLevelProvider {
   getApiLevel(): number { return 18; }
 }
 
+class ControlledSurfaceTarget implements PlayerSurfaceTarget {
+  attachCount: number = 0;
+  resizeCount: number = 0;
+  detachCount: number = 0;
+  rejectAttach: boolean = false;
+  rejectDetach: boolean = false;
+  private resolveAttach: () => void = () => {};
+  private readonly attachGate: Promise<void>;
+
+  constructor() {
+    this.attachGate = new Promise<void>((resolve) => { this.resolveAttach = resolve; });
+  }
+
+  attachSurface(): Promise<void> {
+    this.attachCount += 1;
+    if (this.rejectAttach) {
+      return Promise.reject(new Error('attach failed'));
+    }
+    return this.attachGate;
+  }
+
+  resizeSurface(): Promise<void> {
+    this.resizeCount += 1;
+    return Promise.resolve();
+  }
+
+  detachSurface(): Promise<void> {
+    this.detachCount += 1;
+    if (this.rejectDetach) {
+      return Promise.reject(new Error('detach failed'));
+    }
+    return Promise.resolve();
+  }
+
+  completeAttach(): void { this.resolveAttach(); }
+}
+
 export default function sessionInfrastructureTest() {
   describe('SessionInfrastructureTest', () => {
     it('increments source epochs and discards stale epoch and surface events', 0, async (done: Function) => {
@@ -28,6 +66,12 @@ export default function sessionInfrastructureTest() {
       await player.load({ kind: 'https', uri: 'https://example.com/second.mp4' });
       const secondPlayerEpoch = playerEvents[playerEvents.length - 1].eventEpoch ?? 0;
       expect(secondPlayerEpoch).assertEqual(firstPlayerEpoch + 1);
+      const deliveredBeforeStaleCallback = playerEvents.length;
+      const internalPlayer = player as PlayerSession;
+      expect(internalPlayer.reportNativeEvent({
+        type: 'position', sequence: 0, eventEpoch: firstPlayerEpoch, positionMs: 1
+      })).assertFalse();
+      expect(playerEvents.length).assertEqual(deliveredBeforeStaleCallback);
       await player.release();
 
       const events: PlayerEvent[] = [];
@@ -91,6 +135,50 @@ export default function sessionInfrastructureTest() {
       }
       await adapter.onLoad(1920, 1080);
       expect(target.attached).assertEqual(1);
+      done();
+    });
+
+    it('serializes Surface teardown and preserves state after target failures', 0, async (done: Function) => {
+      const target = new ControlledSurfaceTarget();
+      const adapter = new XComponentSurfaceAdapter('player', target);
+      const loading = adapter.onLoad(1920, 1080);
+      const destroying = adapter.onDestroy();
+      expect(target.attachCount).assertEqual(0);
+      expect(target.detachCount).assertEqual(0);
+      target.completeAttach();
+      await loading;
+      await destroying;
+      expect(target.detachCount).assertEqual(1);
+
+      const failedAttachTarget = new ControlledSurfaceTarget();
+      failedAttachTarget.rejectAttach = true;
+      const failedAttachAdapter = new XComponentSurfaceAdapter('player', failedAttachTarget);
+      const failedAttach = failedAttachAdapter.onLoad(1920, 1080).then(() => false, () => true);
+      expect(await failedAttach).assertTrue();
+      await failedAttachAdapter.onSizeChange(1280, 720);
+      expect(failedAttachTarget.resizeCount).assertEqual(0);
+
+      const failedDetachTarget = new ControlledSurfaceTarget();
+      const failedDetachAdapter = new XComponentSurfaceAdapter('player', failedDetachTarget);
+      const attach = failedDetachAdapter.onLoad(1920, 1080);
+      failedDetachTarget.completeAttach();
+      await attach;
+      failedDetachTarget.rejectDetach = true;
+      const failedDetach = failedDetachAdapter.onDestroy().then(() => false, () => true);
+      expect(await failedDetach).assertTrue();
+      await failedDetachAdapter.onSizeChange(1280, 720);
+      expect(failedDetachTarget.resizeCount).assertEqual(1);
+
+      const reattachTarget = new ControlledSurfaceTarget();
+      const reattachAdapter = new XComponentSurfaceAdapter('player', reattachTarget);
+      const initialAttach = reattachAdapter.onLoad(1920, 1080);
+      reattachTarget.completeAttach();
+      await initialAttach;
+      await reattachAdapter.onDestroy();
+      const reattach = reattachAdapter.onLoad(1280, 720);
+      await reattach;
+      await reattachAdapter.onSizeChange(1024, 576);
+      expect(reattachTarget.resizeCount).assertEqual(1);
       done();
     });
 
