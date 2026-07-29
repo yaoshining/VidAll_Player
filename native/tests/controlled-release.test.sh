@@ -224,6 +224,8 @@ assert 'curl --proto' in libmpv_job and 'sh -s -- -y --profile minimal --default
 assert 'wget shim' in libmpv_job and 'exec curl -fsSL "$url"' in libmpv_job, '上游缺少 wget 时必须提供 curl shim'
 assert 'wget shim 仅支持 -qO <输出文件> <https-url>' in libmpv_job, 'wget shim 必须支持上游依赖归档下载'
 assert 'output="$2"' in libmpv_job and 'url="$3"' in libmpv_job, 'wget shim 必须将输出文件与 URL 传给 curl'
+assert 'git shim 仅为 clone/fetch 重试瞬态网络故障' in libmpv_job, '上游依赖 git 下载必须重试瞬态网络故障'
+assert 'for attempt in 1 2 3 4 5' in libmpv_job and 'rm -rf -- "$destination"' in libmpv_job, '失败的浅克隆必须清理后重试'
 assert 'brew install wget rustup-init' not in libmpv_job, '真实 libmpv 构建不得依赖 Homebrew 安装 Rust 或 wget'
 assert 'PATH: ${{ env.PATH }}:${{ runner.home }}/.cargo/bin' not in libmpv_job, '真实 libmpv 构建不得用空的 Actions env.PATH 覆盖系统 PATH'
 assert 'build-libmpv-bootstrap.sh' in workflow, '真实 libmpv 构建必须执行受控引导脚本'

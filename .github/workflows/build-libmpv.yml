@@ -342,6 +342,32 @@ jobs:
           exec curl -fsSL "$url" --output "$output"
           EOF
           chmod +x "$TOOL_DIR/wget"
+          cat > "$TOOL_DIR/git" <<'EOF'
+          #!/usr/bin/env bash
+          # git shim 仅为 clone/fetch 重试瞬态网络故障。
+          set -euo pipefail
+          if [ "${1:-}" = '-c' ]; then
+            shift 2
+          fi
+          if [ "${1:-}" != 'clone' ] && [ "${1:-}" != 'fetch' ]; then
+            exec /usr/bin/git "$@"
+          fi
+          if [ "${1:-}" = 'fetch' ]; then
+            for attempt in 1 2 3 4 5; do
+              /usr/bin/git "$@" && exit 0
+              [ "$attempt" -eq 5 ] || sleep "$attempt"
+            done
+            exit 1
+          fi
+          destination="${!#}"
+          for attempt in 1 2 3 4 5; do
+            /usr/bin/git "$@" && exit 0
+            rm -rf -- "$destination"
+            [ "$attempt" -eq 5 ] || sleep "$attempt"
+          done
+          exit 1
+          EOF
+          chmod +x "$TOOL_DIR/git"
           echo "$TOOL_DIR" >> "$GITHUB_PATH"
       - name: 构建静态包含 SMB 的 libmpv
         env:
