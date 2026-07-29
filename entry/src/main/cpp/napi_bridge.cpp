@@ -668,14 +668,17 @@ public:
             return "事件回调必须是函数";
         }
         std::lock_guard<std::mutex> lock(eventCallbackMutex_);
+        // Close the old callback gate so CallEventCallback returns early (no JS
+        // invocation) for any remaining queued items, then release (not abort) so
+        // the TSFN drains its queue, freeing NativeEvent payloads via unique_ptr.
         if (eventCallbackContext_ != nullptr) {
             eventCallbackContext_->closed.store(true);
             eventCallbackContext_ = nullptr;
         }
         if (eventTsfn_ != nullptr) {
-            const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_abort);
+            const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release);
             if (releaseStatus != napi_ok) {
-                MPV_LOG(LOG_WARN, "SetEventCallback: 中止旧事件回调失败，状态=%{public}d", releaseStatus);
+                MPV_LOG(LOG_WARN, "SetEventCallback: 释放旧事件回调失败，状态=%{public}d", releaseStatus);
             }
             eventTsfn_ = nullptr;
         }
@@ -716,13 +719,23 @@ public:
         {
             std::lock_guard<std::mutex> eventLock(eventCallbackMutex_);
             if (eventCallbackContext_ != nullptr) {
+                // Close the gate first so CallEventCallback returns early (no JS
+                // invocation) even while the TSFN still drains its queue to free
+                // NativeEvent payloads.  This satisfies the "no callback after
+                // release" contract without leaking queued event allocations that
+                // napi_tsfn_abort would abandon.
                 eventCallbackContext_->closed.store(true);
                 eventCallbackContext_ = nullptr;
             }
             if (eventTsfn_ != nullptr) {
-                const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_abort);
+                // Use napi_tsfn_release (not abort) so the TSFN continues to
+                // drain its queue.  Each drained item reaches CallEventCallback
+                // which returns early due to the closed gate above, but still
+                // frees the NativeEvent via unique_ptr.  Once the queue is empty
+                // the finalize callback runs and deletes the EventCallbackContext.
+                const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release);
                 if (releaseStatus != napi_ok) {
-                    MPV_LOG(LOG_WARN, "Release: 中止事件回调失败，状态=%{public}d", releaseStatus);
+                    MPV_LOG(LOG_WARN, "Release: 释放事件回调失败，状态=%{public}d", releaseStatus);
                 }
                 eventTsfn_ = nullptr;
             }
@@ -1222,17 +1235,33 @@ private:
                 nativeWindowFailCount = 0;
 
                 BufferHandle* bufHandle = OH_NativeWindow_GetBufferHandleFromNative(buffer);
+                // A first frame must contain the full current frame. If the buffer
+                // handle is unavailable or cannot fit the whole frame, skip the
+                // flush and the firstFrame notification rather than submitting a
+                // partially-written buffer.
+                bool frameCopiedCompletely = false;
                 if (bufHandle != nullptr && bufHandle->virAddr != nullptr) {
                     int bufStride = bufHandle->stride;
                     if (bufStride <= 0) {
                         bufStride = w * 4;
                     }
-                    size_t copyWidth = std::min(static_cast<size_t>(w * 4), static_cast<size_t>(bufStride));
-                    size_t copyLines = std::min(static_cast<size_t>(h), static_cast<size_t>(bufHandle->height > 0 ? bufHandle->height : h));
-                    for (size_t y = 0; y < copyLines; y++) {
-                        memcpy(static_cast<uint8_t*>(bufHandle->virAddr) + y * bufStride,
-                               framePtr + y * stride, copyWidth);
+                    if (bufStride < w * 4) {
+                        MPV_LOG(LOG_WARN, "SwRenderLoop: buffer stride %d too small for %d pixel rows", bufStride, w);
                     }
+                    size_t copyWidth = static_cast<size_t>(w * 4);
+                    size_t copyLines = static_cast<size_t>(bufHandle->height > 0 ? bufHandle->height : h);
+                    frameCopiedCompletely = bufStride >= w * 4 && copyLines >= static_cast<size_t>(h);
+                    size_t boundedWidth = std::min(copyWidth, static_cast<size_t>(bufStride));
+                    size_t boundedLines = std::min(static_cast<size_t>(h), copyLines);
+                    for (size_t y = 0; y < boundedLines; y++) {
+                        memcpy(static_cast<uint8_t*>(bufHandle->virAddr) + y * bufStride,
+                               framePtr + y * stride, boundedWidth);
+                    }
+                }
+                if (!frameCopiedCompletely) {
+                    // Release the unusable buffer without flushing; it must not be
+                    // treated as a submitted first frame.
+                    continue;
                 }
                 Region region = {};
                 int flushW = (bufHandle && bufHandle->width > 0) ? bufHandle->width : w;

@@ -12,7 +12,13 @@ SurfaceResult SurfaceRenderer::attach(std::uint64_t generation, int width, int h
 SurfaceResult SurfaceRenderer::detach(std::uint64_t generation)
 {
   if (generation < generation_) return SurfaceResult::IgnoredStaleGeneration;
-  if (generation == generation_) attached_ = false;
+  if (generation > generation_) {
+    // A future generation has never been attached; detaching it must not claim
+    // success, or the caller may believe the surface was released while the
+    // current generation remains able to submit frames.
+    return SurfaceResult::IgnoredStaleGeneration;
+  }
+  attached_ = false;
   return SurfaceResult::Accepted;
 }
 SurfaceResult SurfaceRenderer::submitFrame(std::uint64_t generation)
