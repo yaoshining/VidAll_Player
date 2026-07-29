@@ -181,6 +181,8 @@ PY
   grep -Fq -- '--enable-gpl' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch" || fail 'FFmpeg 补丁必须启用 GPL'
   grep -Fq -- '--enable-libsmbclient' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch" || fail 'FFmpeg 补丁必须启用 libsmbclient'
   grep -Fq -- '-Dgpl=true' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch" || fail 'mpv 补丁必须启用 GPL'
+  grep -Fq -- '-Dopensles=disabled' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch" || fail 'mpv 补丁必须基于锁定上游脚本并保留 OpenSLES 配置'
+  grep -Fq -- '-Dmanpage-build=disabled' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch" || fail 'mpv 补丁必须保留锁定上游的构建末尾配置'
 
   python3 - "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" <<'PY'
 from pathlib import Path

@@ -1,19 +1,22 @@
 diff --git a/scripts/mpv.sh b/scripts/mpv.sh
-index 786bd51..b929c0a 100755
+index 5bf12e1..54fae0e 100755
 --- a/scripts/mpv.sh
 +++ b/scripts/mpv.sh
-@@ -21,12 +21,13 @@ mkdir -p .build
- cd .build
- 
+@@ -23,15 +23,16 @@ cd .build
  meson setup .. \
 +  --wipe \
    --cross-file $ROOT_DIR/libmpv/arm64-crossfile.ini \
    --prefix=$DEST/mpv \
    --default-library shared \
    --strip \
+   -Dopensles=disabled \
    -Dohos=enabled \
--  -Dgpl=false
-+  -Dgpl=true
- 
- ninja
- meson install
+   -Degl-ohos=enabled \
+   -Dvulkan=enabled \
+   -Dshaderc=enabled \
+   -Dlua=enabled \
+-  -Dgpl=false \
++  -Dgpl=true \
+   -Dbuild-date=false \
+   -Dcplayer=false \
+   -Dmanpage-build=disabled
