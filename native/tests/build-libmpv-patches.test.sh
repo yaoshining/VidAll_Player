@@ -143,11 +143,21 @@ meson setup .. \
   --prefix=$DEST/mpv \
   --default-library shared \
   --strip \
+  -Dopensles=disabled \
   -Dohos=enabled \
-  -Dgpl=false
+  -Degl-ohos=enabled \
+  -Dvulkan=enabled \
+  -Dshaderc=enabled \
+  -Dlua=enabled \
+  -Dgpl=false \
+  -Dbuild-date=false \
+  -Dcplayer=false \
+  -Dmanpage-build=disabled
+ninja -j$CORES
+ninja install
 
-ninja
-meson install
+cd $DEST/mpv/lib
+mv libmpv.so ../../libmpv.so
 
 popd
 ORIGINAL_MPV_SH
