@@ -39,6 +39,11 @@ main() {
   invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit:2'
   assert_missing "$work_dir/libmpv/ffmpeg"
 
+  # macOS 自带 Bash 3.2 不支持 mapfile；发布归档必须使用可移植的循环收集。
+  if grep -q 'mapfile' "$BOOTSTRAP_SCRIPT"; then
+    fail '引导脚本不得依赖 macOS Bash 3.2 不支持的 mapfile'
+  fi
+
   # 当调用方提供已验证的 SMB sysroot 时，引导脚本必须将其注入 FFmpeg 使用的 DEST。
   local smb_sysroot="$temp_dir/smb-sysroot"
   mkdir -p "$smb_sysroot/lib/pkgconfig" "$smb_sysroot/include"

@@ -196,15 +196,17 @@ mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHE
 )
 
 mkdir -p "$OUTPUT_DIR"
-mapfile -t archives < <(find libmpv/arm64-build -maxdepth 1 -name '*.zip' -type f -print)
-if [ "${#archives[@]}" -eq 0 ]; then
+archive_count=0
+while IFS= read -r archive; do
+  [ -n "$archive" ] || continue
+  unzip -oq "$archive" -d "$OUTPUT_DIR"
+  archive_count=$((archive_count + 1))
+done < <(find libmpv/arm64-build -maxdepth 1 -name '*.zip' -type f -print)
+
+if [ "$archive_count" -eq 0 ]; then
   echo '未生成 libmpv 发布压缩包。' >&2
   exit 1
 fi
-
-for archive in "${archives[@]}"; do
-  unzip -oq "$archive" -d "$OUTPUT_DIR"
-done
 
 LIBMPV_PATH="$(find "$OUTPUT_DIR" -name libmpv.so -type f -print -quit)"
 if [ -z "$LIBMPV_PATH" ]; then
