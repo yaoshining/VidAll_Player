@@ -203,6 +203,8 @@ jobs:
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
+      - name: 清理同次 SMB sysroot 下载目录
+        run: rm -rf "${{ runner.temp }}/smb-sysroot"
       - name: 下载同次构建的 libsmbclient sysroot
         uses: actions/download-artifact@v4
         with:
