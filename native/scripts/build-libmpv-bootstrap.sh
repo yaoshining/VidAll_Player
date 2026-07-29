@@ -12,6 +12,7 @@ readonly WORK_DIR="$CACHE_ROOT/libmpv-ohos-build"
 readonly OUTPUT_DIR="$ROOT_DIR/dist/libmpv/arm64-v8a"
 readonly MESON_MARKER="$WORK_DIR/.vidall-player-meson-version"
 readonly PATCHES_DIR="$ROOT_DIR/native/patches/libmpv-ohos-build"
+readonly FFMPEG_PATCHES_DIR="$ROOT_DIR/native/patches/ffmpeg"
 
 # 计算构建脚本补丁集合摘要并拼入缓存 marker：补丁内容变更即触发依赖缓存失效，
 # 避免每次改补丁都要手动 bump DEPENDENCY_CACHE_SCHEMA。
@@ -48,6 +49,57 @@ mark_dependency_cache_prepared() {
 
   printf '%s\n' "$expected_commit" > "$temporary_marker"
   mv -- "$temporary_marker" "$commit_marker"
+}
+
+# macOS 自带 shasum 而不提供 GNU sha256sum。
+write_sha256() {
+  local input="$1"
+  local output="$2"
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$input" > "$output"
+  else
+    shasum -a 256 "$input" > "$output"
+  fi
+}
+
+# 将经 CI 校验的静态 SMB sysroot 注入 FFmpeg 和 mpv 共用的 DEST。
+# 未设置变量时保留不含 SMB 的历史引导路径，以便基础构建仍可复用。
+prepare_smb_sysroot() {
+  local dest="$1"
+  local smb_sysroot="${VIDALL_PLAYER_SMB_SYSROOT:-}"
+
+  if [ -z "$smb_sysroot" ]; then
+    return 0
+  fi
+
+  local required
+  for required in \
+    'lib/libsmbclient.a' \
+    'lib/pkgconfig/smbclient.pc' \
+    'include/libsmbclient.h'; do
+    if [ ! -f "$smb_sysroot/$required" ]; then
+      echo "SMB sysroot 缺少必需文件：$smb_sysroot/$required" >&2
+      return 1
+    fi
+  done
+
+  mkdir -p "$dest/lib/pkgconfig" "$dest/include"
+  cp "$smb_sysroot/lib/"*.a "$dest/lib/"
+  # artifact 的 .pc 记录了构建时缓存路径；注入 DEST 后必须重写 prefix，
+  # 让 FFmpeg 的 pkg-config 检测使用同一份头文件和静态归档。
+  python3 - "$smb_sysroot/lib/pkgconfig/smbclient.pc" "$dest/lib/pkgconfig/smbclient.pc" "$dest" <<'PY'
+from pathlib import Path
+import sys
+
+source, output, dest = map(Path, sys.argv[1:])
+lines = source.read_text(encoding='utf-8').splitlines()
+rewritten = [f'prefix={dest}' if line.startswith('prefix=') else line for line in lines]
+if rewritten == lines:
+    raise SystemExit(f'smbclient.pc 缺少 prefix：{source}')
+output.write_text('\n'.join(rewritten) + '\n', encoding='utf-8')
+PY
+  cp "$smb_sysroot/include/"*.h "$dest/include/"
 }
 
 # 还原依赖源码到下载时的干净状态，确保补丁可以幂等应用。
@@ -104,6 +156,36 @@ apply_build_script_patches() {
   done
 }
 
+# 将 direct SMB 的会话凭据作为 FFmpeg libsmbclient 的协议选项提供。
+# 凭据不进入 smb:// URI、HTTP header、持久化配置或日志。
+apply_ffmpeg_source_patches() {
+  local work_dir="$1"
+  local patches_dir="$2"
+  local ffmpeg_dir="$work_dir/libmpv/ffmpeg"
+
+  if [ ! -d "$patches_dir" ]; then
+    return 0
+  fi
+  if [ ! -d "$ffmpeg_dir" ]; then
+    echo "FFmpeg 源码目录不存在：$ffmpeg_dir" >&2
+    return 1
+  fi
+
+  local patch
+  for patch in "$patches_dir"/*.patch; do
+    [ -f "$patch" ] || continue
+    if git -C "$work_dir" apply --unidiff-zero --directory=libmpv/ffmpeg --reverse --check "$patch" 2>/dev/null; then
+      echo "FFmpeg SMB 补丁已应用，跳过：$(basename "$patch")"
+      continue
+    fi
+    echo "应用 FFmpeg SMB 补丁：$(basename "$patch")"
+    git -C "$work_dir" apply --unidiff-zero --directory=libmpv/ffmpeg "$patch" || {
+      echo "FFmpeg SMB 补丁应用失败：$patch" >&2
+      return 1
+    }
+  done
+}
+
 # 供 shell 测试导入缓存失效逻辑，避免触发原生构建。
 if [ "${BASH_SOURCE[0]}" != "$0" ]; then
   return 0
@@ -147,7 +229,9 @@ chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 ./download.sh
 reset_dependency_sources "$WORK_DIR"
 ./patch.sh
-apply_build_script_patches "$WORK_DIR" "$ROOT_DIR/native/patches/libmpv-ohos-build"
+apply_build_script_patches "$WORK_DIR" "$PATCHES_DIR"
+apply_ffmpeg_source_patches "$WORK_DIR" "$FFMPEG_PATCHES_DIR"
+prepare_smb_sysroot "$WORK_DIR/libmpv/arm64-build"
 mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA:$PATCHSET_DIGEST"
 ./build.sh
 (
@@ -156,20 +240,23 @@ mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHE
 )
 
 mkdir -p "$OUTPUT_DIR"
-mapfile -t archives < <(find libmpv/arm64-build -maxdepth 1 -name '*.zip' -type f -print)
-if [ "${#archives[@]}" -eq 0 ]; then
+archive_count=0
+while IFS= read -r archive; do
+  [ -n "$archive" ] || continue
+  unzip -oq "$archive" -d "$OUTPUT_DIR"
+  archive_count=$((archive_count + 1))
+done < <(find libmpv/arm64-build -maxdepth 1 -name '*.zip' -type f -print)
+
+if [ "$archive_count" -eq 0 ]; then
   echo '未生成 libmpv 发布压缩包。' >&2
   exit 1
 fi
-
-for archive in "${archives[@]}"; do
-  unzip -oq "$archive" -d "$OUTPUT_DIR"
-done
 
 LIBMPV_PATH="$(find "$OUTPUT_DIR" -name libmpv.so -type f -print -quit)"
 if [ -z "$LIBMPV_PATH" ]; then
   echo '构建输出中缺少 libmpv.so。' >&2
   exit 1
 fi
-sha256sum "$LIBMPV_PATH" | tee "$OUTPUT_DIR/libmpv.so.sha256"
+write_sha256 "$LIBMPV_PATH" "$OUTPUT_DIR/libmpv.so.sha256"
+cat "$OUTPUT_DIR/libmpv.so.sha256"
 echo "已生成：$LIBMPV_PATH"

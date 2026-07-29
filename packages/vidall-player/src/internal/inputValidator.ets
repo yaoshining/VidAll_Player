@@ -109,6 +109,36 @@ function isLoopbackAuthority(authority: string): boolean {
 // 在输入校验直接拒绝并给出稳定错误码，避免静默失败或误导消费者宣称支持。
 const UNVERIFIED_OPTIONAL_PROTOCOLS: string[] = ['rtsp', 'rtmp', 'udp', 'srt'];
 
+// direct SMB 已由受控 ARM64 libmpv 制品提供，并在 CI 中完成 ELF 与符号审计。
+function isDirectSmbAvailable(): boolean {
+  return true;
+}
+
+function validateSmbUri(parsed: ParsedUri): void {
+  const authority = parsed.authority;
+  const hostEnd = authority.indexOf(':');
+  const host = (hostEnd >= 0 ? authority.substring(0, hostEnd) : authority).trim();
+  if (host.length === 0 || parsed.path.indexOf('/') !== 0) {
+    throw inputFailure('INVALID_SMB_URI', 'SMB media URI must include a host and share path.');
+  }
+
+  const segments = parsed.path.substring(1).split('/');
+  if (segments.length === 0 || segments[0].length === 0) {
+    throw inputFailure('INVALID_SMB_URI', 'SMB media URI must include a share name.');
+  }
+  for (let index = 0; index < segments.length; index++) {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(segments[index]);
+    } catch (_) {
+      throw inputFailure('INVALID_SMB_URI', 'SMB media URI contains invalid path encoding.');
+    }
+    if (decoded.length === 0 || decoded === '.' || decoded === '..' || decoded.indexOf('/') >= 0 || decoded.indexOf('\\') >= 0) {
+      throw inputFailure('INVALID_SMB_URI', 'SMB media URI must not contain unsafe path segments.');
+    }
+  }
+}
+
 export function validateMediaSource(source: MediaSource): void {
   if (source.uri.length === 0) {
     throw inputFailure('INVALID_URI', 'Media URI must not be empty.');
@@ -137,6 +167,16 @@ export function validateMediaSource(source: MediaSource): void {
     }
     if (source.kind === 'https' && parsed.scheme !== 'https') {
       throw inputFailure('URI_KIND_MISMATCH', 'HTTPS media source requires an HTTPS URI.');
+    }
+    if (source.kind === 'smb' && parsed.scheme !== 'smb') {
+      throw inputFailure('URI_KIND_MISMATCH', 'SMB media source requires an SMB URI.');
+    }
+    if (source.kind === 'smb') {
+      validateSmbUri(parsed);
+    }
+    if (source.kind === 'smb' && !isDirectSmbAvailable()) {
+      throw inputFailure('PROTOCOL_NOT_AVAILABLE',
+        'Direct SMB is unavailable because the controlled native capability is not verified.');
     }
     if (source.kind === 'localhostProxy' && parsed.scheme !== 'http') {
       throw inputFailure('URI_KIND_MISMATCH',

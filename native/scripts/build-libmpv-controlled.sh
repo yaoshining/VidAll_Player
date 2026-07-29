@@ -30,9 +30,33 @@ done
 [ -f "$LOCK_FILE" ] || { echo "未找到来源锁：$LOCK_FILE" >&2; exit 1; }
 
 # 受控构建调用者必须在隔离环境中先检出 sources.lock.json 内指定的提交。
-for component in mpv ffmpeg; do
+for component in mpv ffmpeg samba; do
   [ -d "$source_dir/$component" ] || { echo "受控源码缺少：$component" >&2; exit 1; }
 done
+
+# libsmbclient 只能经隔离的 OpenHarmony pkg-config sysroot 供给 FFmpeg，
+# 防止宿主机动态库被意外链接进发布制品。
+[ -f "$source_dir/ffmpeg/configure-options.txt" ] || {
+  echo '受控源码缺少 FFmpeg 配置证明：ffmpeg/configure-options.txt' >&2
+  exit 1
+}
+python3 - "$LOCK_FILE" <<'PY'
+import json
+import sys
+
+samba = json.load(open(sys.argv[1], encoding='utf-8'))['sources']['samba']
+status = samba.get('build', {}).get('dependencyClosureStatus')
+if status != 'complete':
+    raise SystemExit('Samba/libsmbclient 传递依赖闭包尚未锁定，拒绝生成 direct SMB 制品。')
+PY
+grep -Fx -- '--enable-libsmbclient' "$source_dir/ffmpeg/configure-options.txt" >/dev/null || {
+  echo 'FFmpeg 配置未启用 --enable-libsmbclient' >&2
+  exit 1
+}
+[ -n "${PKG_CONFIG_LIBDIR:-}" ] || {
+  echo '受控 SMB 构建必须设置 PKG_CONFIG_LIBDIR 为 OpenHarmony sysroot。' >&2
+  exit 1
+}
 
 libmpv="$source_dir/libmpv.so"
 if [ "$skip_compile" = false ]; then
@@ -53,4 +77,4 @@ fi
 "$SBOM_TOOL" --lock "$LOCK_FILE" --format cyclonedx --output "$output_dir/sbom.cdx.json"
 "$LICENSE_TOOL" --lock "$LOCK_FILE" --output "$output_dir/license-audit.json"
 "$NOTICE_TOOL" --lock "$LOCK_FILE" --output "$output_dir/NOTICE"
-"$ELF_AUDIT_TOOL" --input "$output_dir/libmpv.so" --output "$output_dir/elf-audit.json" --allow libc++.so --allow libhilog_ndk.z.so
+"$ELF_AUDIT_TOOL" --input "$output_dir/libmpv.so" --output "$output_dir/elf-audit.json" --allow libc++.so --allow libhilog_ndk.z.so --forbid libsmbclient.so

@@ -48,7 +48,7 @@ export interface LibMpvNapi {
   attachSurface(handle: number, surfaceId: string): string;
   detachSurface(handle: number): string;
   load(handle: number, url: string, authorization: string): string;
-  loadMedia(handle: number, kind: string, url: string, authorization: string, proxyLeaseId: string): string;
+  loadMedia(handle: number, kind: string, url: string, authorization: string, proxyLeaseId: string, smbUsername: string, smbPassword: string): string;
   addExternalAudio(handle: number, uri: string): string;
   getBufferingState(handle: number): BufferingState;
   setPause(handle: number, paused: boolean): string;

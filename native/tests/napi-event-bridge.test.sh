@@ -34,6 +34,28 @@ main() {
   assert_contains "$BRIDGE" "setEventCallback"
   assert_contains "$TYPES" "setEventCallback(handle: number, callback: NativeEventCallback): string;"
   assert_contains "$PAGE" "libentry.setEventCallback(handle"
+  assert_contains "$BRIDGE" "const std::string& smbUsername, const std::string& smbPassword"
+  assert_contains "$BRIDGE" "kind == \"smb\""
+  assert_contains "$BRIDGE" "isSmb ? \"\" : authorization.c_str()"
+  assert_contains "$BRIDGE" "demuxer-lavf-o"
+  assert_contains "$BRIDGE" "stream-lavf-o"
+  assert_contains "$BRIDGE" "EscapeMpvOptionValue"
+  assert_contains "$BRIDGE" '",pass" "word=" + EscapeMpvOptionValue(smbPassword)'
+  if rg -q --fixed-strings '",******"' "$BRIDGE"; then
+    fail "SMB 密码不能被掩码后传给 FFmpeg"
+  fi
+  assert_contains "$BRIDGE" "smbUsernameCopy.clear()"
+  assert_contains "$BRIDGE" "smbPasswordCopy.clear()"
+  assert_contains "$TYPES" "smbUsername: string, smbPassword: string"
+  assert_contains "$PAGE" "this.smbUsername"
+  assert_contains "$PAGE" "this.smbPassword"
+  assert_contains "$PAGE" "this.loadVideo()"
+  assert_contains "$PAGE" "@State smbConfigStatus: string = ''"
+  assert_contains "$PAGE" "正在验证 SMB 配置..."
+  assert_contains "$PAGE" "smb-config-status"
+  assert_contains "$PAGE" "save-smb-config-button"
+  assert_contains "$PAGE" "SMB 配置已保存，密码未保存。"
+  assert_contains "$PAGE" "libentry.loadMedia(this.playerHandle, kind, targetUrl, authorization, proxyLeaseId, smbUsername, smbPassword)"
   assert_contains "$PAGE" "if (!this.createPlayer())"
 }
 

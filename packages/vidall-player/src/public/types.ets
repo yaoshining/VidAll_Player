@@ -14,7 +14,7 @@ export interface PlayerSurface {
 export interface PlayerOptions { eventListener?: (event: PlayerEvent) => void; }
 
 export interface MediaSource {
-  kind: 'localFile' | 'http' | 'https' | 'hls' | 'dash' | 'localhostProxy';
+  kind: 'localFile' | 'http' | 'https' | 'hls' | 'dash' | 'localhostProxy' | 'smb';
   uri: string;
   headers?: Record<string, string>;
   externalAudio?: ExternalAudio[];

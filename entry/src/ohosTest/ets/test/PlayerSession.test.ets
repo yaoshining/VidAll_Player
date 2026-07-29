@@ -37,6 +37,74 @@ export default function playerSessionTest() {
       done();
     });
 
+    it('accepts credential-free direct SMB media after native capability verification', 0, async (done: Function) => {
+      const errors: PlayerError[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'error' && event.error !== undefined) {
+            errors.push(event.error);
+          }
+        }
+      });
+
+      await player.load({ kind: 'smb', uri: 'smb://files.example/media/video.mkv' });
+      await player.play();
+      expect(errors.length).assertEqual(0);
+      await player.release();
+      done();
+    });
+
+    it('rejects malformed SMB paths before checking native support', 0, async (done: Function) => {
+      const invalidUris: string[] = [
+        'smb://:445/media/video.mkv',
+        'smb://files.example/',
+        'smb://files.example/media/../video.mkv',
+        'smb://files.example/media/%2e%2e/video.mkv'
+      ];
+
+      for (let index = 0; index < invalidUris.length; index++) {
+        const errors: PlayerError[] = [];
+        const player = createPlayer({
+          eventListener: (event: PlayerEvent) => {
+            if (event.type === 'error' && event.error !== undefined) {
+              errors.push(event.error);
+            }
+          }
+        });
+        try {
+          await player.load({ kind: 'smb', uri: invalidUris[index] });
+          expect(true).assertFalse();
+        } catch (_) {
+          expect(errors.length).assertEqual(1);
+          expect(errors[0].code).assertEqual('INVALID_SMB_URI');
+        }
+        await player.release();
+      }
+      done();
+    });
+
+    it('rejects SMB userinfo before checking native support', 0, async (done: Function) => {
+      const errors: PlayerError[] = [];
+      const player = createPlayer({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'error' && event.error !== undefined) {
+            errors.push(event.error);
+          }
+        }
+      });
+
+      try {
+        await player.load({ kind: 'smb', uri: 'smb://user:secret@files.example/media/video.mkv' });
+        expect(true).assertFalse();
+      } catch (_) {
+        expect(errors.length).assertEqual(1);
+        expect(errors[0].code).assertEqual('URL_USERINFO_FORBIDDEN');
+        expect(errors[0].message.indexOf('secret') < 0).assertTrue();
+      }
+      await player.release();
+      done();
+    });
+
     it('emits ordered state and closed events for a normal session', 0, async (done: Function) => {
       const events: PlayerEvent[] = [];
       const player = createPlayer({ eventListener: (event: PlayerEvent) => events.push(event) });

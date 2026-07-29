@@ -16,6 +16,41 @@
       "license": "LGPL-2.1-or-later",
       "purpose": "解封装、协议与编解码"
     },
+    "samba": {
+      "repository": "https://gitlab.com/samba-team/samba.git",
+      "tag": "samba-4.20.7",
+      "commit": "3984b04d7085c428ab3126ef4cfac2a396b5b29e",
+      "license": "GPL-3.0-or-later",
+      "purpose": "为 FFmpeg 提供受控 libsmbclient SMB 协议实现",
+      "build": {
+        "target": "aarch64-linux-ohos",
+        "pkgConfigModule": "smbclient",
+        "linkage": "static",
+        "dependencyClosureStatus": "complete",
+        "transitiveDependencies": [
+          "zlib",
+          "popt",
+          "gmp",
+          "nettle",
+          "libtasn1",
+          "gnutls"
+        ]
+      }
+    },
+    "gnutls": {
+      "repository": "https://gitlab.com/gnutls/gnutls.git",
+      "tag": "3.8.7",
+      "commit": "994d9392a607308e452ecae87caafd6ea81288f3",
+      "license": "LGPL-2.1-or-later",
+      "purpose": "Samba/libsmbclient 的受控 TLS 传递依赖"
+    },
+    "popt": {
+      "repository": "https://github.com/rpm-software-management/popt.git",
+      "tag": "popt-1.19-release",
+      "commit": "916e61045d268f7e37ade5ec047eb77e8299e6ad",
+      "license": "MIT",
+      "purpose": "Samba/libsmbclient 的受控命令行解析传递依赖"
+    },
     "libass": {
       "repository": "https://github.com/libass/libass.git",
       "tag": "0.17.3",
@@ -144,6 +179,7 @@
   "licensePolicy": {
     "releaseRequiresReview": [
       "GPL-2.0-or-later",
+      "GPL-3.0-or-later",
       "LGPL-2.1-or-later"
     ],
     "noticeRequired": true,

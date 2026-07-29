@@ -39,6 +39,46 @@ main() {
   invalidate_dependency_cache_if_build_source_changed "$work_dir" 'new-build-commit:2'
   assert_missing "$work_dir/libmpv/ffmpeg"
 
+  # macOS 自带 Bash 3.2 不支持 mapfile；发布归档必须使用可移植的循环收集。
+  if grep -q 'mapfile' "$BOOTSTRAP_SCRIPT"; then
+    fail '引导脚本不得依赖 macOS Bash 3.2 不支持的 mapfile'
+  fi
+
+  # macOS 不提供 sha256sum；发布摘要必须回退到随系统提供的 shasum。
+  local hash_input="$temp_dir/libmpv.so"
+  local hash_output="$temp_dir/libmpv.so.sha256"
+  printf 'libmpv artifact\n' > "$hash_input"
+  write_sha256 "$hash_input" "$hash_output"
+  grep -Eq '^[0-9a-f]{64}[[:space:]]+' "$hash_output" || fail 'libmpv SHA-256 摘要格式无效'
+
+  # 当调用方提供已验证的 SMB sysroot 时，引导脚本必须将其注入 FFmpeg 使用的 DEST。
+  local smb_sysroot="$temp_dir/smb-sysroot"
+  mkdir -p "$smb_sysroot/lib/pkgconfig" "$smb_sysroot/include"
+  printf 'archive\n' > "$smb_sysroot/lib/libsmbclient.a"
+  printf 'transitive archive\n' > "$smb_sysroot/lib/libgnutls.a"
+  cat > "$smb_sysroot/lib/pkgconfig/smbclient.pc" <<'EOF'
+prefix=/stale/smb-sysroot
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+Libs: -L${libdir} -lsmbclient
+Libs.private: -lgnutls -ltasn1
+Cflags: -I${includedir}
+EOF
+  printf 'header\n' > "$smb_sysroot/include/libsmbclient.h"
+  printf 'transitive header\n' > "$smb_sysroot/include/gnutls.h"
+  VIDALL_PLAYER_SMB_SYSROOT="$smb_sysroot" prepare_smb_sysroot "$work_dir/libmpv/arm64-build"
+  assert_file_content "$work_dir/libmpv/arm64-build/lib/libsmbclient.a" 'archive'
+  assert_file_content "$work_dir/libmpv/arm64-build/lib/libgnutls.a" 'transitive archive'
+  grep -Fxq "prefix=$work_dir/libmpv/arm64-build" "$work_dir/libmpv/arm64-build/lib/pkgconfig/smbclient.pc" || fail 'smbclient.pc 必须使用 FFmpeg DEST 作为 prefix'
+  grep -Fxq 'Libs.private: -lgnutls -ltasn1' "$work_dir/libmpv/arm64-build/lib/pkgconfig/smbclient.pc" || fail 'smbclient.pc 必须保留静态传递依赖'
+  assert_file_content "$work_dir/libmpv/arm64-build/include/libsmbclient.h" 'header'
+  assert_file_content "$work_dir/libmpv/arm64-build/include/gnutls.h" 'transitive header'
+
+  if VIDALL_PLAYER_SMB_SYSROOT="$temp_dir/missing-smb-sysroot" prepare_smb_sysroot "$work_dir/libmpv/arm64-build"; then
+    fail '不完整的 SMB sysroot 必须被拒绝'
+  fi
+
   mkdir -p "$work_dir/libmpv/ffmpeg"
   mark_dependency_cache_prepared "$work_dir" 'new-build-commit:2'
   assert_file_content "$work_dir/.vidall-player-build-commit" 'new-build-commit:2'

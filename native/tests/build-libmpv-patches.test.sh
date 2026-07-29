@@ -143,11 +143,21 @@ meson setup .. \
   --prefix=$DEST/mpv \
   --default-library shared \
   --strip \
+  -Dopensles=disabled \
   -Dohos=enabled \
-  -Dgpl=false
+  -Degl-ohos=enabled \
+  -Dvulkan=enabled \
+  -Dshaderc=enabled \
+  -Dlua=enabled \
+  -Dgpl=false \
+  -Dbuild-date=false \
+  -Dcplayer=false \
+  -Dmanpage-build=disabled
+ninja -j$CORES
+ninja install
 
-ninja
-meson install
+cd $DEST/mpv/lib
+mv libmpv.so ../../libmpv.so
 
 popd
 ORIGINAL_MPV_SH
@@ -198,15 +208,431 @@ main() {
   [ "$harfbuzz_line" -lt "$freetype_line" ] || \
     fail "harfbuzz.sh（行 $harfbuzz_line）应在 freetype.sh（行 $freetype_line）之前，freetype 才能稳定链接 harfbuzz"
 
-  # FFmpeg configure 显式启用 libxml2 与 dash demuxer
+  # FFmpeg configure 显式启用 libxml2、DASH 与静态 libsmbclient。
   ffmpeg_sh="$work_dir/scripts/ffmpeg.sh"
   grep -q -- '--enable-libxml2' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-libxml2"
   grep -q -- '--enable-demuxer=dash' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-demuxer=dash"
+  grep -q -- '--enable-gpl' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-gpl（libsmbclient 为 GPLv3）"
+  grep -q -- '--enable-libsmbclient' "$ffmpeg_sh" || fail "ffmpeg.sh 缺少 --enable-libsmbclient"
+  grep -q -- '--pkg-config-flags=--static' "$ffmpeg_sh" || fail "ffmpeg.sh 必须通过静态 pkg-config 解析 libsmbclient 传递依赖"
+
+  # Direct SMB 凭据必须经 FFmpeg 协议选项回调提供，不能放入 URL 或 HTTP 请求头。
+  local libsmbclient_source="$work_dir/libmpv/ffmpeg/libavformat/libsmbclient.c"
+  mkdir -p "$(dirname "$libsmbclient_source")"
+  cat > "$libsmbclient_source" <<'ORIGINAL_LIBSMBCLIENT_C'
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+typedef struct {
+    const AVClass *class;
+    SMBCCTX *ctx;
+    int dh;
+    int fd;
+    int64_t filesize;
+    int trunc;
+    int timeout;
+    char *workgroup;
+} LIBSMBContext;
+
+static void libsmbc_get_auth_data(SMBCCTX *c, const char *server, const char *share,
+                                  char *workgroup, int workgroup_len,
+                                  char *username, int username_len,
+                                  char *password, int password_len)
+{
+    /* Do nothing yet. Credentials are passed via url.
+     * Callback must exists, there might be a segmentation fault otherwise. */
+}
+
+static av_cold int libsmbc_connect(URLContext *h)
+{
+    LIBSMBContext *libsmbc = h->priv_data;
+
+    libsmbc->ctx = smbc_new_context();
+    if (!libsmbc->ctx) {
+        int ret = AVERROR(errno);
+        av_log(h, AV_LOG_ERROR, "Cannot create context: %s.\n", strerror(errno));
+        return ret;
+    }
+    if (!smbc_init_context(libsmbc->ctx)) {
+        int ret = AVERROR(errno);
+        av_log(h, AV_LOG_ERROR, "Cannot initialize context: %s.\n", strerror(errno));
+        return ret;
+    }
+    smbc_set_context(libsmbc->ctx);
+
+    smbc_setOptionUserData(libsmbc->ctx, h);
+    smbc_setFunctionAuthDataWithContext(libsmbc->ctx, libsmbc_get_auth_data);
+
+    if (libsmbc->timeout != -1)
+        smbc_setTimeout(libsmbc->ctx, libsmbc->timeout);
+    if (libsmbc->workgroup)
+        smbc_setWorkgroup(libsmbc->ctx, libsmbc->workgroup);
+
+    if (smbc_init(NULL, 0) < 0) {
+        int ret = AVERROR(errno);
+        av_log(h, AV_LOG_ERROR, "Initialization failed: %s\n", strerror(errno));
+        return ret;
+    }
+    return 0;
+}
+
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+/* fixture padding */
+#define OFFSET(x) offsetof(LIBSMBContext, x)
+#define D AV_OPT_FLAG_DECODING_PARAM
+#define E AV_OPT_FLAG_ENCODING_PARAM
+static const AVOption options[] = {
+    {"timeout",   "set timeout in ms of socket I/O operations",    OFFSET(timeout), AV_OPT_TYPE_INT, {.i64 = -1}, -1, INT_MAX, D|E },
+    {"truncate",  "truncate existing files on write",              OFFSET(trunc),   AV_OPT_TYPE_INT, { .i64 = 1 }, 0, 1, E },
+    {"workgroup", "set the workgroup used for making connections", OFFSET(workgroup), AV_OPT_TYPE_STRING, { 0 }, 0, 0, D|E },
+    {NULL}
+};
+ORIGINAL_LIBSMBCLIENT_C
+  apply_ffmpeg_source_patches "$work_dir" "$FFMPEG_PATCHES_DIR"
+  grep -q -- 'char \*username;' "$libsmbclient_source" || fail "libsmbclient 回调缺少会话用户名选项"
+  grep -q -- 'char \*password;' "$libsmbclient_source" || fail "libsmbclient 回调缺少会话密码选项"
+  grep -q -- 'smbc_setOptionUserData(libsmbc->ctx, libsmbc);' "$libsmbclient_source" || \
+    fail "libsmbclient 必须将协议私有上下文交给认证回调"
+  if grep -q -- 'smbc_setOptionUserData(libsmbc->ctx, h);' "$libsmbclient_source"; then
+    fail "libsmbclient 不能将 URLContext 误作认证回调的协议私有上下文"
+  fi
+  grep -q -- 'av_strlcpy(username, libsmbc->username' "$libsmbclient_source" || fail "libsmbclient 回调未复制会话用户名"
+  grep -q -- 'av_strlcpy(password, libsmbc->password' "$libsmbclient_source" || fail "libsmbclient 回调未复制会话密码"
+  grep -q -- '"username", "set the username used for SMB authentication"' "$libsmbclient_source" || fail "libsmbclient 缺少用户名 AVOption"
+  grep -q -- '"password", "set the password used for SMB authentication"' "$libsmbclient_source" || fail "libsmbclient 缺少密码 AVOption"
+  local options_start username_option timeout_option
+  options_start=$(line_of_first_match 'static const AVOption options\[\] = {' "$libsmbclient_source")
+  username_option=$(line_of_first_match '"username", "set the username used for SMB authentication"' "$libsmbclient_source")
+  timeout_option=$(line_of_first_match '"timeout",   "set timeout in ms of socket I/O operations"' "$libsmbclient_source")
+  [ "$username_option" -gt "$options_start" ] && [ "$username_option" -lt "$timeout_option" ] || \
+    fail "libsmbclient 凭据 AVOption 必须在 options 数组内部"
 
   # 问题 C：mpv.sh 的 meson setup 须带 --wipe，避免缓存命中时复用 stale .build
   # 导致 build.ninja 退化为只构建静态库（libmpv.a），mv libmpv.so 失败
   local mpv_sh="$work_dir/scripts/mpv.sh"
   grep -q -- '--wipe' "$mpv_sh" || fail "mpv.sh 缺少 --wipe（缓存命中时 meson 会复用 stale .build 配置）"
+  grep -q -- '-Dgpl=true' "$mpv_sh" || fail "mpv.sh 缺少 -Dgpl=true"
+  ! grep -q -- '-Dgpl=false' "$mpv_sh" || fail "mpv.sh 不应禁用 GPL 功能"
 
   # 幂等性：重复应用已应用补丁应跳过而非报错
   apply_build_script_patches "$work_dir" "$PATCHES_DIR" \

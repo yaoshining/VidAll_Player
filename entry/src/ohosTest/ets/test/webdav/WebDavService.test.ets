@@ -9,6 +9,11 @@ import {
   sanitizeWebDavConfig,
   WebDavConfig
 } from '../../../../main/ets/webdav/WebDavService';
+import {
+  buildSmbMediaUri,
+  sanitizeSmbConfig,
+  SmbConfig
+} from '../../../../main/ets/smb/SmbService';
 
 export default function webDavServiceTest() {
   describe('WebDavServiceTest', () => {
@@ -24,6 +29,52 @@ export default function webDavServiceTest() {
       expect(saved.password).assertEqual('');
       expect(saved.endpoint).assertEqual('https://dav.example.com/library/');
       expect(saved.username).assertEqual('alice');
+    });
+
+    it('builds credential-free SMB media URIs and never persists its password', 0, () => {
+      const config: SmbConfig = {
+        host: '192.168.3.59',
+        share: 'Media Library',
+        path: 'Movies/电影 01.mkv',
+        username: 'alice',
+        password: 'correct-horse-battery-staple'
+      };
+      const saved = sanitizeSmbConfig(config);
+      const uri = buildSmbMediaUri(config);
+
+      expect(uri).assertEqual('smb://192.168.3.59/Media%20Library/Movies/%E7%94%B5%E5%BD%B1%2001.mkv');
+      expect(uri.indexOf('alice') < 0).assertTrue();
+      expect(uri.indexOf('correct-horse-battery-staple') < 0).assertTrue();
+      expect(saved.password).assertEqual('');
+      expect(saved.host).assertEqual('192.168.3.59');
+      expect(saved.share).assertEqual('Media Library');
+      expect(saved.path).assertEqual('Movies/电影 01.mkv');
+      expect(saved.username).assertEqual('alice');
+    });
+
+    it('rejects invalid SMB host, share, and traversal path input', 0, () => {
+      let hostRejected = false;
+      try {
+        buildSmbMediaUri({ host: 'alice@files.example', share: 'media', path: '', username: '', password: '' });
+      } catch (_) {
+        hostRejected = true;
+      }
+      let shareRejected = false;
+      try {
+        buildSmbMediaUri({ host: 'files.example', share: '', path: '', username: '', password: '' });
+      } catch (_) {
+        shareRejected = true;
+      }
+      let pathRejected = false;
+      try {
+        buildSmbMediaUri({ host: 'files.example', share: 'media', path: '../secret.mkv', username: '', password: '' });
+      } catch (_) {
+        pathRejected = true;
+      }
+
+      expect(hostRejected).assertTrue();
+      expect(shareRejected).assertTrue();
+      expect(pathRejected).assertTrue();
     });
 
     it('builds a real PROPFIND request for API 19 HTTP servers', 0, () => {

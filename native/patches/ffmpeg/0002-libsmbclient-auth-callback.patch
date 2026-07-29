@@ -1,0 +1,30 @@
+diff --git a/libavformat/libsmbclient.c b/libavformat/libsmbclient.c
+index 315b378..a8649ad 100644
+--- a/libavformat/libsmbclient.c
++++ b/libavformat/libsmbclient.c
+@@ -42,8 +42,14 @@ static void libsmbc_get_auth_data(SMBCCTX *c, const char *server, const char *sh
+                                   char *username, int username_len,
+                                   char *password, int password_len)
+ {
+-    /* Do nothing yet. Credentials are passed via url.
+-     * Callback must exists, there might be a segmentation fault otherwise. */
++    LIBSMBContext *libsmbc = smbc_getOptionUserData(c);
++
++    if (libsmbc->workgroup)
++        av_strlcpy(workgroup, libsmbc->workgroup, workgroup_len);
++    if (libsmbc->username)
++        av_strlcpy(username, libsmbc->username, username_len);
++    if (libsmbc->password)
++        av_strlcpy(password, libsmbc->password, password_len);
+ }
+ 
+ static av_cold int libsmbc_connect(URLContext *h)
+@@ -65,7 +71,7 @@ static av_cold int libsmbc_connect(URLContext *h)
+     }
+     smbc_set_context(libsmbc->ctx);
+ 
+-    smbc_setOptionUserData(libsmbc->ctx, h);
++    smbc_setOptionUserData(libsmbc->ctx, libsmbc);
+     smbc_setFunctionAuthDataWithContext(libsmbc->ctx, libsmbc_get_auth_data);
+ 
+     if (libsmbc->timeout != -1)
