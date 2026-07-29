@@ -204,6 +204,7 @@ assert 'actions: read' in workflow, 'CI 必须授权读取同次构建的 artifa
 assert '直接下载并解压同次 SMB sysroot' in workflow, '真实 libmpv 构建必须直接下载并解压 SMB artifact'
 libmpv_job = workflow.split('  build-libmpv-with-smb:', 1)[1]
 assert 'actions/runs/${GITHUB_RUN_ID}/artifacts' in libmpv_job, 'SMB artifact 必须从当前 workflow run 查询'
+assert 'GITHUB_TOKEN: ${{ github.token }}' in libmpv_job, 'SMB artifact API 下载必须显式注入 GitHub token'
 assert 'unzip -tqq "$SMB_ARTIFACT_ZIP"' in libmpv_job, 'SMB artifact 必须先校验 zip 完整性'
 assert 'unzip -q "$SMB_ARTIFACT_ZIP" -d "$SMB_DOWNLOAD_ROOT"' in libmpv_job, 'SMB artifact 必须完成解压后再读取元数据'
 assert '"/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"' in libmpv_job, '真实 libmpv 构建必须复用带版本的 DevEco NDK 探测路径'
