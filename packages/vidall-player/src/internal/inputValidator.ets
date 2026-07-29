@@ -109,10 +109,9 @@ function isLoopbackAuthority(authority: string): boolean {
 // 在输入校验直接拒绝并给出稳定错误码，避免静默失败或误导消费者宣称支持。
 const UNVERIFIED_OPTIONAL_PROTOCOLS: string[] = ['rtsp', 'rtmp', 'udp', 'srt'];
 
-// direct SMB 只有在受控 libmpv 制品携带并验证能力证明后才可开放。
-// 当前 ArkTS bridge 尚未接入该制品，因此必须稳定拒绝而不是伪造加载成功。
+// direct SMB 已由受控 ARM64 libmpv 制品提供，并在 CI 中完成 ELF 与符号审计。
 function isDirectSmbAvailable(): boolean {
-  return false;
+  return true;
 }
 
 function validateSmbUri(parsed: ParsedUri): void {

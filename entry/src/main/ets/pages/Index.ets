@@ -53,6 +53,7 @@ struct Index {
   @State smbPath: string = '';
   @State smbUsername: string = '';
   @State smbPassword: string = '';
+  @State smbConfigStatus: string = '';
   @State audioTracks: LibMpvTrack[] = [];
   @State subtitleTracks: LibMpvTrack[] = [];
   private webDavBrowseGeneration: number = 0;
@@ -157,20 +158,36 @@ struct Index {
     }
   }
 
+  private async saveSmbConfig(): Promise<void> {
+    const config = this.getSmbConfig();
+    try {
+      buildSmbMediaUri(config);
+      await new SmbService(getContext(this)).saveConfig(config);
+      this.smbConfigStatus = 'SMB 配置已保存，密码未保存。';
+      this.nativeStatus = this.smbConfigStatus;
+    } catch (error) {
+      this.smbConfigStatus = error instanceof Error ? error.message : 'SMB 配置无效。';
+      this.nativeStatus = this.smbConfigStatus;
+    }
+  }
+
   private async loadSmbVideo(): Promise<void> {
     const config = this.getSmbConfig();
+    this.smbConfigStatus = '正在验证 SMB 配置...';
     try {
       const uri = buildSmbMediaUri(config);
       await new SmbService(getContext(this)).saveConfig(config);
       this.url = uri;
       this.isWebDavSource = false;
       this.currentMediaKind = 'smb';
-      // 当前受控 libmpv 制品尚未提供 direct SMB 能力；认证信息不会拼入 URI 或日志。
       this.nativeStatus = config.username.length > 0
-        ? 'SMB 凭据已在本次会话中保留，但当前受控原生 SMB 能力尚未验证，无法播放。'
-        : '已生成无凭据 SMB 地址；当前受控原生 SMB 能力尚未验证，无法播放。';
+        ? '已提交 SMB 认证加载，凭据仅保留在本次会话。'
+        : '已提交匿名 SMB 加载。';
+      this.smbConfigStatus = this.nativeStatus;
+      this.loadVideo();
     } catch (error) {
       this.nativeStatus = error instanceof Error ? error.message : 'SMB 配置无效。';
+      this.smbConfigStatus = this.nativeStatus;
     }
   }
 
@@ -246,10 +263,12 @@ struct Index {
       ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}`
       : '';
     const proxyLeaseId = kind === 'localhostProxy' ? newProxyLeaseId() : '';
+    const smbUsername = kind === 'smb' ? this.smbUsername : '';
+    const smbPassword = kind === 'smb' ? this.smbPassword : '';
     this.currentMediaKind = kind;
     this.currentProxyLeaseId = proxyLeaseId;
     this.activePlaybackUrl = targetUrl;
-    this.nativeStatus = libentry.loadMedia(this.playerHandle, kind, targetUrl, authorization, proxyLeaseId);
+    this.nativeStatus = libentry.loadMedia(this.playerHandle, kind, targetUrl, authorization, proxyLeaseId, smbUsername, smbPassword);
     // 如果填写了外挂字幕/音频 URL，加载视频后立即附加（支持网络 URL）。
     if (this.subtitleUrl.trim().length > 0) {
       this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, this.subtitleUrl.trim());
@@ -854,9 +873,25 @@ struct Index {
             .layoutWeight(1)
             .type(InputType.Password)
             .onChange((value: string) => this.smbPassword = value)
-          Button('配置 SMB')
+        }
+        Row({ space: 8 }) {
+          Button('保存 SMB 配置')
+            .id('save-smb-config-button')
+            .layoutWeight(1)
+            .backgroundColor('#31577F')
+            .onClick(() => this.saveSmbConfig())
+          Button('配置并加载 SMB')
+            .id('configure-smb-button')
+            .layoutWeight(1)
             .backgroundColor('#2F7DE1')
             .onClick(() => this.loadSmbVideo())
+        }
+        if (this.smbConfigStatus.length > 0) {
+          Text(this.smbConfigStatus)
+            .id('smb-config-status')
+            .fontSize(14)
+            .fontColor('#B8F4D9')
+            .width('100%')
         }
         if (this.currentMediaKind === 'smb' && this.url.length > 0) {
           Text(`SMB 地址: ${this.url}`)

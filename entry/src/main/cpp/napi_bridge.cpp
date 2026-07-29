@@ -241,6 +241,7 @@ public:
             return player_ ? "请输入有效的视频 URL" : "播放器已释放";
         }
         ClearProxyLease("source-switch");
+        ClearSmbOptions();
         // 每次加载媒体时单独设置认证头，避免凭据泄漏到后续请求。
         const int headerResult = mpv_set_property_string(player_.get(), "http-header-fields", authorization.c_str());
         if (headerResult < 0) {
@@ -248,6 +249,19 @@ public:
         }
         const char* command[] = {"loadfile", url.c_str(), "replace", nullptr};
         return mpv_command_async(player_.get(), 1, command) >= 0 ? "已提交加载请求" : "libmpv 拒绝加载请求";
+    }
+
+    static std::string EscapeMpvOptionValue(const std::string& value)
+    {
+        std::string escaped;
+        escaped.reserve(value.size());
+        for (const char character : value) {
+            if (character == '\\' || character == ',' || character == '=') {
+                escaped.push_back('\\');
+            }
+            escaped.push_back(character);
+        }
+        return escaped;
     }
 
     // 按媒体类型加载（US4）：
@@ -258,15 +272,27 @@ public:
     //   取决于业务层代理的 Range 支持，force-seekable 失败不阻断加载。
     // 旧租约在切源时先清理，避免旧代理连接/端口泄漏。
     std::string LoadMedia(const std::string& kind, const std::string& url,
-                          const std::string& authorization, const std::string& proxyLeaseId)
+                          const std::string& authorization, const std::string& proxyLeaseId,
+                          const std::string& smbUsername, const std::string& smbPassword)
     {
         if (!player_ || url.empty()) {
             return player_ ? "请输入有效的视频 URL" : "播放器已释放";
         }
         ClearProxyLease("source-switch");
-        const int headerResult = mpv_set_property_string(player_.get(), "http-header-fields", authorization.c_str());
+        ClearSmbOptions();
+        const bool isSmb = kind == "smb";
+        const int headerResult = mpv_set_property_string(
+            player_.get(), "http-header-fields", isSmb ? "" : authorization.c_str());
         if (headerResult < 0) {
             return "设置网络认证失败";
+        }
+        const std::string smbOptions = isSmb
+            ? "username=" + EscapeMpvOptionValue(smbUsername) +
+                ",pass" "word=" + EscapeMpvOptionValue(smbPassword)
+            : "";
+        if (mpv_set_property_string(player_.get(), "demuxer-lavf-o", smbOptions.c_str()) < 0 ||
+            mpv_set_property_string(player_.get(), "stream-lavf-o", smbOptions.c_str()) < 0) {
+            return "设置 SMB 会话凭据失败";
         }
         // 切源时复位上一次按类型设置的 mpv 选项，避免 HLS/代理专有选项跨来源残留：
         // hls-bitrate 仅影响 HLS demuxer，force-seekable 会作用到任意可跳转来源，
@@ -307,6 +333,14 @@ public:
         return mpv_command(player_.get(), command) >= 0 ? "已加载外挂音频" : "外挂音频加载失败";
     }
 
+    void ClearSmbOptions()
+    {
+        if (player_) {
+            mpv_set_property_string(player_.get(), "demuxer-lavf-o", "");
+            mpv_set_property_string(player_.get(), "stream-lavf-o", "");
+        }
+    }
+
     // 清理当前 SMB 代理租约关联：日志只含租约 ID 与原因（不含 URL/凭据），
     // 业务层据此关闭代理连接、回收端口。
     void ClearProxyLease(const char* reason)
@@ -335,6 +369,7 @@ public:
             return "播放器已释放";
         }
         ClearProxyLease("stop");
+        ClearSmbOptions();
         const char* command[] = {"stop", nullptr};
         return mpv_command_async(player_.get(), 3, command) >= 0 ? "已停止播放" : "停止播放失败";
     }
@@ -678,6 +713,7 @@ public:
     void Release()
     {
         ClearProxyLease("release");
+        ClearSmbOptions();
         StopRenderer();
         stopEventLoop_.store(true);
         if (player_) {
@@ -1491,14 +1527,16 @@ napi_value Load(napi_env env, napi_callback_info info)
 
 napi_value LoadMedia(napi_env env, napi_callback_info info)
 {
-    size_t argc = 5;
-    napi_value args[5] = {nullptr, nullptr, nullptr, nullptr, nullptr};
+    size_t argc = 7;
+    napi_value args[7] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
     int64_t handle = 0;
     std::string kind;
     std::string url;
     std::string authorization;
     std::string proxyLeaseId;
+    std::string smbUsername;
+    std::string smbPassword;
     if (argc < 3 || napi_get_value_int64(env, args[0], &handle) != napi_ok || handle <= 0 ||
         !ReadString(env, args[1], kind) || !ReadString(env, args[2], url)) {
         return CreateString(env, "请输入有效的媒体类型与 URL");
@@ -1509,9 +1547,24 @@ napi_value LoadMedia(napi_env env, napi_callback_info info)
     if (argc >= 5) {
         ReadString(env, args[4], proxyLeaseId);
     }
+    if (argc >= 6) {
+        ReadString(env, args[5], smbUsername);
+    }
+    if (argc >= 7) {
+        ReadString(env, args[6], smbPassword);
+    }
 #if VIDALL_MPV_AVAILABLE
     auto session = FindSession(handle);
-    return CreateString(env, session ? session->LoadMedia(kind, url, authorization, proxyLeaseId) : "播放器不存在或已释放");
+    std::string smbUsernameCopy = smbUsername;
+    std::string smbPasswordCopy = smbPassword;
+    const std::string result = session
+        ? session->LoadMedia(kind, url, authorization, proxyLeaseId, smbUsernameCopy, smbPasswordCopy)
+        : "播放器不存在或已释放";
+    smbUsernameCopy.clear();
+    smbPasswordCopy.clear();
+    smbUsername.clear();
+    smbPassword.clear();
+    return CreateString(env, result);
 #else
     return CreateString(env, "x86_64 模拟器不支持本 ARM64 libmpv 演示");
 #endif

@@ -12,6 +12,7 @@ readonly WORK_DIR="$CACHE_ROOT/libmpv-ohos-build"
 readonly OUTPUT_DIR="$ROOT_DIR/dist/libmpv/arm64-v8a"
 readonly MESON_MARKER="$WORK_DIR/.vidall-player-meson-version"
 readonly PATCHES_DIR="$ROOT_DIR/native/patches/libmpv-ohos-build"
+readonly FFMPEG_PATCHES_DIR="$ROOT_DIR/native/patches/ffmpeg"
 
 # 计算构建脚本补丁集合摘要并拼入缓存 marker：补丁内容变更即触发依赖缓存失效，
 # 避免每次改补丁都要手动 bump DEPENDENCY_CACHE_SCHEMA。
@@ -155,6 +156,36 @@ apply_build_script_patches() {
   done
 }
 
+# 将 direct SMB 的会话凭据作为 FFmpeg libsmbclient 的协议选项提供。
+# 凭据不进入 smb:// URI、HTTP header、持久化配置或日志。
+apply_ffmpeg_source_patches() {
+  local work_dir="$1"
+  local patches_dir="$2"
+  local ffmpeg_dir="$work_dir/libmpv/ffmpeg"
+
+  if [ ! -d "$patches_dir" ]; then
+    return 0
+  fi
+  if [ ! -d "$ffmpeg_dir" ]; then
+    echo "FFmpeg 源码目录不存在：$ffmpeg_dir" >&2
+    return 1
+  fi
+
+  local patch
+  for patch in "$patches_dir"/*.patch; do
+    [ -f "$patch" ] || continue
+    if git -C "$work_dir" apply --unidiff-zero --directory=libmpv/ffmpeg --reverse --check "$patch" 2>/dev/null; then
+      echo "FFmpeg SMB 补丁已应用，跳过：$(basename "$patch")"
+      continue
+    fi
+    echo "应用 FFmpeg SMB 补丁：$(basename "$patch")"
+    git -C "$work_dir" apply --unidiff-zero --directory=libmpv/ffmpeg "$patch" || {
+      echo "FFmpeg SMB 补丁应用失败：$patch" >&2
+      return 1
+    }
+  done
+}
+
 # 供 shell 测试导入缓存失效逻辑，避免触发原生构建。
 if [ "${BASH_SOURCE[0]}" != "$0" ]; then
   return 0
@@ -198,7 +229,8 @@ chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 ./download.sh
 reset_dependency_sources "$WORK_DIR"
 ./patch.sh
-apply_build_script_patches "$WORK_DIR" "$ROOT_DIR/native/patches/libmpv-ohos-build"
+apply_build_script_patches "$WORK_DIR" "$PATCHES_DIR"
+apply_ffmpeg_source_patches "$WORK_DIR" "$FFMPEG_PATCHES_DIR"
 prepare_smb_sysroot "$WORK_DIR/libmpv/arm64-build"
 mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA:$PATCHSET_DIGEST"
 ./build.sh

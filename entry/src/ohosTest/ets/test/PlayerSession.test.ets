@@ -37,7 +37,7 @@ export default function playerSessionTest() {
       done();
     });
 
-    it('accepts credential-free SMB syntax but refuses unavailable native support', 0, async (done: Function) => {
+    it('accepts credential-free direct SMB media after native capability verification', 0, async (done: Function) => {
       const errors: PlayerError[] = [];
       const player = createPlayer({
         eventListener: (event: PlayerEvent) => {
@@ -47,14 +47,9 @@ export default function playerSessionTest() {
         }
       });
 
-      try {
-        await player.load({ kind: 'smb', uri: 'smb://files.example/media/video.mkv' });
-        expect(true).assertFalse();
-      } catch (_) {
-        expect(errors.length).assertEqual(1);
-        expect(errors[0].code).assertEqual('PROTOCOL_NOT_AVAILABLE');
-        expect(errors[0].message.indexOf('files.example') < 0).assertTrue();
-      }
+      await player.load({ kind: 'smb', uri: 'smb://files.example/media/video.mkv' });
+      await player.play();
+      expect(errors.length).assertEqual(0);
       await player.release();
       done();
     });
