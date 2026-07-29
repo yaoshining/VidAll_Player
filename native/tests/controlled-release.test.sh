@@ -216,6 +216,7 @@ assert '安装 libmpv Rust 与下载工具' in workflow, '真实 libmpv 构建�
 assert 'curl --proto' in libmpv_job and 'sh -s -- -y --profile minimal --default-toolchain stable' in libmpv_job, '真实 libmpv 构建必须用 curl 安装 Rust，避免依赖可能损坏的 Homebrew formula'
 assert 'wget shim' in libmpv_job and 'exec curl -fsSL "$url"' in libmpv_job, '上游缺少 wget 时必须提供仅支持其下载模式的 curl shim'
 assert 'brew install wget rustup-init' not in libmpv_job, '真实 libmpv 构建不得依赖 Homebrew 安装 Rust 或 wget'
+assert 'PATH: ${{ env.PATH }}:${{ runner.home }}/.cargo/bin' not in libmpv_job, '真实 libmpv 构建不得用空的 Actions env.PATH 覆盖系统 PATH'
 assert 'build-libmpv-bootstrap.sh' in workflow, '真实 libmpv 构建必须执行受控引导脚本'
 assert 'llvm-readelf' in workflow and "grep -F 'libsmbclient.so'" in workflow, '真实 libmpv 构建必须拒绝动态 libsmbclient.so'
 assert 'libmpv-arm64-with-smb' in workflow, '真实 libmpv 构建必须上传 ARM64 SMB 制品'

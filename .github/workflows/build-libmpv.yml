@@ -304,7 +304,6 @@ jobs:
         env:
           OHOS_NDK_HOME: ${{ env.OHOS_NDK }}
           VIDALL_PLAYER_SMB_SYSROOT: ${{ env.SMB_SYSROOT }}
-          PATH: ${{ env.PATH }}:${{ runner.home }}/.cargo/bin
         run: native/scripts/build-libmpv-bootstrap.sh
       - name: 审计 ARM64 libmpv 未动态依赖 libsmbclient
         env:
