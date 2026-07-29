@@ -238,13 +238,19 @@ jobs:
             echo "缺少 SMB artifact 下载目录：$SMB_DOWNLOAD_ROOT" >&2
             exit 1
           }
-          SMB_ARCHIVE="$(find "$SMB_DOWNLOAD_ROOT" -type f -path '*/lib/libsmbclient.a' -print -quit 2>/dev/null || true)"
-          test -n "$SMB_ARCHIVE" || {
-            echo '未在下载制品中找到 libsmbclient.a。' >&2
-            find "$SMB_DOWNLOAD_ROOT" -maxdepth 3 -type d -print >&2
-            exit 1
-          }
-          SMB_SYSROOT="$(cd "$(dirname "$SMB_ARCHIVE")/.." && pwd)"
+          if test -s "$SMB_DOWNLOAD_ROOT/lib/libsmbclient.a"; then
+            # download-artifact 下载单个 artifact 时通常直接将其内容解压到目标目录。
+            SMB_SYSROOT="$SMB_DOWNLOAD_ROOT"
+          else
+            # 保留顶层目录的 action 版本仍可由归档名称回退定位。
+            SMB_ARCHIVE="$(find "$SMB_DOWNLOAD_ROOT" -type f -name 'libsmbclient.a' -print -quit 2>/dev/null || true)"
+            test -n "$SMB_ARCHIVE" || {
+              echo '未在下载制品中找到 libsmbclient.a。' >&2
+              find "$SMB_DOWNLOAD_ROOT" -maxdepth 3 -type d -print >&2
+              exit 1
+            }
+            SMB_SYSROOT="$(cd "$(dirname "$SMB_ARCHIVE")/.." && pwd)"
+          fi
           echo "SMB artifact root: $SMB_SYSROOT"
           test -s "$SMB_SYSROOT/lib/libsmbclient.a" || {
             echo 'libsmbclient.a 不可读或为空。' >&2

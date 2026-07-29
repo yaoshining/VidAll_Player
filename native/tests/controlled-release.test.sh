@@ -203,8 +203,9 @@ assert 'name: libsmbclient-ohos-sysroot' in workflow, '真实 libmpv 构建必�
 libmpv_job = workflow.split('  build-libmpv-with-smb:', 1)[1]
 assert '"/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"' in libmpv_job, '真实 libmpv 构建必须复用带版本的 DevEco NDK 探测路径'
 assert 'VIDALL_PLAYER_SMB_SYSROOT' in workflow, '真实 libmpv 构建必须向引导脚本注入 SMB sysroot'
-assert 'SMB_DOWNLOAD_ROOT' in libmpv_job and "-path '*/lib/libsmbclient.a'" in libmpv_job, '真实 libmpv 构建必须从下载制品中定位 sysroot 根目录'
-assert 'dirname "$SMB_ARCHIVE")/.."' in libmpv_job, '定位到 lib/libsmbclient.a 后必须向上一级得到 sysroot 根目录'
+assert 'SMB_DOWNLOAD_ROOT/lib/libsmbclient.a' in libmpv_job, '单个 SMB artifact 解压到目标目录时必须直接使用其根目录'
+assert "-name 'libsmbclient.a'" in libmpv_job, 'artifact 保留顶层目录时必须回退定位静态库'
+assert 'dirname "$SMB_ARCHIVE")/.."' in libmpv_job, '回退定位到 lib/libsmbclient.a 后必须向上一级得到 sysroot 根目录'
 assert '未在下载制品中找到 libsmbclient.a' in libmpv_job, 'SMB sysroot 缺失时必须输出明确诊断'
 assert 'SMB artifact root: $SMB_SYSROOT' in libmpv_job, 'SMB sysroot 校验必须输出定位后的根目录'
 assert 'test -d "$SMB_DOWNLOAD_ROOT"' in libmpv_job, 'SMB sysroot 定位前必须校验下载目录'
