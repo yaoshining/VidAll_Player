@@ -107,14 +107,16 @@ void SubtitleRenderer::clear() {
 }
 
 bool SubtitleRenderer::isCjkLanguage(const std::string& language) {
-    // BCP-47 CJK 语言标签
+    // BCP-47 CJK 语言标签，检查前缀后紧跟 '-' 或字符串结尾
     static const std::vector<std::string> cjkPrefixes = {
         "zh", "ja", "ko", "yue",
     };
     for (const auto& prefix : cjkPrefixes) {
         if (language.size() >= prefix.size() &&
             language.compare(0, prefix.size(), prefix) == 0) {
-            return true;
+            if (language.size() == prefix.size() || language[prefix.size()] == '-') {
+                return true;
+            }
         }
     }
     return false;
@@ -127,7 +129,9 @@ bool SubtitleRenderer::isRtlLanguage(const std::string& language) {
     for (const auto& prefix : rtlPrefixes) {
         if (language.size() >= prefix.size() &&
             language.compare(0, prefix.size(), prefix) == 0) {
-            return true;
+            if (language.size() == prefix.size() || language[prefix.size()] == '-') {
+                return true;
+            }
         }
     }
     return false;

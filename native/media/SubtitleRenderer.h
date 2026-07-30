@@ -73,15 +73,16 @@ public:
     // 是否禁止 ArkTS overlay 渲染
     static bool isArkTsOverlayForbidden();
 
+    // BCP-47 语言检测（公开供测试验证）
+    static bool isCjkLanguage(const std::string& language);
+    static bool isRtlLanguage(const std::string& language);
+
     // 重置状态
     void clear();
 
 private:
     // 内部字体配置（T046 实现时从 fonts.json 加载）
     std::vector<std::string> configuredFontPaths_;
-
-    static bool isCjkLanguage(const std::string& language);
-    static bool isRtlLanguage(const std::string& language);
 };
 
 } // namespace vidall

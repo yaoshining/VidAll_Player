@@ -378,6 +378,30 @@ void test_bilingual_messages() {
           "Renderable message should contain Chinese text");
 }
 
+// ══════════════════════════════════════════════════════════════════
+// 21. BCP-47 前缀边界：非 CJK 语言不被误判
+// ══════════════════════════════════════════════════════════════════
+
+void test_bcp47_prefix_boundary() {
+    // "kok" (Konkani) 不应被 "ko" 前缀误判为 CJK
+    CHECK(!vidall::SubtitleRenderer::isCjkLanguage("kok"),
+          "\"kok\" (Konkani) should not be detected as CJK");
+    // "ko" 本身应被检测为 CJK
+    CHECK(vidall::SubtitleRenderer::isCjkLanguage("ko"),
+          "\"ko\" should be detected as CJK");
+    // "ko-KR" 应被检测为 CJK
+    CHECK(vidall::SubtitleRenderer::isCjkLanguage("ko-KR"),
+          "\"ko-KR\" should be detected as CJK");
+
+    // RTL: "he" (Hebrew) vs "hel" (not a real code but test boundary)
+    CHECK(vidall::SubtitleRenderer::isRtlLanguage("ar"),
+          "\"ar\" should be detected as RTL");
+    CHECK(!vidall::SubtitleRenderer::isRtlLanguage("art"),
+          "\"art\" should not be detected as RTL");
+    CHECK(vidall::SubtitleRenderer::isRtlLanguage("ar-SA"),
+          "\"ar-SA\" should be detected as RTL");
+}
+
 int main() {
     test_arkts_overlay_forbidden();
     test_pgs_bitmap_verdict();
@@ -399,6 +423,7 @@ int main() {
     test_default_encoding_no_degradation();
     test_case_insensitive_format();
     test_bilingual_messages();
+    test_bcp47_prefix_boundary();
 
     std::printf("\nsubtitle_rendering_test: %d passed, %d failed\n",
                 g_tests_passed, g_tests_failed);
