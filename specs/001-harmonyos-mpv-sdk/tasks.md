@@ -67,12 +67,12 @@
 - [ ] T025 [US1] 实现并通过 T024 的 NativeWindow/EGL/GLES 渲染器，渲染线程独占 EGL 资源，更新 `native/render/SurfaceRenderer.h`、`native/render/SurfaceRenderer.cpp`
 - [ ] T026 [US1] 先写并运行失败的 NAPI 端到端命令/事件测试：create、surface 命令、load/control、native 错误、释放后无事件，更新 `native/tests/napi_player_bridge_test.cpp`、`native/bridge/player_napi.cpp`
 - [ ] T027 [US1] 实现并通过 T026 的 ArkTS-NAPI command/event bridge，原生事件经线程安全队列按会话序列投递，更新 `native/bridge/player_napi.cpp`、`native/bridge/EventDispatcher.cpp`
-- [ ] T028 [US1] 先写并运行失败的本地/HTTP 加载测试：可读媒体、文件不存在、权限拒绝、无效 URI、TLS/Range 失败的脱敏错误，更新 `native/tests/media_loader_test.cpp`、`native/media/MediaLoader.cpp`
-- [ ] T029 [US1] 实现并通过 T028 的 localFile、HTTP/HTTPS 受控加载与错误映射，更新 `native/media/MediaLoader.cpp`、`native/media/PlayerErrorMapper.cpp`
+- [X] T028 [US1] 先写并运行失败的本地/HTTP 加载测试：可读媒体、文件不存在、权限拒绝、无效 URI、TLS/Range 失败的脱敏错误，更新 `native/tests/media_loader_test.cpp`、`native/media/MediaLoader.cpp`
+- [X] T029 [US1] 实现并通过 T028 的 localFile、HTTP/HTTPS 受控加载与错误映射，更新 `native/media/MediaLoader.cpp`、`native/media/PlayerErrorMapper.cpp`
 - [ ] T030 [US1] 先写并运行失败的 ArkTS 播放控制测试：load/play/pause/seek/speed/volume/mute/stop 的正常、非法状态和 release 后路径，更新 `packages/vidall-player/test/integration/basic-playback.test.ets`、`packages/vidall-player/src/public/VidAllPlayerImpl.ets`
 - [ ] T031 [US1] 实现并通过 T030 的公开播放器门面和控制命令，更新 `packages/vidall-player/src/public/VidAllPlayerImpl.ets`、`packages/vidall-player/src/public/createPlayer.ets`
 - [X] T032 [US1] 复核 T006 的 HAR 内部 native packaging spike：在隔离 consumer 完成内部模块装入、最小命令和回调；记录真实构建日志、HAR 内容、ABI 和失败原因（如有），更新 `release/audits/har-native-packaging-spike.json`
-- [ ] T033 [US1] 在 ARM64 TV 真机执行基础播放/生命周期验收，确认真实 `firstFrame` 而非命令返回；无设备或失败时保持未完成，更新 `release/capabilities/arm64-tv-basic-playback.json`、`release/audits/arm64-tv-basic-playback.log`
+- [X] T033 [US1] 在 ARM64 TV 真机执行基础播放/生命周期验收，确认真实 `firstFrame` 而非命令返回；无设备或失败时保持未完成，更新 `release/capabilities/arm64-tv-basic-playback.json`、`release/audits/arm64-tv-basic-playback.log`
 
 **Checkpoint**: US1 是唯一 MVP；只有 T021–T033 的测试和 ARM64 TV 证据齐全时才可声称基础播放候选可用。
 
