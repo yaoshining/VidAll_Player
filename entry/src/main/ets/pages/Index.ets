@@ -383,6 +383,11 @@ struct Index {
       console.error(`VidAll_Player libmpv error: ${event.message} (${event.errorCode})`);
       return;
     }
+    if (event.type === 'firstFrame') {
+      this.showVideo = true;
+      this.nativeStatus = `已提交真实首帧（事件 #${event.sequence}）`;
+      return;
+    }
     if (event.type === 'tracks') {
       this.refreshTracks();
       return;

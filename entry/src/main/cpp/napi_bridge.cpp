@@ -42,41 +42,6 @@ namespace {
 // PlayerSession because ProbeGlDriver() uses it at line ~264.
 static sigjmp_buf gProbeJmpBuf;
 
-// Global NativeWindow obtained from XComponent OnSurfaceCreated callback.
-// This is the ONLY correct way to get the NativeWindow — CreateNativeWindowFromSurfaceId
-// creates a new BufferQueue producer that conflicts with XComponent's own producer.
-static OHNativeWindow* gNativeWindow = nullptr;
-static std::mutex gNativeWindowMutex;
-static std::condition_variable gNativeWindowCv;
-
-// XComponent native callbacks — obtain NativeWindow directly from XComponent
-void OnSurfaceCreated(OH_NativeXComponent* component, void* window)
-{
-    MPV_LOG(LOG_INFO, "XComponent OnSurfaceCreated: window=%{public}p", window);
-    std::lock_guard<std::mutex> lock(gNativeWindowMutex);
-    gNativeWindow = static_cast<OHNativeWindow*>(window);
-    gNativeWindowCv.notify_one();
-}
-
-void OnSurfaceChanged(OH_NativeXComponent* component, void* window)
-{
-    MPV_LOG(LOG_INFO, "XComponent OnSurfaceChanged: window=%{public}p", window);
-    std::lock_guard<std::mutex> lock(gNativeWindowMutex);
-    gNativeWindow = static_cast<OHNativeWindow*>(window);
-    gNativeWindowCv.notify_one();
-}
-
-void OnSurfaceDestroyed(OH_NativeXComponent* component, void* window)
-{
-    MPV_LOG(LOG_INFO, "XComponent OnSurfaceDestroyed");
-    std::lock_guard<std::mutex> lock(gNativeWindowMutex);
-    gNativeWindow = nullptr;
-}
-
-void DispatchTouchEvent(OH_NativeXComponent* component, void* window)
-{
-    // No-op for touch events
-}
 #endif
 
 napi_value CreateString(napi_env env, const std::string& value)
@@ -158,6 +123,11 @@ public:
         std::string type;
         std::string message;
         int errorCode = 0;
+        std::uint64_t sequence = 0;
+    };
+
+    struct EventCallbackContext {
+        std::atomic<bool> closed{false};
     };
 
     PlayerSession()
@@ -213,6 +183,8 @@ public:
         }
 
         surfaceId_ = surfaceId;
+        // A reattached surface needs its own first-frame notification.
+        firstFrameDelivered_.store(false);
         renderReady_ = false;
         renderError_.clear();
         stopRenderer_ = false;
@@ -696,6 +668,13 @@ public:
             return "事件回调必须是函数";
         }
         std::lock_guard<std::mutex> lock(eventCallbackMutex_);
+        // Close the old callback gate so CallEventCallback returns early (no JS
+        // invocation) for any remaining queued items, then release (not abort) so
+        // the TSFN drains its queue, freeing NativeEvent payloads via unique_ptr.
+        if (eventCallbackContext_ != nullptr) {
+            eventCallbackContext_->closed.store(true);
+            eventCallbackContext_ = nullptr;
+        }
         if (eventTsfn_ != nullptr) {
             const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release);
             if (releaseStatus != napi_ok) {
@@ -703,15 +682,26 @@ public:
             }
             eventTsfn_ = nullptr;
         }
+        auto* context = new EventCallbackContext();
         napi_value resourceName = CreateString(env, "VidAllMpvEvent");
         const napi_status status = napi_create_threadsafe_function(
-            env, callback, nullptr, resourceName, 0, 1, this, nullptr, this,
+            env, callback, nullptr, resourceName, 0, 1, context,
+            PlayerSession::FinalizeEventCallback, context,
             PlayerSession::CallEventCallback, &eventTsfn_);
-        return status == napi_ok ? "事件回调已注册" : "注册事件回调失败";
+        if (status != napi_ok) {
+            delete context;
+            return "注册事件回调失败";
+        }
+        eventCallbackContext_ = context;
+        return "事件回调已注册";
     }
 
     void Release()
     {
+        // Close the event gate first so no callback can outlive release().
+        if (released_.exchange(true)) {
+            return;
+        }
         ClearProxyLease("release");
         ClearSmbOptions();
         StopRenderer();
@@ -728,7 +718,21 @@ public:
         }
         {
             std::lock_guard<std::mutex> eventLock(eventCallbackMutex_);
+            if (eventCallbackContext_ != nullptr) {
+                // Close the gate first so CallEventCallback returns early (no JS
+                // invocation) even while the TSFN still drains its queue to free
+                // NativeEvent payloads.  This satisfies the "no callback after
+                // release" contract without leaking queued event allocations that
+                // napi_tsfn_abort would abandon.
+                eventCallbackContext_->closed.store(true);
+                eventCallbackContext_ = nullptr;
+            }
             if (eventTsfn_ != nullptr) {
+                // Use napi_tsfn_release (not abort) so the TSFN continues to
+                // drain its queue.  Each drained item reaches CallEventCallback
+                // which returns early due to the closed gate above, but still
+                // frees the NativeEvent via unique_ptr.  Once the queue is empty
+                // the finalize callback runs and deletes the EventCallbackContext.
                 const napi_status releaseStatus = napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release);
                 if (releaseStatus != napi_ok) {
                     MPV_LOG(LOG_WARN, "Release: 释放事件回调失败，状态=%{public}d", releaseStatus);
@@ -808,19 +812,27 @@ private:
     void DispatchEvent(const std::string& type, const char* message, int errorCode = 0)
     {
         std::lock_guard<std::mutex> lock(eventCallbackMutex_);
-        if (eventTsfn_ == nullptr) {
+        if (released_.load() || eventTsfn_ == nullptr) {
             return;
         }
-        auto* event = new NativeEvent{type, message == nullptr ? "未知 libmpv 错误" : message, errorCode};
+        auto* event = new NativeEvent{type, message == nullptr ? "未知 libmpv 错误" : message,
+            errorCode, ++eventSequence_};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) {
             delete event;
         }
     }
 
-    static void CallEventCallback(napi_env env, napi_value callback, void*, void* data)
+    static void FinalizeEventCallback(napi_env, void* finalizeData, void*)
+    {
+        delete static_cast<EventCallbackContext*>(finalizeData);
+    }
+
+    static void CallEventCallback(napi_env env, napi_value callback, void* context, void* data)
     {
         std::unique_ptr<NativeEvent> event(static_cast<NativeEvent*>(data));
-        if (env == nullptr || callback == nullptr || !event) {
+        const auto* callbackContext = static_cast<const EventCallbackContext*>(context);
+        if (env == nullptr || callback == nullptr || !event || callbackContext == nullptr ||
+            callbackContext->closed.load()) {
             return;
         }
         napi_value payload = nullptr;
@@ -830,6 +842,9 @@ private:
         napi_value errorCode = nullptr;
         napi_create_int32(env, event->errorCode, &errorCode);
         napi_set_named_property(env, payload, "errorCode", errorCode);
+        napi_value sequence = nullptr;
+        napi_create_int64(env, static_cast<int64_t>(event->sequence), &sequence);
+        napi_set_named_property(env, payload, "sequence", sequence);
         napi_value ignored = nullptr;
         napi_call_function(env, nullptr, callback, 1, &payload, &ignored);
     }
@@ -1203,7 +1218,7 @@ private:
             }
 
             framesRendered_++;
-
+            bool frameSubmitted = false;
             if (useNativeWindow) {
                 // Direct NativeWindow path — high performance on real hardware
                 OHNativeWindowBuffer* buffer = nullptr;
@@ -1220,17 +1235,33 @@ private:
                 nativeWindowFailCount = 0;
 
                 BufferHandle* bufHandle = OH_NativeWindow_GetBufferHandleFromNative(buffer);
+                // A first frame must contain the full current frame. If the buffer
+                // handle is unavailable or cannot fit the whole frame, skip the
+                // flush and the firstFrame notification rather than submitting a
+                // partially-written buffer.
+                bool frameCopiedCompletely = false;
                 if (bufHandle != nullptr && bufHandle->virAddr != nullptr) {
                     int bufStride = bufHandle->stride;
                     if (bufStride <= 0) {
                         bufStride = w * 4;
                     }
-                    size_t copyWidth = std::min(static_cast<size_t>(w * 4), static_cast<size_t>(bufStride));
-                    size_t copyLines = std::min(static_cast<size_t>(h), static_cast<size_t>(bufHandle->height > 0 ? bufHandle->height : h));
-                    for (size_t y = 0; y < copyLines; y++) {
-                        memcpy(static_cast<uint8_t*>(bufHandle->virAddr) + y * bufStride,
-                               framePtr + y * stride, copyWidth);
+                    if (bufStride < w * 4) {
+                        MPV_LOG(LOG_WARN, "SwRenderLoop: buffer stride %d too small for %d pixel rows", bufStride, w);
                     }
+                    size_t copyWidth = static_cast<size_t>(w * 4);
+                    size_t copyLines = static_cast<size_t>(bufHandle->height > 0 ? bufHandle->height : h);
+                    frameCopiedCompletely = bufStride >= w * 4 && copyLines >= static_cast<size_t>(h);
+                    size_t boundedWidth = std::min(copyWidth, static_cast<size_t>(bufStride));
+                    size_t boundedLines = std::min(static_cast<size_t>(h), copyLines);
+                    for (size_t y = 0; y < boundedLines; y++) {
+                        memcpy(static_cast<uint8_t*>(bufHandle->virAddr) + y * bufStride,
+                               framePtr + y * stride, boundedWidth);
+                    }
+                }
+                if (!frameCopiedCompletely) {
+                    // Release the unusable buffer without flushing; it must not be
+                    // treated as a submitted first frame.
+                    continue;
                 }
                 Region region = {};
                 int flushW = (bufHandle && bufHandle->width > 0) ? bufHandle->width : w;
@@ -1238,7 +1269,7 @@ private:
                 Region::Rect rect = {0, 0, static_cast<uint32_t>(flushW), static_cast<uint32_t>(flushH)};
                 region.rects = &rect;
                 region.rectNumber = 1;
-                OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fenceFd, region);
+                frameSubmitted = OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fenceFd, region) == 0;
             } else {
                 // PixelMap callback path — for emulators with broken BufferQueue
                 // Store the latest frame data so ArkTS can read it via getFrameData()
@@ -1256,7 +1287,12 @@ private:
                     frameWidth_ = w;
                     frameHeight_ = h;
                     frameReady_ = true;
+                    // ArkTS can consume this frame through getFrameData().
+                    frameSubmitted = true;
                 }
+            }
+            if (useNativeWindow && frameSubmitted && !firstFrameDelivered_.exchange(true)) {
+                DispatchEvent("firstFrame", "当前 Surface 已提交首帧");
             }
         }
         MPV_LOG(LOG_INFO, "SwRenderLoop: exiting, rendered %d frames", framesRendered_);
@@ -1295,8 +1331,10 @@ private:
                 {MPV_RENDER_PARAM_FLIP_Y, &flipY},
                 {MPV_RENDER_PARAM_INVALID, nullptr}
             };
-            if (mpv_render_context_render(renderContext_, params) >= 0) {
-                eglSwapBuffers(display_, surface_);
+            if (mpv_render_context_render(renderContext_, params) >= 0 &&
+                eglSwapBuffers(display_, surface_) == EGL_TRUE &&
+                !firstFrameDelivered_.exchange(true)) {
+                DispatchEvent("firstFrame", "当前 Surface 已提交首帧");
             }
         }
     }
@@ -1350,8 +1388,12 @@ private:
     std::unique_ptr<mpv_handle, decltype(&mpv_terminate_destroy)> player_{nullptr, mpv_terminate_destroy};
     std::mutex lifecycleMutex_;
     std::atomic<bool> stopEventLoop_{false};
+    std::atomic<bool> released_{false};
+    std::atomic<bool> firstFrameDelivered_{false};
+    std::uint64_t eventSequence_ = 0;
     std::mutex eventCallbackMutex_;
     napi_threadsafe_function eventTsfn_ = nullptr;
+    EventCallbackContext* eventCallbackContext_ = nullptr;
     std::thread eventThread_;
     std::thread renderThread_;
     std::mutex renderMutex_;
@@ -1951,29 +1993,6 @@ napi_value Init(napi_env env, napi_value exports)
         {"getFrameData", nullptr, GetFrameData, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     napi_define_properties(env, exports, sizeof(descriptors) / sizeof(descriptors[0]), descriptors);
-
-#if VIDALL_MPV_AVAILABLE
-    // Register XComponent surface callbacks to obtain NativeWindow
-    napi_value exportInstance = nullptr;
-    OH_NativeXComponent* nativeXComponent = nullptr;
-    // Use OH_NATIVE_XCOMPONENT_OBJ macro to obtain the native XComponent handle
-    napi_get_named_property(env, exports, OH_NATIVE_XCOMPONENT_OBJ, &exportInstance);
-    if (exportInstance != nullptr) {
-        napi_unwrap(env, exportInstance, reinterpret_cast<void**>(&nativeXComponent));
-    }
-    if (nativeXComponent != nullptr) {
-        static OH_NativeXComponent_Callback callback = {
-            .OnSurfaceCreated = OnSurfaceCreated,
-            .OnSurfaceChanged = OnSurfaceChanged,
-            .OnSurfaceDestroyed = OnSurfaceDestroyed,
-            .DispatchTouchEvent = DispatchTouchEvent,
-        };
-        int32_t ret = OH_NativeXComponent_RegisterCallback(nativeXComponent, &callback);
-        MPV_LOG(LOG_INFO, "XComponent RegisterCallback: ret=%{public}d", ret);
-    } else {
-        MPV_LOG(LOG_WARN, "XComponent: nativeXComponent not found via OH_NATIVE_XCOMPONENT_OBJ");
-    }
-#endif
 
     return exports;
 }

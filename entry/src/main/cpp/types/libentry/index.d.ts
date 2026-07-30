@@ -20,9 +20,10 @@ export interface LibMpvTrack {
 }
 
 export interface NativePlayerEvent {
-  type: 'error' | 'log' | 'buffering' | 'tracks';
+  type: 'error' | 'log' | 'buffering' | 'tracks' | 'firstFrame';
   message: string;
   errorCode: number;
+  sequence: number;
 }
 
 export type NativeEventCallback = (event: NativePlayerEvent) => void;
