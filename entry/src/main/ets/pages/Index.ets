@@ -6,7 +6,7 @@ import { image } from '@kit.ImageKit';
 import { detectMediaKind, newProxyLeaseId } from '../player/MediaKindDetection';
 import { DemoLifecycleController } from '../player/DemoLifecycle';
 import { splitTracks, trackLabel } from '../player/TrackPresentation';
-import { buildBasicAuthorization, buildWebDavPlaybackHeaders, isSafeRedirect, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
+import { buildBasicAuthorization, buildWebDavPlaybackHeaders, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
 import { buildSmbMediaUri, SmbConfig, SmbService } from '../smb/SmbService';
 
 interface FrameData {
@@ -599,6 +599,9 @@ struct Index {
   }
 
   private clearPlayerError(): void {
+    this.errorCode = '';
+    this.errorDescription = '';
+    this.errorRetryable = false;
   }
 
   private redactSensitiveText(text: string): string {
@@ -606,10 +609,6 @@ struct Index {
       .replace(/(authorization\s*[:=]\s*)([^\s,;]+)/gi, '$1[REDACTED]')
       .replace(/(password\s*[:=]\s*)([^\s,;]+)/gi, '$1[REDACTED]')
       .replace(/([?&](?:access_token|apikey|api_key|auth|password|token)=[^&#\s]*)/gi, '[REDACTED_QUERY]');
-  }
-    this.errorCode = '';
-    this.errorDescription = '';
-    this.errorRetryable = false;
   }
 
   private retryPlayback(): void {
