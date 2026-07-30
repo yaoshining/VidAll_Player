@@ -1,6 +1,6 @@
-// T028: 本地/HTTP 加载失败先行测试
+// T028/T029: 本地/HTTP 媒体加载与错误映射测试
 // 覆盖：可读媒体、文件不存在、权限拒绝、无效 URI、TLS/Range 失败的脱敏错误
-// 所有测试在当前阶段必须先失败，待 T029 实现后通过。
+// T028 测试先行编写，T029 实现后全部通过。
 
 #include <iostream>
 #include <string>
@@ -140,6 +140,76 @@ int main()
             "HTTPS kind with HTTP URI is rejected as kind mismatch");
     }
 
+    // ===== 失败路径：网络 URI 空 host (http://) =====
+    {
+        vidall::MediaLoadRequest req;
+        req.kind = vidall::MediaKind::Http;
+        req.uri = "http://";
+        const auto result = loader.load(req);
+        passed &= check(result == vidall::MediaLoadResult::RejectedInvalidUri,
+            "network URI with empty host is rejected as invalid");
+    }
+
+    // ===== 失败路径：网络 URI 空 host (http:///path) =====
+    {
+        vidall::MediaLoadRequest req;
+        req.kind = vidall::MediaKind::Http;
+        req.uri = "http:///path/to/media.mp4";
+        const auto result = loader.load(req);
+        passed &= check(result == vidall::MediaLoadResult::RejectedInvalidUri,
+            "network URI with empty host and path is rejected as invalid");
+    }
+
+    // ===== 失败路径：HLS kind 与非 HTTP(S) scheme =====
+    {
+        vidall::MediaLoadRequest req;
+        req.kind = vidall::MediaKind::Hls;
+        req.uri = "ftp://example.com/stream.m3u8";
+        const auto result = loader.load(req);
+        passed &= check(result == vidall::MediaLoadResult::RejectedKindMismatch,
+            "HLS kind with FTP URI is rejected as kind mismatch");
+    }
+
+    // ===== 正常路径：HLS kind 与 HTTP scheme =====
+    {
+        vidall::MediaLoadRequest req;
+        req.kind = vidall::MediaKind::Hls;
+        req.uri = "http://example.com/stream.m3u8";
+        const auto result = loader.load(req);
+        passed &= check(result == vidall::MediaLoadResult::Accepted,
+            "HLS kind with HTTP URI is accepted");
+    }
+
+    // ===== 失败路径：LocalhostProxy 非 loopback authority =====
+    {
+        vidall::MediaLoadRequest req;
+        req.kind = vidall::MediaKind::LocalhostProxy;
+        req.uri = "http://remote.server.com/proxy";
+        const auto result = loader.load(req);
+        passed &= check(result == vidall::MediaLoadResult::RejectedKindMismatch,
+            "LocalhostProxy with non-loopback authority is rejected");
+    }
+
+    // ===== 正常路径：LocalhostProxy loopback authority =====
+    {
+        vidall::MediaLoadRequest req;
+        req.kind = vidall::MediaKind::LocalhostProxy;
+        req.uri = "http://127.0.0.1:8080/proxy";
+        const auto result = loader.load(req);
+        passed &= check(result == vidall::MediaLoadResult::Accepted,
+            "LocalhostProxy with 127.0.0.1 authority is accepted");
+    }
+
+    // ===== 失败路径：SMB kind 与非 smb scheme =====
+    {
+        vidall::MediaLoadRequest req;
+        req.kind = vidall::MediaKind::Smb;
+        req.uri = "http://example.com/share";
+        const auto result = loader.load(req);
+        passed &= check(result == vidall::MediaLoadResult::RejectedKindMismatch,
+            "SMB kind with HTTP URI is rejected as kind mismatch");
+    }
+
     // ===== 失败路径：网络 URI 包含用户信息 =====
     {
         vidall::MediaLoadRequest req;
@@ -223,6 +293,47 @@ int main()
         passed &= check(err.domain == "media", "mpv unsupported error domain is media");
         passed &= check(err.code == "UNSUPPORTED", "mpv unsupported error code is correct");
         passed &= check(!err.retryable, "mpv unsupported is not retryable");
+    }
+
+    // ===== 错误映射：mapMpvError 脱敏 userinfo =====
+    {
+        const auto err = vidall::PlayerErrorMapper::mapMpvError(-7,
+            "http://user:secret@host.example.com/media.mp4");
+        passed &= check(err.message.find("secret") == std::string::npos,
+            "mpv error message must not contain userinfo credentials");
+        passed &= check(err.message.find("user:") == std::string::npos,
+            "mpv error message must not contain userinfo prefix");
+    }
+
+    // ===== 错误映射：mapMpvError 脱敏文件路径 =====
+    {
+        const auto err = vidall::PlayerErrorMapper::mapMpvError(-7,
+            "failed to open /data/local/tmp/video.mp4");
+        passed &= check(err.message.find("/data/") == std::string::npos,
+            "mpv error message must not contain full filesystem path");
+        passed &= check(err.message.find("[REDACTED_PATH]") != std::string::npos,
+            "mpv error message must contain redacted path placeholder");
+    }
+
+    // ===== 错误映射：mapFileNotFound 脱敏未处理路径 =====
+    {
+        // Even if caller forgets to redact, mapFileNotFound sanitizes internally
+        const auto err = vidall::PlayerErrorMapper::mapFileNotFound(
+            "/data/local/tmp/video.mp4");
+        passed &= check(err.message.find("/data/") == std::string::npos,
+            "file-not-found sanitizes unredacted input path");
+        passed &= check(err.message.find("[REDACTED_PATH]") != std::string::npos,
+            "file-not-found replaces unredacted path with placeholder");
+    }
+
+    // ===== 错误映射：mapTlsError 脱敏 userinfo =====
+    {
+        const auto err = vidall::PlayerErrorMapper::mapTlsError(
+            "cert error on https://admin:pass@secure.example.com");
+        passed &= check(err.message.find("admin") == std::string::npos,
+            "TLS error message must not contain userinfo user");
+        passed &= check(err.message.find("pass") == std::string::npos,
+            "TLS error message must not contain userinfo password");
     }
 
     // ===== 错误映射：MediaLoadResult 全覆盖 =====

@@ -44,12 +44,12 @@ API 兼容: 15 / API 目标: 22
 设备类型: tv
 CPU ABI:  aarch64
 内核:     HongMeng Kernel 1.12.0 aarch64
-序列号:   192.168.3.85:5555
+序列号:   [REDACTED_SERIAL]
 OS API:   23
 
 [4] 部署
 ----------------------------------------------------------------
-命令: devecocli run --device "192.168.3.85:5555" --uninstall
+命令: devecocli run --device "[REDACTED_SERIAL]" --uninstall
 安装结果: App installed successfully
 启动结果: Application 'com.yaoshining.vidallplayer': start ability successfully.
 应用 PID: 43599 (验证存活)

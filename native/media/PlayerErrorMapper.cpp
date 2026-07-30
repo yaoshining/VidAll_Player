@@ -1,8 +1,43 @@
 #include "PlayerErrorMapper.h"
 
+#include <algorithm>
+
+namespace {
+
+// Sanitize a context string: remove userinfo (user:pass@) and strip full
+// filesystem paths, leaving only a safe summary for error messages.
+std::string sanitizeContext(const std::string& raw)
+{
+    std::string result = raw;
+
+    // Strip userinfo: anything before '@' in authority-like segments
+    const std::size_t atPos = result.find('@');
+    if (atPos != std::string::npos) {
+        const std::size_t schemeEnd = result.find("://");
+        if (schemeEnd != std::string::npos && atPos > schemeEnd) {
+            result = result.substr(0, schemeEnd + 3) + result.substr(atPos + 1);
+        } else {
+            result = result.substr(atPos + 1);
+        }
+    }
+
+    // Redact absolute filesystem paths: /data/... or /storage/... → [REDACTED_PATH]
+    std::size_t pathStart = result.find("/data/");
+    if (pathStart == std::string::npos) {
+        pathStart = result.find("/storage/");
+    }
+    if (pathStart != std::string::npos) {
+        result = result.substr(0, pathStart) + "[REDACTED_PATH]";
+    }
+
+    return result;
+}
+
+} // namespace
+
 namespace vidall {
 
-MappedError PlayerErrorMapper::mapLoadResult(MediaLoadResult result)
+MediaLoadError PlayerErrorMapper::mapLoadResult(MediaLoadResult result)
 {
     switch (result) {
         case MediaLoadResult::Accepted:
@@ -33,10 +68,10 @@ MappedError PlayerErrorMapper::mapLoadResult(MediaLoadResult result)
     return {"native", "UNKNOWN", "Unknown media load error.", false};
 }
 
-MappedError PlayerErrorMapper::mapMpvError(int mpvErrorCode, const std::string& context)
+MediaLoadError PlayerErrorMapper::mapMpvError(int mpvErrorCode, const std::string& context)
 {
-    // libmpv error codes (MPV_ERROR_*): map common ones to structured errors.
-    // Context is sanitized before use in messages — no credentials or full paths.
+    // Sanitize context before embedding in error message
+    const std::string safe = sanitizeContext(context);
     switch (mpvErrorCode) {
         case -2:  // MPV_ERROR_INVALID_PARAMETER
             return {"native", "INVALID_PARAMETER", "Invalid parameter passed to libmpv.", false};
@@ -45,7 +80,7 @@ MappedError PlayerErrorMapper::mapMpvError(int mpvErrorCode, const std::string& 
         case -5:  // MPV_ERROR_NOTHING_TO_PLAY
             return {"media", "NOTHING_TO_PLAY", "No playable content found.", false};
         case -7:  // MPV_ERROR_LOADING_FAILED
-            return {"media", "LOADING_FAILED", "Failed to load media: " + context, true};
+            return {"media", "LOADING_FAILED", "Failed to load media: " + safe, true};
         case -10: // MPV_ERROR_AUDIO_ERROR
             return {"media", "AUDIO_ERROR", "Audio decoding or output error.", true};
         default:
@@ -53,27 +88,29 @@ MappedError PlayerErrorMapper::mapMpvError(int mpvErrorCode, const std::string& 
     }
 }
 
-MappedError PlayerErrorMapper::mapTlsError(const std::string& detail)
+MediaLoadError PlayerErrorMapper::mapTlsError(const std::string& detail)
 {
-    // detail is already sanitized by the caller
+    // Sanitize detail to remove any credentials or paths
+    const std::string safe = sanitizeContext(detail);
     return {"network", "TLS_FAILED",
-        "TLS error: " + detail, false};
+        "TLS error: " + safe, false};
 }
 
-MappedError PlayerErrorMapper::mapRangeError()
+MediaLoadError PlayerErrorMapper::mapRangeError()
 {
     return {"network", "RANGE_NOT_SATISFIABLE",
         "Server cannot satisfy the requested Range.", true};
 }
 
-MappedError PlayerErrorMapper::mapFileNotFound(const std::string& sanitizedPath)
+MediaLoadError PlayerErrorMapper::mapFileNotFound(const std::string& sanitizedPath)
 {
-    // sanitizedPath is already redacted — no full filesystem path
+    // Sanitize again defensively — do not trust caller to have redacted
+    const std::string safe = sanitizeContext(sanitizedPath);
     return {"media", "FILE_NOT_FOUND",
-        "Media file not found: " + sanitizedPath, false};
+        "Media file not found: " + safe, false};
 }
 
-MappedError PlayerErrorMapper::mapPermissionDenied()
+MediaLoadError PlayerErrorMapper::mapPermissionDenied()
 {
     return {"media", "PERMISSION_DENIED",
         "Permission denied for media file.", false};

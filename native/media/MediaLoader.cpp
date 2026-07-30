@@ -119,12 +119,19 @@ MediaLoadResult MediaLoader::validateNetworkUri(const MediaLoadRequest& request)
 
     // Check for userinfo first — applies to all network URIs
     std::string authority;
-    if (parseUriAuthority(request.uri, authority)) {
+    const bool hasAuthority = parseUriAuthority(request.uri, authority);
+    if (hasAuthority) {
         if (hasUserinfo(authority)) {
             lastError_ = {"input", "URL_USERINFO_FORBIDDEN",
                 "Media URI must not contain user information.", false};
             return MediaLoadResult::RejectedUrlUserinfoForbidden;
         }
+    } else {
+        // No authority means empty host (e.g. "http://" or "http:///path")
+        // which is a malformed URI per RFC 3986.
+        lastError_ = {"input", "INVALID_URI",
+            "Network URI must contain a non-empty host.", false};
+        return MediaLoadResult::RejectedInvalidUri;
     }
 
     // Unverified protocols take priority over kind mismatch — the consumer
@@ -147,6 +154,49 @@ MediaLoadResult MediaLoader::validateNetworkUri(const MediaLoadRequest& request)
     if (request.kind == MediaKind::Https && scheme != "https") {
         lastError_ = {"input", "URI_KIND_MISMATCH",
             "HTTPS media source requires an HTTPS URI.", false};
+        return MediaLoadResult::RejectedKindMismatch;
+    }
+    // HLS requires http or https scheme
+    if (request.kind == MediaKind::Hls && scheme != "http" && scheme != "https") {
+        lastError_ = {"input", "URI_KIND_MISMATCH",
+            "HLS media source requires an HTTP or HTTPS URI.", false};
+        return MediaLoadResult::RejectedKindMismatch;
+    }
+    // DASH requires http or https scheme
+    if (request.kind == MediaKind::Dash && scheme != "http" && scheme != "https") {
+        lastError_ = {"input", "URI_KIND_MISMATCH",
+            "DASH media source requires an HTTP or HTTPS URI.", false};
+        return MediaLoadResult::RejectedKindMismatch;
+    }
+    // LocalhostProxy requires http or https with loopback authority
+    if (request.kind == MediaKind::LocalhostProxy) {
+        if (scheme != "http" && scheme != "https") {
+            lastError_ = {"input", "URI_KIND_MISMATCH",
+                "LocalhostProxy media source requires an HTTP or HTTPS URI.", false};
+            return MediaLoadResult::RejectedKindMismatch;
+        }
+        // Extract host part (strip port) from authority for loopback check
+        std::string hostPart = authority;
+        const std::size_t colonPos = authority.rfind(':');
+        if (colonPos != std::string::npos) {
+            // Only strip if it looks like a port (not IPv6 colon)
+            const std::string afterColon = authority.substr(colonPos + 1);
+            if (!afterColon.empty() &&
+                afterColon.find_first_not_of("0123456789") == std::string::npos) {
+                hostPart = authority.substr(0, colonPos);
+            }
+        }
+        const std::string lowerHost = toLower(hostPart);
+        if (lowerHost != "localhost" && lowerHost != "127.0.0.1" && lowerHost != "::1") {
+            lastError_ = {"input", "URI_KIND_MISMATCH",
+                "LocalhostProxy authority must be a loopback address.", false};
+            return MediaLoadResult::RejectedKindMismatch;
+        }
+    }
+    // SMB requires smb scheme
+    if (request.kind == MediaKind::Smb && scheme != "smb") {
+        lastError_ = {"input", "URI_KIND_MISMATCH",
+            "SMB media source requires an smb:// URI.", false};
         return MediaLoadResult::RejectedKindMismatch;
     }
 

@@ -9,7 +9,7 @@
     "deviceType": "tv",
     "cpuAbi": "aarch64",
     "kernel": "HongMeng Kernel 1.12.0 aarch64",
-    "serial": "192.168.3.85:5555",
+    "serial": "[REDACTED_SERIAL]",
     "osApiLevel": 23
   },
   "build": {
@@ -25,9 +25,9 @@
   "realDevice": {
     "model": "华为智慧屏 MateTV Pro",
     "modelCode": "EDIS-790A",
-    "serial": "192.168.3.85:5555",
+    "serial": "[REDACTED_SERIAL]",
     "deployment": {
-      "method": "devecocli run --device 192.168.3.85:5555 --uninstall",
+      "method": "devecocli run --device [REDACTED_SERIAL] --uninstall",
       "installResult": "成功",
       "launchResult": "start ability successfully",
       "processVerified": true,
@@ -64,11 +64,11 @@
   "nativeTests": {
     "framework": "ctest",
     "totalSuites": 6,
-    "totalCases": 0,
+    "totalCases": 37,
     "result": "全部通过",
     "mediaLoaderTests": {
       "file": "native/tests/media_loader_test.cpp",
-      "cases": 25,
+      "cases": 37,
       "result": "全部通过",
       "coverage": "正常路径（本地文件 URI、HTTP/HTTPS）、边界条件（localhost authority、空路径）、失败路径（空 URI、userinfo、kind 不匹配、未验证协议、TLS/Range/文件未找到/权限拒绝）、错误映射完整性、可复用 loader、lastError 清理"
     }

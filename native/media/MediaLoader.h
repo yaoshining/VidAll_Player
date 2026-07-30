@@ -34,7 +34,7 @@ struct MediaLoadError {
     std::string domain;
     std::string code;
     std::string message;
-    bool retryable;
+    bool retryable = false;
 };
 
 struct HeaderEntry {
