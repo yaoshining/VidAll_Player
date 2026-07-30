@@ -187,7 +187,12 @@ MediaLoadResult MediaLoader::validateNetworkUri(const MediaLoadRequest& request)
             }
         }
         const std::string lowerHost = toLower(hostPart);
-        if (lowerHost != "localhost" && lowerHost != "127.0.0.1" && lowerHost != "::1") {
+        // Strip IPv6 literal brackets per RFC 3986, e.g. "[::1]" -> "::1"
+        std::string unbracketed = lowerHost;
+        if (unbracketed.size() >= 2 && unbracketed.front() == '[' && unbracketed.back() == ']') {
+            unbracketed = unbracketed.substr(1, unbracketed.size() - 2);
+        }
+        if (unbracketed != "localhost" && unbracketed != "127.0.0.1" && unbracketed != "::1") {
             lastError_ = {"input", "URI_KIND_MISMATCH",
                 "LocalhostProxy authority must be a loopback address.", false};
             return MediaLoadResult::RejectedKindMismatch;

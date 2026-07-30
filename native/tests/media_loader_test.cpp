@@ -200,6 +200,16 @@ int main()
             "LocalhostProxy with 127.0.0.1 authority is accepted");
     }
 
+    // ===== 正常路径：LocalhostProxy IPv6 [::1] 带端口 =====
+    {
+        vidall::MediaLoadRequest req;
+        req.kind = vidall::MediaKind::LocalhostProxy;
+        req.uri = "http://[::1]:8080/proxy";
+        const auto result = loader.load(req);
+        passed &= check(result == vidall::MediaLoadResult::Accepted,
+            "LocalhostProxy with [::1]:8080 is accepted (bracket stripping)");
+    }
+
     // ===== 失败路径：SMB kind 与非 smb scheme =====
     {
         vidall::MediaLoadRequest req;
