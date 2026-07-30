@@ -255,6 +255,31 @@ export default function streamingInternalsTest() {
       expect(kept['accept']).assertEqual('*/*');
     });
 
+    it('handles IPv6 authority equivalence with and without explicit default port', 0, () => {
+      // IPv6 无显式端口 vs 有显式默认端口：应视为同源
+      expect(canForwardAuthorization(
+        'https://[::1]/media/',
+        'https://[::1]:443/media/file.mp4'
+      )).assertTrue();
+
+      expect(canForwardAuthorization(
+        'http://[::1]/media/',
+        'http://[::1]:80/media/file.mp4'
+      )).assertTrue();
+
+      // IPv6 同源同端口：允许转发
+      expect(canForwardAuthorization(
+        'https://[::1]:443/media/',
+        'https://[::1]:443/media/file.mp4'
+      )).assertTrue();
+
+      // IPv6 不同端口：禁止转发
+      expect(canForwardAuthorization(
+        'https://[::1]/media/',
+        'https://[::1]:8443/media/file.mp4'
+      )).assertFalse();
+    });
+
     // T038: 受控 WebDAV 集成测试
 
     it('redacts Authorization and token values from error context', 0, () => {

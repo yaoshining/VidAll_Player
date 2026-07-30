@@ -200,8 +200,11 @@ export function validateMediaSource(source: MediaSource): void {
 }
 
 function normalizeAuthority(scheme: string, authority: string): string {
-  const hostEnd = authority.indexOf(':');
-  if (hostEnd >= 0) {
+  // IPv6 字面量格式为 [::1] 或 [::1]:443，需要特殊处理端口检测。
+  // 对于 IPv6，端口分隔符 ':' 只在 ']' 之后出现；
+  // 对于普通主机，使用 lastIndexOf(':') 检测最后一个冒号（端口分隔符）。
+  const colonIndex = authority.lastIndexOf(':');
+  if (colonIndex >= 0 && authority.charAt(authority.length - 1) !== ']') {
     return authority.toLowerCase();
   }
   // 无显式端口时补全默认端口，使 scheme+host 匹配更严格：

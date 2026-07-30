@@ -53,6 +53,12 @@ export function sanitizeWebDavConfig(config: WebDavConfig): WebDavConfig {
   if (!isAbsoluteHttpUrl(endpoint)) {
     throw new Error('WebDAV 地址必须以 http:// 或 https:// 开头。');
   }
+  // 拒绝包含 userinfo 的端点（如 http://user:pass@host），防止凭据被持久化到 preferences。
+  const schemeEnd = endpoint.indexOf('://');
+  const authority = endpoint.substring(schemeEnd + 3).split(/[/?#]/)[0];
+  if (authority.indexOf('@') >= 0) {
+    throw new Error('WebDAV 地址不得包含用户凭据（user:pass@host）。');
+  }
   return { endpoint: endpoint, username: config.username.trim(), password: '' };
 }
 
@@ -120,7 +126,7 @@ export function buildWebDavPlaybackHeaders(
   rangeEnd?: number
 ): Record<string, string> {
   const headers: Record<string, string> = {};
-  if (username.length > 0 && password.length > 0) {
+  if (!(username.length === 0 && password.length === 0)) {
     headers['Authorization'] = buildBasicAuthorization(username, password);
   }
   if (rangeStart !== undefined && rangeStart >= 0) {

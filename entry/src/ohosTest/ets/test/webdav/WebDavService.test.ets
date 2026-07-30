@@ -177,6 +177,16 @@ export default function webDavServiceTest() {
       expect(parseWebDavDirectory(xml, 'https://dav.example.com/media/').length).assertEqual(0);
     });
 
+    it('rejects endpoint with userinfo in sanitized config', 0, () => {
+      let rejected = false;
+      try {
+        sanitizeWebDavConfig({ endpoint: 'http://alice:secret@dav.example.com/', username: 'alice', password: 'secret' });
+      } catch (e) {
+        rejected = true;
+      }
+      expect(rejected).assertTrue();
+    });
+
     // T034: WebDAV 安全存储引用配置
 
     it('rejects non-HTTP(S) endpoints in sanitized config', 0, () => {
@@ -296,6 +306,12 @@ export default function webDavServiceTest() {
       const headers = buildWebDavPlaybackHeaders('', '');
       expect(headers['Authorization']).assertEqual(undefined);
       expect(headers['Range']).assertEqual(undefined);
+    });
+
+    it('sends Authorization when only username is provided (empty password)', 0, () => {
+      const headers = buildWebDavPlaybackHeaders('alice', '');
+      expect(headers['Authorization']).assertEqual('Basic YWxpY2U6');
+      expect(headers['Authorization']).assertNotEqual(undefined);
     });
 
     it('accepts WebDAV http and https sources with Authorization headers', 0, async (done: Function) => {
