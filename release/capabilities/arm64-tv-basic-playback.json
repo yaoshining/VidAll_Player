@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "taskRef": "T033",
+  "verificationDate": "2026-07-30",
+  "device": {
+    "model": "华为智慧屏 MateTV Pro",
+    "modelCode": "EDIS-790A",
+    "brand": "HUAWEI",
+    "deviceType": "tv",
+    "cpuAbi": "aarch64",
+    "kernel": "HongMeng Kernel 1.12.0 aarch64",
+    "serial": "[REDACTED_SERIAL]",
+    "osApiLevel": 23
+  },
+  "build": {
+    "bundleName": "com.yaoshining.vidallplayer",
+    "cpuAbi": "arm64-v8a",
+    "buildMode": "debug",
+    "appProvisionType": "debug",
+    "hapSize": "60706449",
+    "compileSdkVersion": "6.1.1.115",
+    "apiCompatibility": 15,
+    "apiTarget": 22
+  },
+  "realDevice": {
+    "model": "华为智慧屏 MateTV Pro",
+    "modelCode": "EDIS-790A",
+    "serial": "[REDACTED_SERIAL]",
+    "deployment": {
+      "method": "devecocli run --device [REDACTED_SERIAL] --uninstall",
+      "installResult": "成功",
+      "launchResult": "start ability successfully",
+      "processVerified": true,
+      "processId": 43599,
+      "crashLogs": "无应用崩溃"
+    },
+    "logLimitation": "生产固件 DeviceDebuggable:No，LOG_APP 类型日志无法通过 hilog 采集"
+  },
+  "emulator": {
+    "name": "Huawei_TV",
+    "serial": "127.0.0.1:5555",
+    "deviceType": "tv",
+    "deployment": {
+      "method": "devecocli run --device 127.0.0.1:5555 --uninstall",
+      "installResult": "成功",
+      "launchResult": "start ability successfully"
+    }
+  },
+  "lifecycle": {
+    "create": { "status": "✅ 通过", "evidence": "模拟器 hilog: 'VidAll_Player 应用已创建。'" },
+    "nativeInit": { "status": "✅ 通过", "evidence": "模拟器 hilog: 'ABI: arm64-v8a | libmpv: 0.40.0; ARM64 libmpv 已打包'" },
+    "localFilePrepare": { "status": "✅ 通过", "evidence": "模拟器 hilog: 'test video already at .../test_video.mp4 (3206594 bytes)'; prepareLocalVideo done" },
+    "attachSurface": { "status": "✅ 通过", "evidence": "模拟器 hilog: 'XComponent onLoad fired'; surfaceId = 3118146256962" },
+    "createPlayer": { "status": "✅ 通过", "evidence": "模拟器 hilog: 'createPlayer returned 1'; 'XComponent Surface 已绑定'" },
+    "loadLocalFile": { "status": "✅ 通过", "evidence": "模拟器 hilog: 'load submitted'; 自动播放本地 test_video.mp4" },
+    "firstFrame": { "status": "✅ 通过", "evidence": "模拟器 hilog: PixelMapNapi WriteBufferToPixels 调用 + RSUniRender vidallplayer0 Surface 渲染" },
+    "audioPlayback": { "status": "✅ 通过", "evidence": "模拟器 hilog: RendererInClientInnerPublic HandleRendererPositionChanges 音频帧写入" },
+    "loadHttp": { "status": "⚠️ 需手动输入 URL", "note": "HTTP 加载需通过 UI 输入网络地址触发" },
+    "seek": { "status": "⚠️ 需手动验证", "note": "跳转需通过 UI 交互验证" },
+    "pause": { "status": "⚠️ 需手动验证", "note": "暂停需通过 UI 交互验证" },
+    "resume": { "status": "⚠️ 需手动验证", "note": "恢复需通过 UI 交互验证" },
+    "release": { "status": "⚠️ 需手动验证", "note": "释放需通过退出应用验证" }
+  },
+  "nativeTests": {
+    "framework": "ctest",
+    "totalSuites": 6,
+    "totalCases": 37,
+    "result": "全部通过",
+    "mediaLoaderTests": {
+      "file": "native/tests/media_loader_test.cpp",
+      "cases": 37,
+      "result": "全部通过",
+      "coverage": "正常路径（本地文件 URI、HTTP/HTTPS）、边界条件（localhost authority、空路径）、失败路径（空 URI、userinfo、kind 不匹配、未验证协议、TLS/Range/文件未找到/权限拒绝）、错误映射完整性、可复用 loader、lastError 清理"
+    }
+  },
+  "knownLimitations": [
+    "华为智慧屏生产固件 DeviceDebuggable:No，LOG_APP 类型日志无法通过 hilog 采集",
+    "模拟器 GPU 出现 'Failed rendering OSD' 警告（字幕叠加渲染失败），视频帧渲染通过 PixelMap 回退路径正常",
+    "HTTP/HTTPS 播放、seek、pause、resume、release 需手动 UI 交互验证"
+  ]
+}
