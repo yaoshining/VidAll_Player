@@ -6,7 +6,7 @@ import { image } from '@kit.ImageKit';
 import { detectMediaKind, newProxyLeaseId } from '../player/MediaKindDetection';
 import { DemoLifecycleController } from '../player/DemoLifecycle';
 import { splitTracks, trackLabel } from '../player/TrackPresentation';
-import { buildBasicAuthorization, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
+import { buildBasicAuthorization, buildWebDavPlaybackHeaders, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
 import { buildSmbMediaUri, SmbConfig, SmbService } from '../smb/SmbService';
 
 interface FrameData {
@@ -207,8 +207,8 @@ struct Index {
     } catch (error) {
       if (generation === this.webDavBrowseGeneration) {
         const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : JSON.stringify(error));
-        this.nativeStatus = message || '列出 WebDAV 目录失败。';
-        console.error(`VidAll_Player WebDAV browse error: ${message}`);
+        this.nativeStatus = this.redactSensitiveText(message) || '列出 WebDAV 目录失败。';
+        console.error(`VidAll_Player WebDAV browse error: ${this.redactSensitiveText(message)}`);
       }
     } finally {
       if (generation === this.webDavBrowseGeneration) {
@@ -259,8 +259,13 @@ struct Index {
       return;
     }
     const kind = detectMediaKind(targetUrl);
-    const authorization = this.isWebDavSource
-      ? `Authorization: ${buildBasicAuthorization(this.webDavUsername, this.webDavPassword)}`
+    // WebDAV 播放使用 buildWebDavPlaybackHeaders 构建安全请求头，
+    // 确保 Authorization 仅在同源范围内传递，且支持 Range 请求。
+    const playbackHeaders = this.isWebDavSource
+      ? buildWebDavPlaybackHeaders(this.webDavUsername, this.webDavPassword)
+      : {};
+    const authorization = playbackHeaders['Authorization'] !== undefined
+      ? `Authorization: ${playbackHeaders['Authorization']}`
       : '';
     const proxyLeaseId = kind === 'localhostProxy' ? newProxyLeaseId() : '';
     const smbUsername = kind === 'smb' ? this.smbUsername : '';
@@ -268,7 +273,7 @@ struct Index {
     this.currentMediaKind = kind;
     this.currentProxyLeaseId = proxyLeaseId;
     this.activePlaybackUrl = targetUrl;
-    this.nativeStatus = libentry.loadMedia(this.playerHandle, kind, targetUrl, authorization, proxyLeaseId, smbUsername, smbPassword);
+    this.nativeStatus = this.redactSensitiveText(libentry.loadMedia(this.playerHandle, kind, targetUrl, authorization, proxyLeaseId, smbUsername, smbPassword));
     // 如果填写了外挂字幕/音频 URL，加载视频后立即附加（支持网络 URL）。
     if (this.subtitleUrl.trim().length > 0) {
       this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, this.subtitleUrl.trim());
@@ -379,8 +384,8 @@ struct Index {
       this.showVideo = false;
       this.lifecycle.markPlaybackStopped();
       this.setPlayerError(event.errorCode, event.message);
-      this.nativeStatus = `媒体加载失败：${event.message} (${event.errorCode})`;
-      console.error(`VidAll_Player libmpv error: ${event.message} (${event.errorCode})`);
+      this.nativeStatus = `媒体加载失败：${this.errorDescription} (${event.errorCode})`;
+      console.error(`VidAll_Player libmpv error: ${this.errorDescription} (${event.errorCode})`);
       return;
     }
     if (event.type === 'firstFrame') {
@@ -396,7 +401,7 @@ struct Index {
       this.pollStatus();
       return;
     }
-    console.warn(`VidAll_Player libmpv: ${event.message}`);
+    console.warn(`VidAll_Player libmpv: ${this.redactSensitiveText(event.message ?? '')}`);
   }
 
   private loadVideo(): void {
@@ -587,8 +592,9 @@ struct Index {
   }
 
   private setPlayerError(code: number, message: string): void {
+    const sanitized = this.redactSensitiveText(message);
     this.errorCode = code >= 0 ? `MPV_${code}` : 'NETWORK_OR_PLAYBACK_ERROR';
-    this.errorDescription = message.length > 0 ? message : '播放器无法继续播放当前媒体。';
+    this.errorDescription = sanitized.length > 0 ? sanitized : '播放器无法继续播放当前媒体。';
     this.errorRetryable = code < 0 || /network|timeout|cache|connect/i.test(message);
   }
 
@@ -596,6 +602,15 @@ struct Index {
     this.errorCode = '';
     this.errorDescription = '';
     this.errorRetryable = false;
+  }
+
+  private redactSensitiveText(text: string): string {
+    // 头部值可能包含多个以空格分隔的 token（如 `Basic <base64>`），
+    // 需要整体脱敏到分隔符（逗号/分号/行尾），与 SDK redactText 保持一致。
+    return text
+      .replace(/(authorization\s*[:=]\s*)([^\s,;]+(?:[ \t]+[^\s,;]+)*)/gi, '$1[REDACTED]')
+      .replace(/(password\s*[:=]\s*)([^\s,;]+(?:[ \t]+[^\s,;]+)*)/gi, '$1[REDACTED]')
+      .replace(/([?&](?:access_token|apikey|api_key|auth|password|token)=[^&#\s]*)/gi, '[REDACTED_QUERY]');
   }
 
   private retryPlayback(): void {
