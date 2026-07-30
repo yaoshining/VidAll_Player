@@ -25,6 +25,14 @@ add_executable(media_loader_test media_loader_test.cpp ../media/MediaLoader.cpp 
 target_include_directories(media_loader_test PRIVATE ../media)
 target_compile_features(media_loader_test PRIVATE cxx_std_17)
 
+add_executable(tracks_subtitles_test tracks_subtitles_test.cpp ../media/TrackController.cpp)
+target_include_directories(tracks_subtitles_test PRIVATE ../media)
+target_compile_features(tracks_subtitles_test PRIVATE cxx_std_17)
+
+add_executable(subtitle_rendering_test subtitle_rendering_test.cpp ../media/SubtitleRenderer.cpp)
+target_include_directories(subtitle_rendering_test PRIVATE ../media)
+target_compile_features(subtitle_rendering_test PRIVATE cxx_std_17)
+
 enable_testing()
 add_test(NAME session_lifecycle_test COMMAND session_lifecycle_test)
 add_test(NAME localhost_proxy_lease_test COMMAND localhost_proxy_lease_test)
@@ -32,3 +40,5 @@ add_test(NAME player_session_test COMMAND player_session_test)
 add_test(NAME surface_renderer_test COMMAND surface_renderer_test)
 add_test(NAME event_dispatcher_test COMMAND event_dispatcher_test)
 add_test(NAME media_loader_test COMMAND media_loader_test)
+add_test(NAME tracks_subtitles_test COMMAND tracks_subtitles_test)
+add_test(NAME subtitle_rendering_test COMMAND subtitle_rendering_test)

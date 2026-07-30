@@ -1,0 +1,24 @@
+{
+  "$schema": "https://vidall.dev/schema/fonts-v1.json",
+  "description": "字幕渲染字体发现配置。libass 在渲染文本字幕时从此配置查找系统与自定义字体路径；CJK 语言在首期仅回退到系统默认字体，标记为 Degraded。",
+  "systemPaths": [
+    "/system/fonts",
+    "/system/font"
+  ],
+  "customPaths": [],
+  "defaults": {
+    "sans": "NotoSans-Regular.ttf",
+    "serif": "NotoSerif-Regular.ttf",
+    "monospace": "NotoSansMono-Regular.ttf"
+  },
+  "cjk": {
+    "sans": "NotoSansCJK-Regular.ttc",
+    "serif": "NotoSerifCJK-Regular.ttc",
+    "note": "首期 CJK 字体仅使用系统回退，标记为 Degraded/CjkFontMissing；真机验证后升级为 Renderable。"
+  },
+  "fallback": {
+    "path": "/system/fonts/NotoSansCJK-Regular.ttc",
+    "isCjkFallback": true,
+    "note": "当指定 CJK 字体在系统路径中未找到时，使用此回退字体。"
+  }
+}

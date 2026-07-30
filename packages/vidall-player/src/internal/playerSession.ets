@@ -208,6 +208,12 @@ export class PlayerSession implements VidAllPlayer {
     return this.enqueue('setSubtitleDelay', () => this.requireActiveMedia('setSubtitleDelay', delayMs));
   }
 
+  requestCache(_uri: string): Promise<void> {
+    return this.enqueue('requestCache', () => {
+      throw lifecycleFailure('FEATURE_UNSUPPORTED', '缓存请求在首期版本不支持 (Cache requests are not supported in the first release).');
+    });
+  }
+
   subscribe(listener: (event: PlayerEvent) => void): () => void {
     return this.stateMachine.subscribe(listener);
   }
