@@ -263,7 +263,7 @@ struct Index {
     // 确保 Authorization 仅在同源范围内传递，且支持 Range 请求。
     const playbackHeaders = this.isWebDavSource
       ? buildWebDavPlaybackHeaders(this.webDavUsername, this.webDavPassword)
-      : {};
+      : {} as Record<string, string>;
     const authorization = playbackHeaders['Authorization'] !== undefined
       ? `Authorization: ${playbackHeaders['Authorization']}`
       : '';
