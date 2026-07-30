@@ -320,6 +320,64 @@ void test_default_encoding_no_degradation() {
           "Default encoding should be treated as UTF-8");
 }
 
+// ══════════════════════════════════════════════════════════════════
+// 19. 大小写不敏感格式判定
+// ══════════════════════════════════════════════════════════════════
+
+void test_case_insensitive_format() {
+    // isBitmapFormat 大小写不敏感
+    CHECK(vidall::SubtitleRenderer::isBitmapFormat("PGS"),
+          "PGS (uppercase) should be bitmap format");
+    CHECK(vidall::SubtitleRenderer::isBitmapFormat("VobSub"),
+          "VobSub (mixed case) should be bitmap format");
+
+    // isTextFormat 大小写不敏感
+    CHECK(vidall::SubtitleRenderer::isTextFormat("SRT"),
+          "SRT (uppercase) should be text format");
+    CHECK(vidall::SubtitleRenderer::isTextFormat("Ass"),
+          "Ass (mixed case) should be text format");
+    CHECK(vidall::SubtitleRenderer::isTextFormat("SSA"),
+          "SSA (uppercase) should be text format");
+    CHECK(vidall::SubtitleRenderer::isTextFormat("WEBVTT"),
+          "WEBVTT (uppercase) should be text format");
+
+    // evaluate 大小写不敏感
+    vidall::SubtitleRenderer renderer;
+    vidall::SubtitleRenderRequest req;
+    req.format = "PGS";
+    auto result = renderer.evaluate(req);
+    CHECK(result.verdict == vidall::SubtitleRenderVerdict::Bitmap,
+          "PGS (uppercase) should produce Bitmap verdict");
+
+    req.format = "SRT";
+    req.language = "en";
+    result = renderer.evaluate(req);
+    CHECK(result.verdict == vidall::SubtitleRenderVerdict::Renderable,
+          "SRT (uppercase) should produce Renderable verdict");
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 20. 结果消息包含中英文
+// ══════════════════════════════════════════════════════════════════
+
+void test_bilingual_messages() {
+    vidall::SubtitleRenderer renderer;
+    vidall::SubtitleRenderRequest req;
+
+    // Bitmap 消息含中文
+    req.format = "pgs";
+    auto result = renderer.evaluate(req);
+    CHECK(result.message.find("图形字幕") != std::string::npos,
+          "Bitmap message should contain Chinese text");
+
+    // Renderable 消息含中文
+    req.format = "srt";
+    req.language = "en";
+    result = renderer.evaluate(req);
+    CHECK(result.message.find("可经") != std::string::npos,
+          "Renderable message should contain Chinese text");
+}
+
 int main() {
     test_arkts_overlay_forbidden();
     test_pgs_bitmap_verdict();
@@ -339,6 +397,8 @@ int main() {
     test_korean_cjk_degraded();
     test_result_message_not_empty();
     test_default_encoding_no_degradation();
+    test_case_insensitive_format();
+    test_bilingual_messages();
 
     std::printf("\nsubtitle_rendering_test: %d passed, %d failed\n",
                 g_tests_passed, g_tests_failed);

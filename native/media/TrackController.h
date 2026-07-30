@@ -99,8 +99,8 @@ public:
     // 重置轨道（切源或停止时调用）
     void clear();
 
-    // 下一可用轨道 ID
-    int64_t nextTrackId() const;
+    // 下一可用轨道 ID（每次调用递增）
+    int64_t nextTrackId();
 
     static RecognitionStatus inferSubtitleRecognitionStatus(const std::string& format);
 

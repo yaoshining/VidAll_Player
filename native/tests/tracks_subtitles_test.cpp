@@ -305,5 +305,50 @@ int main()
             "subtitle track selection unchanged after audio select");
     }
 
+    // ═══ 19. 连续添加外挂轨道 ID 唯一递增 ═══
+    {
+        vidall::TrackController ctrl;
+        vidall::ExternalAudioRequest audio1, audio2;
+        audio1.uri = "https://fixture.invalid/a1.aac";
+        audio1.title = "Audio 1";
+        audio2.uri = "https://fixture.invalid/a2.aac";
+        audio2.title = "Audio 2";
+        ctrl.addExternalAudio(audio1);
+        ctrl.addExternalAudio(audio2);
+        const auto id1 = ctrl.tracks()[0].id;
+        const auto id2 = ctrl.tracks()[1].id;
+        passed &= check(id1 != id2,
+            "two external tracks have distinct IDs");
+        passed &= check(id2 > id1,
+            "second external track ID is greater than first");
+    }
+
+    // ═══ 20. file URI 仅接受绝对路径和 localhost ═══
+    {
+        vidall::TrackController ctrl;
+        // file:/// 绝对路径 — 接受
+        vidall::ExternalSubtitleRequest sub1;
+        sub1.uri = "file:///data/local/cache/sub.srt";
+        sub1.format = "srt";
+        passed &= check(ctrl.addExternalSubtitle(sub1) == vidall::TrackCommandResult::Accepted,
+            "file:/// absolute path accepted");
+        ctrl.clear();
+
+        // file://localhost/ 绝对路径 — 接受
+        vidall::ExternalSubtitleRequest sub2;
+        sub2.uri = "file://localhost/data/local/cache/sub.srt";
+        sub2.format = "srt";
+        passed &= check(ctrl.addExternalSubtitle(sub2) == vidall::TrackCommandResult::Accepted,
+            "file://localhost/ absolute path accepted");
+        ctrl.clear();
+
+        // file://evilhost/ — 拒绝
+        vidall::ExternalSubtitleRequest sub3;
+        sub3.uri = "file://evilhost/data/sub.srt";
+        sub3.format = "srt";
+        passed &= check(ctrl.addExternalSubtitle(sub3) == vidall::TrackCommandResult::RejectedInaccessibleUrl,
+            "file://evilhost/ rejected");
+    }
+
     return passed ? 0 : 1;
 }

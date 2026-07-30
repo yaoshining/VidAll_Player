@@ -130,9 +130,9 @@ void TrackController::clear()
     nextExternalId_ = 1000;
 }
 
-int64_t TrackController::nextTrackId() const
+int64_t TrackController::nextTrackId()
 {
-    return nextExternalId_;
+    return nextExternalId_++;
 }
 
 RecognitionStatus TrackController::inferSubtitleRecognitionStatus(const std::string& format)
@@ -158,7 +158,16 @@ bool TrackController::isHttpOrHttps(const std::string& uri)
 
 bool TrackController::isLocalFileUri(const std::string& uri)
 {
-    return toLower(uri.substr(0, 7)) == "file://";
+    const auto lower = toLower(uri);
+    // 仅接受 file:///absolute/path 或 file://localhost/absolute/path
+    // 拒绝非空 authority（如 file://evilhost/...）和相对路径
+    if (lower.compare(0, 8, "file:///") == 0) {
+        return true; // 空 authority + 绝对路径
+    }
+    if (lower.compare(0, 17, "file://localhost/") == 0) {
+        return true; // localhost authority + 绝对路径
+    }
+    return false;
 }
 
 bool TrackController::isSupportedSubtitleFormat(const std::string& format)

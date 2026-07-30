@@ -103,7 +103,7 @@
 
 **Independent Test**: 多轨样本连续切换并跳转；SRT/ASS/网络字幕、异常编码、CJK/双向文字、字体缺失均有结构化结论。
 
-- [X] T042 [US3] 先写并运行失败的轨道契约测试：枚举字段、选择/取消、连续切换、跳转后状态、非法轨道、外挂音频 URL 与首期缓存请求的 `FEATURE_UNSUPPORTED`，更新 `packages/vidall-player/test/contract/tracks.test.ets`、`packages/vidall-player/src/public/PlayerTypes.ets`
+- [X] T042 [US3] 先写并运行失败的轨道契约测试：枚举字段、选择/取消、连续切换、跳转后状态、非法轨道、外挂音频 URL 与首期缓存请求的 `FEATURE_UNSUPPORTED`，更新 `packages/vidall-player/test/contract/tracks.test.ets`、`packages/vidall-player/src/public/types.ets`
 - [X] T043 [US3] 先写并运行失败的原生轨道/外挂音频/字幕测试：track-list、aid/sid、audio-add、sub-add、延迟、不可访问 URL，更新 `native/tests/tracks_subtitles_test.cpp`、`native/media/TrackController.cpp`
 - [X] T044 [US3] 实现并通过 T042–T043 的音轨、内嵌字幕、外挂音频和外挂字幕命令/事件映射，并对缓存请求稳定返回 `FEATURE_UNSUPPORTED`，更新 `native/media/TrackController.cpp`、`packages/vidall-player/src/internal/playerSession.ets`
 - [X] T045 [US3] 先写并运行失败的字幕渲染互斥/字体降级测试，覆盖 native 唯一渲染路径、CJK、双向文字、字体缺失和异常编码，更新 `native/tests/subtitle_rendering_test.cpp`、`native/media/SubtitleRenderer.cpp`

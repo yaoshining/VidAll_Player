@@ -1,5 +1,17 @@
 #include "SubtitleRenderer.h"
 #include <algorithm>
+#include <cctype>
+
+namespace {
+
+std::string toLower(std::string value)
+{
+    std::transform(value.begin(), value.end(), value.begin(),
+        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return value;
+}
+
+} // namespace
 
 namespace vidall {
 
@@ -12,14 +24,14 @@ SubtitleRenderResult SubtitleRenderer::evaluate(const SubtitleRenderRequest& req
     // 图形字幕：不走 libass 管线
     if (isBitmapFormat(request.format)) {
         result.verdict = SubtitleRenderVerdict::Bitmap;
-        result.message = "Bitmap subtitle (not rendered via libass)";
+        result.message = "图形字幕，不经 libass 渲染 (Bitmap subtitle, not rendered via libass)";
         return result;
     }
 
     // 不支持的格式
     if (!isTextFormat(request.format)) {
         result.verdict = SubtitleRenderVerdict::Unsupported;
-        result.message = "Unsupported subtitle format in first release";
+        result.message = "首期不支持的字幕格式 (Unsupported subtitle format in first release)";
         return result;
     }
 
@@ -30,7 +42,7 @@ SubtitleRenderResult SubtitleRenderer::evaluate(const SubtitleRenderRequest& req
     if (!request.encoding.empty() && request.encoding != "utf-8" && request.encoding != "UTF-8") {
         result.verdict = SubtitleRenderVerdict::Degraded;
         result.degradation = DegradationReason::EncodingAbnormal;
-        result.message = "Degraded: non-UTF-8 encoding not fully supported in first release";
+        result.message = "降级：非 UTF-8 编码首期未完全支持 (Degraded: non-UTF-8 encoding not fully supported in first release)";
         return result;
     }
 
@@ -38,7 +50,7 @@ SubtitleRenderResult SubtitleRenderer::evaluate(const SubtitleRenderRequest& req
     if (request.requiresBiDi) {
         result.verdict = SubtitleRenderVerdict::Degraded;
         result.degradation = DegradationReason::BiDiUnsupported;
-        result.message = "Degraded: bidirectional text not fully supported in first release";
+        result.message = "降级：双向文字首期未完全支持 (Degraded: bidirectional text not fully supported in first release)";
         return result;
     }
 
@@ -46,13 +58,13 @@ SubtitleRenderResult SubtitleRenderer::evaluate(const SubtitleRenderRequest& req
     if (result.font.isCjkFallback) {
         result.verdict = SubtitleRenderVerdict::Degraded;
         result.degradation = DegradationReason::CjkFontMissing;
-        result.message = "Degraded: CJK font missing, using fallback";
+        result.message = "降级：CJK 字体缺失，使用回退 (Degraded: CJK font missing, using fallback)";
         return result;
     }
 
     // 正常渲染
     result.verdict = SubtitleRenderVerdict::Renderable;
-    result.message = "Renderable via libass";
+    result.message = "可经 libass 渲染 (Renderable via libass)";
     return result;
 }
 
@@ -76,11 +88,13 @@ FontDiscoveryResult SubtitleRenderer::discoverFont(const std::string& language) 
 }
 
 bool SubtitleRenderer::isBitmapFormat(const std::string& format) {
-    return format == "pgs" || format == "vobsub";
+    const auto lower = toLower(format);
+    return lower == "pgs" || lower == "vobsub";
 }
 
 bool SubtitleRenderer::isTextFormat(const std::string& format) {
-    return format == "srt" || format == "ass" || format == "ssa" || format == "webvtt";
+    const auto lower = toLower(format);
+    return lower == "srt" || lower == "ass" || lower == "ssa" || lower == "webvtt";
 }
 
 bool SubtitleRenderer::isArkTsOverlayForbidden() {
