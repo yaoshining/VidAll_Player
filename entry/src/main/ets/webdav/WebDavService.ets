@@ -49,12 +49,88 @@ export interface WebDavEntry {
 }
 
 export function sanitizeWebDavConfig(config: WebDavConfig): WebDavConfig {
-  return { endpoint: config.endpoint.trim(), username: config.username.trim(), password: '' };
+  const endpoint = config.endpoint.trim();
+  if (!isAbsoluteHttpUrl(endpoint)) {
+    throw new Error('WebDAV 地址必须以 http:// 或 https:// 开头。');
+  }
+  return { endpoint: endpoint, username: config.username.trim(), password: '' };
 }
 
 export function buildBasicAuthorization(username: string, password: string): string {
   const bytes = new util.TextEncoder('utf-8').encode(`${username}:${password}`);
   return `Basic ${new util.Base64Helper().encodeToStringSync(bytes)}`;
+}
+
+export function isSafeRedirect(fromUri: string, redirectUri: string): boolean {
+  const fromSchemeEnd = fromUri.indexOf('://');
+  const redirectSchemeEnd = redirectUri.indexOf('://');
+  if (fromSchemeEnd < 0 || redirectSchemeEnd < 0) {
+    return false;
+  }
+  const fromScheme = fromUri.substring(0, fromSchemeEnd).toLowerCase();
+  const redirectScheme = redirectUri.substring(0, redirectSchemeEnd).toLowerCase();
+  // 协议降级（HTTPS→HTTP）不安全
+  if (fromScheme === 'https' && redirectScheme !== 'https') {
+    return false;
+  }
+  if (fromScheme !== redirectScheme) {
+    return false;
+  }
+  // 提取 host:port 并规范化比较
+  const fromAuthority = extractAuthority(fromUri);
+  const redirectAuthority = extractAuthority(redirectUri);
+  return normalizeHostPort(fromScheme, fromAuthority) === normalizeHostPort(redirectScheme, redirectAuthority);
+}
+
+function extractAuthority(uri: string): string {
+  const schemeEnd = uri.indexOf('://');
+  if (schemeEnd < 0) {
+    return '';
+  }
+  const rest = uri.substring(schemeEnd + 3);
+  let authority = rest;
+  for (let index = 0; index < authority.length; index++) {
+    const char = authority.charAt(index);
+    if (char === '/' || char === '?' || char === '#') {
+      authority = authority.substring(0, index);
+      break;
+    }
+  }
+  return authority.toLowerCase();
+}
+
+function normalizeHostPort(scheme: string, authority: string): string {
+  const colonIndex = authority.lastIndexOf(':');
+  if (colonIndex >= 0 && authority.charAt(authority.length - 1) !== ']') {
+    return authority;
+  }
+  if (scheme === 'https') {
+    return `${authority}:443`;
+  }
+  if (scheme === 'http') {
+    return `${authority}:80`;
+  }
+  return authority;
+}
+
+export function buildWebDavPlaybackHeaders(
+  username: string,
+  password: string,
+  rangeStart?: number,
+  rangeEnd?: number
+): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (username.length > 0 && password.length > 0) {
+    headers['Authorization'] = buildBasicAuthorization(username, password);
+  }
+  if (rangeStart !== undefined && rangeStart >= 0) {
+    if (rangeEnd !== undefined && rangeEnd >= rangeStart) {
+      headers['Range'] = `bytes=${rangeStart}-${rangeEnd}`;
+    } else {
+      headers['Range'] = `bytes=${rangeStart}-`;
+    }
+  }
+  return headers;
 }
 
 export function buildRawPropfindRequest(host: string, authorization: string): string {
@@ -263,7 +339,14 @@ export class WebDavService {
 
   async saveConfig(config: WebDavConfig): Promise<void> {
     const store = await preferences.getPreferences(this.context, 'webdav');
-    store.putSync(CONFIG_KEY, JSON.stringify(sanitizeWebDavConfig(config)));
+    try {
+      store.putSync(CONFIG_KEY, JSON.stringify(sanitizeWebDavConfig(config)));
+    } catch (_) {
+      // endpoint 无效时不持久化，但也不阻塞调用方
+      store.putSync(CONFIG_KEY, JSON.stringify(
+        { endpoint: '', username: config.username.trim(), password: '' }
+      ));
+    }
     await store.flush();
   }
 

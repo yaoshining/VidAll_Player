@@ -199,10 +199,27 @@ export function validateMediaSource(source: MediaSource): void {
   }
 }
 
+function normalizeAuthority(scheme: string, authority: string): string {
+  const hostEnd = authority.indexOf(':');
+  if (hostEnd >= 0) {
+    return authority.toLowerCase();
+  }
+  // 无显式端口时补全默认端口，使 scheme+host 匹配更严格：
+  // https 默认 443，http 默认 80，其他协议保持原样。
+  if (scheme === 'https') {
+    return `${authority.toLowerCase()}:443`;
+  }
+  if (scheme === 'http') {
+    return `${authority.toLowerCase()}:80`;
+  }
+  return authority.toLowerCase();
+}
+
 export function canForwardAuthorization(fromUri: string, redirectUri: string): boolean {
   const from = parseUri(fromUri);
   const target = parseUri(redirectUri);
-  return from.scheme === target.scheme && from.authority === target.authority;
+  return from.scheme === target.scheme &&
+    normalizeAuthority(from.scheme, from.authority) === normalizeAuthority(target.scheme, target.authority);
 }
 
 export function authorizationHeadersForRedirect(

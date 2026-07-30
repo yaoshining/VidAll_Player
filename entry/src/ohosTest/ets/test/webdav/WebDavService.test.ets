@@ -2,13 +2,20 @@ import { describe, expect, it } from '@ohos/hypium';
 import {
   buildBasicAuthorization,
   buildRawPropfindRequest,
+  buildWebDavPlaybackHeaders,
   createPropfindRequestOptions,
+  isSafeRedirect,
   parseRawHttpPropfindResponse,
   joinWebDavUrl,
   parseWebDavDirectory,
   sanitizeWebDavConfig,
   WebDavConfig
 } from '../../../../main/ets/webdav/WebDavService';
+import {
+  canForwardAuthorization,
+  authorizationHeadersForRedirect,
+  validateMediaSource
+} from '@vidall/player/src/internal/inputValidator';
 import {
   buildSmbMediaUri,
   sanitizeSmbConfig,
@@ -168,6 +175,167 @@ export default function webDavServiceTest() {
       expect(joinWebDavUrl('not-a-url', 'clip.mp4')).assertEqual('');
       const xml = `<d:multistatus xmlns:d="DAV:"><d:response><d:href>/media/image.jpg</d:href><d:propstat><d:prop><d:resourcetype/></d:prop></d:propstat></d:response></d:multistatus>`;
       expect(parseWebDavDirectory(xml, 'https://dav.example.com/media/').length).assertEqual(0);
+    });
+
+    // T034: WebDAV 安全存储引用配置
+
+    it('rejects non-HTTP(S) endpoints in sanitized config', 0, () => {
+      let ftpRejected = false;
+      try {
+        sanitizeWebDavConfig({ endpoint: 'ftp://dav.example.com/', username: 'alice', password: 'secret' });
+      } catch (_) {
+        ftpRejected = true;
+      }
+      let emptyRejected = false;
+      try {
+        sanitizeWebDavConfig({ endpoint: '', username: '', password: '' });
+      } catch (_) {
+        emptyRejected = true;
+      }
+      expect(ftpRejected).assertTrue();
+      expect(emptyRejected).assertTrue();
+    });
+
+    it('accepts valid HTTP and HTTPS endpoints in sanitized config', 0, () => {
+      const httpConfig = sanitizeWebDavConfig({ endpoint: 'http://192.168.1.10:5005/', username: 'alice', password: 'secret' });
+      expect(httpConfig.endpoint).assertEqual('http://192.168.1.10:5005/');
+      expect(httpConfig.password).assertEqual('');
+
+      const httpsConfig = sanitizeWebDavConfig({ endpoint: 'https://dav.example.com/library/', username: 'bob', password: 'secret' });
+      expect(httpsConfig.endpoint).assertEqual('https://dav.example.com/library/');
+      expect(httpsConfig.password).assertEqual('');
+    });
+
+    it('never persists password in sanitized config even when username is present', 0, () => {
+      const config: WebDavConfig = {
+        endpoint: 'https://dav.example.com/',
+        username: 'alice',
+        password: 'super-secret-password-123'
+      };
+      const saved = sanitizeWebDavConfig(config);
+      expect(saved.password).assertEqual('');
+      expect(saved.username).assertEqual('alice');
+      expect(saved.endpoint).assertEqual('https://dav.example.com/');
+    });
+
+    // T036: 认证、重定向、Range 与脱敏策略
+
+    it('forwards Authorization only to the same scheme, host and port', 0, () => {
+      // 同源同端口：允许转发
+      expect(canForwardAuthorization(
+        'https://dav.example.com/media/',
+        'https://dav.example.com/media/file.mp4'
+      )).assertTrue();
+
+      // 同源不同端口：禁止转发
+      expect(canForwardAuthorization(
+        'https://dav.example.com:443/media/',
+        'https://dav.example.com:8443/media/file.mp4'
+      )).assertFalse();
+
+      // 不同主机：禁止转发
+      expect(canForwardAuthorization(
+        'https://dav.example.com/media/',
+        'https://other.example.com/media/file.mp4'
+      )).assertFalse();
+
+      // 协议降级 HTTPS→HTTP：禁止转发
+      expect(canForwardAuthorization(
+        'https://dav.example.com/media/',
+        'http://dav.example.com/media/file.mp4'
+      )).assertFalse();
+    });
+
+    it('strips Authorization and Cookie on cross-origin or protocol-downgrade redirects', 0, () => {
+      const headers: Record<string, string> = {
+        'authorization': 'Basic c2VjcmV0',
+        'cookie': 'session=abc123',
+        'accept': 'application/xml',
+        'user-agent': 'VidAll/1.0'
+      };
+
+      // 跨源重定向：剥离 authorization 和 cookie
+      const filtered = authorizationHeadersForRedirect(headers, 'https://dav.example.com/', 'https://other.example.com/');
+      expect(filtered['authorization']).assertEqual(undefined);
+      expect(filtered['cookie']).assertEqual(undefined);
+      expect(filtered['accept']).assertEqual('application/xml');
+      expect(filtered['user-agent']).assertEqual('VidAll/1.0');
+
+      // 同源重定向：保留全部
+      const kept = authorizationHeadersForRedirect(headers, 'https://dav.example.com/', 'https://dav.example.com/file.mp4');
+      expect(kept['authorization']).assertEqual('Basic c2VjcmV0');
+      expect(kept['cookie']).assertEqual('session=abc123');
+    });
+
+    it('identifies safe redirects that preserve scheme, host and port', 0, () => {
+      // 同源同端口：安全重定向
+      expect(isSafeRedirect('https://dav.example.com/media/', 'https://dav.example.com/media/file.mp4')).assertTrue();
+
+      // 不同端口：不安全
+      expect(isSafeRedirect('https://dav.example.com/', 'https://dav.example.com:8443/')).assertFalse();
+
+      // 不同主机：不安全
+      expect(isSafeRedirect('https://dav.example.com/', 'https://cdn.example.com/')).assertFalse();
+
+      // 协议降级：不安全
+      expect(isSafeRedirect('https://dav.example.com/', 'http://dav.example.com/')).assertFalse();
+    });
+
+    it('builds playback headers with Authorization and Range without leaking credentials', 0, () => {
+      const headers = buildWebDavPlaybackHeaders('alice', 'secret', 0, 1048575);
+      expect(headers['Authorization']).assertEqual('Basic YWxpY2U6c2VjcmV0');
+      expect(headers['Range']).assertEqual('bytes=0-1048575');
+
+      // 无 Range 请求
+      const noRange = buildWebDavPlaybackHeaders('alice', 'secret');
+      expect(noRange['Range']).assertEqual(undefined);
+      expect(noRange['Authorization']).assertEqual('Basic YWxpY2U6c2VjcmV0');
+    });
+
+    it('builds playback headers without Authorization when credentials are empty', 0, () => {
+      const headers = buildWebDavPlaybackHeaders('', '');
+      expect(headers['Authorization']).assertEqual(undefined);
+      expect(headers['Range']).assertEqual(undefined);
+    });
+
+    it('accepts WebDAV http and https sources with Authorization headers', 0, async (done: Function) => {
+      // WebDAV 播放使用 http/https kind，Authorization 通过 headers 传递
+      try {
+        validateMediaSource({
+          kind: 'https',
+          uri: 'https://dav.example.com/media/video.mp4',
+          headers: { 'authorization': 'Basic dGVzdDp0ZXN0' }
+        });
+        expect(true).assertTrue();
+      } catch (_) {
+        expect(true).assertFalse();
+      }
+
+      try {
+        validateMediaSource({
+          kind: 'http',
+          uri: 'http://192.168.1.10:5005/media/video.mp4',
+          headers: { 'authorization': 'Basic dGVzdDp0ZXN0' }
+        });
+        expect(true).assertTrue();
+      } catch (_) {
+        expect(true).assertFalse();
+      }
+      done();
+    });
+
+    it('rejects WebDAV URIs with userinfo before reaching authentication', 0, async (done: Function) => {
+      let rejected = false;
+      try {
+        validateMediaSource({
+          kind: 'https',
+          uri: 'https://alice:secret@dav.example.com/media/video.mp4'
+        });
+      } catch (error) {
+        rejected = true;
+      }
+      expect(rejected).assertTrue();
+      done();
     });
   });
 }

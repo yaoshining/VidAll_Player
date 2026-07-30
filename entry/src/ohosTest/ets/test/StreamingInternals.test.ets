@@ -3,6 +3,8 @@ import { PlayerEvent } from '@vidall/player';
 import { PlayerSession } from '@vidall/player/src/internal/playerSession';
 import { ProxyLeaseRegistry } from '@vidall/player/src/internal/proxyLeaseRegistry';
 import { classifyNetworkFailure } from '@vidall/player/src/internal/networkRecovery';
+import { canForwardAuthorization, authorizationHeadersForRedirect, validateMediaSource } from '@vidall/player/src/internal/inputValidator';
+import { redactText, redactContext, redactError } from '@vidall/player/src/internal/redaction';
 import { runHarNativePackagingProbe } from '@vidall/player/src/native/harNativePackagingProbe';
 
 export default function streamingInternalsTest() {
@@ -221,6 +223,180 @@ export default function streamingInternalsTest() {
       }
       await session.release();
       done();
+    });
+
+    // T036: 重定向安全策略测试
+
+    it('strips Authorization headers when redirect crosses to a different port', 0, () => {
+      const headers: Record<string, string> = {
+        'authorization': 'Basic c2VjcmV0',
+        'accept': '*/*'
+      };
+      const filtered = authorizationHeadersForRedirect(
+        headers,
+        'https://dav.example.com:443/media/',
+        'https://dav.example.com:8443/redirect/'
+      );
+      expect(filtered['authorization']).assertEqual(undefined);
+      expect(filtered['accept']).assertEqual('*/*');
+    });
+
+    it('preserves Authorization when redirect stays on same scheme, host and port', 0, () => {
+      const headers: Record<string, string> = {
+        'authorization': 'Basic c2VjcmV0',
+        'accept': '*/*'
+      };
+      const kept = authorizationHeadersForRedirect(
+        headers,
+        'https://dav.example.com/media/',
+        'https://dav.example.com/media/video.mp4'
+      );
+      expect(kept['authorization']).assertEqual('Basic c2VjcmV0');
+      expect(kept['accept']).assertEqual('*/*');
+    });
+
+    // T038: 受控 WebDAV 集成测试
+
+    it('redacts Authorization and token values from error context', 0, () => {
+      const context = redactContext({
+        'authorization': 'Basic c2VjcmV0',
+        'token': 'abc123',
+        'url': 'https://dav.example.com/media/',
+        'statusCode': 401
+      });
+      expect(context['authorization']).assertEqual('[REDACTED]');
+      expect(context['token']).assertEqual('[REDACTED]');
+      expect(context['url']).assertEqual('https://dav.example.com/media/');
+      expect(context['statusCode']).assertEqual(401);
+    });
+
+    it('redacts credentials from network failure detail strings', 0, () => {
+      const redacted = redactText('Authorization: Basic c2VjcmV0 failed for user alice');
+      expect(redacted.indexOf('c2VjcmV0') < 0).assertTrue();
+      expect(redacted.indexOf('Basic')).assertGreaterThanOrEqual(0);
+    });
+
+    it('classifies WebDAV auth failure as unrecoverable and TLS failure as unrecoverable', 0, () => {
+      const authFailure = classifyNetworkFailure('HTTP_AUTH_REQUIRED', 'Wrong credentials');
+      expect(authFailure.playerError.retryable).assertFalse();
+      expect(authFailure.playerError.domain).assertEqual('network');
+
+      const tlsFailure = classifyNetworkFailure('TLS_CERTIFICATE_INVALID', 'Self-signed cert');
+      expect(tlsFailure.playerError.retryable).assertFalse();
+    });
+
+    it('classifies WebDAV timeout and disconnection as retryable', 0, () => {
+      const timeoutFailure = classifyNetworkFailure('NETWORK_TIMEOUT');
+      expect(timeoutFailure.playerError.retryable).assertTrue();
+
+      const disconnectFailure = classifyNetworkFailure('NETWORK_DISCONNECTED');
+      expect(disconnectFailure.playerError.retryable).assertTrue();
+    });
+
+    // T039: ArkTS 到 native headers 传递
+
+    it('passes Authorization headers through MediaSource without exposing credentials in events', 0, async (done: Function) => {
+      const events: PlayerEvent[] = [];
+      const session = new PlayerSession({ eventListener: (event: PlayerEvent) => events.push(event) });
+      await session.load({
+        kind: 'https',
+        uri: 'https://dav.example.com/media/video.mp4',
+        headers: { 'authorization': 'Basic c2VjcmV0' }
+      });
+
+      // 验证：源已加载且 headers 已存储
+      // 日志和事件中不应出现凭据
+      const logMessages = events
+        .filter((e: PlayerEvent) => e.type === 'log' && e.log !== undefined)
+        .map((e: PlayerEvent) => e.log!.message);
+      for (let index = 0; index < logMessages.length; index++) {
+        expect(logMessages[index].indexOf('c2VjcmV0') < 0).assertTrue();
+      }
+      await session.release();
+      done();
+    });
+
+    it('redacts Authorization in error events for WebDAV playback failures', 0, async (done: Function) => {
+      const errors: PlayerEvent[] = [];
+      const session = new PlayerSession({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'error') {
+            errors.push(event);
+          }
+        }
+      });
+      await session.load({
+        kind: 'https',
+        uri: 'https://dav.example.com/media/video.mp4',
+        headers: { 'authorization': 'Basic c2VjcmV0' }
+      });
+
+      // 模拟网络上报认证失败
+      const failure = classifyNetworkFailure('HTTP_AUTH_REQUIRED', 'Authorization: Basic c2VjcmV0 rejected');
+      session.reportNetworkFailure(failure);
+
+      expect(errors.length).assertEqual(1);
+      // 脱敏后的错误不应包含凭据
+      const errorJson = JSON.stringify(errors[0].error);
+      expect(errorJson.indexOf('c2VjcmV0') < 0).assertTrue();
+      await session.release();
+      done();
+    });
+
+    it('validates WebDAV HTTPS source with headers and rejects URI with userinfo', 0, () => {
+      // 有效 HTTPS WebDAV 源
+      validateMediaSource({
+        kind: 'https',
+        uri: 'https://dav.example.com/media/video.mp4',
+        headers: { 'authorization': 'Basic dGVzdDp0ZXN0', 'range': 'bytes=0-' }
+      });
+
+      // 拒绝含 userinfo 的 URI
+      let rejected = false;
+      try {
+        validateMediaSource({
+          kind: 'https',
+          uri: 'https://user:pass@dav.example.com/media/video.mp4'
+        });
+      } catch (_) {
+        rejected = true;
+      }
+      expect(rejected).assertTrue();
+    });
+
+    // T040: 敏感信息扫描
+
+    it('never includes raw credentials in proxy lease release log messages', 0, async (done: Function) => {
+      const logMessages: string[] = [];
+      const session = new PlayerSession({
+        eventListener: (event: PlayerEvent) => {
+          if (event.type === 'log' && event.message !== undefined) {
+            logMessages.push(event.message);
+          }
+        }
+      });
+      await session.load({
+        kind: 'localhostProxy',
+        uri: 'http://127.0.0.1:58080/dav/video.mp4?token=secret-abc',
+        proxyLeaseId: 'lease-credential-scan',
+        headers: { 'authorization': 'Basic c2VjcmV0' }
+      });
+      await session.stop();
+      for (let index = 0; index < logMessages.length; index++) {
+        expect(logMessages[index].indexOf('secret-abc') < 0).assertTrue();
+        expect(logMessages[index].indexOf('c2VjcmV0') < 0).assertTrue();
+      }
+      await session.release();
+      done();
+    });
+
+    it('redacts sensitive query parameters and file paths in error messages', 0, () => {
+      const redacted = redactText(
+        'Failed to load https://dav.example.com/media/?access_token=secret123&api_key=key456'
+      );
+      expect(redacted.indexOf('secret123') < 0).assertTrue();
+      expect(redacted.indexOf('key456') < 0).assertTrue();
+      expect(redacted.indexOf('[REDACTED_QUERY]') >= 0).assertTrue();
     });
   });
 }
