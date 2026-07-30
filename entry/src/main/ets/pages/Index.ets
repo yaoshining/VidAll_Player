@@ -605,9 +605,11 @@ struct Index {
   }
 
   private redactSensitiveText(text: string): string {
+    // 头部值可能包含多个以空格分隔的 token（如 `Basic <base64>`），
+    // 需要整体脱敏到分隔符（逗号/分号/行尾），与 SDK redactText 保持一致。
     return text
-      .replace(/(authorization\s*[:=]\s*)([^\s,;]+)/gi, '$1[REDACTED]')
-      .replace(/(password\s*[:=]\s*)([^\s,;]+)/gi, '$1[REDACTED]')
+      .replace(/(authorization\s*[:=]\s*)([^\s,;]+(?:[ \t]+[^\s,;]+)*)/gi, '$1[REDACTED]')
+      .replace(/(password\s*[:=]\s*)([^\s,;]+(?:[ \t]+[^\s,;]+)*)/gi, '$1[REDACTED]')
       .replace(/([?&](?:access_token|apikey|api_key|auth|password|token)=[^&#\s]*)/gi, '[REDACTED_QUERY]');
   }
 

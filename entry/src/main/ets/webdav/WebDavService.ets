@@ -348,10 +348,8 @@ export class WebDavService {
     try {
       store.putSync(CONFIG_KEY, JSON.stringify(sanitizeWebDavConfig(config)));
     } catch (_) {
-      // endpoint 无效时不持久化，但也不阻塞调用方
-      store.putSync(CONFIG_KEY, JSON.stringify(
-        { endpoint: '', username: config.username.trim(), password: '' }
-      ));
+      // endpoint 无效时保持已保存的配置不变，避免覆盖此前的有效配置
+      return;
     }
     await store.flush();
   }
