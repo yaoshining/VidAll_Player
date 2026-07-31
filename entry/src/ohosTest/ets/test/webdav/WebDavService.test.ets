@@ -266,15 +266,15 @@ export default function webDavServiceTest() {
 
       // 跨源重定向：剥离 authorization 和 cookie
       const filtered = authorizationHeadersForRedirect(headers, 'https://dav.example.com/', 'https://other.example.com/');
-      expect(filtered['authorization']).assertEqual(undefined);
-      expect(filtered['cookie']).assertEqual(undefined);
-      expect(filtered['accept']).assertEqual('application/xml');
-      expect(filtered['user-agent']).assertEqual('VidAll/1.0');
+      expect(filtered!['authorization']).assertEqual(undefined);
+      expect(filtered!['cookie']).assertEqual(undefined);
+      expect(filtered!['accept']).assertEqual('application/xml');
+      expect(filtered!['user-agent']).assertEqual('VidAll/1.0');
 
       // 同源重定向：保留全部
       const kept = authorizationHeadersForRedirect(headers, 'https://dav.example.com/', 'https://dav.example.com/file.mp4');
-      expect(kept['authorization']).assertEqual('Basic c2VjcmV0');
-      expect(kept['cookie']).assertEqual('session=abc123');
+      expect(kept!['authorization']).assertEqual('Basic c2VjcmV0');
+      expect(kept!['cookie']).assertEqual('session=abc123');
     });
 
     it('identifies safe redirects that preserve scheme, host and port', 0, () => {
@@ -311,7 +311,7 @@ export default function webDavServiceTest() {
     it('sends Authorization when only username is provided (empty password)', 0, () => {
       const headers = buildWebDavPlaybackHeaders('alice', '');
       expect(headers['Authorization']).assertEqual('Basic YWxpY2U6');
-      expect(headers['Authorization']).assertNotEqual(undefined);
+      expect(headers['Authorization'] !== undefined).assertTrue();
     });
 
     it('accepts WebDAV http and https sources with Authorization headers', 0, async (done: Function) => {
