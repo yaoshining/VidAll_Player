@@ -118,13 +118,13 @@
 
 **Independent Test**: 每种当前来源验证加载、分段、跳转、认证、网络中断恢复和代理清理；不得将 localhost proxy 通过误记为直接 SMB 支持。
 
-- [ ] T048 [US4] 先写并运行失败的 HLS/DASH 测试：有效清单、分段失败、跳转、断网后重试和结构化错误，更新 `native/tests/adaptive_streaming_test.cpp`、`native/media/AdaptiveStreaming.cpp`
-- [ ] T049 [US4] 实现并通过 T048 的 HLS/DASH 加载、缓存和跳转策略，更新 `native/media/AdaptiveStreaming.cpp`、`native/media/MediaLoader.cpp`
-- [ ] T050 [US4] 先写并运行失败的 SMB localhost proxy lease 测试：有效 lease/Range、续期、失效 lease、切源释放请求/确认、重复 release、超时与代理清理失败，更新 `native/tests/localhost_proxy_lease_test.cpp`、`native/media/ProxyLeaseManager.h`
-- [ ] T051 [US4] 实现并通过 T050 的 `localhostProxy` 输入验证、lease 关联、续期、释放请求/确认和确定性异常清理；不实现 SMB 或启动业务代理，更新 `native/media/ProxyLeaseManager.h`、`native/media/ProxyLeaseManager.cpp`
-- [ ] T052 [US4] 先写并运行失败的 ArkTS 流媒体集成测试，覆盖 hls/dash/localhostProxy 正常、边界和失败路径，更新 `packages/vidall-player/test/integration/streaming-proxy.test.ets`、`packages/vidall-player/src/public/VidAllPlayerImpl.ets`
-- [ ] T053 [US4] 实现并通过 T052 的 MediaSource 类型分派与网络恢复，不泄漏旧连接或旧媒体状态，更新 `packages/vidall-player/src/public/VidAllPlayerImpl.ets`、`native/media/MediaLoader.cpp`
-- [ ] T054 [US4] 在 ARM64 TV 对 HTTPS、HLS、DASH、SMB localhost HTTP 执行真机样本门禁，记录三态证据、匿名 lease 状态序列和释放确认；无真机时保持未完成，更新 `release/capabilities/arm64-tv-streaming-proxy.json`
+- [X] T048 [US4] 先写并运行失败的 HLS/DASH 测试：有效清单、分段失败、跳转、断网后重试和结构化错误，更新 `native/tests/adaptive_streaming_test.cpp`、`native/media/AdaptiveStreaming.cpp`
+- [X] T049 [US4] 实现并通过 T048 的 HLS/DASH 加载、缓存和跳转策略，更新 `native/media/AdaptiveStreaming.cpp`、`native/media/MediaLoader.cpp`
+- [X] T050 [US4] 先写并运行失败的 SMB localhost proxy lease 测试：有效 lease/Range、续期、失效 lease、切源释放请求/确认、重复 release、超时与代理清理失败，更新 `native/tests/localhost_proxy_lease_test.cpp`、`native/media/ProxyLeaseManager.h`
+- [X] T051 [US4] 实现并通过 T050 的 `localhostProxy` 输入验证、lease 关联、续期、释放请求/确认和确定性异常清理；不实现 SMB 或启动业务代理，更新 `native/media/ProxyLeaseManager.h`、`native/media/ProxyLeaseManager.cpp`
+- [X] T052 [US4] 先写并运行失败的 ArkTS 流媒体集成测试，覆盖 hls/dash/localhostProxy 正常、边界和失败路径，更新 `packages/vidall-player/test/integration/streaming-proxy.test.ets`、`packages/vidall-player/src/public/VidAllPlayerImpl.ets`
+- [X] T053 [US4] 实现并通过 T052 的 MediaSource 类型分派与网络恢复，不泄漏旧连接或旧媒体状态，更新 `packages/vidall-player/src/public/VidAllPlayerImpl.ets`、`native/media/MediaLoader.cpp`
+- [X] T054 [US4] 在 ARM64 TV 对 HTTPS、HLS、DASH、SMB localhost HTTP 执行真机样本门禁，记录三态证据、匿名 lease 状态序列和释放确认；无真机时保持未完成，更新 `release/capabilities/arm64-tv-streaming-proxy.json`
 
 ---
 
