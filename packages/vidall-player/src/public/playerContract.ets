@@ -16,6 +16,7 @@ export interface VidAllPlayer {
   addExternalAudio(audio: ExternalAudio): Promise<void>;
   addExternalSubtitle(subtitle: ExternalSubtitle): Promise<void>;
   setSubtitleDelay(delayMs: number): Promise<void>;
+  requestCache(uri: string): Promise<void>;
   subscribe(listener: (event: PlayerEvent) => void): () => void;
   stop(): Promise<void>;
   release(): Promise<void>;

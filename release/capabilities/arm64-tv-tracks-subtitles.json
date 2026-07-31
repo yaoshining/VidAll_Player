@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "taskRef": "T047",
+  "verificationDate": null,
+  "status": "已构建待验证",
+  "note": "多音轨、内嵌/外挂字幕与切换/跳转的 ARM64 TV 真机证据尚未采集。原生 TrackController 与 SubtitleRenderer 已通过 ctest 单元测试，ArkTS 契约测试已编写；但真机验证需要受控 ARM64 TV 设备和多轨样本。",
+  "device": null,
+  "build": {
+    "bundleName": "com.yaoshining.vidallplayer",
+    "cpuAbi": "arm64-v8a",
+    "buildMode": "debug",
+    "appProvisionType": "debug",
+    "compileSdkVersion": "6.1.1.115",
+    "apiCompatibility": 15,
+    "apiTarget": 22
+  },
+  "nativeTests": {
+    "framework": "ctest",
+    "totalSuites": 8,
+    "totalCases": 75,
+    "result": "全部通过（macOS 开发机构建）",
+    "tracksSubtitlesTests": {
+      "file": "native/tests/tracks_subtitles_test.cpp",
+      "cases": 18,
+      "result": "全部通过",
+      "coverage": "track-list、aid/sid 选择/取消、连续切换、外挂音频 HTTP/HTTPS 校验、外挂字幕格式/URI 校验、字幕延迟、缓存请求 FEATURE_UNSUPPORTED、clear 重置、recognitionStatus 推断（PGS/VOBsub→Recognized，SRT/ASS/SSA/WebVTT→Renderable，空→Renderable，其他→Unsupported）"
+    },
+    "subtitleRenderingTests": {
+      "file": "native/tests/subtitle_rendering_test.cpp",
+      "cases": 18,
+      "assertions": 39,
+      "result": "全部通过",
+      "coverage": "ArkTS overlay 互斥、PGS/VOBsub Bitmap 判定、SRT/ASS/SSA/WebVTT 文本 Renderable、CJK 字体降级（zh/ja/ko→Degraded/CjkFontMissing）、双向文字降级（BiDiUnsupported）、异常编码降级（GBK→EncodingAbnormal）、UTF-8 不降级、不支持格式（DVB→Unsupported）、格式分类、字体发现、clear 重用"
+    }
+  },
+  "arktsContractTests": {
+    "file": "packages/vidall-player/test/contract/tracks.test.ets",
+    "cases": 13,
+    "note": "契约测试覆盖：枚举字段完整性、selectTrack 选择/取消、连续切换、跳转后状态保持、非法轨道 ID、负数 ID、外挂音频 HTTP/HTTPS、字幕 recognitionStatus 按格式、字幕延迟、缓存请求 FEATURE_UNSUPPORTED、release 后拒绝、深拷贝隔离、同 kind 互斥"
+  },
+  "capabilities": {
+    "trackEnumeration": { "status": "已构建待验证", "note": "TrackController.updateTrackList 和 ArkTS emitTracks 已实现，需 ARM64 TV 多轨样本验证" },
+    "trackSelection": { "status": "已构建待验证", "note": "selectTrack/deselectTrack 互斥逻辑已实现，需真机连续切换验证" },
+    "externalAudio": { "status": "已构建待验证", "note": "HTTP/HTTPS 外挂音频已实现 URI 校验，需真机网络音频验证" },
+    "externalSubtitle": { "status": "已构建待验证", "note": "HTTP/HTTPS/file 外挂字幕已实现，需真机字幕加载验证" },
+    "subtitleDelay": { "status": "已构建待验证", "note": "setSubtitleDelay 已实现，需真机验证延迟效果" },
+    "subtitleRendering": { "status": "已构建待验证", "note": "SubtitleRenderer 唯一路径（禁用 ArkTS overlay）已实现，CJK/双向/异常编码降级逻辑已覆盖" },
+    "cacheRequest": { "status": "不支持或暂缓", "note": "requestCache 稳定返回 FEATURE_UNSUPPORTED" },
+    "cjkFontDiscovery": { "status": "已构建待验证", "note": "fonts.json 配置已创建，libass 字体发现需真机字体路径验证" }
+  },
+  "requiredEvidence": [
+    "多轨 MKV 样本在 ARM64 TV 上加载，track-list 事件包含 audio+subtitle 轨道",
+    "连续 10 次音轨/字幕切换，每次切换后 tracks 事件 selected 正确",
+    "跳转后轨道选择状态保持",
+    "外挂音频 HTTP/HTTPS 加载成功",
+    "外挂字幕 SRT/ASS 加载成功，recognitionStatus=renderable",
+    "外挂字幕 PGS 加载成功，recognitionStatus=recognized",
+    "CJK 字幕渲染结论为 Degraded（字体回退）",
+    "setSubtitleDelay 真机延迟效果验证"
+  ]
+}
