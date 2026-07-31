@@ -237,8 +237,8 @@ export default function streamingInternalsTest() {
         'https://dav.example.com:443/media/',
         'https://dav.example.com:8443/redirect/'
       );
-      expect(filtered['authorization']).assertEqual(undefined);
-      expect(filtered['accept']).assertEqual('*/*');
+      expect(filtered!['authorization']).assertEqual(undefined);
+      expect(filtered!['accept']).assertEqual('*/*');
     });
 
     it('preserves Authorization when redirect stays on same scheme, host and port', 0, () => {
@@ -251,8 +251,8 @@ export default function streamingInternalsTest() {
         'https://dav.example.com/media/',
         'https://dav.example.com/media/video.mp4'
       );
-      expect(kept['authorization']).assertEqual('Basic c2VjcmV0');
-      expect(kept['accept']).assertEqual('*/*');
+      expect(kept!['authorization']).assertEqual('Basic c2VjcmV0');
+      expect(kept!['accept']).assertEqual('*/*');
     });
 
     it('handles IPv6 authority equivalence with and without explicit default port', 0, () => {
@@ -298,7 +298,7 @@ export default function streamingInternalsTest() {
     it('redacts credentials from network failure detail strings', 0, () => {
       const redacted = redactText('Authorization: Basic c2VjcmV0 failed for user alice');
       expect(redacted.indexOf('c2VjcmV0') < 0).assertTrue();
-      expect(redacted.indexOf('Basic')).assertGreaterThanOrEqual(0);
+      expect(redacted.indexOf('Basic') >= 0).assertTrue();
     });
 
     it('classifies WebDAV auth failure as unrecoverable and TLS failure as unrecoverable', 0, () => {
