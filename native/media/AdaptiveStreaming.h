@@ -21,7 +21,6 @@ namespace vidall {
 enum class AdaptiveStreamState {
     Idle,
     ManifestLoaded,
-    Loading,
     Playing,
     Buffering,
     SeekPending,

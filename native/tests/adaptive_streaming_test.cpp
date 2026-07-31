@@ -795,6 +795,21 @@ int main()
             "simulateStateChange is ignored in Released state");
     }
 
+    // =============================================
+    // 44. reportSegment 在 Released 状态下不改变终态
+    // =============================================
+    {
+        vidall::AdaptiveStreaming streamer;
+        streamer.loadManifest(vidall::MediaKind::Hls, "https://example.com/stream.m3u8",
+            makeTimeline(), {});
+        streamer.release();
+        const auto r = streamer.reportSegment(1, vidall::SegmentFetchOutcome::Fetched);
+        passed &= check(r == vidall::SegmentFetchOutcome::PermanentFailure,
+            "reportSegment after release returns PermanentFailure");
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::Released,
+            "State remains Released after reportSegment on released session");
+    }
+
     // ===== 结果汇总 =====
     if (passed) {
         std::cout << "All adaptive streaming tests passed.\n";

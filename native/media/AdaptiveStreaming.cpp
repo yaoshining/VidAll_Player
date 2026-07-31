@@ -132,8 +132,10 @@ void AdaptiveStreaming::endSeek()
 
 SegmentFetchOutcome AdaptiveStreaming::reportSegment(uint64_t sequence, SegmentFetchOutcome outcome)
 {
-    if (state_ == AdaptiveStreamState::Idle || state_ == AdaptiveStreamState::Failed ||
-        state_ == AdaptiveStreamState::Released) {
+    if (state_ == AdaptiveStreamState::Released) {
+        return SegmentFetchOutcome::PermanentFailure;
+    }
+    if (state_ == AdaptiveStreamState::Idle || state_ == AdaptiveStreamState::Failed) {
         fail("media", "PERMANENT_SEGMENT_FAILURE", "Segment reported without a loaded manifest.", false);
         state_ = AdaptiveStreamState::Failed;
         return SegmentFetchOutcome::PermanentFailure;
@@ -204,6 +206,8 @@ bool AdaptiveStreaming::retryCurrentSegment()
     if (state_ != AdaptiveStreamState::Recovering || !lastError_.retryable) {
         return false;
     }
+    consecutiveFailures_ = 0;
+    lastError_ = {};
     state_ = AdaptiveStreamState::Buffering;
     return true;
 }
