@@ -91,13 +91,20 @@ export async function hls_kindMismatch_rejected(): Promise<void> {
     kind: 'hls',
     uri: 'ftp://stream.example.com/live.m3u8'
   };
+  let rejected = false;
   try {
     await player.load(source);
-    throw new Error('HLS with ftp:// URI should have been rejected');
   } catch (error) {
-    if (error instanceof PlayerFailure && error.playerError.code !== 'URI_KIND_MISMATCH') {
+    rejected = true;
+    if (!(error instanceof PlayerFailure)) {
+      throw new Error(`Expected PlayerFailure, got ${error}`);
+    }
+    if (error.playerError.code !== 'URI_KIND_MISMATCH') {
       throw new Error(`Expected URI_KIND_MISMATCH, got ${error.playerError.code}`);
     }
+  }
+  if (!rejected) {
+    throw new Error('HLS with ftp:// URI should have been rejected');
   }
   void player.release();
 }
@@ -112,13 +119,20 @@ export async function dash_emptyUri_rejected(): Promise<void> {
     kind: 'dash',
     uri: ''
   };
+  let rejected = false;
   try {
     await player.load(source);
-    throw new Error('DASH with empty URI should have been rejected');
   } catch (error) {
-    if (error instanceof PlayerFailure && error.playerError.code !== 'INVALID_URI') {
+    rejected = true;
+    if (!(error instanceof PlayerFailure)) {
+      throw new Error(`Expected PlayerFailure, got ${error}`);
+    }
+    if (error.playerError.code !== 'INVALID_URI') {
       throw new Error(`Expected INVALID_URI, got ${error.playerError.code}`);
     }
+  }
+  if (!rejected) {
+    throw new Error('DASH with empty URI should have been rejected');
   }
   void player.release();
 }
@@ -348,13 +362,20 @@ export async function afterRelease_operationsRejected(): Promise<void> {
   await preparingPromise;
   await player.release();
 
+  let rejected = false;
   try {
     await player.play();
-    throw new Error('play after release should have thrown');
   } catch (error) {
-    if (error instanceof PlayerFailure && error.playerError.code !== 'SESSION_RELEASED') {
+    rejected = true;
+    if (!(error instanceof PlayerFailure)) {
+      throw new Error(`Expected PlayerFailure, got ${error}`);
+    }
+    if (error.playerError.code !== 'SESSION_RELEASED') {
       throw new Error(`Expected SESSION_RELEASED, got ${error.playerError.code}`);
     }
+  }
+  if (!rejected) {
+    throw new Error('play after release should have thrown');
   }
 }
 
@@ -438,17 +459,23 @@ export async function error_message_sanitization_hidesCredentials(): Promise<voi
   const player = createPlayer();
   const source: MediaSource = {
     kind: 'hls',
-    uri: '******cdn.example.com/stream.m3u8'
+    uri: 'https://user:s3cr3t@cdn.example.com/stream.m3u8'
   };
+  let rejected = false;
   try {
     await player.load(source);
   } catch (error) {
-    if (error instanceof PlayerFailure) {
-      const msg = error.playerError.message;
-      if (msg.includes('s3cr3t') || msg.includes('user:')) {
-        throw new Error(`Error message leaks credentials: ${msg}`);
-      }
+    rejected = true;
+    if (!(error instanceof PlayerFailure)) {
+      throw new Error(`Expected PlayerFailure, got ${error}`);
     }
+    const msg = error.playerError.message;
+    if (msg.includes('s3cr3t') || msg.includes('user:')) {
+      throw new Error('Error message leaks credentials');
+    }
+  }
+  if (!rejected) {
+    throw new Error('URI with userinfo should have been rejected');
   }
   void player.release();
 }
@@ -468,7 +495,7 @@ export async function duplicateRelease_idempotent(): Promise<void> {
 // 22. 切源清除恢复状态：先加载 HLS 再切 DASH 时恢复控制器被重置
 // ══════════════════════════════════════════════════════════════════
 
-export async function sourceSwitch_clearsRecoveryState(): Promise<void> {
+export async function sourceSwitch_hlsToDash_clearsRecoveryState(): Promise<void> {
   const player = createPlayer();
   const session = player as PlayerSession;
 
@@ -493,8 +520,10 @@ export async function sourceSwitch_clearsRecoveryState(): Promise<void> {
   void player.load(dashSource);
   await preparingPromise2;
 
-  // 切源后 reportBuffering 不应抛异常（recovery 已重置）
-  session.reportBuffering();
+  // 切源后恢复状态应被清除
+  if (session.networkRecovery().canRetry()) {
+    throw new Error('Recovery state should be cleared after source switch');
+  }
 
   void player.release();
 }
@@ -511,10 +540,16 @@ export async function release_rejectsSubsequentLoad(): Promise<void> {
     kind: 'hls',
     uri: 'https://cdn.example.com/stream.m3u8'
   };
+  let rejected = false;
   try {
     await player.load(source);
-    throw new Error('Load after release should have been rejected');
   } catch (error) {
-    // 预期拒绝 — 任何异常都算通过
+    rejected = true;
+    if (!(error instanceof PlayerFailure)) {
+      throw new Error(`Expected PlayerFailure, got ${error}`);
+    }
+  }
+  if (!rejected) {
+    throw new Error('Load after release should have been rejected');
   }
 }

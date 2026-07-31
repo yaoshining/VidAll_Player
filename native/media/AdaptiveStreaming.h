@@ -156,6 +156,7 @@ private:
     void fail(const std::string& domain, const std::string& code,
         const std::string& message, bool retryable);
     void buildMpvOptions();
+    void clearManifestState();
 };
 
 } // namespace vidall

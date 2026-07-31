@@ -438,11 +438,11 @@ export class PlayerSession implements VidAllPlayer {
     this.stateMachine.emit({
       type: 'log',
       sequence: 0,
-      message: `Adaptive streaming: ${kind} — native bridge should apply cache/demuxer options.`,
+      message: `Adaptive streaming: ${kind} — native bridge should apply cache/demuxer options.（自适应流：${kind}，原生桥接层应应用缓存/解复用器选项。）`,
       log: {
         level: 'info',
         module: 'player-session',
-        message: `Adaptive streaming: ${kind} — native bridge should apply cache/demuxer options.`
+        message: `Adaptive streaming: ${kind} — native bridge should apply cache/demuxer options.（自适应流：${kind}，原生桥接层应应用缓存/解复用器选项。）`
       }
     });
   }

@@ -168,13 +168,15 @@ int main()
         vidall::AdaptiveStreaming streamer;
         const auto result = streamer.loadManifest(
             vidall::MediaKind::Hls,
-            "******example.com/stream.m3u8",
+            "https://user:secret@example.com/stream.m3u8",
             makeTimeline(),
             {});
         passed &= check(!result.code.empty(),
             "HLS URI with userinfo is rejected");
         passed &= check(result.domain == "input",
             "Userinfo URI rejection domain is input");
+        passed &= check(result.code == "URL_USERINFO_FORBIDDEN",
+            "Userinfo URI rejection code is URL_USERINFO_FORBIDDEN (via PlayerErrorMapper)");
     }
 
     // =============================================
@@ -816,5 +818,140 @@ int main()
     } else {
         std::cout << "Some adaptive streaming tests FAILED.\n";
     }
+
+
+    // =============================================
+    // 45. 加载失败后旧状态清除
+    // =============================================
+    {
+        vidall::AdaptiveStreaming streamer;
+        // 先成功加载一次
+        streamer.loadManifest(vidall::MediaKind::Hls, "https://example.com/stream.m3u8",
+            makeTimeline(), {});
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::ManifestLoaded,
+            "First load succeeds");
+
+        // 再用空 URI 加载失败：旧 manifest 数据应被清除
+        const auto result = streamer.loadManifest(vidall::MediaKind::Hls, "", makeTimeline(), {});
+        passed &= check(!result.code.empty(), "Empty URI is rejected on second load");
+        passed &= check(streamer.currentUri().empty(), "URI cleared after failed load");
+        passed &= check(streamer.bufferedCount() == 0, "Buffered cleared after failed load");
+        passed &= check(streamer.currentSequence() == 0, "Sequence reset after failed load");
+        passed &= check(streamer.mpvOptions().empty(), "mpvOptions cleared after failed load");
+    }
+
+    // =============================================
+    // 46. 多条 header 合并为单个 http-header-fields
+    // =============================================
+    {
+        vidall::AdaptiveStreaming streamer;
+        std::vector<vidall::HeaderEntry> headers = {
+            {"Authorization", "Bearer token123"},
+            {"X-Custom", "value1"}
+        };
+        streamer.loadManifest(vidall::MediaKind::Hls, "https://example.com/stream.m3u8",
+            makeTimeline(), headers);
+
+        const auto& opts = streamer.mpvOptions();
+        int headerFieldCount = 0;
+        for (const auto& opt : opts) {
+            if (opt.first == "http-header-fields") {
+                headerFieldCount++;
+                // 两条 header 应合并在同一个值中
+                passed &= check(opt.second.find(",") != std::string::npos,
+                    "Multiple headers are joined with comma");
+                passed &= check(opt.second.find("Authorization") != std::string::npos,
+                    "Joined value contains first header");
+                passed &= check(opt.second.find("X-Custom") != std::string::npos,
+                    "Joined value contains second header");
+            }
+        }
+        passed &= check(headerFieldCount == 1,
+            "Only one http-header-fields entry for multiple headers");
+    }
+
+    // =============================================
+    // 47. endSeek 在 Recovering 状态下保留原状态
+    // =============================================
+    {
+        vidall::AdaptiveStreaming streamer;
+        streamer.loadManifest(vidall::MediaKind::Hls, "https://example.com/stream.m3u8",
+            makeTimeline(), {});
+
+        streamer.beginSeek(vidall::SeekTarget{vidall::SeekTarget::AbsoluteMs, 5000.0});
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::SeekPending,
+            "State is SeekPending after beginSeek");
+
+        // seek 期间断网
+        streamer.reportNetworkDisconnected();
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::Recovering,
+            "State is Recovering after disconnect during seek");
+
+        streamer.endSeek();
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::Recovering,
+            "endSeek preserves Recovering state instead of overwriting to Playing");
+    }
+
+    // =============================================
+    // 48. retryCurrentSegment 超过最大重试次数时拒绝
+    // =============================================
+    {
+        vidall::AdaptiveStreamConfig config;
+        config.maxRetries = 2;
+        vidall::AdaptiveStreaming streamer(config);
+        streamer.loadManifest(vidall::MediaKind::Hls, "https://example.com/stream.m3u8",
+            makeTimeline(), {});
+
+        // 触发 3 次瞬时失败（超过 maxRetries=2）
+        streamer.reportSegment(1, vidall::SegmentFetchOutcome::TransientFailure);
+        streamer.retryCurrentSegment();
+        streamer.reportSegment(1, vidall::SegmentFetchOutcome::TransientFailure);
+        streamer.retryCurrentSegment();
+        streamer.reportSegment(1, vidall::SegmentFetchOutcome::TransientFailure);
+
+        // 第 3 次重试应被拒绝
+        const bool result = streamer.retryCurrentSegment();
+        passed &= check(!result, "retryCurrentSegment rejected when retryCount exceeds maxRetries");
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::Failed,
+            "State is Failed after exceeding max retries");
+        passed &= check(streamer.lastError().code == "RETRY_LIMIT_EXCEEDED",
+            "Error code is RETRY_LIMIT_EXCEEDED after exceeding max retries");
+    }
+
+    // =============================================
+    // 49. handleSegmentError 更新状态为 Recovering（可重试错误）
+    // =============================================
+    {
+        vidall::AdaptiveStreaming streamer;
+        streamer.loadManifest(vidall::MediaKind::Hls, "https://example.com/stream.m3u8",
+            makeTimeline(), {});
+
+        const auto err = streamer.handleSegmentError(-7, "network timeout");
+        passed &= check(err.retryable, "Segment timeout is retryable via handleSegmentError");
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::Recovering,
+            "State is Recovering after retryable handleSegmentError");
+        passed &= check(streamer.lastError().retryable,
+            "lastError is retryable after handleSegmentError");
+
+        // 可以立即调用 retryCurrentSegment
+        const bool retried = streamer.retryCurrentSegment();
+        passed &= check(retried, "retryCurrentSegment succeeds after handleSegmentError set Recovering");
+    }
+
+    // =============================================
+    // 50. handleSegmentError 更新状态为 Failed（永久错误）
+    // =============================================
+    {
+        vidall::AdaptiveStreaming streamer;
+        streamer.loadManifest(vidall::MediaKind::Hls, "https://example.com/stream.m3u8",
+            makeTimeline(), {});
+
+        streamer.handleSegmentError(-4, "unsupported format");
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::Failed,
+            "State is Failed after permanent handleSegmentError");
+        passed &= check(!streamer.lastError().retryable,
+            "lastError is not retryable after permanent handleSegmentError");
+    }
+
     return passed ? 0 : 1;
 }

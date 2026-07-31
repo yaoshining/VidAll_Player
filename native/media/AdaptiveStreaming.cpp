@@ -22,6 +22,7 @@ AdaptiveStreamError AdaptiveStreaming::loadManifest(MediaKind kind, const std::s
 
     // 仅接受 HLS 和 DASH kind
     if (kind != MediaKind::Hls && kind != MediaKind::Dash) {
+        clearManifestState();
         fail("input", "KIND_MISMATCH", "Adaptive streaming only accepts HLS or DASH kind.", false);
         state_ = AdaptiveStreamState::Idle;
         return lastError_;
@@ -29,6 +30,7 @@ AdaptiveStreamError AdaptiveStreaming::loadManifest(MediaKind kind, const std::s
 
     // 使用 MediaLoader 校验 URI 格式
     if (uri.empty()) {
+        clearManifestState();
         fail("input", "INVALID_URI", "Media URI must not be empty.", false);
         state_ = AdaptiveStreamState::Idle;
         return lastError_;
@@ -42,20 +44,17 @@ AdaptiveStreamError AdaptiveStreaming::loadManifest(MediaKind kind, const std::s
     MediaLoader loader;
     const auto loadResult = loader.load(req);
     if (loadResult != MediaLoadResult::Accepted) {
-        // 将 MediaLoader 的结果映射到结构化错误
-        if (loadResult == MediaLoadResult::RejectedInvalidUri) {
-            fail("input", "INVALID_URI", "Adaptive manifest URI validation failed.", false);
-        } else if (loadResult == MediaLoadResult::RejectedKindMismatch) {
-            fail("input", "URI_KIND_MISMATCH", "Adaptive media source requires an HTTP or HTTPS URI.", false);
-        } else {
-            fail("input", "REJECTED", "Manifest loading was rejected.", false);
-        }
+        clearManifestState();
+        // 通过 PlayerErrorMapper 映射以保留精确错误码
+        const auto mapped = PlayerErrorMapper::mapLoadResult(loadResult);
+        fail(mapped.domain, mapped.code, mapped.message, mapped.retryable);
         state_ = AdaptiveStreamState::Idle;
         return lastError_;
     }
 
     // 空时间线拒绝
     if (segments.empty()) {
+        clearManifestState();
         fail("media", "INVALID_MANIFEST", "Adaptive manifest must contain at least one segment.", false);
         state_ = AdaptiveStreamState::Idle;
         return lastError_;
@@ -76,10 +75,16 @@ AdaptiveStreamError AdaptiveStreaming::loadManifest(MediaKind kind, const std::s
     // 构建 mpv 选项
     buildMpvOptions();
 
-    // 附加 HTTP headers 为 mpv 选项
-    for (const auto& h : headers) {
-        std::string headerOpt = h.name + ": " + h.value;
-        mpvOptions_.push_back({"http-header-fields", headerOpt});
+    // 附加 HTTP headers 为单个 mpv 列表选项，避免重复键互相覆盖
+    if (!headers.empty()) {
+        std::string joined;
+        for (const auto& h : headers) {
+            if (!joined.empty()) {
+                joined += ",";
+            }
+            joined += h.name + ": " + h.value;
+        }
+        mpvOptions_.push_back({"http-header-fields", joined});
     }
 
     return {};
@@ -127,7 +132,10 @@ void AdaptiveStreaming::endSeek()
         return;
     }
     seekPending_ = false;
-    state_ = AdaptiveStreamState::Playing;
+    // 仅当 seek 期间未发生错误或恢复时才回到 Playing
+    if (state_ == AdaptiveStreamState::SeekPending) {
+        state_ = AdaptiveStreamState::Playing;
+    }
 }
 
 SegmentFetchOutcome AdaptiveStreaming::reportSegment(uint64_t sequence, SegmentFetchOutcome outcome)
@@ -147,6 +155,8 @@ SegmentFetchOutcome AdaptiveStreaming::reportSegment(uint64_t sequence, SegmentF
         return SegmentFetchOutcome::PermanentFailure;
     }
     if (outcome == SegmentFetchOutcome::Fetched) {
+        // 成功获取后重置连续失败计数（保留退避效果直到成功）
+        consecutiveFailures_ = 0;
         // 缓存已获取 segment（去重），推进到下一条 segment
         if (std::find(buffered_.begin(), buffered_.end(), sequence) == buffered_.end()) {
             buffered_.push_back(sequence);
@@ -177,15 +187,21 @@ SegmentFetchOutcome AdaptiveStreaming::reportSegment(uint64_t sequence, SegmentF
 AdaptiveStreamError AdaptiveStreaming::handleSegmentError(int mpvErrorCode, const std::string& context)
 {
     if (state_ == AdaptiveStreamState::Released) {
-        return {"lifecycle", "SESSION_RELEASED", "Session has been released.", false};
+        fail("lifecycle", "SESSION_RELEASED", "Session has been released.", false);
+        return lastError_;
     }
 
     const auto mapped = PlayerErrorMapper::mapMpvError(mpvErrorCode, context);
     consecutiveFailures_++;
     if (mapped.retryable) {
         retryCount_++;
+        fail(mapped.domain, mapped.code, mapped.message, mapped.retryable);
+        state_ = AdaptiveStreamState::Recovering;
+    } else {
+        fail(mapped.domain, mapped.code, mapped.message, mapped.retryable);
+        state_ = AdaptiveStreamState::Failed;
     }
-    return {mapped.domain, mapped.code, mapped.message, mapped.retryable};
+    return lastError_;
 }
 
 void AdaptiveStreaming::reportNetworkDisconnected()
@@ -206,7 +222,12 @@ bool AdaptiveStreaming::retryCurrentSegment()
     if (state_ != AdaptiveStreamState::Recovering || !lastError_.retryable) {
         return false;
     }
-    consecutiveFailures_ = 0;
+    if (config_.maxRetries > 0 && retryCount_ > config_.maxRetries) {
+        fail("network", "RETRY_LIMIT_EXCEEDED",
+            "Adaptive streaming retry limit exceeded.", false);
+        state_ = AdaptiveStreamState::Failed;
+        return false;
+    }
     lastError_ = {};
     state_ = AdaptiveStreamState::Buffering;
     return true;
@@ -303,6 +324,18 @@ void AdaptiveStreaming::simulateStateChange(AdaptiveStreamState newState)
         return;
     }
     state_ = newState;
+}
+
+void AdaptiveStreaming::clearManifestState()
+{
+    currentUri_.clear();
+    segments_.clear();
+    buffered_.clear();
+    currentSequence_ = 0;
+    retryCount_ = 0;
+    consecutiveFailures_ = 0;
+    seekPending_ = false;
+    mpvOptions_.clear();
 }
 
 const AdaptiveSegment* AdaptiveStreaming::findSegment(uint64_t sequence) const
