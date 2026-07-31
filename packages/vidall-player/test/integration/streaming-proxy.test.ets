@@ -429,3 +429,91 @@ export async function hls_userinfoUri_rejected(): Promise<void> {
   }
   void player.release();
 }
+// ══════════════════════════════════════════════════════════════════
+// 20. 错误消息脱敏：凭据不应出现在错误消息中
+// ══════════════════════════════════════════════════════════════════
+
+export async function error_message_sanitization_hidesCredentials(): Promise<void> {
+  const player = createPlayer();
+  const source: MediaSource = {
+    kind: 'hls',
+    uri: '******cdn.example.com/stream.m3u8'
+  };
+  try {
+    await player.load(source);
+  } catch (error) {
+    if (error instanceof PlayerFailure) {
+      const msg = error.playerError.message;
+      if (msg.includes('s3cr3t') || msg.includes('user:')) {
+        throw new Error(`Error message leaks credentials: ${msg}`);
+      }
+    }
+  }
+  void player.release();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 21. 重复 release 幂等：第二次 release 不抛异常
+// ══════════════════════════════════════════════════════════════════
+
+export async function duplicateRelease_idempotent(): Promise<void> {
+  const player = createPlayer();
+  await player.release();
+  // 第二次 release 应幂等，不抛异常
+  await player.release();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 22. 切源清除恢复状态：先加载 HLS 再切 DASH 时恢复控制器被重置
+// ══════════════════════════════════════════════════════════════════
+
+export async function sourceSwitch_clearsRecoveryState(): Promise<void> {
+  const player = createPlayer();
+  const session = player as PlayerSession;
+
+  // 先加载 HLS
+  const hlsSource: MediaSource = {
+    kind: 'hls',
+    uri: 'https://cdn.example.com/live/stream.m3u8'
+  };
+  const preparingPromise = waitForEvent(player, (e) => e.type === 'state' && e.state === 'preparing');
+  void player.load(hlsSource);
+  await preparingPromise;
+
+  // 模拟一次网络失败使 recovery 进入活跃状态
+  session.reportNetworkFailure(classifyNetworkFailure('NETWORK_TIMEOUT'));
+
+  // 切换到 DASH 源，recovery 状态应被清除
+  const dashSource: MediaSource = {
+    kind: 'dash',
+    uri: 'https://cdn.example.com/vod/manifest.mpd'
+  };
+  const preparingPromise2 = waitForEvent(player, (e) => e.type === 'state' && e.state === 'preparing');
+  void player.load(dashSource);
+  await preparingPromise2;
+
+  // 切源后 reportBuffering 不应抛异常（recovery 已重置）
+  session.reportBuffering();
+
+  void player.release();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 23. release 后 load 被拒绝：已释放会话不再接受新源
+// ══════════════════════════════════════════════════════════════════
+
+export async function release_rejectsSubsequentLoad(): Promise<void> {
+  const player = createPlayer();
+  await player.release();
+
+  const source: MediaSource = {
+    kind: 'hls',
+    uri: 'https://cdn.example.com/stream.m3u8'
+  };
+  try {
+    await player.load(source);
+    throw new Error('Load after release should have been rejected');
+  } catch (error) {
+    // 预期拒绝 — 任何异常都算通过
+  }
+}

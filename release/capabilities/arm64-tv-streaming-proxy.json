@@ -23,37 +23,63 @@
     },
     "hlsPlayback": {
       "status": "⬜ 待验证",
-      "note": "需在 ARM64 TV 真机验证 HLS 自适应流播放（m3u8 主/媒体播放列表）"
+      "note": "需在 ARM64 TV 真机验证 HLS 自适应流播放（m3u8 主/媒体播放列表 + segment 时间线）"
     },
     "dashPlayback": {
       "status": "⬜ 待验证",
-      "note": "需在 ARM64 TV 真机验证 DASH 自适应流播放（MPD 清单）"
+      "note": "需在 ARM64 TV 真机验证 DASH 自适应流播放（MPD 清单 + segment 时间线）"
     },
     "adaptiveSeek": {
       "status": "⬜ 待验证",
-      "note": "需验证 HLS/DASH 跳转后分段请求与缓存行为"
+      "note": "需验证 seekTo 精准寻址（按 ms 定位 segment）与 beginSeek/endSeek 通用跳转"
     },
     "networkRecovery": {
       "status": "⬜ 待验证",
-      "note": "需验证断网后重试、线性退避与恢复播放"
+      "note": "需验证断网上报 → Recovering → retryCurrentSegment → Buffering → Playing 生命周期"
     },
     "segmentErrorHandling": {
       "status": "⬜ 待验证",
-      "note": "需验证分段失败（超时/格式不支持）的结构化错误码与 retryable 标志"
+      "note": "需验证 reportSegment（Fetched/Transient/Permanent）状态转换与 retryable 标志"
+    },
+    "errorSanitization": {
+      "status": "⬜ 待验证",
+      "note": "需验证错误消息中不含 userinfo 凭据（s3cr3t token 脱敏）"
+    },
+    "releaseIdempotency": {
+      "status": "⬜ 待验证",
+      "note": "需验证重复 release 幂等，release 后 load 被拒绝"
+    },
+    "sourceSwitchRecovery": {
+      "status": "⬜ 待验证",
+      "note": "需验证切源时恢复状态清除（HLS→DASH 切换后 recovery 重置）"
     }
   },
+  "releaseConfirmationRequirements": {
+    "noCredentialLeak": "错误消息不得包含 userinfo 凭据",
+    "idempotentRelease": "重复 release 不得抛异常",
+    "postReleaseRejection": "release 后的 loadManifest 必须被拒绝并返回 lifecycle 域错误"
+  },
+  "requiredEvidence": [
+    "ctest 全量通过（含 adaptive_streaming_test 43 断言）",
+    "HLS/DASH 加载后 ManifestLoaded 状态截图",
+    "seekTo 精准寻址日志",
+    "断网→恢复完整生命周期日志",
+    "错误消息不含凭据的 hilog 采样"
+  ],
   "nativeTests": {
     "framework": "ctest",
     "adaptiveStreamingTests": {
       "file": "native/tests/adaptive_streaming_test.cpp",
+      "scenarios": 43,
       "result": "⬜ 待真机运行",
-      "note": "本地构建已通过，需真机 ctest 验证"
+      "note": "本地 x86 构建已通过 43 项断言，需真机 ctest 验证"
     }
   },
   "arktsTests": {
     "file": "packages/vidall-player/test/integration/streaming-proxy.test.ets",
+    "scenarios": 23,
     "result": "⬜ 待真机运行",
-    "note": "HLS/DASH 集成测试覆盖正常、边界和失败路径"
+    "note": "HLS/DASH 集成测试覆盖正常、边界、失败、脱敏、幂等和切源路径"
   },
   "overallStatus": "built-awaiting-verification",
   "knownLimitations": [

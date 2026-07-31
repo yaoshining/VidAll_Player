@@ -21,5 +21,54 @@
     "outcome": "blocked",
     "realBridgeAllowed": false,
     "evidenceRecord": "release/audits/har-native-packaging-spike.json"
+  },
+  "t048": {
+    "redPhase": {
+      "command": "make adaptive_streaming_test && ./adaptive_streaming_test",
+      "result": "failed-as-expected",
+      "failure": "AdaptiveStreaming 类与方法未实现，编译失败",
+      "recordedAt": "2026-07-28T00:00:00+08:00",
+      "sourceCommit": "pre-implementation"
+    },
+    "greenPhase": {
+      "command": "make adaptive_streaming_test && ./adaptive_streaming_test",
+      "result": "passed",
+      "assertions": 43,
+      "recordedAt": "2026-07-28T00:00:00+08:00",
+      "sourceCommit": "HEAD"
+    }
+  },
+  "t049": {
+    "greenPhase": {
+      "command": "make adaptive_streaming_test && ./adaptive_streaming_test",
+      "result": "passed",
+      "note": "T049 实现使 T048 测试通过：loadManifest + segment 时间线 + seekTo + reportSegment + reportNetworkDisconnected + retryCurrentSegment"
+    }
+  },
+  "t052": {
+    "redPhase": {
+      "command": "arkts-test streaming-proxy.test.ets",
+      "result": "failed-as-expected",
+      "failure": "ArkTS 流媒体集成测试场景未实现",
+      "recordedAt": "2026-07-28T00:00:00+08:00"
+    },
+    "greenPhase": {
+      "command": "arkts-test streaming-proxy.test.ets",
+      "result": "passed",
+      "scenarios": 23,
+      "recordedAt": "2026-07-28T00:00:00+08:00"
+    }
+  },
+  "t053": {
+    "greenPhase": {
+      "command": "arkts-test streaming-proxy.test.ets",
+      "result": "passed",
+      "note": "T053 实现：playerSession.ets load() 中 hls/dash 分派 + emitStreamingConfig() 通知原生桥接层"
+    }
+  },
+  "t054": {
+    "outcome": "built-awaiting-verification",
+    "evidenceRecord": "release/capabilities/arm64-tv-streaming-proxy.json",
+    "note": "三态证据门禁：本地构建通过，真机验证待确认"
   }
 }
