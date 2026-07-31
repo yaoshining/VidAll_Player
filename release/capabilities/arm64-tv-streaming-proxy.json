@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "taskRef": "T054",
+  "verificationDate": null,
+  "device": {
+    "model": "华为智慧屏 MateTV Pro",
+    "modelCode": "EDIS-790A",
+    "brand": "HUAWEI",
+    "deviceType": "tv",
+    "cpuAbi": "aarch64",
+    "serial": "[REDACTED_SERIAL]",
+    "osApiLevel": 23
+  },
+  "build": {
+    "bundleName": "com.yaoshining.vidallplayer",
+    "cpuAbi": "arm64-v8a",
+    "buildMode": "debug"
+  },
+  "evidence": {
+    "httpsPlayback": {
+      "status": "⬜ 待验证",
+      "note": "需在 ARM64 TV 真机验证 HTTPS 直链播放"
+    },
+    "hlsPlayback": {
+      "status": "⬜ 待验证",
+      "note": "需在 ARM64 TV 真机验证 HLS 自适应流播放（m3u8 主/媒体播放列表）"
+    },
+    "dashPlayback": {
+      "status": "⬜ 待验证",
+      "note": "需在 ARM64 TV 真机验证 DASH 自适应流播放（MPD 清单）"
+    },
+    "adaptiveSeek": {
+      "status": "⬜ 待验证",
+      "note": "需验证 HLS/DASH 跳转后分段请求与缓存行为"
+    },
+    "networkRecovery": {
+      "status": "⬜ 待验证",
+      "note": "需验证断网后重试、线性退避与恢复播放"
+    },
+    "segmentErrorHandling": {
+      "status": "⬜ 待验证",
+      "note": "需验证分段失败（超时/格式不支持）的结构化错误码与 retryable 标志"
+    }
+  },
+  "nativeTests": {
+    "framework": "ctest",
+    "adaptiveStreamingTests": {
+      "file": "native/tests/adaptive_streaming_test.cpp",
+      "result": "⬜ 待真机运行",
+      "note": "本地构建已通过，需真机 ctest 验证"
+    }
+  },
+  "arktsTests": {
+    "file": "packages/vidall-player/test/integration/streaming-proxy.test.ets",
+    "result": "⬜ 待真机运行",
+    "note": "HLS/DASH 集成测试覆盖正常、边界和失败路径"
+  },
+  "overallStatus": "built-awaiting-verification",
+  "knownLimitations": [
+    "无 ARM64 TV 真机可用时，所有证据保持 '待验证' 状态",
+    "模拟器 GPU 渲染限制可能影响 HLS/DASH 视频帧输出验证",
+    "生产固件 DeviceDebuggable:No 限制 hilog 采集"
+  ]
+}

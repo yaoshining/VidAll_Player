@@ -31,5 +31,6 @@ packages/vidall-player/BuildProfile.ets
 !release/**/
 !release/**/.gitkeep
 !release/capabilities/arm64-tv-capability-evidence.json
+!release/capabilities/arm64-tv-streaming-proxy.json
 !release/capabilities/evidence/
 !release/capabilities/evidence/**
