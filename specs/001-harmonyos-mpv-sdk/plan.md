@@ -40,7 +40,7 @@
 | 性能与质量 | UI 线程禁止阻塞任务；清洁构建、单元/契约/集成/真机门禁和资源审计纳入候选门禁。 | 通过 |
 | 中文文档与交付纪律 | 本功能文档、矩阵、发布/风险/验收记录均使用中文；法律及协议原文保留并加中文说明。 | 通过 |
 
-**Phase 0 结论**：HAR 内部 native packaging spike 已在 ARM64 TV 完成最小装入、命令和 callback 验证；它只解除最小打包边界，不证明真实 libmpv bridge、首帧或发布门禁。SMB localhost proxy lease 仍是本 Issue 的兼容实现与待闭环验证边界。直接播放 `smb://` 已确定为后续路线，但当前 `libmpv.so` 尚无 `libsmbclient` 构建、ELF 审计或真机证据，必须另立 Issue，不能以本计划或当前能力声明支持。公开 XComponent surface 接入、ARM64 API 22 真机真实播放、GPL/LGPL 的发布、NOTICE 与 source offer 审批仍为待关闭项。现有 bootstrap CI 的不完整供应链控制是已识别风险，实施必须替换，不能以现状绕过门禁。
+**Phase 0 结论**：HAR 内部 native packaging spike 已在 ARM64 TV 完成最小装入、命令和 callback 验证；它只解除最小打包边界，不证明真实 libmpv bridge、首帧或发布门禁。SMB 直接播放已由独立受控构建交付（PR #42 将 `libsmbclient` 纳入 libmpv 受控构建并完成 ELF/符号审计），本 Issue 不再维护 `localhostProxy`/lease 兼容路径。公开 XComponent surface 接入、ARM64 API 22 真机真实播放、GPL/LGPL 的发布、NOTICE 与 source offer 审批仍为待关闭项。现有 bootstrap CI 的不完整供应链控制是已识别风险，实施必须替换，不能以现状绕过门禁。
 
 ## 项目结构
 
@@ -124,7 +124,7 @@ release/                                # 由 CI 生成且不提交的候选/发
 3. 在 NAPI 桥接层建立线程安全事件投递，所有 libmpv/渲染器事件先进入原生队列，携带会话 epoch、序号和 surface generation 后进入 ArkTS；ArkTS 丢弃陈旧事件。命令成功只确认原生接受/完成阶段，绝不伪造播放或首帧。
 4. 在渲染线程管理每会话 NativeWindow、EGLDisplay、EGLContext、EGLSurface 和 libmpv render API；只有当前 generation 提交真实画面才能投递 `firstFrame`。
 5. 按固定顺序完成释放：拒绝新命令、停止事件源和回调、解绑渲染、销毁 EGL surface/context/display、终止 mpv、清除 NAPI 引用和队列。release Promise 完成后必须无回调。
-6. 映射本地/HTTP(S)/WebDAV/HLS/DASH/localhost proxy、轨道、外挂字幕、硬解回退和错误；网络认证头不写入 URL、日志或持久化。SMB proxy 的 lease 只由 SDK 消费、续期和释放协作，业务侧仍负责启动代理。
+6. 映射本地/HTTP(S)/WebDAV/HLS/DASH/SMB、轨道、外挂字幕、硬解回退和错误；网络认证头不写入 URL、日志或持久化。SMB 直接播放已由独立受控构建交付（PR #42），本 Issue 不再维护 `localhostProxy`/lease 兼容路径。
 
 **验收**：失败测试先行的原生单元、桥接契约与端到端测试证明独立会话、真实事件来源、切源、surface 重建、后台/异常释放、连续控制、无悬垂回调；所有长耗时路径不在 UI 线程执行。
 
@@ -142,7 +142,7 @@ release/                                # 由 CI 生成且不提交的候选/发
 
 1. 建立 TV/手机最小示例，封装 WebDAV 安全配置、目录选择、XComponent 画面、播放错误、重试、资源释放；TV 页面对遥控器焦点、确认和返回明确验收。
 2. 建立隔离 `consumer-smoke`，先从受控验证构件安装 HAR 以取得发布门禁证据；候选发布后再从批准私有 ohpm 源回读安装。两者均验证“创建 -> 附着 -> 加载 -> 播放 -> 释放”，不得访问 `native/` 或任何 VidAll_TV 内容。
-3. 建立 IJK 兼容矩阵，以 `contracts/compatibility-matrix.md` 列出媒体浏览、WebDAV、SMB localhost HTTP、音轨/字幕、音频路由、硬解回退、跳转、控制和生命周期；每行关联 SDK、样本、设备、证据和三态。
+3. 建立 IJK 兼容矩阵，以 `contracts/compatibility-matrix.md` 列出媒体浏览、WebDAV、SMB、音轨/字幕、音频路由、硬解回退、跳转、控制和生命周期；每行关联 SDK、样本、设备、证据和三态。
 4. 定义由消费方持有的 `playerEngine=ijk|vidall` 渐进迁移开关与回退规则。本库只保证公开契约，不修改 VidAll_TV。
 5. 记录本地/HTTP(S)/WebDAV/HLS/DASH/SMB 样本、容器/编解码器、字幕、4K/10-bit/60fps/HDR/高规格音频的真机结论，未实测只能标“已构建待验证”或“不支持或暂缓”。
 

@@ -41,7 +41,7 @@
 
 - **决策**：以独立 `consumer-smoke`、IJK 行为矩阵和消费方 `playerEngine=ijk|vidall` 功能开关推进迁移；本库绝不读取、修改、构建、提交或发布 VidAll_TV。
 - **依据**：独立样例验证公开契约；矩阵将构建选项转化为设备、样本、行为、证据和三态结论。
-- **落实**：矩阵覆盖媒体输入、WebDAV、SMB localhost HTTP、轨道/字幕、音频路由、硬解回退、跳转、控制与生命周期。未有 ARM64 真机证据的能力只能为“已构建待验证”或“不支持或暂缓”。
+- **落实**：矩阵覆盖媒体输入、WebDAV、SMB、轨道/字幕、音频路由、硬解回退、跳转、控制与生命周期。未有 ARM64 真机证据的能力只能为"已构建待验证"或"不支持或暂缓"。
 
 ## HarmonyOS 原生边界与分层
 
@@ -82,6 +82,6 @@
 
 - **HAR native 交付（已完成最小 spike）**：ARM64 TV 已验证 HAR 隔离内部 NAPI/native probe 的装入、命令与 callback，并在审计记录为 `passed`。该结果只确认内部打包边界；真实 libmpv bridge、独立 consumer 播放、首帧与发布形态仍须单独取证。
 - **公开 Surface 接入**：冻结消费者交付 `componentId`、尺寸和 generation 的 XComponent 适配流程，确认不暴露 NativeWindow 或将渲染生命周期推回消费方。
-- **SMB lease 协作（当前 Issue 兼容路径）**：与业务层确定 `acquired`、续期、`releaseRequested`、`released`、超时和异常回收的确认格式与重试责任。SDK 不启动 SMB proxy，也不承担业务层协议恢复。直接 `smb://` 已决定转由后续独立 Issue 处理，前提是完成 `libsmbclient` 供应链、许可证/ELF 和真机验证。
+- **SMB 直接播放（已由独立 Issue #42 交付）**：PR #42 将 `libsmbclient` 纳入 libmpv 受控构建并完成 ELF/符号审计，直接 `smb://` 已可用。本 Issue 不再维护 `localhostProxy`/lease 兼容路径。
 - **发布许可**：在候选前取得 GPL-2.0-or-later libmpv 与相关 LGPL 依赖的许可证结论、NOTICE、source offer 和制品分发审批。
-- **真实样本与设备**：取得可使用的 ARM64 API 22 TV、脱敏 HTTP/WebDAV/SMB proxy 样本及指标采集方式。
+- **真实样本与设备**：取得可使用的 ARM64 API 22 TV、脱敏 HTTP/WebDAV/SMB 样本及指标采集方式。

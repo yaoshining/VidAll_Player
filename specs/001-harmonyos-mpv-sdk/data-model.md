@@ -23,8 +23,7 @@
 
 | 实体 | 核心字段 | 规则 |
 |---|---|---|
-| `MediaSource` | `kind`、`uri`、受控 `headers`、外挂音频/字幕、`proxyLeaseId` | 仅 localFile/http/https/hls/dash/localhostProxy；禁止 URL 用户信息；认证头只可在同受信任范围的重定向内传递。 |
-| `ProxyLease` | 匿名 `proxyLeaseId`、单会话递增 `epoch`、状态、续期时间、释放请求/确认、脱敏原因 | 当前 Issue 中 SDK 只消费业务层已启动的 loopback HTTP 代理；状态为 `acquired`、`renewed`、`releaseRequested`、`released`、`expired` 或 `cleanupFailed`。SDK 不实现 SMB 或启动代理。直接 `smb://` 不属于该模型，须在后续独立 Issue 中另建凭据与供应链模型。 |
+| `MediaSource` | `kind`、`uri`、受控 `headers`、外挂音频/字幕 | 仅 localFile/http/https/hls/dash/smb；禁止 URL 用户信息；认证头只可在同受信任范围的重定向内传递。 |
 | `WebDavServiceConfig` | 显示名、服务端地址、认证状态、安全存储引用 | 不保存/返回明文密码；地址和认证上下文写日志前脱敏。 |
 | `PlayerTrack` | `id`、类型、语言、标题、选择状态、渲染结论 | 将字幕“可识别”与“正确渲染”分离。 |
 | `PlayerEvent` | 会话、单调 `sequence`、`eventEpoch`、可选 `surfaceGeneration`、类型、脱敏 payload | 覆盖真实状态、真实首帧、进度、缓存、轨道、参数、日志、错误和关闭；不含 native handle。 |
