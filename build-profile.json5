@@ -5,26 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "certpath": "/Users/yaoshining/.ohos/config/default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=.cer",
+          "certpath": "signing/default.cer",
           "keyAlias": "debugKey",
           "keyPassword": "0000001B7157E5DAC8C3BA67C08BDBAE688048B0A673232C671C1DCF602AAD80DAE475D4C72F25CF0BE241",
-          "profile": "/Users/yaoshining/.ohos/config/default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=.p7b",
+          "profile": "signing/default.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "/Users/yaoshining/.ohos/config/default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=.p12",
+          "storeFile": "signing/default.p12",
           "storePassword": "0000001B25C570C440809E533635F4EF893918002826986EE4154A1580A5B9AD9609AAAACE652C887870E5"
-        }
-      },
-      {
-        "name": "ci",
-        "type": "HarmonyOS",
-        "material": {
-          "certpath": ".github/certs/dummy.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000000000000000000000000000000000000000000000000000000000000000",
-          "profile": ".github/certs/dummy.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": ".github/certs/dummy.p12",
-          "storePassword": "0000000000000000000000000000000000000000000000000000000000000000"
         }
       }
     ],
@@ -44,7 +31,7 @@
       },
       {
         "name": "ci",
-        "signingConfig": "ci",
+        "signingConfig": "default",
         "targetSdkVersion": "6.0.2(22)",
         "compatibleSdkVersion": "5.0.3(15)",
         "runtimeOS": "HarmonyOS",
@@ -73,7 +60,15 @@
         {
           "name": "default",
           "applyToProducts": [
-            "default"
+            "default",
+            "ci"
+          ]
+        },
+        {
+          "name": "ohosTest",
+          "applyToProducts": [
+            "default",
+            "ci"
           ]
         }
       ]
@@ -85,7 +80,8 @@
         {
           "name": "default",
           "applyToProducts": [
-            "default"
+            "default",
+            "ci"
           ]
         }
       ]
