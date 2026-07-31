@@ -34,3 +34,10 @@ packages/vidall-player/BuildProfile.ets
 !release/capabilities/arm64-tv-streaming-proxy.json
 !release/capabilities/evidence/
 !release/capabilities/evidence/**
+
+# HarmonyOS signing certificates
+signing/*.cer
+signing/*.p12
+signing/*.p7b
+signing/*.jks
+!signing/README.md

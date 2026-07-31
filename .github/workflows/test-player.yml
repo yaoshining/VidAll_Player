@@ -40,10 +40,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 还原 ohpm 依赖并编译 HAR
-        run: devecocli build --modules vidall_player@default
+        run: devecocli build --modules vidall_player@default --product ci
 
       - name: 编译 Hypium 测试模块
-        run: devecocli build --modules entry@ohosTest
+        run: devecocli build --modules entry@ohosTest --product ci
 
       - name: 说明端侧执行限制
         run: |
