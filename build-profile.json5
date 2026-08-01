@@ -63,13 +63,6 @@
             "default",
             "ci"
           ]
-        },
-        {
-          "name": "ohosTest",
-          "applyToProducts": [
-            "default",
-            "ci"
-          ]
         }
       ]
     },
