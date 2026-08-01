@@ -1,0 +1,12 @@
+{
+  "string": [
+    {
+      "name": "app_name",
+      "value": "VidAll Consumer Smoke"
+    },
+    {
+      "name": "app_description",
+      "value": "Candidate HAR public API smoke test"
+    }
+  ]
+}

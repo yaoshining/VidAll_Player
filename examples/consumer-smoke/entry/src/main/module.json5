@@ -17,9 +17,7 @@
         "name": "MainAbility",
         "srcEntry": "./ets/MainAbility/MainAbility.ts",
         "description": "$string:MainAbility_desc",
-        "icon": "$media:icon",
         "label": "$string:MainAbility_label",
-        "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "exported": true,
         "skills": [
@@ -31,7 +29,9 @@
               "action.system.home"
             ]
           }
-        ]
+        ],
+        "icon": "$media:layered_image",
+        "startWindowIcon": "$media:startIcon"
       }
     ]
   }

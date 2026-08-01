@@ -1,80 +1,35 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "=== 验证 consumer-smoke 隔离性 ==="
-echo "工作目录: $(pwd)"
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+candidate_har="${CANDIDATE_HAR:-$root/candidate/vidall-player.har}"
 
-# 检查项目结构
-echo "1. 检查项目结构..."
-[ -f "oh-package.json5" ] || { echo "错误: oh-package.json5 不存在"; exit 1; }
-[ -f "package.json5" ] || { echo "错误: package.json5 不存在"; exit 1; }
-[ -f "app.json5" ] || { echo "错误: app.json5 不存在"; exit 1; }
-[ -f "build-profile.json5" ] || { echo "错误: build-profile.json5 不存在"; exit 1; }
-[ -f "hvigorfile.ts" ] || { echo "错误: hvigorfile.ts 不存在"; exit 1; }
-[ -d "entry" ] || { echo "错误: entry 目录不存在"; exit 1; }
-[ -d "test" ] || { echo "错误: test 目录不存在"; exit 1; }
+[ -f "$root/oh-package.json5" ] || { echo '错误: oh-package.json5 不存在' >&2; exit 1; }
+[ -f "$root/entry/oh-package.json5" ] || { echo '错误: entry/oh-package.json5 不存在' >&2; exit 1; }
+[ -f "$candidate_har" ] || { echo "错误: 必须提供候选 HAR: $candidate_har" >&2; exit 1; }
 
-echo "2. 检查依赖..."
-if ! grep -q '@vidall/player' oh-package.json5; then
-  echo "错误: oh-package.json5 缺少 @vidall/player 依赖"
+# Consumer must not reach into SDK source or private implementation through source or package inputs.
+if rg -n "(@vidall/player/(src|native|internal|xcomponent)|requireNativeModule|VidAll_TV|from[[:space:]]+['\"][^'\"]*(native|internal))" "$root/entry/src" "$root/test"; then
+  echo '错误: consumer-smoke 包含私有 SDK 导入或 NAPI 访问' >&2
+  exit 1
+fi
+if rg -n 'file:.*packages/vidall-player' "$root/oh-package.json5" "$root/package.json5" "$root/entry/oh-package.json5" "$root/test/oh-package.json5"; then
+  echo '错误: consumer-smoke 不能依赖仓库 SDK 源码' >&2
   exit 1
 fi
 
-echo "3. 检查仅使用公开 API..."
-# 检查测试文件是否不引用 native 或内部模块（忽略注释）
-# 更精确地过滤注释和描述性文本
-if grep -r "native/" test/ 2>/dev/null | grep -v "^[[:space:]]*//\|^[[:space:]]*/\*" | grep -v "no access to native\|native/internal\|native modules"; then
-  echo "错误: 测试文件引用了 native/ 目录（非注释行且不是描述性文本）"
+if ! rg -q 'file:\.\.?/candidate/vidall-player\.har' "$root/package.json5" "$root/entry/oh-package.json5" "$root/test/oh-package.json5"; then
+  echo '错误: consumer-smoke 必须引用候选 HAR' >&2
   exit 1
 fi
 
-if grep -r "VidAll_TV" test/ 2>/dev/null | grep -v "^[[:space:]]*//\|^[[:space:]]*/\*" | grep -v "no access to.*VidAll_TV"; then
-  echo "错误: 测试文件引用了 VidAll_TV（非注释行且不是描述性文本）"
-  exit 1
-fi
+python3 - "$candidate_har" <<'PY'
+import pathlib
+import sys
+import zipfile
+path = pathlib.Path(sys.argv[1])
+if path.stat().st_size == 0 or not zipfile.is_zipfile(path):
+    raise SystemExit('错误: 候选 HAR 不是有效归档')
+PY
 
-# 检查测试文件是否引用内部属性（允许在字符串字面量、注释或函数名中）
-if grep -r "_internal\|nativeHandle" test/ 2>/dev/null | grep -v "^[[:space:]]*//\|^[[:space:]]*/\*" | grep -v "player\._internal\|player\.nativeHandle" | grep -v "'_internal'\|'nativeHandle'\|\[\"_internal\"\|\[\"nativeHandle\"" | grep -v "should_not_access_native_or_internal_modules"; then
-  echo "错误: 测试文件引用了内部属性（非注释行且不是属性访问检查、字符串字面量或函数名）"
-  exit 1
-fi
-
-echo "4. 检查 entry 页面..."
-[ -f "entry/src/main/ets/pages/Index.ets" ] || { echo "错误: Index.ets 不存在"; exit 1; }
-
-# 检查 Index.ets 是否仅使用公开 API（忽略注释）
-if grep "native/" entry/src/main/ets/pages/Index.ets | grep -v "^[[:space:]]*//\|^[[:space:]]*/\*" | grep -v "no access to native"; then
-  echo "错误: Index.ets 引用了 native/ 目录（非注释行且不是描述性文本）"
-  exit 1
-fi
-
-if grep "VidAll_TV" entry/src/main/ets/pages/Index.ets | grep -v "^[[:space:]]*//\|^[[:space:]]*/\*" | grep -v "no access to.*VidAll_TV"; then
-  echo "错误: Index.ets 引用了 VidAll_TV（非注释行且不是描述性文本）"
-  exit 1
-fi
-
-# 检查 Index.ets 是否引用内部属性（允许在属性检查中）
-if grep "_internal\|nativeHandle" entry/src/main/ets/pages/Index.ets | grep -v "^[[:space:]]*//\|^[[:space:]]*/\*" | grep -v "player\._internal\|player\.nativeHandle"; then
-  echo "错误: Index.ets 引用了内部属性（非注释行且不是属性访问检查）"
-  exit 1
-fi
-
-echo "5. 验证依赖解析..."
-# 尝试解析依赖路径
-DEP_PATH="$(pwd)/../../packages/vidall-player"
-if [ ! -d "$DEP_PATH" ]; then
-  echo "错误: 依赖包路径不存在: $DEP_PATH"
-  exit 1
-fi
-
-echo "6. 验证 HAR 打包边界..."
-# 检查是否只依赖公开的 HAR
-if [ -f "$DEP_PATH/build-profile.json5" ]; then
-  echo "依赖包构建配置存在"
-else
-  echo "警告: 依赖包缺少构建配置"
-fi
-
-echo "=== 验证通过 ==="
-echo "consumer-smoke 项目结构完整，仅依赖公开 API，不访问 native/ 或 VidAll_TV。"
-echo "符合 T064 隔离 consumer-smoke 的要求。"
+echo '验证通过：consumer-smoke 仅使用候选 HAR 的公开 API。'

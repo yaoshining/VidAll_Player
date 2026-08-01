@@ -5,6 +5,6 @@
   "author": "VidAll",
   "license": "Apache-2.0",
   "dependencies": {
-    "@vidall/player": "file:../../../packages/vidall-player"
+    "@vidall/player": "file:../candidate/vidall-player.har"
   }
 }
