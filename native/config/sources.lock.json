@@ -7,14 +7,18 @@
       "tag": "v0.40.0",
       "commit": "287d7cdb78975ae350d7c2a287eae3c2072c93f7",
       "license": "GPL-2.0-or-later",
-      "purpose": "libmpv 播放器核心"
+      "purpose": "libmpv 播放器核心",
+      "fetchMethod": "archive",
+      "archiveSha256": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     "ffmpeg": {
       "repository": "https://github.com/FFmpeg/FFmpeg.git",
       "tag": "n7.1.1",
       "commit": "a1328e68877e12ab5a6e5d92a84aefa566783ea5",
       "license": "LGPL-2.1-or-later",
-      "purpose": "解封装、协议与编解码"
+      "purpose": "解封装、协议与编解码",
+      "fetchMethod": "archive",
+      "archiveSha256": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     "samba": {
       "repository": "https://gitlab.com/samba-team/samba.git",
@@ -30,151 +34,208 @@
         "transitiveDependencies": [
           "zlib",
           "popt",
+          "gnutls",
           "gmp",
           "nettle",
-          "libtasn1",
-          "gnutls"
+          "libtasn1"
         ]
-      }
+      },
+      "fetchMethod": "archive",
+      "archiveSha256": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     "gnutls": {
       "repository": "https://gitlab.com/gnutls/gnutls.git",
       "tag": "3.8.7",
       "commit": "994d9392a607308e452ecae87caafd6ea81288f3",
       "license": "LGPL-2.1-or-later",
-      "purpose": "Samba/libsmbclient 的受控 TLS 传递依赖"
+      "purpose": "Samba/libsmbclient 的受控 TLS 传递依赖",
+      "fetchMethod": "git-checkout"
     },
     "popt": {
       "repository": "https://github.com/rpm-software-management/popt.git",
       "tag": "popt-1.19-release",
       "commit": "916e61045d268f7e37ade5ec047eb77e8299e6ad",
       "license": "MIT",
-      "purpose": "Samba/libsmbclient 的受控命令行解析传递依赖"
+      "purpose": "Samba/libsmbclient 的受控命令行解析传递依赖",
+      "fetchMethod": "git-checkout"
     },
     "libass": {
       "repository": "https://github.com/libass/libass.git",
       "tag": "0.17.3",
       "commit": "01ae90a8028545704848fcb19b680ccb3964948d",
       "license": "ISC",
-      "purpose": "ASS/SSA 字幕渲染"
+      "purpose": "ASS/SSA 字幕渲染",
+      "fetchMethod": "git-checkout"
     },
     "dav1d": {
       "repository": "https://code.videolan.org/videolan/dav1d.git",
       "tag": "1.5.0",
       "commit": "27ed87f37977ea73782ccf7a2b59492a24c87d4f",
       "license": "BSD-2-Clause",
-      "purpose": "AV1 解码"
+      "purpose": "AV1 解码",
+      "fetchMethod": "git-checkout"
     },
     "mbedtls": {
       "repository": "https://github.com/Mbed-TLS/mbedtls.git",
       "tag": "mbedtls-3.6.2",
       "commit": "34e66e1b7b97f9dc69c19f6f14c9f91e588dc31a",
       "license": "Apache-2.0",
-      "purpose": "TLS"
+      "purpose": "TLS",
+      "fetchMethod": "git-checkout"
     },
     "libplacebo": {
       "repository": "https://code.videolan.org/videolan/libplacebo.git",
       "tag": "v7.349.0",
       "commit": "9c4b6bbd7a1e223ffdd61affc4e5d463d42d4345",
       "license": "LGPL-2.1-or-later",
-      "purpose": "视频渲染"
+      "purpose": "视频渲染",
+      "fetchMethod": "git-checkout"
     },
     "dovi_tools": {
       "repository": "https://github.com/quietvoid/dovi_tool.git",
       "tag": "libdovi-3.3.0",
       "commit": "108f7892fa9c5c5b24caec29f2289cf805e52119",
       "license": "MIT",
-      "purpose": "Dolby Vision 元数据"
+      "purpose": "Dolby Vision 元数据",
+      "fetchMethod": "git-checkout"
     },
     "freetype": {
       "repository": "https://github.com/freetype/freetype.git",
       "tag": "VER-2-13-3",
       "commit": "534ad3456055ee1f65ecde3bcf22a656a31514d1",
       "license": "FTL",
-      "purpose": "字体光栅化"
+      "purpose": "字体光栅化",
+      "fetchMethod": "git-checkout"
     },
     "harfbuzz": {
       "repository": "https://github.com/harfbuzz/harfbuzz.git",
       "tag": "10.2.0",
       "commit": "818890f8f6c364ed111689a40ad510c415e559a1",
       "license": "MIT",
-      "purpose": "文字整形"
+      "purpose": "文字整形",
+      "fetchMethod": "git-checkout"
     },
     "fribidi": {
       "repository": "https://github.com/fribidi/fribidi.git",
       "tag": "v1.0.16",
       "commit": "9123b467f080c7ea15509bd7cbd457817544a7e1",
       "license": "LGPL-2.1-or-later",
-      "purpose": "双向文本"
+      "purpose": "双向文本",
+      "fetchMethod": "git-checkout"
     },
     "fontconfig": {
       "repository": "https://gitlab.freedesktop.org/fontconfig/fontconfig.git",
       "tag": "2.16.0",
       "commit": "fca6349c9a9ca4b0b14233de6e178909a4f44843",
       "license": "MIT",
-      "purpose": "字体发现与配置"
+      "purpose": "字体发现与配置",
+      "fetchMethod": "git-checkout"
     },
     "lua": {
       "repository": "https://github.com/lua/lua.git",
       "tag": "v5.4.7",
       "commit": "1ab3208a1fceb12fca8f24ba57d6e13c5bff15e3",
       "license": "MIT",
-      "purpose": "mpv Lua 脚本运行时"
+      "purpose": "mpv Lua 脚本运行时",
+      "fetchMethod": "git-checkout"
     },
     "libxml2": {
       "repository": "https://github.com/GNOME/libxml2.git",
       "tag": "v2.13.5",
       "commit": "912cb0a6552b5dd099e283a234447208638c2209",
       "license": "MIT",
-      "purpose": "DASH MPD XML 解析"
+      "purpose": "DASH MPD XML 解析",
+      "fetchMethod": "git-checkout"
     },
     "lcms2": {
       "repository": "https://github.com/mm2/Little-CMS.git",
       "tag": "lcms2.16",
       "commit": "453bafeb85b4ef96498866b7a8eadcc74dff9223",
       "license": "MIT",
-      "purpose": "色彩管理"
+      "purpose": "色彩管理",
+      "fetchMethod": "git-checkout"
     },
     "shaderc": {
       "repository": "https://github.com/google/shaderc.git",
       "tag": "v2024.3",
       "commit": "7223dc3d5e34bbcc44f3150546dbfa8a5da58c4c",
       "license": "Apache-2.0",
-      "purpose": "着色器编译"
+      "purpose": "着色器编译",
+      "fetchMethod": "git-checkout"
     },
     "glslang": {
       "repository": "https://github.com/KhronosGroup/glslang.git",
       "tag": "14.3.0",
       "commit": "fa9c3deb49e035a8abcabe366f26aac010f6cbfb",
       "license": "BSD-3-Clause",
-      "purpose": "GLSL 解析"
+      "purpose": "GLSL 解析",
+      "fetchMethod": "git-checkout"
     },
     "spirv_tools": {
       "repository": "https://github.com/KhronosGroup/SPIRV-Tools.git",
       "tag": "v2024.4",
       "commit": "4d2f0b40bfe290dea6c6904dafdf7fd8328ba346",
       "license": "Apache-2.0",
-      "purpose": "SPIR-V 工具"
+      "purpose": "SPIR-V 工具",
+      "fetchMethod": "git-checkout"
     },
     "zlib": {
       "repository": "https://github.com/madler/zlib.git",
       "tag": "v1.3.1",
       "commit": "925af44f3cde53c6b076611c297850091b5dc7bb",
       "license": "Zlib",
-      "purpose": "压缩"
+      "purpose": "压缩",
+      "fetchMethod": "git-checkout"
     },
     "libpng": {
       "repository": "https://github.com/pnggroup/libpng.git",
       "tag": "v1.6.44",
       "commit": "a7e0c0c883f61b48cb09e276e8b70262278a331a",
       "license": "Libpng",
-      "purpose": "PNG 编码"
+      "purpose": "PNG 编码",
+      "fetchMethod": "git-checkout"
+    },
+    "gmp": {
+      "repository": "https://example.invalid/gmp.git",
+      "tag": "placeholder",
+      "commit": "0000000000000000000000000000000000000000",
+      "license": "UNKNOWN",
+      "purpose": "传递依赖 gmp 未锁定",
+      "fetchMethod": "git-checkout"
+    },
+    "nettle": {
+      "repository": "https://example.invalid/nettle.git",
+      "tag": "placeholder",
+      "commit": "0000000000000000000000000000000000000000",
+      "license": "UNKNOWN",
+      "purpose": "传递依赖 nettle 未锁定",
+      "fetchMethod": "git-checkout"
+    },
+    "libtasn1": {
+      "repository": "https://example.invalid/libtasn1.git",
+      "tag": "placeholder",
+      "commit": "0000000000000000000000000000000000000000",
+      "license": "UNKNOWN",
+      "purpose": "传递依赖 libtasn1 未锁定",
+      "fetchMethod": "git-checkout"
     }
   },
   "tools": {
-    "meson": "1.7.0",
-    "ninja": "1.11.1",
-    "python": "3.10"
+    "meson": {
+      "version": "1.7.0",
+      "sha256": "ae3f12953045f3c7c60e27f2af1ad862f14dee125b4ed9bcb8a842a5080dbf85"
+    },
+    "ninja": {
+      "version": "1.11.1",
+      "digests": {
+        "macosx-arm64": "f48c3c6eea204062f6bbf089dfc63e1ad41a08640e1da46ef2b30fa426f7ce23",
+        "manylinux-x86_64": "817e2aee2a4d28a708a67bcfba1817ae502c32c6d8ef80e50d63b0f23adf3a08"
+      }
+    },
+    "python": {
+      "version": "3.10",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
   },
   "licensePolicy": {
     "releaseRequiresReview": [
@@ -184,5 +245,51 @@
     ],
     "noticeRequired": true,
     "sourceOfferRequired": true
+  },
+  "submodules": {
+    "mpv": [],
+    "ffmpeg": []
+  },
+  "patches": [
+    {
+      "path": "native/patches/libmpv-ohos-build/0001-reorder-libxml2-before-ffmpeg.patch",
+      "sha256": "f9885181322f6bc21b6431ffa5e8d57e780470a5178a38f97e729540484034e5",
+      "appliesTo": "mpv"
+    },
+    {
+      "path": "native/patches/libmpv-ohos-build/0002-reorder-harfbuzz-before-freetype.patch",
+      "sha256": "d66a1187cbc1a4fd733df8744b840b7bef667b0642ad4442f4a34dbee470a8a4",
+      "appliesTo": "mpv"
+    },
+    {
+      "path": "native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch",
+      "sha256": "ccab24225a3f289c63985f7d4894451881eb06d214a5f4d7c655084f308eb289",
+      "appliesTo": "mpv"
+    },
+    {
+      "path": "native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch",
+      "sha256": "1afe7c0a8b403af45af7c08ebde6ca17cdb04a4aaaa13101d24cee3ad39e78d9",
+      "appliesTo": "mpv"
+    },
+    {
+      "path": "native/patches/ffmpeg/0001-libsmbclient-add-credential-options.patch",
+      "sha256": "82723a03bc36dc44e2016e04c7fe920c557b5ca81a34a57282de1423d671d798",
+      "appliesTo": "ffmpeg"
+    },
+    {
+      "path": "native/patches/ffmpeg/0002-libsmbclient-auth-callback.patch",
+      "sha256": "bfd4a11e0384265abafa442f373854842721edde87036e2c0ce4ffa2910a649b",
+      "appliesTo": "ffmpeg"
+    },
+    {
+      "path": "native/patches/ffmpeg/0003-libsmbclient-register-credential-options.patch",
+      "sha256": "dc795d4c59e3fc37436a8aacad77df01f5490cee3c264d2974468a10f93af0dd",
+      "appliesTo": "ffmpeg"
+    }
+  ],
+  "buildSwitches": {
+    "targetAbi": "aarch64-linux-ohos",
+    "linkage": "static",
+    "gpl": true
   }
 }
