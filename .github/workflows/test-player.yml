@@ -41,16 +41,21 @@ jobs:
 
       - name: 检查 HarmonyOS 签名证书
         id: check_certs
+        env:
+          # 受控 runner 注入稳定签名 basename；未设置时回退到历史名称以保持兼容
+          OHOS_SIGNING_BASENAME: ${{ vars.OHOS_SIGNING_BASENAME || 'default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=' }}
         run: |
-          if [ -f "$HOME/.ohos/config/default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=.cer" ] && \
-             [ -f "$HOME/.ohos/config/default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=.p12" ] && \
-             [ -f "$HOME/.ohos/config/default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=.p7b" ]; then
+          BASE="$OHOS_SIGNING_BASENAME"
+          CER="$HOME/.ohos/config/${BASE}.cer"
+          P12="$HOME/.ohos/config/${BASE}.p12"
+          P7B="$HOME/.ohos/config/${BASE}.p7b"
+          if [ -f "$CER" ] && [ -f "$P12" ] && [ -f "$P7B" ]; then
             echo "certificates_exist=true" >> $GITHUB_OUTPUT
             mkdir -p signing
-            cp "$HOME/.ohos/config/default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=.cer" signing/default.cer
-            cp "$HOME/.ohos/config/default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=.p12" signing/default.p12
-            cp "$HOME/.ohos/config/default_yaoshining-issue-41-libmpv-direct-smb-46b5b3_ibLJd5yxbdc-ss9I_iFqGSPfc_ArvXecNNJvhDNI5jM=.p7b" signing/default.p7b
-            echo "已复制签名证书到项目目录"
+            cp "$CER" signing/default.cer
+            cp "$P12" signing/default.p12
+            cp "$P7B" signing/default.p7b
+            echo "已复制签名证书到项目目录 (basename: $BASE)"
           else
             echo "certificates_exist=false" >> $GITHUB_OUTPUT
             echo "警告：未找到 HarmonyOS 签名证书，跳过测试 HAP 构建"
@@ -75,3 +80,9 @@ jobs:
         run: |
           echo 'GitHub 托管运行器没有 HarmonyOS 设备。'
           echo 'Hypium 用例需在受控设备通过 aa test 执行；本任务仅验证测试模块可以构建。'
+
+      - name: 清理签名材料
+        if: always()
+        run: |
+          rm -f signing/default.cer signing/default.p12 signing/default.p7b
+          echo "已清理工作区中的签名材料"
