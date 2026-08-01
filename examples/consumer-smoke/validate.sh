@@ -18,10 +18,27 @@ if rg -n 'file:.*packages/vidall-player' "$root/oh-package.json5" "$root/package
   exit 1
 fi
 
-if ! rg -q 'file:\.\.?/candidate/vidall-player\.har' "$root/package.json5" "$root/entry/oh-package.json5" "$root/test/oh-package.json5"; then
-  echo '错误: consumer-smoke 必须引用候选 HAR' >&2
-  exit 1
-fi
+for manifest_and_path in \
+  "$root/package.json5:file:./candidate/vidall-player.har" \
+  "$root/oh-package.json5:file:./candidate/vidall-player.har" \
+  "$root/entry/oh-package.json5:file:../candidate/vidall-player.har" \
+  "$root/test/oh-package.json5:file:../candidate/vidall-player.har"; do
+  manifest="${manifest_and_path%%:*}"
+  expected="${manifest_and_path#*:}"
+  if ! python3 - "$manifest" "$expected" <<'PY'
+import json
+import pathlib
+import sys
+
+manifest = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))
+if manifest.get('dependencies', {}).get('@vidall/player') != sys.argv[2]:
+    raise SystemExit(1)
+PY
+  then
+    echo "错误: manifest 必须精确引用候选 HAR: $manifest" >&2
+    exit 1
+  fi
+done
 
 python3 - "$candidate_har" <<'PY'
 import pathlib

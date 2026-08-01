@@ -64,7 +64,7 @@ version = lock.get('releaseVersion') or lock.get('sources', {}).get('mpv', {}).g
 if not version:
     raise SystemExit('错误: 锁文件缺少 releaseVersion 或 mpv tag，无法生成候选版本。')
 evidence = {
-  'sbom': {'valid': bool(sbom), 'summary': 'SBOM 已生成'},
+  'sbom': {'valid': passed(sbom), 'summary': f"SBOM: {sbom.get('status', 'missing')}"},
   'licenses': {'valid': licenses.get('complianceStatus') == 'compliant', 'summary': f"许可证结论: {licenses.get('complianceStatus', 'missing')}"},
   'elfAudit': {'valid': passed(audit), 'summary': f"ELF 审计: {audit.get('status', 'missing')}"},
   'harInclusion': {'valid': passed(har), 'summary': f"HAR 内部装入证明: {har.get('status', 'missing')}"},

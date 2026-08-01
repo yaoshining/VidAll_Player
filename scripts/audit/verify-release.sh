@@ -148,6 +148,12 @@ elf_audit_path, input_file, arch, abi, soname, actual_soname, elf_class, elf_osa
 with open(elf_audit_path, 'r', encoding='utf-8') as f:
     elf_report = json.load(f)
 
+abi_expectations = {
+    "arm64-v8a": ("ELF64", "UNIX - System V"),
+}
+expected_abi = abi_expectations.get(abi)
+abi_match = expected_abi is not None and (elf_class, elf_osabi) == expected_abi
+
 final_report = {
     "schemaVersion": 1,
     "status": "passed",
@@ -164,6 +170,7 @@ final_report = {
         "readelfAvailable": elf_class != "" or elf_osabi != "",
         "fileToolAvailable": file_output != "",
         "architectureMatch": True,
+        "abiMatch": abi_match,
         "sonameMatch": True,
         "noForbiddenLibraries": len(elf_report.get("forbiddenNeededLibraries", [])) == 0,
         "noUnauthorizedLibraries": len(elf_report.get("unauthorizedLibraries", [])) == 0,

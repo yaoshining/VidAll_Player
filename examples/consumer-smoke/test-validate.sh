@@ -24,6 +24,25 @@ if CANDIDATE_HAR="$temp/candidate.har" "$temp/consumer/validate.sh" >/dev/null 2
   echo '私有 SDK 导入必须失败' >&2; exit 1
 fi
 rm "$temp/consumer/entry/src/main/ets/Forbidden.ets"
+python3 - "$temp/consumer/entry/oh-package.json5" <<'PY2'
+import json
+import sys
+path = sys.argv[1]
+data = json.load(open(path))
+data['dependencies']['@vidall/player'] = '@vidall/player@1.0.0'
+open(path, 'w').write(json.dumps(data))
+PY2
+if CANDIDATE_HAR="$temp/candidate.har" "$temp/consumer/validate.sh" >/dev/null 2>&1; then
+  echo 'entry 模块的 registry SDK 依赖必须失败' >&2; exit 1
+fi
+python3 - "$temp/consumer/entry/oh-package.json5" <<'PY2'
+import json
+import sys
+path = sys.argv[1]
+data = json.load(open(path))
+data['dependencies']['@vidall/player'] = 'file:../candidate/vidall-player.har'
+open(path, 'w').write(json.dumps(data))
+PY2
 python3 - "$temp/consumer/test/oh-package.json5" <<'PY2'
 import json
 import sys

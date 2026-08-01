@@ -19,7 +19,7 @@ patterns = [
  ('secret', re.compile(r'''secret[\s]*[:=][\s]*["'`]?[^"'`\s]{6,}["'`]?''', re.I)),
  ('api-key', re.compile(r'''api[_-]?key[\s]*[:=][\s]*["'`]?[^"'`\s]{10,}["'`]?''', re.I)),
  ('token', re.compile(r'''token[\s]*[:=][\s]*["'`]?[^"'`\s]{10,}["'`]?''', re.I)),
- ('private-key', re.compile(r'-----BEGIN (?:RSA|DSA|EC|OPENSSH) PRIVATE KEY-----')),
+ ('private-key', re.compile(r'-----BEGIN (?:(?:RSA|DSA|EC|OPENSSH) )?(?:ENCRYPTED )?PRIVATE KEY-----')),
  ('aws-key', re.compile(r'AKIA[0-9A-Z]{16}')),
 ]
 findings=[]; total=0

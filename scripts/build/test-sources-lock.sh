@@ -51,8 +51,8 @@ for name, src in sources.items():
     commit = src.get('commit', '')
     if 'example.invalid' in src.get('repository', ''):
         errors.append(f'{name} 使用占位 repository')
-    if not COMMIT_RE.match(commit) or set(commit) == {'0'}:
-        errors.append(f'{name} 未锁定到 40 位 commit SHA（浮动版本禁止）：{commit!r}')
+    if src.get('fetchMethod', 'git-checkout') == 'git-checkout' and (not COMMIT_RE.match(commit) or set(commit) == {'0'}):
+        errors.append(f'{name} 未锁定到 40 位 Git commit SHA（浮动版本禁止）：{commit!r}')
     if not src.get('license'):
         errors.append(f'{name} 缺少 license')
     if not src.get('purpose'):
@@ -194,7 +194,7 @@ main() {
   python3 -c '
 import json
 d = json.load(open("'"$temp_dir"'/complete.lock.json"))
-d["sources"]["mpv"]["commit"] = "v0.40.0"
+d["sources"]["zlib"]["commit"] = "v1.3.1"
 json.dump(d, open("'"$temp_dir"'/floating.lock.json", "w"), ensure_ascii=False)
 '
   if validate_lock "$temp_dir/floating.lock.json"; then

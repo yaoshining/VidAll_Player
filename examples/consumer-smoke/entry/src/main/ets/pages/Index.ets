@@ -6,7 +6,9 @@ import { createPlayer, VidAllPlayer, PlayerEvent, PlayerSurface, MediaSource } f
 @Component
 struct Index {
   @State results: string[] = [];
+  @State running: boolean = false;
   private player: VidAllPlayer | undefined;
+  private unsubscribe: (() => void) | undefined;
 
   aboutToAppear() {
     this.runSmoke();
@@ -17,30 +19,42 @@ struct Index {
   }
 
   private async runSmoke(): Promise<void> {
+    if (this.running) {
+      return;
+    }
+    this.running = true;
     this.results = [];
-    this.releasePlayer();
+    await this.releasePlayer();
     try {
-      const player = createPlayer();
-      const unsubscribe = player.subscribe((event: PlayerEvent) => {
+      this.player = createPlayer();
+      this.unsubscribe = this.player.subscribe((event: PlayerEvent) => {
         this.addResult(`事件: ${event.type}`);
       });
       const surface: PlayerSurface = { componentId: 'consumer-smoke-surface', generation: 1, width: 1920, height: 1080 };
       const source: MediaSource = { kind: 'localFile', uri: 'file:///data/test.mp4' };
-      await player.attachSurface(surface);
-      await player.load(source);
-      unsubscribe();
-      await player.release();
-      this.player = createPlayer();
-      this.addResult('PASS: 公开 API、订阅和释放后重建均可调用');
+      await this.player.attachSurface(surface);
+      await this.player.load(source);
+      await this.player.play();
+      this.addResult('PASS: 公开 API、播放调用和订阅均可调用');
     } catch (error) {
       this.addResult(`FAIL: ${error.message}`);
+    } finally {
+      await this.releasePlayer();
+      this.player = createPlayer();
+      this.addResult('PASS: 释放后可重建播放器');
+      this.running = false;
     }
   }
 
-  private releasePlayer(): void {
-    if (this.player) {
-      this.player.release();
-      this.player = undefined;
+  private async releasePlayer(): Promise<void> {
+    this.unsubscribe?.();
+    this.unsubscribe = undefined;
+    const player = this.player;
+    if (player) {
+      await player.release();
+      if (this.player === player) {
+        this.player = undefined;
+      }
     }
   }
 
@@ -57,9 +71,11 @@ struct Index {
         .fontSize(16)
         .fontColor(Color.Gray)
       ForEach(this.results, (result: string) => {
-        Text(result).fontSize(14).fontColor(result.startsWith('PASS') ? Color.Green : Color.Red)
+        Text(result).fontSize(14).fontColor(result.startsWith('PASS') ? Color.Green : result.startsWith('FAIL:') ? Color.Red : Color.Gray)
       })
-      Button('重新运行').onClick(() => { this.runSmoke(); })
+      Button(this.running ? '运行中...' : '重新运行')
+        .enabled(!this.running)
+        .onClick(() => { this.runSmoke(); })
     }
     .width('100%')
     .height('100%')

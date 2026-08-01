@@ -17,6 +17,18 @@ set -eu; output=''; while [ "$#" -gt 0 ]; do [ "$1" = --output ] && { output="$2
 printf '{"status":"passed"}\n' > "$output"
 SH
   chmod +x "$temp/audit.sh"
+  cat > "$temp/failed-sbom.sh" <<'SH'
+#!/usr/bin/env bash
+set -eu; output=''; while [ "$#" -gt 0 ]; do [ "$1" = --output ] && { output="$2"; shift 2; } || shift; done
+printf '{"status":"failed"}\n' > "$output"
+SH
+  chmod +x "$temp/failed-sbom.sh"
+  cat > "$temp/noncompliant-licenses.sh" <<'SH'
+#!/usr/bin/env bash
+set -eu; output=''; while [ "$#" -gt 0 ]; do [ "$1" = --output ] && { output="$2"; shift 2; } || shift; done
+printf '{"complianceStatus":"non-compliant"}\n' > "$output"
+SH
+  chmod +x "$temp/noncompliant-licenses.sh"
   printf '{"status":"passed"}\n' > "$temp/har.json"
   printf '{"status":"passed"}\n' > "$temp/smoke.json"
   env VERIFICATION_ELF_AUDIT_SCRIPT="$temp/audit.sh" "$CREATE" --lock "$temp/lock.json" --elf "$temp/libmpv.so" --output "$temp/verification.json" --internal-load "$temp/har.json" --consumer-smoke "$temp/smoke.json"
@@ -36,6 +48,8 @@ printf '{"status":"failed"}\n' > "$output"
 SH
   chmod +x "$temp/failed-audit.sh"
   expect_fail 'ELF 审计失败' env VERIFICATION_ELF_AUDIT_SCRIPT="$temp/failed-audit.sh" "$CREATE" --lock "$temp/lock.json" --elf "$temp/libmpv.so" --output "$temp/out.json" --internal-load "$temp/har.json" --consumer-smoke "$temp/smoke.json"
+  expect_fail 'SBOM 生成失败' env VERIFICATION_SBOM_SCRIPT="$temp/failed-sbom.sh" VERIFICATION_ELF_AUDIT_SCRIPT="$temp/audit.sh" "$CREATE" --lock "$temp/lock.json" --elf "$temp/libmpv.so" --output "$temp/out.json" --internal-load "$temp/har.json" --consumer-smoke "$temp/smoke.json"
+  expect_fail '许可证不合规' env VERIFICATION_LICENSES_SCRIPT="$temp/noncompliant-licenses.sh" VERIFICATION_ELF_AUDIT_SCRIPT="$temp/audit.sh" "$CREATE" --lock "$temp/lock.json" --elf "$temp/libmpv.so" --output "$temp/out.json" --internal-load "$temp/har.json" --consumer-smoke "$temp/smoke.json"
   echo 'T061：验证构件 schema、候选串联与失败闭合测试通过。'
 }
 main "$@"

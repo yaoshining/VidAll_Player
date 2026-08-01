@@ -303,5 +303,37 @@ with open('$lock_file', 'w', encoding='utf-8') as f:
   echo 'T057：受控离线构建失败测试通过。'
 }
 
+test_reproducible_offline_git_cache() {
+  local script="$PROJECT_ROOT/scripts/build/reproducible-build.sh" temp commit real_git
+  temp="$(mktemp -d)"
+  trap 'rm -rf "${temp:-}"' RETURN
+  real_git="$(command -v git)"
+  "$real_git" init -q "$temp/source"
+  "$real_git" -C "$temp/source" config user.email test@example.invalid
+  "$real_git" -C "$temp/source" config user.name test
+  printf 'locked\n' > "$temp/source/locked.txt"
+  "$real_git" -C "$temp/source" add locked.txt
+  "$real_git" -C "$temp/source" commit -qm locked
+  commit="$($real_git -C "$temp/source" rev-parse HEAD)"
+  "$real_git" clone -q --no-checkout "$temp/source" "$temp/cache/sources/sample"
+  python3 - "$temp/lock.json" "$temp/source" "$commit" <<'PY'
+import json, sys
+path, repository, commit = sys.argv[1:]
+json.dump({'sources': {'sample': {'repository': repository, 'commit': commit, 'fetchMethod': 'git-checkout'}}}, open(path, 'w'), indent=2)
+PY
+  mkdir "$temp/bin"
+  cat > "$temp/bin/git" <<SH
+#!/usr/bin/env bash
+if [[ "\$*" == *' fetch '* ]]; then
+  echo '离线模式不应执行 git fetch' >&2
+  exit 97
+fi
+exec "$real_git" "\$@"
+SH
+  chmod +x "$temp/bin/git"
+  PATH="$temp/bin:$PATH" REPRODUCIBLE_LOCK_FILE="$temp/lock.json" "$script" --cache-dir "$temp/cache" --skip-download --skip-build --skip-patch >/dev/null || fail '已有锁定 git 缓存的离线校验必须通过且不得联网'
+}
+
 test_reproducible_entry
+test_reproducible_offline_git_cache
 main "$@"

@@ -4,7 +4,7 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-readonly LOCK_FILE="$PROJECT_ROOT/native/config/sources.lock.json"
+readonly LOCK_FILE="${REPRODUCIBLE_LOCK_FILE:-$PROJECT_ROOT/native/config/sources.lock.json}"
 readonly DEFAULT_CACHE_DIR="${REPRODUCIBLE_CACHE_DIR:-$PROJECT_ROOT/.reproducible-cache}"
 readonly DEFAULT_BUILD_DIR="${REPRODUCIBLE_BUILD_DIR:-$PROJECT_ROOT/build}"
 readonly TARGET_ABI="aarch64-linux-ohos"
@@ -60,10 +60,11 @@ lock = json.load(open(sys.argv[1], encoding='utf-8'))
 sha = re.compile(r'^[0-9a-f]{64}$')
 commit = re.compile(r'^[0-9a-f]{40}$')
 for name, source in lock.get('sources', {}).items():
+    method = source.get('fetchMethod', 'git-checkout')
     revision = source.get('commit', '')
-    if not commit.fullmatch(revision) or set(revision) == {'0'}:
-        raise SystemExit(f'错误: {name} 没有有效 commit 锁定')
-    if source.get('fetchMethod', 'git-checkout') == 'archive':
+    if method == 'git-checkout' and (not commit.fullmatch(revision) or set(revision) == {'0'}):
+        raise SystemExit(f'错误: {name} 没有有效 Git commit 锁定')
+    if method == 'archive':
         digest = source.get('archiveSha256', '')
         if not sha.fullmatch(digest) or set(digest) == {'0'} or not source.get('archiveUrl'):
             raise SystemExit(f'错误: {name} 缺少可信 archiveUrl 或 archiveSha256')
@@ -87,7 +88,15 @@ for name, source in lock.get('sources', {}).items():
             raise SystemExit(f'错误: 离线缓存缺少来源: {name}')
         if not destination.is_dir():
             subprocess.run(['git', 'clone', '--no-checkout', source['repository'], str(destination)], check=True)
-        subprocess.run(['git', '-C', str(destination), 'fetch', '--depth', '1', 'origin', source['commit']], check=True)
+        if offline == 'true':
+            present = subprocess.run(
+                ['git', '-C', str(destination), 'cat-file', '-e', source['commit'] + '^{commit}'],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+            if present.returncode != 0:
+                raise SystemExit(f'错误: 离线缓存缺少锁定 commit: {name}')
+        else:
+            subprocess.run(['git', '-C', str(destination), 'fetch', '--depth', '1', 'origin', source['commit']], check=True)
         subprocess.run(['git', '-C', str(destination), 'checkout', '--detach', '--force', source['commit']], check=True)
     elif method == 'archive':
         archive = root / f'{name}.archive'

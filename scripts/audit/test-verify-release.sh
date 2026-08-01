@@ -9,7 +9,7 @@ trap cleanup EXIT
 failures=0
 assert_fails() { if "$@" >/dev/null 2>&1; then echo "✗ 应当失败: $*" >&2; return 1; fi; }
 setup_tools() {
-  local needed="$1" tools="$TEST_DIR/tools"
+  local needed="$1" elf_class="${2:-ELF64}" elf_osabi="${3:-UNIX - System V}" tools="$TEST_DIR/tools"
   rm -rf "$tools"
   mkdir -p "$tools"
   for tool in env bash dirname mkdir mktemp rm sed awk sort grep python3 cat; do
@@ -27,7 +27,7 @@ case "\$1" in
  0x0000000000000001 (NEEDED)             Shared library: [$needed]
 OUT
   ;;
-  -h) printf '  Class:                             ELF64\n  OS/ABI:                            UNIX - System V\n' ;;
+  -h) printf '  Class:                             %s\n  OS/ABI:                            %s\n' '$elf_class' '$elf_osabi' ;;
   --dyn-syms) printf 'Symbol table\nfoo\nbar\nexample_symbol\n' ;;
 esac
 SH
@@ -54,6 +54,9 @@ report=json.load(open(sys.argv[1], encoding='utf-8'))
 assert report['status'] == 'passed'
 assert report['actualSoname'] == 'libmpv.so'
 PY
+  echo '=== 测试 5: ABI 类别不匹配必须失败 ==='
+  setup_tools libc.so.6 ELF32
+  assert_fails run_with_tools --input "$TEST_DIR/input.so" --output "$TEST_DIR/abi-mismatch.json" || ((failures++))
   [ "$failures" -eq 0 ] || { echo "有 $failures 个测试失败" >&2; exit 1; }
   echo '所有 ELF 审计测试通过'
 }

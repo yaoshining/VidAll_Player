@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "description": "libmpv OpenHarmony 受控构建的不可变来源锁。每个生产依赖必须固定为 40 位 Git commit；tag 仅供人工识别，构建不得解析浮动分支或 tag。",
+  "description": "libmpv OpenHarmony 受控构建的不可变来源锁。Git 来源固定为 40 位 commit；归档来源固定为官方 archiveUrl 和 SHA-256，tag 仅供人工识别，构建不得解析浮动分支或 tag。",
   "sources": {
     "mpv": {
       "repository": "https://github.com/mpv-player/mpv.git",
@@ -199,9 +199,8 @@
       "fetchMethod": "git-checkout"
     },
     "gmp": {
-      "repository": "https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz",
+      "repository": "https://gmplib.org/repo/gmp-6.3",
       "tag": "v6.3.0",
-      "commit": "c42b5c8c85da4fa0c72714f7978f1715628c198a",
       "license": "LGPL-3.0-or-later",
       "purpose": "Samba/libsmbclient 的受控多精度算术传递依赖",
       "fetchMethod": "archive",
