@@ -201,6 +201,7 @@
     "gmp": {
       "repository": "https://gmplib.org/repo/gmp-6.3",
       "tag": "v6.3.0",
+      "commit": "bc0ec1699e58a7912948be40168f7b3ff17e2813",
       "license": "LGPL-3.0-or-later",
       "purpose": "Samba/libsmbclient 的受控多精度算术传递依赖",
       "fetchMethod": "archive",
