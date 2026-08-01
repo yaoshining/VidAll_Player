@@ -28,8 +28,9 @@ fi
 # 验证manifest schema
 if ! python3 -c "
 import json, sys
+manifest_path = sys.argv[1]
 try:
-    with open('$VERIFICATION_MANIFEST', 'r') as f:
+    with open(manifest_path, 'r') as f:
         data = json.load(f)
     
     required_fields = ['schemaVersion', 'artifactType', 'version', 'sha256', 'status', 'evidence']
@@ -67,14 +68,16 @@ try:
 except Exception as e:
     print(f'错误：验证构件验证失败: {e}', file=sys.stderr)
     sys.exit(1)
-"; then
+" "$VERIFICATION_MANIFEST"; then
     exit 1
 fi
 
 # 创建候选构件
 CANDIDATE_DATA=$(python3 -c "
 import json, sys, os, hashlib, datetime
-with open('$VERIFICATION_MANIFEST', 'r') as f:
+verification_path = sys.argv[1]
+output_path = sys.argv[2]
+with open(verification_path, 'r') as f:
     verification = json.load(f)
 
 # 从验证构件提取信息
@@ -85,8 +88,8 @@ candidate = {
     'sha256': verification['sha256'],
     'createdAt': datetime.datetime.utcnow().isoformat() + 'Z',
     'status': 'candidate',
-    'verificationManifest': os.path.basename('$VERIFICATION_MANIFEST'),
-    'verificationSha256': hashlib.sha256(open('$VERIFICATION_MANIFEST', 'rb').read()).hexdigest(),
+    'verificationManifest': os.path.basename(verification_path),
+    'verificationSha256': hashlib.sha256(open(verification_path, 'rb').read()).hexdigest(),
     'channels': {
         'github': {
             'uploaded': False,
@@ -111,17 +114,17 @@ candidate = {
 }
 
 # 确保输出目录存在
-output_dir = os.path.dirname('$OUTPUT_PATH')
+output_dir = os.path.dirname(output_path)
 if output_dir and not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-with open('$OUTPUT_PATH', 'w') as f:
+with open(output_path, 'w') as f:
     json.dump(candidate, f, indent=2, ensure_ascii=False)
 
-print('候选构件创建成功:', '$OUTPUT_PATH')
+print('候选构件创建成功:', output_path)
 print('版本:', verification['version'])
 print('SHA256:', verification['sha256'])
-")
+" "$VERIFICATION_MANIFEST" "$OUTPUT_PATH")
 
 echo "$CANDIDATE_DATA"
 

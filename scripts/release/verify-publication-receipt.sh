@@ -58,7 +58,8 @@ def validate_receipt(receipt_str, channel_name, expected_version, expected_sha25
     return True, f'{channel_name}: 收据有效'
 
 try:
-    with open('$CANDIDATE_MANIFEST', 'r') as f:
+    manifest_path = sys.argv[1]
+    with open(manifest_path, 'r') as f:
         candidate = json.load(f)
     
     # 验证基本结构
@@ -158,6 +159,6 @@ try:
 except Exception as e:
     print(f'错误：验证失败: {e}', file=sys.stderr)
     sys.exit(1)
-" || exit 1
+" "$CANDIDATE_MANIFEST" || exit 1
 
 echo "收据验证完成"

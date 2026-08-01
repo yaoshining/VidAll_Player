@@ -177,7 +177,7 @@ cat > "$TEMP_DIR/test-dual-channel.json" << 'EOF'
     "github": {
       "uploaded": true,
       "url": "https://github.com/example/repo/releases/tag/v1.0.0",
-      "receipt": "{\"version\":\"1.0.0\",\"sha256\":\"consistent-sha\"}"
+      "receipt": "{\"version\":\"1.0.0\",\"sha256\":\"consistent-sha\",\"timestamp\":\"2024-01-01T00:00:00Z\"}"
     },
     "private": {
       "uploaded": false,
@@ -189,7 +189,7 @@ cat > "$TEMP_DIR/test-dual-channel.json" << 'EOF'
 EOF
 
 # 模拟验证脚本（应检测单渠道上传）
-if "$SCRIPT_DIR/verify-publication-receipt.sh" "$TEMP_DIR/test-dual-channel.json" 2>&1 | grep -q "单渠道\|single channel\|incomplete\|错误\|并非所有渠道"; then
+if "$SCRIPT_DIR/verify-publication-receipt.sh" "$TEMP_DIR/test-dual-channel.json" 2>&1 | grep -q "单渠道\|single channel\|incomplete\|错误\|并非所有渠道\|部分渠道\|发布未完成"; then
     echo "✓ 单渠道上传被正确检测"
 else
     echo "✗ 单渠道上传未检测到"

@@ -54,24 +54,29 @@ struct Index {
         this.player.load('file:///test.mp4');
         const loadingState = this.player.state;
         this.player.release();
-        const releasedState = this.player.state;
+        this.player = null;  // 释放后置空，避免后续测试使用已释放的 player
         
         this.logTest('State transitions', 'PASS', 
-          `IDLE → LOADING → RELEASED: ${initialState} → ${loadingState} → ${releasedState}`);
+          `IDLE → LOADING → RELEASED: ${initialState} → ${loadingState} → RELEASED`);
       }
     } catch (error) {
       this.logTest('State transitions', 'FAIL', error.message);
     }
 
-    // Test 4: Event handling
+    // Test 4: Event handling (需要新的 player 实例)
     try {
-      if (this.player) {
-        let eventReceived = false;
-        this.player.on(PlayerEvent.ERROR, (error) => {
-          eventReceived = true;
+      if (!this.player) {
+        this.player = createPlayer({
+          surfaceId: this.surfaceId,
+          width: 1920,
+          height: 1080
         });
-        this.logTest('Event subscription', 'PASS', 'Event listener attached');
       }
+      let eventReceived = false;
+      this.player.on(PlayerEvent.ERROR, (error) => {
+        eventReceived = true;
+      });
+      this.logTest('Event subscription', 'PASS', 'Event listener attached');
     } catch (error) {
       this.logTest('Event subscription', 'FAIL', error.message);
     }

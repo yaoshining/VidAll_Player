@@ -66,6 +66,7 @@ command -v grep >/dev/null 2>&1 || {
 temp_dir="$(mktemp -d)"
 trap 'rm -rf "$temp_dir"' EXIT
 result_file="${temp_dir}/results.json"
+findings_file="${temp_dir}/findings.jsonl"
 
 # 敏感数据模式（简单正则表达式）
 patterns=(
@@ -85,9 +86,10 @@ for pattern in "${exclude_patterns[@]:-}"; do
 done
 
 # 扫描结果
-sensitive_data_found=()
 total_files=0
 files_with_sensitive=0
+# 将发现写入 JSONL 临时文件，避免 shell 变量拼接 JSON 的问题
+: > "$findings_file"
 
 # 扫描文件
 while IFS= read -r file; do
@@ -100,10 +102,8 @@ while IFS= read -r file; do
     for pattern in "${patterns[@]}"; do
         if grep -q -E "$pattern" "$file" 2>/dev/null; then
             file_sensitive=true
-            matches=$(grep -o -E "$pattern" "$file" 2>/dev/null | head -5)
-            # 转义 JSON
-            matches_json=$(echo "$matches" | sed 's/"/\\"/g' | awk '{printf "\"%s\",", $0}' | sed 's/,$//')
-            sensitive_data_found+=("{\"file\":\"$file\",\"pattern\":\"$pattern\",\"matches\":[$matches_json]}")
+            # 将匹配写入临时文件，由 Python 安全地构建 JSON
+            echo "$file" >> "$findings_file"
         fi
     done
     if [[ "$file_sensitive" == true ]]; then
@@ -111,8 +111,8 @@ while IFS= read -r file; do
     fi
 done < <("${find_cmd[@]}" 2>/dev/null | head -1000)  # 限制文件数量
 
-# 生成 JSON 报告
-python3 - "$directory" "$output" "$total_files" "$files_with_sensitive" <<'PY'
+# 生成 JSON 报告（Python 安全处理所有数据）
+python3 - "$directory" "$output" "$total_files" "$files_with_sensitive" "$findings_file" <<'PY'
 import json
 import sys
 
@@ -120,6 +120,21 @@ directory = sys.argv[1]
 output_path = sys.argv[2]
 total_files = int(sys.argv[3])
 files_with_sensitive = int(sys.argv[4])
+findings_path = sys.argv[5]
+
+# 从临时文件读取发现记录
+sensitive_data_found = []
+pattern_counts = {}
+try:
+    with open(findings_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                entry = {"file": line, "pattern": "detected"}
+                sensitive_data_found.append(entry)
+                pattern_counts["detected"] = pattern_counts.get("detected", 0) + 1
+except FileNotFoundError:
+    pass
 
 report = {
     "schemaVersion": 1,
@@ -129,9 +144,9 @@ report = {
     "summary": {
         "totalFilesScanned": total_files,
         "filesWithSensitiveData": files_with_sensitive,
-        "patternsDetected": {}
+        "patternsDetected": pattern_counts
     },
-    "sensitiveDataFound": []
+    "sensitiveDataFound": sensitive_data_found
 }
 
 with open(output_path, 'w', encoding='utf-8') as f:

@@ -119,16 +119,10 @@ main() {
     readonly TEST_DIR="${PROJECT_ROOT}/.test-verification-manifest"
     setup
 
-    # 确保脚本存在（即使为空）
+    # 确保被测脚本存在
     if [[ ! -f "${CREATE_SCRIPT}" ]]; then
-        echo "创建占位 create-verification-artifact.sh"
-        mkdir -p "$(dirname "${CREATE_SCRIPT}")"
-        cat > "${CREATE_SCRIPT}" << 'EOF'
-#!/usr/bin/env bash
-echo "create-verification-artifact.sh 未实现" >&2
-exit 1
-EOF
-        chmod +x "${CREATE_SCRIPT}"
+        echo "错误: 被测脚本不存在: ${CREATE_SCRIPT}" >&2
+        exit 1
     fi
 
     # 运行测试

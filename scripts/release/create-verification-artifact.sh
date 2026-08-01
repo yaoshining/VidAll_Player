@@ -105,6 +105,7 @@ python3 - "$lock_file" "$elf_file" "$sbom_file" "$licenses_file" "$elf_audit_fil
 import json
 import pathlib
 import sys
+import datetime
 
 lock_path, elf_path, sbom_path, licenses_path, elf_audit_path, internal_load_path, consumer_smoke_path, output_path = sys.argv[1:]
 
@@ -123,7 +124,10 @@ manifest = {
     "internalLoadProof": read_json(internal_load_path),
     "consumerSmokeProof": read_json(consumer_smoke_path),
     "status": "candidate",
-    "timestamp": pathlib.Path(lock_path).stat().st_mtime
+    "timestamp": datetime.datetime.fromtimestamp(
+        pathlib.Path(lock_path).stat().st_mtime,
+        tz=datetime.timezone.utc
+    ).isoformat()
 }
 
 with open(output_path, 'w', encoding='utf-8') as f:

@@ -30,8 +30,9 @@ fi
 # 验证候选构件
 if ! python3 -c "
 import json, sys
+manifest_path = sys.argv[1]
 try:
-    with open('$CANDIDATE_MANIFEST', 'r') as f:
+    with open(manifest_path, 'r') as f:
         data = json.load(f)
     
     if data.get('artifactType') != 'candidate':
@@ -52,7 +53,7 @@ try:
 except Exception as e:
     print(f'错误：候选构件验证失败: {e}', file=sys.stderr)
     sys.exit(1)
-"; then
+" "$CANDIDATE_MANIFEST"; then
     exit 1
 fi
 
@@ -64,8 +65,8 @@ if [ -z "$GITHUB_TOKEN" ] && [ -z "$PRIVATE_REGISTRY_TOKEN" ]; then
 fi
 
 # 读取候选构件信息
-VERSION=$(python3 -c "import json; print(json.load(open('$CANDIDATE_MANIFEST'))['version'])")
-SHA256=$(python3 -c "import json; print(json.load(open('$CANDIDATE_MANIFEST'))['sha256'])")
+VERSION=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1]))['version'])" "$CANDIDATE_MANIFEST")
+SHA256=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1]))['sha256'])" "$CANDIDATE_MANIFEST")
 
 echo "=== 双渠道发布候选构件 ==="
 echo "版本: $VERSION"

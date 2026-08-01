@@ -131,35 +131,43 @@ fi
 DIFF_EXPLANATION="无差异（首次 clean build 记录）"
 
 # 生成 clean build 记录
-export BUILD_SUCCESS
+export BUILD_SUCCESS PLATFORM DATE_INFO GIT_COMMIT GIT_BRANCH BUILD_INPUTS BUILD_LOG DIFF_EXPLANATION MANIFEST_PATH
 python3 -c "
 import json, os
 
 build_success = os.environ.get('BUILD_SUCCESS', 'false') == 'true'
+platform = os.environ['PLATFORM']
+date_info = os.environ['DATE_INFO']
+git_commit = os.environ['GIT_COMMIT']
+git_branch = os.environ['GIT_BRANCH']
+build_inputs_path = os.environ['BUILD_INPUTS']
+build_log_path = os.environ['BUILD_LOG']
+diff_explanation = os.environ['DIFF_EXPLANATION']
+manifest_path = os.environ['MANIFEST_PATH']
 
 record = {
     'schemaVersion': 1,
     'artifactType': 'clean-build-record',
-    'platform': '$PLATFORM',
-    'date': '$DATE_INFO',
-    'gitCommit': '$GIT_COMMIT',
-    'gitBranch': '$GIT_BRANCH',
+    'platform': platform,
+    'date': date_info,
+    'gitCommit': git_commit,
+    'gitBranch': git_branch,
     'buildSuccess': build_success,
-    'buildInputs': json.load(open('$BUILD_INPUTS')),
-    'buildLog': open('$BUILD_LOG').read() if os.path.exists('$BUILD_LOG') else '',
-    'diffExplanation': '$DIFF_EXPLANATION',
+    'buildInputs': json.load(open(build_inputs_path)),
+    'buildLog': open(build_log_path).read() if os.path.exists(build_log_path) else '',
+    'diffExplanation': diff_explanation,
     'status': 'blocked',
     'blockedReason': '缺少真实 macOS+Linux 空目录 clean build 执行；当前仅完成脚本语法校验与 manifest 归档。真实构建需配置完整交叉编译工具链（aarch64-linux-ohos）后在双平台空目录执行。',
     'notes': 'Clean build 记录脚本与 manifest 已就位。当前为脚本语法校验级别（macOS）；真实 macOS+Linux 空目录 clean build 需要在配置完整交叉编译工具链后执行，届时更新本记录。按 T067 规则「任何缺失保持未完成」，在真实双平台 clean build 完成前保持 blocked。'
 }
 
 # 确保目录存在
-os.makedirs(os.path.dirname('$MANIFEST_PATH'), exist_ok=True)
+os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
 
-with open('$MANIFEST_PATH', 'w') as f:
+with open(manifest_path, 'w') as f:
     json.dump(record, f, indent=2, ensure_ascii=False)
 
-print('Clean build 记录已生成:', '$MANIFEST_PATH')
+print('Clean build 记录已生成:', manifest_path)
 print('构建成功:', record['buildSuccess'])
 print('状态:', record['status'])
 "

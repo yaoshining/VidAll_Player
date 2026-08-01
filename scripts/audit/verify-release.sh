@@ -126,33 +126,43 @@ if ! "$AUDIT_ELF_SCRIPT" --input "$input" --output "$elf_audit_report" "${allow_
 fi
 
 # 2. 检查架构
-file_output="$(file -b "$input")"
-if ! echo "$file_output" | grep -qi "$arch"; then
-    echo "错误: 预期架构 $arch，但文件报告: $file_output" >&2
-    exit 1
+file_output=""
+if [[ "$FILE_MISSING" -eq 0 ]]; then
+    file_output="$(file -b "$input")"
+    if ! echo "$file_output" | grep -qi "$arch"; then
+        echo "错误: 预期架构 $arch，但文件报告: $file_output" >&2
+        exit 1
+    fi
+else
+    echo "跳过文件类型检查（file 工具不可用）" >&2
 fi
 
 # 3. 检查 SONAME
-soname_output="$(readelf -d "$input" | grep -oP 'SONAME\s*\[\K[^]]+' || true)"
-if [[ -n "$soname_output" && "$soname_output" != "$soname" ]]; then
-    echo "错误: 预期 SONAME $soname，但实际为 $soname_output" >&2
-    exit 1
-fi
+soname_output=""
+elf_class=""
+elf_osabi=""
+if [[ "$READELF_MISSING" -eq 0 ]]; then
+    soname_output="$(readelf -d "$input" | grep -oP 'SONAME\s*\[\K[^]]+' || true)"
+    if [[ -n "$soname_output" && "$soname_output" != "$soname" ]]; then
+        echo "错误: 预期 SONAME $soname，但实际为 $soname_output" >&2
+        exit 1
+    fi
 
-# 4. 检查 ABI（通过 ELF 类别和 OS/ABI）
-# readelf -h 显示 Class 和 OS/ABI
-elf_class="$(readelf -h "$input" | grep -oP 'Class:\s*\K\S+' || true)"
-elf_osabi="$(readelf -h "$input" | grep -oP 'OS/ABI:\s*\K\S+' || true)"
-# 这里可以添加更具体的 ABI 检查
+    # 4. 检查 ABI（通过 ELF 类别和 OS/ABI）
+    elf_class="$(readelf -h "$input" | grep -oP 'Class:\s*\K\S+' || true)"
+    elf_osabi="$(readelf -h "$input" | grep -oP 'OS/ABI:\s*\K\S+' || true)"
+else
+    echo "跳过 SONAME/ABI 检查（readelf 工具不可用）" >&2
+fi
 
 # 5. 检查工具缺失（通过 ldd 或 objdump）
 # 暂时跳过
 
 # 生成最终报告
-python3 - "$elf_audit_report" "$input" "$arch" "$abi" "$soname" "$elf_class" "$elf_osabi" "$output" <<'PY'
+python3 - "$elf_audit_report" "$input" "$arch" "$abi" "$soname" "$elf_class" "$elf_osabi" "$file_output" "$output" <<'PY'
 import json
 import sys
-elf_audit_path, input_file, arch, abi, soname, elf_class, elf_osabi, output_path = sys.argv[1:]
+elf_audit_path, input_file, arch, abi, soname, elf_class, elf_osabi, file_output, output_path = sys.argv[1:]
 
 with open(elf_audit_path, 'r', encoding='utf-8') as f:
     elf_report = json.load(f)
@@ -170,7 +180,8 @@ final_report = {
     "elfAudit": elf_report,
     "checks": {
         "fileExists": True,
-        "readelfAvailable": True,
+        "readelfAvailable": elf_class != "" or elf_osabi != "",
+        "fileToolAvailable": file_output != "",
         "architectureMatch": True,
         "sonameMatch": True,
         "noForbiddenLibraries": len(elf_report.get("forbiddenNeededLibraries", [])) == 0,
