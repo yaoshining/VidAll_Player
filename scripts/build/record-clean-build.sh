@@ -82,24 +82,34 @@ echo ""
 echo "执行 clean build 测试..."
 
 BUILD_SUCCESS=false
+SYNTAX_CHECK_PASSED=false
 BUILD_LOG="$TEMP_BUILD_DIR/build.log"
 BUILD_INPUTS="$TEMP_BUILD_DIR/inputs.json"
 
-# 记录构建输入
-cat > "$BUILD_INPUTS" << EOF
-{
-  "platform": "$PLATFORM",
-  "osInfo": "$(echo $OS_INFO | sed 's/"/\\"/g')",
-  "date": "$DATE_INFO",
-  "gitCommit": "$GIT_COMMIT",
-  "gitBranch": "$GIT_BRANCH",
-  "tools": {
-    "git": "$(git --version 2>/dev/null || echo 'unavailable')",
-    "python3": "$(python3 --version 2>/dev/null || echo 'unavailable')",
-    "node": "$(node --version 2>/dev/null || echo 'unavailable')"
-  }
+# 使用 JSON 库写入环境输入，避免命令输出破坏 JSON 转义。
+GIT_VERSION="$(git --version 2>/dev/null || echo unavailable)"
+PYTHON_VERSION="$(python3 --version 2>/dev/null || echo unavailable)"
+NODE_VERSION="$(node --version 2>/dev/null || echo unavailable)"
+export PLATFORM OS_INFO DATE_INFO GIT_COMMIT GIT_BRANCH GIT_VERSION PYTHON_VERSION NODE_VERSION BUILD_INPUTS
+python3 - <<'PY'
+import json
+import os
+
+record = {
+    'platform': os.environ['PLATFORM'],
+    'osInfo': os.environ['OS_INFO'],
+    'date': os.environ['DATE_INFO'],
+    'gitCommit': os.environ['GIT_COMMIT'],
+    'gitBranch': os.environ['GIT_BRANCH'],
+    'tools': {
+        'git': os.environ['GIT_VERSION'],
+        'python3': os.environ['PYTHON_VERSION'],
+        'node': os.environ['NODE_VERSION'],
+    },
 }
-EOF
+with open(os.environ['BUILD_INPUTS'], 'w', encoding='utf-8') as handle:
+    json.dump(record, handle, ensure_ascii=False, indent=2)
+PY
 
 # 尝试执行实际构建（如果工具可用）
 if [ "$TOOLS_AVAILABLE" = true ]; then
@@ -110,7 +120,7 @@ if [ "$TOOLS_AVAILABLE" = true ]; then
         echo "验证 reproducible-build.sh 可用性（不执行实际构建）..."
         # 检查脚本可执行且锁文件存在
         if [ -f "$REPO_ROOT/native/config/sources.lock.json" ] && bash -n "$REPO_ROOT/scripts/build/reproducible-build.sh" 2>>"$BUILD_LOG"; then
-            BUILD_SUCCESS=true
+            SYNTAX_CHECK_PASSED=true
             echo "构建脚本语法检查通过，锁文件存在"
             echo "reproducible-build.sh: 语法正确，sources.lock.json: 存在" >> "$BUILD_LOG"
             echo "说明：实际构建需要在真实 macOS/Linux 环境中配置完整交叉编译工具链" >> "$BUILD_LOG"
@@ -131,11 +141,12 @@ fi
 DIFF_EXPLANATION="无差异（首次 clean build 记录）"
 
 # 生成 clean build 记录
-export BUILD_SUCCESS PLATFORM DATE_INFO GIT_COMMIT GIT_BRANCH BUILD_INPUTS BUILD_LOG DIFF_EXPLANATION MANIFEST_PATH
+export BUILD_SUCCESS SYNTAX_CHECK_PASSED PLATFORM DATE_INFO GIT_COMMIT GIT_BRANCH BUILD_INPUTS BUILD_LOG DIFF_EXPLANATION MANIFEST_PATH
 python3 -c "
 import json, os
 
 build_success = os.environ.get('BUILD_SUCCESS', 'false') == 'true'
+syntax_check_passed = os.environ.get('SYNTAX_CHECK_PASSED', 'false') == 'true'
 platform = os.environ['PLATFORM']
 date_info = os.environ['DATE_INFO']
 git_commit = os.environ['GIT_COMMIT']
@@ -153,6 +164,7 @@ record = {
     'gitCommit': git_commit,
     'gitBranch': git_branch,
     'buildSuccess': build_success,
+    'syntaxCheckPassed': syntax_check_passed,
     'buildInputs': json.load(open(build_inputs_path)),
     'buildLog': open(build_log_path).read() if os.path.exists(build_log_path) else '',
     'diffExplanation': diff_explanation,

@@ -68,19 +68,9 @@ if [[ ! -w "$output_dir" ]]; then
     exit 1
 fi
 
-# 检查必需工具
-if ! command -v readelf >/dev/null 2>&1; then
-    echo "警告: readelf 工具未找到，跳过 ELF 详细检查" >&2
-    READELF_MISSING=1
-else
-    READELF_MISSING=0
-fi
-if ! command -v file >/dev/null 2>&1; then
-    echo "警告: file 工具未找到，跳过文件类型检查" >&2
-    FILE_MISSING=1
-else
-    FILE_MISSING=0
-fi
+# 审计工具缺失时不能声称验证通过。
+command -v readelf >/dev/null 2>&1 || { echo "错误: 需要 readelf 工具" >&2; exit 1; }
+command -v file >/dev/null 2>&1 || { echo "错误: 需要 file 工具" >&2; exit 1; }
 
 # 临时目录
 temp_dir="$(mktemp -d)"
@@ -126,43 +116,34 @@ if ! "$AUDIT_ELF_SCRIPT" --input "$input" --output "$elf_audit_report" "${allow_
 fi
 
 # 2. 检查架构
-file_output=""
-if [[ "$FILE_MISSING" -eq 0 ]]; then
-    file_output="$(file -b "$input")"
-    if ! echo "$file_output" | grep -qi "$arch"; then
-        echo "错误: 预期架构 $arch，但文件报告: $file_output" >&2
-        exit 1
-    fi
-else
-    echo "跳过文件类型检查（file 工具不可用）" >&2
+file_output="$(file -b "$input")"
+if ! printf '%s\n' "$file_output" | grep -qi "$arch"; then
+    echo "错误: 预期架构 $arch，但文件报告: $file_output" >&2
+    exit 1
 fi
 
 # 3. 检查 SONAME
 soname_output=""
 elf_class=""
 elf_osabi=""
-if [[ "$READELF_MISSING" -eq 0 ]]; then
-    soname_output="$(readelf -d "$input" | grep -oP 'SONAME\s*\[\K[^]]+' || true)"
-    if [[ -n "$soname_output" && "$soname_output" != "$soname" ]]; then
-        echo "错误: 预期 SONAME $soname，但实际为 $soname_output" >&2
-        exit 1
-    fi
-
-    # 4. 检查 ABI（通过 ELF 类别和 OS/ABI）
-    elf_class="$(readelf -h "$input" | grep -oP 'Class:\s*\K\S+' || true)"
-    elf_osabi="$(readelf -h "$input" | grep -oP 'OS/ABI:\s*\K\S+' || true)"
-else
-    echo "跳过 SONAME/ABI 检查（readelf 工具不可用）" >&2
+soname_output="$(readelf -d "$input" | awk -F'[][]' '/SONAME/ { print $2; exit }')"
+if [[ -z "$soname_output" || "$soname_output" != "$soname" ]]; then
+    echo "错误: 预期 SONAME $soname，但实际为 ${soname_output:-缺失}" >&2
+    exit 1
 fi
+
+# 4. 检查 ABI（通过 ELF 类别和 OS/ABI）
+elf_class="$(readelf -h "$input" | awk -F: '/^[[:space:]]*Class:/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2; exit}')"
+elf_osabi="$(readelf -h "$input" | awk -F: '/^[[:space:]]*OS\/ABI:/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2; exit}')"
 
 # 5. 检查工具缺失（通过 ldd 或 objdump）
 # 暂时跳过
 
 # 生成最终报告
-python3 - "$elf_audit_report" "$input" "$arch" "$abi" "$soname" "$elf_class" "$elf_osabi" "$file_output" "$output" <<'PY'
+python3 - "$elf_audit_report" "$input" "$arch" "$abi" "$soname" "$soname_output" "$elf_class" "$elf_osabi" "$file_output" "$output" <<'PY'
 import json
 import sys
-elf_audit_path, input_file, arch, abi, soname, elf_class, elf_osabi, file_output, output_path = sys.argv[1:]
+elf_audit_path, input_file, arch, abi, soname, actual_soname, elf_class, elf_osabi, file_output, output_path = sys.argv[1:]
 
 with open(elf_audit_path, 'r', encoding='utf-8') as f:
     elf_report = json.load(f)
@@ -174,7 +155,7 @@ final_report = {
     "architecture": arch,
     "abi": abi,
     "expectedSoname": soname,
-    "actualSoname": soname,
+    "actualSoname": actual_soname,
     "elfClass": elf_class,
     "elfOsAbi": elf_osabi,
     "elfAudit": elf_report,
@@ -196,7 +177,8 @@ if any(not v for k, v in final_report["checks"].items() if k not in ("dynamicSym
 
 with open(output_path, 'w', encoding='utf-8') as f:
     json.dump(final_report, f, ensure_ascii=False, indent=2)
+if final_report['status'] != 'passed':
+    sys.exit(1)
 PY
 
 echo "ELF 审计完成，报告已保存至: $output"
-exit 0
