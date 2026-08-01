@@ -142,6 +142,24 @@ run_mock_build() {
   (cd "$project_dir" && "$project_dir/native/scripts/build-libmpv-controlled.sh" "${args[@]}")
 }
 
+
+# 新入口回归：不可接受动态 Python、模拟 libmpv.so 或空离线缓存成功。
+test_reproducible_entry() {
+  local script="$PROJECT_ROOT/scripts/build/reproducible-build.sh" temp
+  temp="$(mktemp -d)"
+  trap 'rm -rf "${temp:-}"' RETURN
+  [ -x "$script" ] || fail "候选构建入口不存在：$script"
+  if "$script" --skip-download --skip-build --cache-dir "$temp/cache" >/dev/null 2>&1; then
+    fail '空离线缓存不得通过输入校验'
+  fi
+  if "$script" --untrusted-option >/dev/null 2>&1; then
+    fail '未知选项必须失败'
+  fi
+  if grep -Eq 'exec\(sys\.argv|touch[[:space:]]+.*libmpv\.so|Build step placeholder' "$script"; then
+    fail '候选构建入口不得执行动态代码或伪造库产物'
+  fi
+}
+
 main() {
   local temp_dir source_dir output_dir lock_file project_dir
 
@@ -285,4 +303,5 @@ with open('$lock_file', 'w', encoding='utf-8') as f:
   echo 'T057：受控离线构建失败测试通过。'
 }
 
+test_reproducible_entry
 main "$@"

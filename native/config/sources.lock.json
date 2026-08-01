@@ -9,7 +9,8 @@
       "license": "GPL-2.0-or-later",
       "purpose": "libmpv 播放器核心",
       "fetchMethod": "archive",
-      "archiveSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      "archiveSha256": "4acc6177c2cbde566c16b1b44b83e89c159baffbde2f6afcd56da08f6b1b376f",
+      "archiveUrl": "https://github.com/mpv-player/mpv/archive/287d7cdb78975ae350d7c2a287eae3c2072c93f7.tar.gz"
     },
     "ffmpeg": {
       "repository": "https://github.com/FFmpeg/FFmpeg.git",
@@ -18,7 +19,8 @@
       "license": "LGPL-2.1-or-later",
       "purpose": "解封装、协议与编解码",
       "fetchMethod": "archive",
-      "archiveSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      "archiveSha256": "be2045c1c972e81914c0a5cb66aaf8581a3d584da9ce4ec09f88a9e421b3f001",
+      "archiveUrl": "https://github.com/FFmpeg/FFmpeg/archive/a1328e68877e12ab5a6e5d92a84aefa566783ea5.tar.gz"
     },
     "samba": {
       "repository": "https://gitlab.com/samba-team/samba.git",
@@ -41,7 +43,8 @@
         ]
       },
       "fetchMethod": "archive",
-      "archiveSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      "archiveSha256": "95098578bd03ab15fb7c1e06641fa8b9e174a16fce8e6246d378d171baec8cf0",
+      "archiveUrl": "https://gitlab.com/samba-team/samba/-/archive/3984b04d7085c428ab3126ef4cfac2a396b5b29e/samba-3984b04d7085c428ab3126ef4cfac2a396b5b29e.tar.gz"
     },
     "gnutls": {
       "repository": "https://gitlab.com/gnutls/gnutls.git",
@@ -196,28 +199,34 @@
       "fetchMethod": "git-checkout"
     },
     "gmp": {
-      "repository": "https://example.invalid/gmp.git",
-      "tag": "placeholder",
-      "commit": "0000000000000000000000000000000000000000",
-      "license": "UNKNOWN",
-      "purpose": "传递依赖 gmp 未锁定",
-      "fetchMethod": "git-checkout"
+      "repository": "https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz",
+      "tag": "v6.3.0",
+      "commit": "c42b5c8c85da4fa0c72714f7978f1715628c198a",
+      "license": "LGPL-3.0-or-later",
+      "purpose": "Samba/libsmbclient 的受控多精度算术传递依赖",
+      "fetchMethod": "archive",
+      "archiveUrl": "https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz",
+      "archiveSha256": "a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898"
     },
     "nettle": {
-      "repository": "https://example.invalid/nettle.git",
-      "tag": "placeholder",
-      "commit": "0000000000000000000000000000000000000000",
-      "license": "UNKNOWN",
-      "purpose": "传递依赖 nettle 未锁定",
-      "fetchMethod": "git-checkout"
+      "repository": "https://git.lysator.liu.se/nettle/nettle.git",
+      "tag": "nettle_3.10_release_20240616",
+      "commit": "b8c841dc3278dec0812365f02370b41ea9d4ddee",
+      "license": "LGPL-3.0-or-later",
+      "purpose": "Samba/libsmbclient 的受控密码学传递依赖",
+      "fetchMethod": "archive",
+      "archiveUrl": "https://ftp.gnu.org/gnu/nettle/nettle-3.10.tar.gz",
+      "archiveSha256": "b4c518adb174e484cb4acea54118f02380c7133771e7e9beb98a0787194ee47c"
     },
     "libtasn1": {
-      "repository": "https://example.invalid/libtasn1.git",
-      "tag": "placeholder",
-      "commit": "0000000000000000000000000000000000000000",
-      "license": "UNKNOWN",
-      "purpose": "传递依赖 libtasn1 未锁定",
-      "fetchMethod": "git-checkout"
+      "repository": "https://gitlab.com/gnutls/libtasn1.git",
+      "tag": "v4.20.0",
+      "commit": "6b45b25e94ea538192cc0f97e9ad57171d1c6374",
+      "license": "LGPL-2.1-or-later",
+      "purpose": "Samba/libsmbclient 的受控 ASN.1 传递依赖",
+      "fetchMethod": "archive",
+      "archiveUrl": "https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.20.0.tar.gz",
+      "archiveSha256": "92e0e3bd4c02d4aeee76036b2ddd83f0c732ba4cda5cb71d583272b23587a76c"
     }
   },
   "tools": {
@@ -233,8 +242,8 @@
       }
     },
     "python": {
-      "version": "3.10",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      "version": "3.10.16",
+      "sha256": "f2e22ed965a93cfeb642378ed6e6cdbc127682664b24123679f3d013fafe9cd0"
     }
   },
   "licensePolicy": {

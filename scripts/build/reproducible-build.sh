@@ -1,170 +1,133 @@
 #!/usr/bin/env bash
-# T058: Reproducible offline build script.
-# Downloads, verifies, patches, and builds for ARM64 using sources.lock.json.
-# Forbids calling bootstrap in candidate pipeline.
+# T058: 可复现离线构建入口。候选链路只接受已锁定并已校验的输入。
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 readonly LOCK_FILE="$PROJECT_ROOT/native/config/sources.lock.json"
-readonly CACHE_DIR="${REPRODUCIBLE_CACHE_DIR:-$PROJECT_ROOT/.reproducible-cache}"
-readonly BUILD_DIR="${REPRODUCIBLE_BUILD_DIR:-$PROJECT_ROOT/build}"
+readonly DEFAULT_CACHE_DIR="${REPRODUCIBLE_CACHE_DIR:-$PROJECT_ROOT/.reproducible-cache}"
+readonly DEFAULT_BUILD_DIR="${REPRODUCIBLE_BUILD_DIR:-$PROJECT_ROOT/build}"
 readonly TARGET_ABI="aarch64-linux-ohos"
 
 usage() {
-  cat >&2 <<EOF
-Usage: $0 [options]
-Options:
-  --cache-dir <dir>      Cache directory (default: $CACHE_DIR)
-  --build-dir <dir>      Build directory (default: $BUILD_DIR)
-  --skip-download        Skip download step (use existing cache)
-  --skip-patch           Skip patch step
-  --skip-build           Skip build step (only download and verify)
-  --help                 Show this help
-EOF
+  cat >&2 <<EOF_USAGE
+用法: $0 [选项]
+  --cache-dir <目录>  来源缓存目录
+  --build-dir <目录>  构建输出目录
+  --skip-download     只校验现有缓存，不访问网络
+  --skip-patch        不应用补丁
+  --skip-build        完成输入校验后退出，不执行构建
+EOF_USAGE
   exit 2
 }
 
-# Parse arguments
-cache_dir="$CACHE_DIR"
-build_dir="$BUILD_DIR"
+cache_dir="$DEFAULT_CACHE_DIR"
+build_dir="$DEFAULT_BUILD_DIR"
 skip_download=false
 skip_patch=false
 skip_build=false
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --cache-dir) cache_dir="$2"; shift 2 ;;
-    --build-dir) build_dir="$2"; shift 2 ;;
+    --cache-dir) [ "$#" -ge 2 ] || usage; cache_dir="$2"; shift 2 ;;
+    --build-dir) [ "$#" -ge 2 ] || usage; build_dir="$2"; shift 2 ;;
     --skip-download) skip_download=true; shift ;;
     --skip-patch) skip_patch=true; shift ;;
     --skip-build) skip_build=true; shift ;;
     --help) usage ;;
-    *) echo "Unknown option: $1" >&2; usage ;;
+    *) echo "未知选项: $1" >&2; usage ;;
   esac
 done
 
-# Ensure lock file exists
-[ -f "$LOCK_FILE" ] || { echo "Error: sources lock not found: $LOCK_FILE" >&2; exit 1; }
+[ -f "$LOCK_FILE" ] || { echo "错误: 来源锁不存在: $LOCK_FILE" >&2; exit 1; }
 
-# Load lock file
-lock_json() {
-  python3 - "$LOCK_FILE" "$1" <<'PY'
-import json, sys
-with open(sys.argv[1], encoding='utf-8') as f:
-    data = json.load(f)
-exec(sys.argv[2])
+verify_sha256() {
+  local file="$1" expected="$2" actual
+  [ -f "$file" ] || { echo "错误: 缓存归档不存在: $file" >&2; return 1; }
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual="$(sha256sum "$file" | awk '{print $1}')"
+  elif command -v shasum >/dev/null 2>&1; then
+    actual="$(shasum -a 256 "$file" | awk '{print $1}')"
+  else
+    echo "错误: 需要 sha256sum 或 shasum" >&2; return 1
+  fi
+  [ "$actual" = "$expected" ] || { echo "错误: SHA-256 不匹配: $file" >&2; return 1; }
+}
+
+validate_lock() {
+  python3 - "$LOCK_FILE" <<'PY'
+import json, re, sys
+lock = json.load(open(sys.argv[1], encoding='utf-8'))
+sha = re.compile(r'^[0-9a-f]{64}$')
+commit = re.compile(r'^[0-9a-f]{40}$')
+for name, source in lock.get('sources', {}).items():
+    revision = source.get('commit', '')
+    if not commit.fullmatch(revision) or set(revision) == {'0'}:
+        raise SystemExit(f'错误: {name} 没有有效 commit 锁定')
+    if source.get('fetchMethod', 'git-checkout') == 'archive':
+        digest = source.get('archiveSha256', '')
+        if not sha.fullmatch(digest) or set(digest) == {'0'} or not source.get('archiveUrl'):
+            raise SystemExit(f'错误: {name} 缺少可信 archiveUrl 或 archiveSha256')
+    if 'example.invalid' in source.get('repository', ''):
+        raise SystemExit(f'错误: {name} 使用占位来源')
 PY
 }
 
-# Verify SHA-256
-verify_sha256() {
-  local file="$1"
-  local expected="$2"
-  [ -f "$file" ] || { echo "File missing: $file" >&2; return 1; }
-  local actual
-  if command -v sha256sum >/dev/null 2>&1; then
-    actual="$(sha256sum "$file" | cut -d' ' -f1)"
-  elif command -v shasum >/dev/null 2>&1; then
-    actual="$(shasum -a 256 "$file" | cut -d' ' -f1)"
-  else
-    echo "Error: sha256sum or shasum not found" >&2
-    return 1
-  fi
-  if [ "$actual" != "$expected" ]; then
-    echo "SHA-256 mismatch: $file" >&2
-    echo "Expected: $expected" >&2
-    echo "Actual:   $actual" >&2
-    return 1
-  fi
-  echo "Verified: $file"
+fetch_sources() {
+  python3 - "$LOCK_FILE" "$cache_dir" "$skip_download" <<'PY'
+import hashlib, json, pathlib, subprocess, sys, urllib.request
+lock_path, cache_dir, offline = sys.argv[1:]
+lock = json.load(open(lock_path, encoding='utf-8'))
+root = pathlib.Path(cache_dir) / 'sources'
+root.mkdir(parents=True, exist_ok=True)
+for name, source in lock.get('sources', {}).items():
+    method = source.get('fetchMethod', 'git-checkout')
+    destination = root / name
+    if method == 'git-checkout':
+        if offline == 'true' and not destination.is_dir():
+            raise SystemExit(f'错误: 离线缓存缺少来源: {name}')
+        if not destination.is_dir():
+            subprocess.run(['git', 'clone', '--no-checkout', source['repository'], str(destination)], check=True)
+        subprocess.run(['git', '-C', str(destination), 'fetch', '--depth', '1', 'origin', source['commit']], check=True)
+        subprocess.run(['git', '-C', str(destination), 'checkout', '--detach', '--force', source['commit']], check=True)
+    elif method == 'archive':
+        archive = root / f'{name}.archive'
+        if not archive.is_file():
+            if offline == 'true':
+                raise SystemExit(f'错误: 离线缓存缺少归档: {name}')
+            url = source.get('archiveUrl')
+            if not url:
+                raise SystemExit(f'错误: {name} 缺少 archiveUrl')
+            urllib.request.urlretrieve(url, archive)
+        actual = hashlib.sha256(archive.read_bytes()).hexdigest()
+        if actual != source['archiveSha256']:
+            raise SystemExit(f'错误: {name} 归档 SHA-256 不匹配')
+    else:
+        raise SystemExit(f'错误: {name} 使用未知 fetchMethod: {method}')
+PY
+}
+
+verify_patches() {
+  python3 - "$LOCK_FILE" "$PROJECT_ROOT" <<'PY'
+import hashlib, json, pathlib, sys
+lock, root = json.load(open(sys.argv[1], encoding='utf-8')), pathlib.Path(sys.argv[2])
+for patch in lock.get('patches', []):
+    path = root / patch['path']
+    if not path.is_file(): raise SystemExit(f'错误: 补丁不存在: {path}')
+    if hashlib.sha256(path.read_bytes()).hexdigest() != patch['sha256']:
+        raise SystemExit(f'错误: 补丁 SHA-256 不匹配: {path}')
+PY
 }
 
 main() {
-  echo "=== Reproducible offline build started ==="
+  validate_lock
   mkdir -p "$cache_dir" "$build_dir"
-
-  # Parse lock file
-  echo "Loading sources lock: $LOCK_FILE"
-  lock_json "print('Lock version:', data.get('schemaVersion'))"
-
-  # Download sources
-  if [ "$skip_download" != true ]; then
-    echo "--- Download and verify sources ---"
-    lock_json "
-import subprocess, os, hashlib, tempfile, shutil, urllib.request, urllib.error, urllib.parse, ssl, tarfile, zipfile, gzip, sys, json, pathlib, re, time, datetime, itertools, collections, math, random, string, inspect, pprint, csv, html, base64, binascii, fractions, decimal, typing, hmac, secrets
-for name, src in data.get('sources', {}).items():
-    dest = os.path.join('$cache_dir', 'sources', name)
-    repo = src.get('repository', '')
-    commit = src.get('commit', '')
-    fetch_method = src.get('fetchMethod', 'git-checkout')
-    if fetch_method == 'git-checkout':
-        print(f'Git checkout {name}: {repo}@{commit}')
-        if not os.path.exists(dest):
-            subprocess.run(['git', 'clone', '--quiet', repo, dest], check=True, capture_output=True)
-        subprocess.run(['git', '-C', dest, 'checkout', '--quiet', commit], check=True, capture_output=True)
-    elif fetch_method == 'archive':
-        # Archive URL construction placeholder
-        print(f'Archive {name}: skipped (placeholder)')
-    else:
-        print(f'Unknown fetchMethod: {fetch_method}')
-"
-    echo "Download step placeholder (actual archive download needed)"
-  else
-    echo "Skipping download step"
+  fetch_sources
+  if [ "$skip_patch" = false ]; then verify_patches; fi
+  if [ "$skip_build" = true ]; then
+    echo "输入校验完成，按 --skip-build 未执行构建。"
+    return 0
   fi
-
-  # Apply patches
-  if [ "$skip_patch" != true ]; then
-    echo "--- Apply patches ---"
-    lock_json "
-for patch in data.get('patches', []):
-    path = patch.get('path')
-    applies_to = patch.get('appliesTo')
-    sha256 = patch.get('sha256')
-    if not path or not applies_to or not sha256:
-        continue
-    print(f'Patch {path} -> {applies_to}')
-    # Verify patch SHA-256
-    import hashlib
-    with open(path, 'rb') as f:
-        actual = hashlib.sha256(f.read()).hexdigest()
-    if actual != sha256:
-        raise SystemExit(f'Patch SHA-256 mismatch: {path}')
-"
-    echo "Patch step placeholder (actual patch application needed)"
-  else
-    echo "Skipping patch step"
-  fi
-
-  # Build
-  if [ "$skip_build" != true ]; then
-    echo "--- Build for ARM64 target ---"
-    echo "Target ABI: $TARGET_ABI"
-    # Check toolchain
-    lock_json "
-tools = data.get('tools', {})
-for tool, info in tools.items():
-    version = info.get('version', 'unknown')
-    print(f'Tool {tool}: {version}')
-"
-    # Build command placeholder
-    echo "Build step placeholder (actual cross‑compile with meson/ninja needed)"
-    # Forbid bootstrap script
-    if [ -f "$PROJECT_ROOT/bootstrap" ] || [ -f "$PROJECT_ROOT/bootstrap.sh" ]; then
-      echo "Error: bootstrap script detected; forbidden in candidate pipeline" >&2
-      exit 1
-    fi
-    # Simulate build artifact
-    mkdir -p "$build_dir/lib"
-    touch "$build_dir/lib/libmpv.so"
-    echo "Build completed (simulated)"
-  else
-    echo "Skipping build step"
-  fi
-
-  echo "=== Reproducible offline build finished ==="
-  echo "Cache dir: $cache_dir"
-  echo "Build dir: $build_dir"
+  echo "错误: 未实现真实 aarch64-linux-ohos 交叉编译；拒绝生成模拟 libmpv.so。" >&2
+  exit 1
 }
-
-main "$@"
+main

@@ -49,7 +49,9 @@ for name, src in sources.items():
     if not src.get('repository'):
         errors.append(f'{name} 缺少 repository')
     commit = src.get('commit', '')
-    if not COMMIT_RE.match(commit):
+    if 'example.invalid' in src.get('repository', ''):
+        errors.append(f'{name} 使用占位 repository')
+    if not COMMIT_RE.match(commit) or set(commit) == {'0'}:
         errors.append(f'{name} 未锁定到 40 位 commit SHA（浮动版本禁止）：{commit!r}')
     if not src.get('license'):
         errors.append(f'{name} 缺少 license')
@@ -97,7 +99,7 @@ for tool_name, tool in tools.items():
         errors.append(f'工具 {tool_name} 缺少 version')
     sha = tool.get('sha256')
     digests = tool.get('digests')
-    if not (SHA256_RE.match(sha or '') or (isinstance(digests, dict) and all(SHA256_RE.match(v) for v in digests.values()))):
+    if not (SHA256_RE.match(sha or '') and set(sha) != {'0'} or (isinstance(digests, dict) and all(SHA256_RE.match(v) and set(v) != {'0'} for v in digests.values()))):
         errors.append(f'工具 {tool_name} 缺少有效 sha256 或 digests（不可复现工具链）')
 
 # 构建开关
@@ -146,21 +148,21 @@ import sys
 
 # 合成完整锁：每个来源均含 40 位 commit、license、purpose 与 64 位 archiveSha256。
 sources = {
-    'mpv': {'repository': 'https://example.invalid/mpv.git', 'tag': 'v0.40.0', 'commit': '287d7cdb78975ae350d7c2a287eae3c2072c93f7', 'license': 'GPL-2.0-or-later', 'purpose': 'libmpv 核心', 'fetchMethod': 'archive', 'archiveSha256': '1' * 64},
-    'ffmpeg': {'repository': 'https://example.invalid/ffmpeg.git', 'tag': 'n7.1.1', 'commit': 'a1328e68877e12ab5a6e5d92a84aefa566783ea5', 'license': 'LGPL-2.1-or-later', 'purpose': '解封装', 'fetchMethod': 'archive', 'archiveSha256': '2' * 64},
-    'samba': {'repository': 'https://example.invalid/samba.git', 'tag': 'samba-4.20.7', 'commit': '3984b04d7085c428ab3126ef4cfac2a396b5b29e', 'license': 'GPL-3.0-or-later', 'purpose': 'libsmbclient', 'fetchMethod': 'archive', 'archiveSha256': '3' * 64, 'build': {'target': 'aarch64-linux-ohos', 'pkgConfigModule': 'smbclient', 'linkage': 'static', 'dependencyClosureStatus': 'complete', 'transitiveDependencies': ['zlib', 'popt', 'gnutls']}},
-    'gnutls': {'repository': 'https://example.invalid/gnutls.git', 'tag': '3.8.7', 'commit': '994d9392a607308e452ecae87caafd6ea81288f3', 'license': 'LGPL-2.1-or-later', 'purpose': 'TLS', 'fetchMethod': 'git-checkout'},
-    'popt': {'repository': 'https://example.invalid/popt.git', 'tag': 'popt-1.19-release', 'commit': '916e61045d268f7e37ade5ec047eb77e8299e6ad', 'license': 'MIT', 'purpose': '命令行', 'fetchMethod': 'git-checkout'},
-    'libass': {'repository': 'https://example.invalid/libass.git', 'tag': '0.17.3', 'commit': '01ae90a8028545704848fcb19b680ccb3964948d', 'license': 'ISC', 'purpose': '字幕', 'fetchMethod': 'git-checkout'},
-    'dav1d': {'repository': 'https://example.invalid/dav1d.git', 'tag': '1.5.0', 'commit': '27ed87f37977ea73782ccf7a2b59492a24c87d4e', 'license': 'BSD-2-Clause', 'purpose': 'AV1', 'fetchMethod': 'git-checkout'},
-    'mbedtls': {'repository': 'https://example.invalid/mbedtls.git', 'tag': 'mbedtls-3.6.2', 'commit': '34e66e1b7b97f9dc69c19f6f14c9f91e588dc31a', 'license': 'Apache-2.0', 'purpose': 'TLS', 'fetchMethod': 'git-checkout'},
-    'libplacebo': {'repository': 'https://example.invalid/libplacebo.git', 'tag': 'v7.349.0', 'commit': '9c4b6bbd7a1e223ffdd61affc4e5d463d42d4345', 'license': 'LGPL-2.1-or-later', 'purpose': '渲染', 'fetchMethod': 'git-checkout'},
-    'freetype': {'repository': 'https://example.invalid/freetype.git', 'tag': 'VER-2-13-3', 'commit': '534ad3456055ee1f65ecde3bcf22a656a31514d1', 'license': 'FTL', 'purpose': '字体', 'fetchMethod': 'git-checkout'},
-    'harfbuzz': {'repository': 'https://example.invalid/harfbuzz.git', 'tag': '10.2.0', 'commit': '818890f8f6c364ed111689a40ad510c415e559a1', 'license': 'MIT', 'purpose': '文字整形', 'fetchMethod': 'git-checkout'},
-    'fribidi': {'repository': 'https://example.invalid/fribidi.git', 'tag': 'v1.0.16', 'commit': '9123b467f080c7ea15509bd7cbd457817544a7e1', 'license': 'LGPL-2.1-or-later', 'purpose': '双向文本', 'fetchMethod': 'git-checkout'},
-    'fontconfig': {'repository': 'https://example.invalid/fontconfig.git', 'tag': '2.16.0', 'commit': 'fca6349c9a9ca4b0b14233de6e178909a4f44843', 'license': 'MIT', 'purpose': '字体配置', 'fetchMethod': 'git-checkout'},
-    'lua': {'repository': 'https://example.invalid/lua.git', 'tag': 'v5.4.7', 'commit': '1ab3208a1fceb12fca8f24ba57d6e13c5bff15e3', 'license': 'MIT', 'purpose': '脚本运行时', 'fetchMethod': 'git-checkout'},
-    'zlib': {'repository': 'https://example.invalid/zlib.git', 'tag': 'v1.3.1', 'commit': '925af44f3cde53c6b076611c297850091b5dc7bb', 'license': 'Zlib', 'purpose': '压缩', 'fetchMethod': 'git-checkout'},
+    'mpv': {'repository': 'https://example.test/mpv.git', 'tag': 'v0.40.0', 'commit': '287d7cdb78975ae350d7c2a287eae3c2072c93f7', 'license': 'GPL-2.0-or-later', 'purpose': 'libmpv 核心', 'fetchMethod': 'archive', 'archiveSha256': '1' * 64},
+    'ffmpeg': {'repository': 'https://example.test/ffmpeg.git', 'tag': 'n7.1.1', 'commit': 'a1328e68877e12ab5a6e5d92a84aefa566783ea5', 'license': 'LGPL-2.1-or-later', 'purpose': '解封装', 'fetchMethod': 'archive', 'archiveSha256': '2' * 64},
+    'samba': {'repository': 'https://example.test/samba.git', 'tag': 'samba-4.20.7', 'commit': '3984b04d7085c428ab3126ef4cfac2a396b5b29e', 'license': 'GPL-3.0-or-later', 'purpose': 'libsmbclient', 'fetchMethod': 'archive', 'archiveSha256': '3' * 64, 'build': {'target': 'aarch64-linux-ohos', 'pkgConfigModule': 'smbclient', 'linkage': 'static', 'dependencyClosureStatus': 'complete', 'transitiveDependencies': ['zlib', 'popt', 'gnutls']}},
+    'gnutls': {'repository': 'https://example.test/gnutls.git', 'tag': '3.8.7', 'commit': '994d9392a607308e452ecae87caafd6ea81288f3', 'license': 'LGPL-2.1-or-later', 'purpose': 'TLS', 'fetchMethod': 'git-checkout'},
+    'popt': {'repository': 'https://example.test/popt.git', 'tag': 'popt-1.19-release', 'commit': '916e61045d268f7e37ade5ec047eb77e8299e6ad', 'license': 'MIT', 'purpose': '命令行', 'fetchMethod': 'git-checkout'},
+    'libass': {'repository': 'https://example.test/libass.git', 'tag': '0.17.3', 'commit': '01ae90a8028545704848fcb19b680ccb3964948d', 'license': 'ISC', 'purpose': '字幕', 'fetchMethod': 'git-checkout'},
+    'dav1d': {'repository': 'https://example.test/dav1d.git', 'tag': '1.5.0', 'commit': '27ed87f37977ea73782ccf7a2b59492a24c87d4e', 'license': 'BSD-2-Clause', 'purpose': 'AV1', 'fetchMethod': 'git-checkout'},
+    'mbedtls': {'repository': 'https://example.test/mbedtls.git', 'tag': 'mbedtls-3.6.2', 'commit': '34e66e1b7b97f9dc69c19f6f14c9f91e588dc31a', 'license': 'Apache-2.0', 'purpose': 'TLS', 'fetchMethod': 'git-checkout'},
+    'libplacebo': {'repository': 'https://example.test/libplacebo.git', 'tag': 'v7.349.0', 'commit': '9c4b6bbd7a1e223ffdd61affc4e5d463d42d4345', 'license': 'LGPL-2.1-or-later', 'purpose': '渲染', 'fetchMethod': 'git-checkout'},
+    'freetype': {'repository': 'https://example.test/freetype.git', 'tag': 'VER-2-13-3', 'commit': '534ad3456055ee1f65ecde3bcf22a656a31514d1', 'license': 'FTL', 'purpose': '字体', 'fetchMethod': 'git-checkout'},
+    'harfbuzz': {'repository': 'https://example.test/harfbuzz.git', 'tag': '10.2.0', 'commit': '818890f8f6c364ed111689a40ad510c415e559a1', 'license': 'MIT', 'purpose': '文字整形', 'fetchMethod': 'git-checkout'},
+    'fribidi': {'repository': 'https://example.test/fribidi.git', 'tag': 'v1.0.16', 'commit': '9123b467f080c7ea15509bd7cbd457817544a7e1', 'license': 'LGPL-2.1-or-later', 'purpose': '双向文本', 'fetchMethod': 'git-checkout'},
+    'fontconfig': {'repository': 'https://example.test/fontconfig.git', 'tag': '2.16.0', 'commit': 'fca6349c9a9ca4b0b14233de6e178909a4f44843', 'license': 'MIT', 'purpose': '字体配置', 'fetchMethod': 'git-checkout'},
+    'lua': {'repository': 'https://example.test/lua.git', 'tag': 'v5.4.7', 'commit': '1ab3208a1fceb12fca8f24ba57d6e13c5bff15e3', 'license': 'MIT', 'purpose': '脚本运行时', 'fetchMethod': 'git-checkout'},
+    'zlib': {'repository': 'https://example.test/zlib.git', 'tag': 'v1.3.1', 'commit': '925af44f3cde53c6b076611c297850091b5dc7bb', 'license': 'Zlib', 'purpose': '压缩', 'fetchMethod': 'git-checkout'},
 }
 lock = {
     'schemaVersion': 3,
