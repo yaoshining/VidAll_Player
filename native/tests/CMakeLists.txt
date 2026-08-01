@@ -33,6 +33,10 @@ add_executable(subtitle_rendering_test subtitle_rendering_test.cpp ../media/Subt
 target_include_directories(subtitle_rendering_test PRIVATE ../media)
 target_compile_features(subtitle_rendering_test PRIVATE cxx_std_17)
 
+add_executable(adaptive_streaming_test adaptive_streaming_test.cpp ../media/AdaptiveStreaming.cpp ../media/MediaLoader.cpp ../media/PlayerErrorMapper.cpp)
+target_include_directories(adaptive_streaming_test PRIVATE ../media)
+target_compile_features(adaptive_streaming_test PRIVATE cxx_std_17)
+
 enable_testing()
 add_test(NAME session_lifecycle_test COMMAND session_lifecycle_test)
 add_test(NAME localhost_proxy_lease_test COMMAND localhost_proxy_lease_test)
@@ -42,3 +46,4 @@ add_test(NAME event_dispatcher_test COMMAND event_dispatcher_test)
 add_test(NAME media_loader_test COMMAND media_loader_test)
 add_test(NAME tracks_subtitles_test COMMAND tracks_subtitles_test)
 add_test(NAME subtitle_rendering_test COMMAND subtitle_rendering_test)
+add_test(NAME adaptive_streaming_test COMMAND adaptive_streaming_test)

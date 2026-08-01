@@ -101,6 +101,10 @@ export class PlayerSession implements VidAllPlayer {
           this.emitLease(lease);
         }
       }
+      // HLS/DASH 自适应流分派：原生桥接层需按类型设置 mpv 缓存与 demuxer 选项。
+      if (source.kind === 'hls' || source.kind === 'dash') {
+        this.emitStreamingConfig(source.kind);
+      }
       if (this.tracks.length > 0) {
         this.emitTracks();
       }
@@ -428,6 +432,19 @@ export class PlayerSession implements VidAllPlayer {
       snapshot.push(copy);
     }
     this.stateMachine.emit({ type: 'tracks', sequence: 0, tracks: snapshot });
+  }
+
+  private emitStreamingConfig(kind: string): void {
+    const isAdaptive = kind === 'hls' || kind === 'dash';
+    this.stateMachine.emit({
+      type: 'streamingConfig',
+      sequence: 0,
+      streamingConfig: {
+        kind: kind as 'hls' | 'dash',
+        networkRecovery: isAdaptive,
+        segmentTimelineEnabled: isAdaptive,
+      },
+    });
   }
 
   private validateSurface(surface: PlayerSurface): void {
