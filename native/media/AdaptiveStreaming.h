@@ -91,7 +91,8 @@ public:
     // 超出末尾返回 nullptr 且不改变状态；空时间线返回 nullptr。
     const AdaptiveSegment* seekTo(uint64_t positionMs);
 
-    // 兼容接口：通用跳转（记录跳转目标并更新状态）。
+    // 兼容接口：通用跳转（设置 seekPending 标志并进入 SeekPending 状态）。
+    // 不记录跳转目标；已处于终态或 SeekPending 时返回 false。
     bool beginSeek(const SeekTarget& target);
     void endSeek();
 
@@ -113,7 +114,7 @@ public:
     void reportNetworkDisconnected();
 
     // 重试当前 segment：仅在 Recovering 且错误可重试时恢复为 Buffering 并返回 true；
-    // 终态或不可重试返回 false 且不改变状态。
+    // 终态或不可重试返回 false；超过最大重试次数时进入 Failed 终态并返回 false。
     bool retryCurrentSegment();
 
     // 网络中断恢复延迟（毫秒）：根据连续失败计数和配置计算线性退避。

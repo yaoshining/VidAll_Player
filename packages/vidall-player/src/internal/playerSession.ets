@@ -435,15 +435,15 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   private emitStreamingConfig(kind: string): void {
+    const isAdaptive = kind === 'hls' || kind === 'dash';
     this.stateMachine.emit({
-      type: 'log',
+      type: 'streamingConfig',
       sequence: 0,
-      message: `Adaptive streaming: ${kind} — native bridge should apply cache/demuxer options.（自适应流：${kind}，原生桥接层应应用缓存/解复用器选项。）`,
-      log: {
-        level: 'info',
-        module: 'player-session',
-        message: `Adaptive streaming: ${kind} — native bridge should apply cache/demuxer options.（自适应流：${kind}，原生桥接层应应用缓存/解复用器选项。）`
-      }
+      streamingConfig: {
+        kind: kind as 'hls' | 'dash',
+        networkRecovery: isAdaptive,
+        segmentTimelineEnabled: isAdaptive,
+      },
     });
   }
 

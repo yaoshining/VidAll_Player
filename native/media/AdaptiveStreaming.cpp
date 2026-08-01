@@ -6,6 +6,25 @@
 
 namespace vidall {
 
+namespace {
+// 转义 mpv http-header-fields 列表项中的特殊字符（逗号与反斜杠）。
+// mpv 以逗号分隔列表项、以反斜杠为转义字符；header 内部的冒号无需转义，
+// 因为 mpv 仅在拆分后的单项中按第一个冒号切分 name/value。
+// 参见 https://mpv.io/manual/master#options-for-audio-and-video-playback
+std::string escapeMpvHeaderValue(const std::string& value)
+{
+    std::string out;
+    out.reserve(value.size());
+    for (char c : value) {
+        if (c == ',' || c == '\\') {
+            out += '\\';
+        }
+        out += c;
+    }
+    return out;
+}
+} // namespace
+
 AdaptiveStreaming::AdaptiveStreaming(const AdaptiveStreamConfig& config)
     : config_(config)
 {
@@ -82,7 +101,7 @@ AdaptiveStreamError AdaptiveStreaming::loadManifest(MediaKind kind, const std::s
             if (!joined.empty()) {
                 joined += ",";
             }
-            joined += h.name + ": " + h.value;
+            joined += h.name + ": " + escapeMpvHeaderValue(h.value);
         }
         mpvOptions_.push_back({"http-header-fields", joined});
     }
@@ -143,7 +162,11 @@ SegmentFetchOutcome AdaptiveStreaming::reportSegment(uint64_t sequence, SegmentF
     if (state_ == AdaptiveStreamState::Released) {
         return SegmentFetchOutcome::PermanentFailure;
     }
-    if (state_ == AdaptiveStreamState::Idle || state_ == AdaptiveStreamState::Failed) {
+    if (state_ == AdaptiveStreamState::Failed) {
+        // 已处于 Failed 终态：保留之前的真实失败原因，不覆盖
+        return SegmentFetchOutcome::PermanentFailure;
+    }
+    if (state_ == AdaptiveStreamState::Idle) {
         fail("media", "PERMANENT_SEGMENT_FAILURE", "Segment reported without a loaded manifest.", false);
         state_ = AdaptiveStreamState::Failed;
         return SegmentFetchOutcome::PermanentFailure;

@@ -60,7 +60,7 @@
     "postReleaseRejection": "release 后的 loadManifest 必须被拒绝并返回 lifecycle 域错误"
   },
   "requiredEvidence": [
-    "ctest 全量通过（含 adaptive_streaming_test 43 断言）",
+    "ctest 全量通过（含 adaptive_streaming_test 143 项断言 / 52 场景）",
     "HLS/DASH 加载后 ManifestLoaded 状态截图",
     "seekTo 精准寻址日志",
     "断网→恢复完整生命周期日志",
@@ -70,9 +70,10 @@
     "framework": "ctest",
     "adaptiveStreamingTests": {
       "file": "native/tests/adaptive_streaming_test.cpp",
-      "scenarios": 43,
+      "scenarios": 52,
+      "assertions": 143,
       "result": "⬜ 待真机运行",
-      "note": "本地 x86 构建已通过 43 项断言，需真机 ctest 验证"
+      "note": "本地 x86 构建已通过 143 项断言 / 52 场景，需真机 ctest 验证"
     }
   },
   "arktsTests": {

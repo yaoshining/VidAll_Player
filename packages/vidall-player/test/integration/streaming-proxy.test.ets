@@ -553,3 +553,46 @@ export async function release_rejectsSubsequentLoad(): Promise<void> {
     throw new Error('Load after release should have been rejected');
   }
 }
+
+// ══════════════════════════════════════════════════════════════════
+// 24. HLS/DASH 加载时发射 streamingConfig 事件：结构化事件取代日志
+// ══════════════════════════════════════════════════════════════════
+
+export async function hls_load_emitsStreamingConfigEvent(): Promise<void> {
+  const player = createPlayer();
+  const configPromise = waitForEvent(player, (e) => e.type === 'streamingConfig');
+  const source: MediaSource = {
+    kind: 'hls',
+    uri: 'https://stream.example.com/live.m3u8'
+  };
+  void player.load(source);
+  const event = await configPromise;
+  if (event.streamingConfig?.kind !== 'hls') {
+    throw new Error(`Expected streamingConfig.kind 'hls', got '${event.streamingConfig?.kind}'`);
+  }
+  if (!event.streamingConfig?.networkRecovery) {
+    throw new Error('HLS should enable networkRecovery');
+  }
+  if (!event.streamingConfig?.segmentTimelineEnabled) {
+    throw new Error('HLS should enable segmentTimelineEnabled');
+  }
+  void player.release();
+}
+
+export async function dash_load_emitsStreamingConfigEvent(): Promise<void> {
+  const player = createPlayer();
+  const configPromise = waitForEvent(player, (e) => e.type === 'streamingConfig');
+  const source: MediaSource = {
+    kind: 'dash',
+    uri: 'https://stream.example.com/vod.mpd'
+  };
+  void player.load(source);
+  const event = await configPromise;
+  if (event.streamingConfig?.kind !== 'dash') {
+    throw new Error(`Expected streamingConfig.kind 'dash', got '${event.streamingConfig?.kind}'`);
+  }
+  if (!event.streamingConfig?.networkRecovery) {
+    throw new Error('DASH should enable networkRecovery');
+  }
+  void player.release();
+}

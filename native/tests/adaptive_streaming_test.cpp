@@ -812,14 +812,6 @@ int main()
             "State remains Released after reportSegment on released session");
     }
 
-    // ===== 结果汇总 =====
-    if (passed) {
-        std::cout << "All adaptive streaming tests passed.\n";
-    } else {
-        std::cout << "Some adaptive streaming tests FAILED.\n";
-    }
-
-
     // =============================================
     // 45. 加载失败后旧状态清除
     // =============================================
@@ -871,7 +863,57 @@ int main()
     }
 
     // =============================================
-    // 47. endSeek 在 Recovering 状态下保留原状态
+    // 47. header value 特殊字符转义
+    // =============================================
+    {
+        vidall::AdaptiveStreaming streamer;
+        std::vector<vidall::HeaderEntry> headers = {
+            {"Cookie", "session=abc,123; lang=en:zh"},
+            {"X-Path", "C:\\test\\file"}
+        };
+        streamer.loadManifest(vidall::MediaKind::Hls, "https://example.com/stream.m3u8",
+            makeTimeline(), headers);
+
+        const auto& opts = streamer.mpvOptions();
+        for (const auto& opt : opts) {
+            if (opt.first == "http-header-fields") {
+                // 逗号与反斜杠需转义以避免破坏 mpv 列表解析；冒号无需转义
+                passed &= check(opt.second.find("session=abc\\,123; lang=en:zh") != std::string::npos,
+                    "Comma in Cookie value is escaped, colon preserved");
+                passed &= check(opt.second.find("C:\\\\test\\\\file") != std::string::npos,
+                    "Backslashes in path value are escaped");
+            }
+        }
+    }
+
+    // =============================================
+    // 48. reportSegment 在 Failed 状态下保留之前的失败原因
+    // =============================================
+    {
+        vidall::AdaptiveStreaming streamer;
+        streamer.loadManifest(vidall::MediaKind::Hls, "https://example.com/stream.m3u8",
+            makeTimeline(), {});
+
+        // 先触发一个永久错误使状态进入 Failed
+        streamer.handleSegmentError(-4, "unsupported format");
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::Failed,
+            "State is Failed after permanent error");
+        const auto firstError = streamer.lastError();
+        passed &= check(firstError.code == "PERMANENT_SEGMENT_FAILURE" || !firstError.retryable,
+            "First error is recorded");
+
+        // 再次上报 segment 不应覆盖之前的失败原因
+        const auto outcome = streamer.reportSegment(0, vidall::SegmentFetchOutcome::Fetched);
+        passed &= check(outcome == vidall::SegmentFetchOutcome::PermanentFailure,
+            "reportSegment on Failed returns PermanentFailure");
+        passed &= check(streamer.state() == vidall::AdaptiveStreamState::Failed,
+            "State remains Failed after reportSegment");
+        passed &= check(streamer.lastError().code == firstError.code,
+            "lastError is preserved (not overwritten) after reportSegment on Failed");
+    }
+
+    // =============================================
+    // 49. endSeek 在 Recovering 状态下保留原状态
     // =============================================
     {
         vidall::AdaptiveStreaming streamer;
@@ -893,7 +935,7 @@ int main()
     }
 
     // =============================================
-    // 48. retryCurrentSegment 超过最大重试次数时拒绝
+    // 50. retryCurrentSegment 超过最大重试次数时拒绝
     // =============================================
     {
         vidall::AdaptiveStreamConfig config;
@@ -919,7 +961,7 @@ int main()
     }
 
     // =============================================
-    // 49. handleSegmentError 更新状态为 Recovering（可重试错误）
+    // 51. handleSegmentError 更新状态为 Recovering（可重试错误）
     // =============================================
     {
         vidall::AdaptiveStreaming streamer;
@@ -939,7 +981,7 @@ int main()
     }
 
     // =============================================
-    // 50. handleSegmentError 更新状态为 Failed（永久错误）
+    // 52. handleSegmentError 更新状态为 Failed（永久错误）
     // =============================================
     {
         vidall::AdaptiveStreaming streamer;
@@ -951,6 +993,13 @@ int main()
             "State is Failed after permanent handleSegmentError");
         passed &= check(!streamer.lastError().retryable,
             "lastError is not retryable after permanent handleSegmentError");
+    }
+
+    // ===== 结果汇总 =====
+    if (passed) {
+        std::cout << "All adaptive streaming tests passed.\n";
+    } else {
+        std::cout << "Some adaptive streaming tests FAILED.\n";
     }
 
     return passed ? 0 : 1;

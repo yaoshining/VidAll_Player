@@ -2,7 +2,7 @@ export type PlayerState = 'idle' | 'preparing' | 'playing' | 'paused' |
   'buffering' | 'completed' | 'error' | 'released';
 export type PlayerTrackKind = 'audio' | 'video' | 'subtitle';
 export type PlayerEventType = 'state' | 'firstFrame' | 'position' | 'buffering' | 'tracks' |
-  'videoParams' | 'audioParams' | 'proxyLease' | 'log' | 'closed' | 'error';
+  'videoParams' | 'audioParams' | 'proxyLease' | 'streamingConfig' | 'log' | 'closed' | 'error';
 
 export interface PlayerSurface {
   componentId: string;
@@ -80,6 +80,12 @@ export interface ProxyLeaseStatus {
   retryable: boolean;
 }
 
+export interface StreamingConfig {
+  kind: 'hls' | 'dash';
+  networkRecovery: boolean;
+  segmentTimelineEnabled: boolean;
+}
+
 export interface PlayerEvent {
   type: PlayerEventType;
   sequence: number;
@@ -93,6 +99,7 @@ export interface PlayerEvent {
   tracks?: PlayerTrack[];
   params?: VideoParams | AudioParams;
   lease?: ProxyLeaseStatus;
+  streamingConfig?: StreamingConfig;
   log?: PlayerLog;
   error?: PlayerError;
   message?: string;

@@ -33,7 +33,8 @@
     "greenPhase": {
       "command": "make adaptive_streaming_test && ./adaptive_streaming_test",
       "result": "passed",
-      "assertions": 43,
+      "assertions": 143,
+      "scenarios": 52,
       "recordedAt": "2026-07-28T00:00:00+08:00",
       "sourceCommit": "HEAD"
     }
