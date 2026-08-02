@@ -16,9 +16,9 @@ export default function demoLifecycleTest(): void {
       lifecycle.markPlaybackStarted('https://example.com/movie.mp4');
       expect(lifecycle.onBackground()).assertTrue();
       expect(lifecycle.onSurfaceDestroyed()).assertTrue();
-      // Surface recreated while still in background — must not auto-resume
+      // Surface recreated while still in background must not auto-resume.
       expect(lifecycle.onSurfaceCreated()).assertFalse();
-      // Coming to foreground — surface is present, should resume
+      // Coming to foreground resumes because the surface is present.
       expect(lifecycle.onForeground()).assertTrue();
       expect(lifecycle.getState()).assertEqual('playing');
     });
@@ -30,9 +30,9 @@ export default function demoLifecycleTest(): void {
       expect(lifecycle.getActiveSource()).assertEqual('https://example.com/second.mp4');
       expect(lifecycle.onBackground()).assertTrue();
       expect(lifecycle.onNetworkLost()).assertTrue();
+      // A recovery event in background enables the later foreground resume.
       expect(lifecycle.onNetworkRecovered()).assertFalse();
-      expect(lifecycle.onForeground()).assertFalse();
-      expect(lifecycle.onNetworkRecovered()).assertTrue();
+      expect(lifecycle.onForeground()).assertTrue();
       expect(lifecycle.getState()).assertEqual('playing');
     });
 

@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
-  "status": "passed",
+  "status": "blocked",
   "scope": "VidAll_Player 工作树",
+  "reason": "未提供可复现的 VidAll_TV 隔离检查命令和证据，不能声明通过。",
   "result": "本次变更仅涉及 VidAll_Player 的示例、native 能力报告、脚本和候选审计；未修改、构建、提交或发布 VidAll_TV。"
 }

@@ -9,7 +9,7 @@ while [ "$#" -gt 0 ]; do
     --output) output="$2"; shift 2 ;;
     --device) device="$2"; shift 2 ;;
     --iterations) iterations="$2"; shift 2 ;;
-    *) echo '用法：run-arm64-tv-gate.sh --device <serial> --output <evidence.json> [--iterations 100]' >&2; exit 2 ;;
+    *) echo '用法：write-arm64-tv-gate-template.sh --device <serial> --output <evidence.json> [--iterations 100]' >&2; exit 2 ;;
   esac
 done
 [ -n "$output" ] || { echo '缺少 --output' >&2; exit 2; }

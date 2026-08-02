@@ -1,9 +1,0 @@
-{
-  "schemaVersion": 1,
-  "status": "candidate",
-  "package": "@vidall/player",
-  "version": "0.1.0",
-  "publication": "blocked",
-  "blockers": ["ARM64 API 22 TV 100 次生命周期门禁未完成", "手机示例真机验证未完成", "双平台 clean build 与受控 consumer-smoke 未完成", "许可证、SBOM 和双渠道回读未形成完整真实证据"],
-  "updatedAt": "2026-08-02T11:21:36+08:00"
-}

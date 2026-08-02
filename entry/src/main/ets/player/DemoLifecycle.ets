@@ -72,11 +72,14 @@ export class DemoLifecycleController {
   }
 
   onNetworkRecovered(): boolean {
-    if (!this.networkInterrupted || this.inBackground || this.surfaceDetached || this.activeSource.length === 0 ||
-      this.state === 'released' || this.state === 'idle') {
+    if (!this.networkInterrupted) {
       return false;
     }
     this.networkInterrupted = false;
+    if (this.inBackground || this.surfaceDetached || this.activeSource.length === 0 ||
+      this.state === 'released' || this.state === 'idle') {
+      return false;
+    }
     this.state = 'playing';
     return true;
   }

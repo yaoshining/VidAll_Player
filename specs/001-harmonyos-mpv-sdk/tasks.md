@@ -162,7 +162,7 @@
 - [ ] T072 [US6] 实现并通过 T071 的 XComponent 播放页和 TV 遥控器焦点/返回行为，更新 `examples/tv-phone-demo/entry/src/main/ets/pages/PlayerPage.ets`
 - [X] T073 [US6] 先写并运行失败的示例生命周期集成测试：surface 重建、连续切源、后台、断网恢复、重复 release，更新 `examples/tv-phone-demo/entry/src/test/Lifecycle.test.ets`、`examples/tv-phone-demo/entry/src/main/ets/viewmodel/PlayerViewModel.ets`
 - [X] T074 [US6] 实现并通过 T073 的示例生命周期协调与资源释放，更新 `examples/tv-phone-demo/entry/src/main/ets/viewmodel/PlayerViewModel.ets`
-- [X] T075 [US6] 编写 ARM64 TV 100 次生命周期门禁的可执行检查，覆盖来源、遥控器、后台、网络和 release，更新 `scripts/evidence/run-arm64-tv-gate.sh`、`scripts/evidence/validate-evidence.sh`
+- [ ] T075 [US6] 编写 ARM64 TV 100 次生命周期门禁的可执行检查，覆盖来源、遥控器、后台、网络和 release，更新设备驱动门禁脚本与 `scripts/evidence/validate-evidence.sh`
 - [ ] T076 [US6] 使用 `devecocli device list` 确认 ARM64 TV，使用 `devecocli build` 与 `devecocli run --device <serial>` 安装 API 15 兼容包，执行 T075 并记录真实 API 15/19/22、崩溃、死锁和资源证据，更新 `release/capabilities/arm64-tv-evidence.json`
 - [ ] T077 [US6] 在至少一台可安装手机执行示例基本验证并记录真实结果，更新 `release/capabilities/phone-demo-evidence.json`
 

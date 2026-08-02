@@ -60,6 +60,7 @@ export interface VideoParams {
   height: number;
   pixelFormat?: string;
   rotation?: number;
+  pixelAspectRatio?: string;
   decoder?: string;
   hardwareDecoding?: 'active' | 'fallback' | 'unavailable';
 }

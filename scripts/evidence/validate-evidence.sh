@@ -35,6 +35,8 @@ if matrix is not None:
             raise SystemExit(f'证据校验失败：{name} 真机通过缺少设备、样本或证据引用')
         if not verified and any(entry.get(field) for field in ('device', 'sample', 'evidenceRef')):
             raise SystemExit(f'证据校验失败：{name} 未验证时不得填写设备、样本或证据引用')
+        if data.get('status') == 'passed' and entry['status'] != '已通过真机样本':
+            raise SystemExit(f'证据校验失败：通过状态不得包含未通过真机样本的 {name}')
 if data.get('status') == 'passed':
     for field in data.get('requiredEvidence', []):
         if not data.get(field):
