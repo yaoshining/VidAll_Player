@@ -1,9 +1,12 @@
 {
   "name": "@vidall/player",
   "version": "0.1.0",
-  "description": "VidAll Player ArkTS 候选公开契约；仅在批准私有 ohpm 源登记后才可冻结正式包名和版本。",
+  "description": "基于 libmpv 的 HarmonyOS ArkTS 播放器候选 SDK；当前版本仅供 VidAll_TV 集成验证，不发布至 OHPM。",
   "main": "Index.ets",
   "author": "VidAll",
-  "license": "Apache-2.0",
+  "license": "GPL-3.0-or-later",
+  "keywords": ["harmonyos", "arkts", "libmpv", "player", "video"],
+  "homepage": "https://github.com/yaoshining/VidAll_Player",
+  "repository": "https://github.com/yaoshining/VidAll_Player.git",
   "dependencies": {}
 }
