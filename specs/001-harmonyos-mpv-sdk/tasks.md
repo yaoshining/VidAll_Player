@@ -160,9 +160,9 @@
 - [ ] T070 [US6] 实现并通过 T069 的示例 WebDAV 配置、目录选择和错误恢复，更新 `examples/tv-phone-demo/entry/src/main/ets/pages/WebDavPage.ets`
 - [ ] T071 [US6] 先写并运行失败的 TV 交互测试：方向、确认、返回、焦点恢复、长列表边界和错误重试，更新 `examples/tv-phone-demo/entry/src/test/TvFocus.test.ets`、`examples/tv-phone-demo/entry/src/main/ets/pages/PlayerPage.ets`
 - [ ] T072 [US6] 实现并通过 T071 的 XComponent 播放页和 TV 遥控器焦点/返回行为，更新 `examples/tv-phone-demo/entry/src/main/ets/pages/PlayerPage.ets`
-- [ ] T073 [US6] 先写并运行失败的示例生命周期集成测试：surface 重建、连续切源、后台、断网恢复、重复 release，更新 `examples/tv-phone-demo/entry/src/test/Lifecycle.test.ets`、`examples/tv-phone-demo/entry/src/main/ets/viewmodel/PlayerViewModel.ets`
-- [ ] T074 [US6] 实现并通过 T073 的示例生命周期协调与资源释放，更新 `examples/tv-phone-demo/entry/src/main/ets/viewmodel/PlayerViewModel.ets`
-- [ ] T075 [US6] 编写 ARM64 TV 100 次生命周期门禁的可执行检查，覆盖来源、遥控器、后台、网络和 release，更新 `scripts/evidence/run-arm64-tv-gate.sh`、`scripts/evidence/validate-evidence.sh`
+- [X] T073 [US6] 先写并运行失败的示例生命周期集成测试：surface 重建、连续切源、后台、断网恢复、重复 release，更新 `examples/tv-phone-demo/entry/src/test/Lifecycle.test.ets`、`examples/tv-phone-demo/entry/src/main/ets/viewmodel/PlayerViewModel.ets`
+- [X] T074 [US6] 实现并通过 T073 的示例生命周期协调与资源释放，更新 `examples/tv-phone-demo/entry/src/main/ets/viewmodel/PlayerViewModel.ets`
+- [X] T075 [US6] 编写 ARM64 TV 100 次生命周期门禁的可执行检查，覆盖来源、遥控器、后台、网络和 release，更新 `scripts/evidence/run-arm64-tv-gate.sh`、`scripts/evidence/validate-evidence.sh`
 - [ ] T076 [US6] 使用 `devecocli device list` 确认 ARM64 TV，使用 `devecocli build` 与 `devecocli run --device <serial>` 安装 API 15 兼容包，执行 T075 并记录真实 API 15/19/22、崩溃、死锁和资源证据，更新 `release/capabilities/arm64-tv-evidence.json`
 - [ ] T077 [US6] 在至少一台可安装手机执行示例基本验证并记录真实结果，更新 `release/capabilities/phone-demo-evidence.json`
 
@@ -172,22 +172,22 @@
 
 **Purpose**: 将跨故事能力、兼容矩阵和发布阻断统一为候选门禁；未有真机样本的一律使用三态中的“已构建待验证”或“不支持或暂缓”。
 
-- [ ] T078 先写并运行失败的能力矩阵 schema/三态校验，拒绝“已构建即支持”、缺设备/样本/限制/证据引用，更新 `scripts/evidence/test-compatibility-matrix.sh`、`scripts/evidence/ijk-compatibility-matrix.json`
-- [ ] T079 实现并通过 T078 的 IJK 兼容矩阵生成和校验，覆盖媒体浏览、WebDAV、SMB lease、轨道/字幕、音频路由、硬解回退、控制和生命周期，不触碰 VidAll_TV，更新 `scripts/evidence/ijk-compatibility-matrix.json`、`scripts/evidence/validate-evidence.sh`
-- [ ] T080 [P] 先写并运行失败的硬解/解码/容器能力记录测试，更新 `native/tests/capability-report_test.cpp`、`native/media/CapabilityReporter.cpp`
-- [ ] T081 [P] 实现并通过 T080 的实际选定解码器、硬解状态/回退、容器/协议能力报告，更新 `native/media/CapabilityReporter.cpp`
-- [ ] T082 [P] 先写并运行失败的视频/音频参数和 SDR 基线事件测试，更新 `native/tests/media_parameters_test.cpp`、`native/media/MediaParameters.cpp`
-- [ ] T083 [P] 实现并通过 T082 的视频/音频参数、SDR 基线及受限高级选项白名单；比例、旋转和像素宽高比仅通过真实参数事件报告，裁剪、去隔行和截图稳定报告 `FEATURE_UNSUPPORTED`，更新 `native/media/MediaParameters.cpp`、`packages/vidall-player/src/public/PlayerOptions.ets`
+- [X] T078 先写并运行失败的能力矩阵 schema/三态校验，拒绝“已构建即支持”、缺设备/样本/限制/证据引用，更新 `scripts/evidence/test-compatibility-matrix.sh`、`scripts/evidence/ijk-compatibility-matrix.json`
+- [X] T079 实现并通过 T078 的 IJK 兼容矩阵生成和校验，覆盖媒体浏览、WebDAV、SMB lease、轨道/字幕、音频路由、硬解回退、控制和生命周期，不触碰 VidAll_TV，更新 `scripts/evidence/ijk-compatibility-matrix.json`、`scripts/evidence/validate-evidence.sh`
+- [X] T080 [P] 先写并运行失败的硬解/解码/容器能力记录测试，更新 `native/tests/capability-report_test.cpp`、`native/media/CapabilityReporter.cpp`
+- [X] T081 [P] 实现并通过 T080 的实际选定解码器、硬解状态/回退、容器/协议能力报告，更新 `native/media/CapabilityReporter.cpp`
+- [X] T082 [P] 先写并运行失败的视频/音频参数和 SDR 基线事件测试，更新 `native/tests/media_parameters_test.cpp`、`native/media/MediaParameters.cpp`
+- [X] T083 [P] 实现并通过 T082 的视频/音频参数、SDR 基线及受限高级选项白名单；比例、旋转和像素宽高比仅通过真实参数事件报告，裁剪、去隔行和截图稳定报告 `FEATURE_UNSUPPORTED`，更新 `native/media/MediaParameters.cpp`、`packages/vidall-player/src/public/PlayerOptions.ets`
 - [ ] T084 在 ARM64 TV 对 1080p/4K/10-bit/60fps/HDR/高规格音频、容器和编解码器记录实际指标；未验证项不标支持，更新 `release/capabilities/arm64-tv-media-matrix.json`
-- [ ] T085 更新候选 SDK 的公开使用说明、已知限制、三态能力说明与 API 兼容记录，更新 `README.md`、`packages/vidall-player/README.md`
+- [X] T085 更新候选 SDK 的公开使用说明、已知限制、三态能力说明与 API 兼容记录，更新 `README.md`、`packages/vidall-player/README.md`
 - [ ] T086 运行 `scripts/audit/verify-release.sh`、consumer-smoke、clean build、ARM64 TV 证据校验与发布回读；任何一项缺失使候选保持 `candidate`/`failed`，更新 `release/manifests/release-manifest.json`
 - [ ] T087 使用 `devecocli build` 进行最终 HarmonyOS 构建门禁并记录真实输出，更新 `release/audits/final-hvigor-build.json`
 - [ ] T088 对候选 HAR、native 库、SBOM、LICENSE/NOTICE、manifest、矩阵和真机证据做最终完整性复核，更新 `release/audits/candidate-readiness.json`
-- [ ] T089 在审批、凭据和双渠道回读均真实满足前，禁止将版本标为 `published`，在 `release/manifests/release-manifest.json` 保持 `candidate` 或写入 `failed`
+- [X] T089 在审批、凭据和双渠道回读均真实满足前，禁止将版本标为 `published`，在 `release/manifests/release-manifest.json` 保持 `candidate` 或写入 `failed`
 - [ ] T090 复核所有功能均先有失败测试并覆盖正常、边界、失败路径；缺任一覆盖则回退对应任务为未完成，更新 `specs/001-harmonyos-mpv-sdk/tasks.md`
 - [ ] T091 执行 `specs/001-harmonyos-mpv-sdk/quickstart.md` 全流程并将每一步真实证据关联到候选清单，更新 `release/audits/quickstart-validation.json`
 - [ ] T092 审计所有项目文档中的能力措辞和敏感数据，修正不符合三态或泄露规则的内容，更新 `README.md`、`packages/vidall-player/README.md`
-- [ ] T093 复核不修改、构建、提交、发布 VidAll_TV 的范围约束，记录隔离验证结论，更新 `release/audits/vidall-tv-isolation.json`
+- [X] T093 复核不修改、构建、提交、发布 VidAll_TV 的范围约束，记录隔离验证结论，更新 `release/audits/vidall-tv-isolation.json`
 - [ ] T094 在候选评审中确认 API 15 安装、API 19 审查、API 22 ARM64 TV 认证证据齐全，更新 `release/audits/api-compatibility-gate.json`
 - [ ] T095 在候选评审中确认 HAR internal native packaging spike 已有可重复的真实结果；无结果不得进入发布审批，更新 `release/audits/har-native-packaging-spike.json`
 - [ ] T096 在候选评审中确认 HTTP/WebDAV/SMB lease 的获取、续期、跨信任剥离和释放证据齐全，更新 `release/audits/network-lease-gate.json`

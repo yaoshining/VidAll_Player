@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked",
+  "requiredEvidence": ["device", "apiLevels", "lifecycleIterations", "crashLog", "deadlockCheck", "resourceCheck"],
+  "reason": "脚本已就绪，但必须在连接的 ARM64 API 22 TV 上执行并人工归档真实日志；本次未写入通过结论。",
+  "requestedDevice": "ARM64-TV-REQUIRED",
+  "requiredIterations": 100,
+  "scenarios": ["source-switch", "remote-focus-back", "background-foreground", "network-recovery", "repeated-release"]
+}

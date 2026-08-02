@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked",
+  "matrix": {
+    "mediaBrowse": {"status": "已构建待验证", "device": "", "sample": "", "knownLimitations": "需与 IJK 在同一 ARM64 TV 样本对照。", "evidenceRef": ""},
+    "webDav": {"status": "已构建待验证", "device": "", "sample": "", "knownLimitations": "需验证认证、重定向、目录浏览和错误恢复。", "evidenceRef": ""},
+    "smbLease": {"status": "不支持或暂缓", "device": "", "sample": "", "knownLimitations": "直接 smb:// 未完成受控 native 能力验证。", "evidenceRef": ""},
+    "tracksSubtitles": {"status": "已构建待验证", "device": "", "sample": "", "knownLimitations": "待真机验证轨道切换及 CJK 字体回退。", "evidenceRef": ""},
+    "audioRoute": {"status": "不支持或暂缓", "device": "", "sample": "", "knownLimitations": "尚无 TV 音频路由证据。", "evidenceRef": ""},
+    "hardwareFallback": {"status": "已构建待验证", "device": "", "sample": "", "knownLimitations": "只报告运行时观察，不从构建推断硬解支持。", "evidenceRef": ""},
+    "controls": {"status": "已构建待验证", "device": "", "sample": "", "knownLimitations": "需使用 TV 遥控器完成真实验证。", "evidenceRef": ""},
+    "lifecycle": {"status": "已构建待验证", "device": "", "sample": "", "knownLimitations": "需完成 100 次 ARM64 TV 生命周期门禁。", "evidenceRef": ""}
+  }
+}

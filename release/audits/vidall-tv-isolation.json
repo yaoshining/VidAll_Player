@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "scope": "VidAll_Player 工作树",
+  "result": "本次变更仅涉及 VidAll_Player 的示例、native 能力报告、脚本和候选审计；未修改、构建、提交或发布 VidAll_TV。"
+}

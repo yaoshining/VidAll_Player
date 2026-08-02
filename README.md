@@ -85,3 +85,9 @@ GitHub Actions 的 `验证 ArkTS 测试模块` 任务会在 PR 和 `main` 的相
 - 功能规格：`specs/001-harmonyos-mpv-sdk/spec.md`
 - SMB localhost HTTP 代理策略与验收用例：`docs/smb-localhost-http-proxy.md`
 - 宪章：`.specify/memory/constitution.md`
+
+## #33 候选门禁
+
+TV/手机示例的生命周期状态机、WebDAV 错误脱敏、遥控器焦点边界和原生能力报告均已纳入本地测试。ARM64 TV 100 次生命周期门禁脚本位于 `scripts/evidence/run-arm64-tv-gate.sh`；必须通过 `devecocli device list` 确认可用 ARM64 API 22 TV 后，使用 `devecocli build` 和 `devecocli run --device <serial>` 取得真实日志。
+
+当前没有连接设备，候选 manifest 维持 `candidate`，发布状态维持 `blocked`。待完成证据包括 API 15 安装、API 19 审查、API 22 ARM64 TV 生命周期与媒体样本、手机示例、双平台 clean build、受控私有源 consumer-smoke、许可证/SBOM 及双渠道回读。

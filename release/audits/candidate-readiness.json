@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked",
+  "reason": "候选收口已执行本地自动化检查，但真实设备、受控制品源和发布审批证据缺失，禁止发布。",
+  "completedLocalChecks": ["native-unit-tests", "compatibility-matrix-validation", "arm64-gate-template-validation"],
+  "blockingChecks": ["clean-build-macos-linux", "consumer-smoke-controlled-source", "arm64-tv-lifecycle", "arm64-tv-media", "phone-demo", "license-and-publication-receipts"]
+}
