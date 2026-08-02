@@ -21,6 +21,15 @@ release/**
 !release/**/.gitkeep
 !release/audits/har-native-packaging-spike.json
 !release/audits/tdd-baseline.json
+!release/audits/candidate-readiness.json
+!release/audits/final-hvigor-build.json
+!release/audits/vidall-tv-isolation.json
+!release/audits/api-compatibility-gate.json
+!release/audits/quickstart-validation.json
+!release/capabilities/arm64-tv-evidence.json
+!release/capabilities/arm64-tv-media-matrix.json
+!release/capabilities/phone-demo-evidence.json
+!release/manifests/release-manifest.json
 # Generated HAR compatibility source
 packages/vidall-player/BuildProfile.ets
 

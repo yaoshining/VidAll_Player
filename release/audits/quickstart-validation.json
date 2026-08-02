@@ -1,0 +1,1 @@
+{"schemaVersion":1,"status":"blocked","reason":"quickstart 中的设备安装、consumer 和发布回读步骤依赖受控源及真实设备，当前不能伪造通过记录。"}

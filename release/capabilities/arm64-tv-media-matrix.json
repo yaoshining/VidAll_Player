@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked",
+  "target": {"abi": "arm64-v8a", "apiLevel": 22, "device": ""},
+  "requiredSamples": ["1080p", "4k", "10-bit", "60fps", "hdr", "high-spec-audio"],
+  "matrix": {
+    "SDR 视频与音频参数": {"status": "已构建待验证", "knownLimitations": "仅在真实参数事件中报告，当前无 ARM64 TV 样本。"},
+    "1080p/4K/10-bit/60fps/HDR": {"status": "不支持或暂缓", "knownLimitations": "没有受控设备和样本的性能、解码、显示链路证据。"},
+    "高规格音频": {"status": "不支持或暂缓", "knownLimitations": "没有许可证、音频路由和真机验证结论。"},
+    "裁剪/去隔行/截图": {"status": "不支持或暂缓", "knownLimitations": "首期稳定返回 FEATURE_UNSUPPORTED。"}
+  }
+}

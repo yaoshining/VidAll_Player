@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked",
+  "reason": "未检测到可安装手机；不得将本地构建结果记作手机验证。",
+  "requiredEvidence": ["device", "installLog", "launchLog", "basicInteraction"],
+  "scenarios": ["install", "launch", "load", "release"]
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "status": "failed",
+  "command": "devecocli build",
+  "recordedAt": "2026-08-02T11:21:36+08:00",
+  "completedStages": ["ohpm install", "hvigor sync", "native build", "ArkTS compile", "HAP packaging"],
+  "failure": {
+    "stage": "SignHap",
+    "code": "00303107",
+    "reason": "build-profile.json5 的 signing/default.p12 storeFile 为空或不可用。"
+  },
+  "publicationImpact": "候选保持 candidate，禁止安装、发布或将该构建记作 ARM64 TV 验证。"
+}

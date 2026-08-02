@@ -11,7 +11,11 @@ export interface PlayerSurface {
   height: number;
 }
 
-export interface PlayerOptions { eventListener?: (event: PlayerEvent) => void; }
+export interface PlayerOptions {
+  eventListener?: (event: PlayerEvent) => void;
+  // 仅允许通过真实运行时参数报告的高级显示项；裁剪、去隔行和截图固定不支持。
+  advancedVideoOptions?: ('rotation' | 'pixelAspectRatio')[];
+}
 
 export interface MediaSource {
   kind: 'localFile' | 'http' | 'https' | 'hls' | 'dash' | 'localhostProxy' | 'smb';
@@ -56,6 +60,7 @@ export interface VideoParams {
   height: number;
   pixelFormat?: string;
   rotation?: number;
+  pixelAspectRatio?: string;
   decoder?: string;
   hardwareDecoding?: 'active' | 'fallback' | 'unavailable';
 }

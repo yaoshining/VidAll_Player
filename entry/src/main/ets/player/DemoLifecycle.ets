@@ -1,52 +1,95 @@
+export type DemoLifecycleState = 'idle' | 'playing' | 'paused' | 'released';
+
 export class DemoLifecycleController {
   private activeSource: string = '';
-  private playing: boolean = false;
+  private state: DemoLifecycleState = 'idle';
   private surfaceDetached: boolean = false;
   private inBackground: boolean = false;
+  private networkInterrupted: boolean = false;
 
   markPlaybackStarted(source: string): void {
     const normalizedSource = source.trim();
     if (normalizedSource.length > 0) {
       this.activeSource = normalizedSource;
     }
-    this.playing = true;
+    this.state = 'playing';
     this.surfaceDetached = false;
+    this.networkInterrupted = false;
   }
 
   markPlaybackStopped(): void {
-    this.playing = false;
+    if (this.state !== 'released') {
+      this.state = 'idle';
+      this.surfaceDetached = false;
+      this.networkInterrupted = false;
+    }
   }
 
   markReleased(): void {
     this.activeSource = '';
-    this.playing = false;
+    this.state = 'released';
     this.surfaceDetached = false;
     this.inBackground = false;
+    this.networkInterrupted = false;
   }
 
   onSurfaceDestroyed(): boolean {
-    this.surfaceDetached = this.playing;
+    this.surfaceDetached = this.state === 'playing' || this.state === 'paused';
     return this.surfaceDetached;
   }
 
   onSurfaceCreated(): boolean {
-    const shouldResume = this.surfaceDetached && this.playing && !this.inBackground && this.activeSource.length > 0;
+    const shouldResume = this.surfaceDetached && (this.state === 'playing' || this.state === 'paused') &&
+      !this.inBackground && !this.networkInterrupted && this.activeSource.length > 0;
     this.surfaceDetached = false;
+    if (shouldResume) {
+      this.state = 'playing';
+    }
     return shouldResume;
   }
 
   onBackground(): boolean {
     this.inBackground = true;
-    return this.playing;
+    if (this.state === 'playing') {
+      this.state = 'paused';
+      return true;
+    }
+    return false;
   }
 
   onForeground(): boolean {
     this.inBackground = false;
-    return this.playing && !this.surfaceDetached && this.activeSource.length > 0;
+    if (this.state === 'paused' && !this.surfaceDetached && !this.networkInterrupted && this.activeSource.length > 0) {
+      this.state = 'playing';
+      return true;
+    }
+    return false;
+  }
+
+  onNetworkLost(): boolean {
+    this.networkInterrupted = this.state === 'playing' || this.state === 'paused';
+    return this.networkInterrupted;
+  }
+
+  onNetworkRecovered(): boolean {
+    if (!this.networkInterrupted) {
+      return false;
+    }
+    this.networkInterrupted = false;
+    if (this.inBackground || this.surfaceDetached || this.activeSource.length === 0 ||
+      this.state === 'released' || this.state === 'idle') {
+      return false;
+    }
+    this.state = 'playing';
+    return true;
   }
 
   getActiveSource(): string {
     return this.activeSource;
+  }
+
+  getState(): DemoLifecycleState {
+    return this.state;
   }
 
   moveFocus(currentIndex: number, itemCount: number, direction: number): number {
@@ -54,6 +97,6 @@ export class DemoLifecycleController {
       return -1;
     }
     const normalizedCurrent = currentIndex < 0 || currentIndex >= itemCount ? 0 : currentIndex;
-    return (normalizedCurrent + direction + itemCount) % itemCount;
+    return Math.min(itemCount - 1, Math.max(0, normalizedCurrent + direction));
   }
 }
