@@ -45,10 +45,7 @@ packages/vidall-player/BuildProfile.ets
 !release/capabilities/evidence/**
 
 # HarmonyOS signing certificates
-signing/*.cer
-signing/*.p12
-signing/*.p7b
-signing/*.jks
+signing/*
 !signing/README.md
 .reproducible-cache/
 examples/consumer-smoke/oh_modules/

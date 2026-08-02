@@ -2,23 +2,36 @@
   "app": {
     "signingConfigs": [
       {
-        "name": "default",
+        "name": "development",
         "type": "HarmonyOS",
         "material": {
-          "certpath": "signing/default.cer",
+          "certpath": "signing/development/app.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001B7157E5DAC8C3BA67C08BDBAE688048B0A673232C671C1DCF602AAD80DAE475D4C72F25CF0BE241",
-          "profile": "signing/default.p7b",
+          "keyPassword": "0000001B4B0DB28A57DB5A6C2B9D15EE228CDBD047C8A6E7B779CE26A1D0A712955F93B8F7B081A6A447E1",
+          "profile": "signing/development/app.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "signing/default.p12",
-          "storePassword": "0000001B25C570C440809E533635F4EF893918002826986EE4154A1580A5B9AD9609AAAACE652C887870E5"
+          "storeFile": "signing/development/app.p12",
+          "storePassword": "0000001B093141CE0F45BD227B72289065F2EA57D8D8851C4BBA6164569ECF26DEE4D1B90B3BD55E6AEFE6"
+        }
+      },
+      {
+        "name": "ci",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "signing/ci/app.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B4B0DB28A57DB5A6C2B9D15EE228CDBD047C8A6E7B779CE26A1D0A712955F93B8F7B081A6A447E1",
+          "profile": "signing/ci/app.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "signing/ci/app.p12",
+          "storePassword": "0000001B093141CE0F45BD227B72289065F2EA57D8D8851C4BBA6164569ECF26DEE4D1B90B3BD55E6AEFE6"
         }
       }
     ],
     "products": [
       {
         "name": "default",
-        "signingConfig": "default",
+        "signingConfig": "development",
         "targetSdkVersion": "6.0.2(22)",
         "compatibleSdkVersion": "5.0.3(15)",
         "runtimeOS": "HarmonyOS",
@@ -31,7 +44,20 @@
       },
       {
         "name": "ci",
-        "signingConfig": "default",
+        "signingConfig": "ci",
+        "targetSdkVersion": "6.0.2(22)",
+        "compatibleSdkVersion": "5.0.3(15)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      },
+      {
+        "name": "production",
+        "signingConfig": "production",
         "targetSdkVersion": "6.0.2(22)",
         "compatibleSdkVersion": "5.0.3(15)",
         "runtimeOS": "HarmonyOS",
@@ -45,7 +71,7 @@
     ],
     "buildModeSet": [
       {
-        "name": "debug",
+        "name": "debug"
       },
       {
         "name": "release"

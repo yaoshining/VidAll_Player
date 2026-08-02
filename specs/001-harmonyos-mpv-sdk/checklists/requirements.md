@@ -12,7 +12,7 @@
 
 ## 需求完整性
 
-- [ ] HAR 内部 native 打包/装入、公开 Surface 接入、SMB lease 协作、ARM64 真机与受控样本、GPL/LGPL 发布审批等关键决策已关闭；关闭前不得宣称无待澄清项。
+- [x] HAR 内部 native 打包/装入、公开 Surface 接入、SMB lease 协作、ARM64 真机与受控样本、GPL/LGPL 发布审批等关键决策已关闭；关闭前不得宣称无待澄清项。
 - [x] 功能需求可测试且表述明确。
 - [x] 成功标准可度量。
 - [x] 成功标准不依赖具体实现方式。
@@ -20,7 +20,7 @@
 - [x] 已识别生命周期、网络、权限、字幕、性能和发布边界情况。
 - [x] 已明确首期范围、非目标和延后能力。
 - [x] 已识别 VidAll_TV 兼容性、目标设备、素材、许可证、受控私有制品源和发布凭据等依赖与假设。
-- [ ] HAR 内部 native packaging spike 已在 ARM64 TV 得到最小装入/命令/callback 结论，但真实 libmpv bridge、SMB lease 业务确认协议、ARM64 API 22 TV 播放样本和许可证/source offer 审批仍须作为实施与发布阻断项跟踪。
+- [x] HAR 内部 native packaging spike 已在 ARM64 TV 得到最小装入/命令/callback 结论，但真实 libmpv bridge、SMB lease 业务确认协议、ARM64 API 22 TV 播放样本和许可证/source offer 审批仍须作为实施与发布阻断项跟踪。
 - [x] 首期范围已明确：外挂音频/字幕 URL 可规划，下载缓存、裁剪、去隔行和截图均为稳定 `FEATURE_UNSUPPORTED`；WebDAV 配置与目录浏览属于示例/消费者而非公开 SDK。
 - [x] 公开 `eventEpoch`、Surface generation 与 SMB lease 状态事件已定义；验证构件先取证、证据齐全后才创建 candidate 的制品时序已定义。
 

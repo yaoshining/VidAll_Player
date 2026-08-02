@@ -1,9 +1,14 @@
-# HarmonyOS 签名证书占位目录
+# HarmonyOS 多环境签名材料
 
-本目录用于存放 HarmonyOS 应用签名证书文件：
-- default.cer：HarmonyOS 应用证书
-- default.p12：PKCS#12 密钥库文件
-- default.p7b：Provisioning profile（描述文件）
+本目录只保存本机或受控 runner 在构建期间注入的 HarmonyOS 签名材料；所有证书、密钥库、描述文件和密码均不得提交到仓库。
 
-本地开发时，从 `~/.ohos/config/` 复制证书文件到本目录。
-CI 环境中，证书应由受控 runner 提供，不应提交到代码仓库。
+## 环境与产物
+
+| 构建产品 | 签名配置 | 本地材料目录 | 用途 |
+| --- | --- | --- | --- |
+| `default` | `development` | `signing/development/` | 开发调试 |
+| `ci` | `ci` | `signing/ci/` | CI 测试 HAP |
+
+每个目录均使用固定文件名：`app.cer`、`app.p12`、`app.p7b`，并包含 DevEco Studio 创建的 `material/` 辅助材料。当前 CI 使用从开发环境复制出的独立材料副本，密码采用同一套 DevEco Studio 生成的密文，因此可直接构建测试 HAP。
+
+`signing/` 下的材料均被 Git 忽略，不得提交。后续如需更换 CI 证书，只替换 `signing/ci/` 中的内容，并同步更新 `build-profile.json5` 的 `ci` 密文密码；不要修改开发环境材料。

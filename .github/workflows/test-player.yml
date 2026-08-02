@@ -12,6 +12,8 @@ on:
       - 'oh-package.json5'
       - 'oh-package-lock.json5'
       - '.github/workflows/test-player.yml'
+      - 'scripts/signing/**'
+      - 'signing/README.md'
   push:
     branches: [main]
     paths:
@@ -24,6 +26,8 @@ on:
       - 'oh-package.json5'
       - 'oh-package-lock.json5'
       - '.github/workflows/test-player.yml'
+      - 'scripts/signing/**'
+      - 'signing/README.md'
   workflow_dispatch:
 
 permissions:
@@ -39,70 +43,13 @@ jobs:
       - name: 检出项目
         uses: actions/checkout@v4
 
-      - name: 检查 HarmonyOS 签名证书
-        id: check_certs
-        env:
-          # 受控 runner 可注入稳定签名 basename；未设置时自动探测 ~/.ohos/config
-          OHOS_SIGNING_BASENAME: ${{ vars.OHOS_SIGNING_BASENAME }}
-        run: |
-          CONFIG_DIR="$HOME/.ohos/config"
-          BASE=""
-
-          # 1. 若已注入 basename，按该名称查找
-          if [ -n "$OHOS_SIGNING_BASENAME" ]; then
-            if [ -f "$CONFIG_DIR/${OHOS_SIGNING_BASENAME}.cer" ] && \
-               [ -f "$CONFIG_DIR/${OHOS_SIGNING_BASENAME}.p12" ] && \
-               [ -f "$CONFIG_DIR/${OHOS_SIGNING_BASENAME}.p7b" ]; then
-              BASE="$OHOS_SIGNING_BASENAME"
-            fi
-          fi
-
-          # 2. 未指定或未找到时，自动探测同 basename 的 .cer/.p12/.p7b 组合
-          if [ -z "$BASE" ] && [ -d "$CONFIG_DIR" ]; then
-            for cer in "$CONFIG_DIR"/*.cer; do
-              [ -f "$cer" ] || continue
-              stem="${cer%.cer}"
-              if [ -f "${stem}.p12" ] && [ -f "${stem}.p7b" ]; then
-                BASE="$(basename "$stem")"
-                break
-              fi
-            done
-          fi
-
-          if [ -n "$BASE" ]; then
-            echo "certificates_exist=true" >> $GITHUB_OUTPUT
-            mkdir -p signing
-            cp "$CONFIG_DIR/${BASE}.cer" signing/default.cer
-            cp "$CONFIG_DIR/${BASE}.p12" signing/default.p12
-            cp "$CONFIG_DIR/${BASE}.p7b" signing/default.p7b
-            echo "已复制签名证书到项目目录 (basename: $BASE)"
-          else
-            echo "certificates_exist=false" >> $GITHUB_OUTPUT
-            echo "警告：未找到 HarmonyOS 签名证书，跳过测试 HAP 构建"
-            echo "HAR 构建将继续执行，但测试 HAP 需要签名证书"
-          fi
-
       - name: 还原 ohpm 依赖并编译 HAR
         run: devecocli build --modules vidall_player@default
 
-      - name: 编译 Hypium 测试模块（如有证书）
-        if: steps.check_certs.outputs.certificates_exist == 'true'
-        run: devecocli build --modules entry@ohosTest
-
-      - name: 跳过测试 HAP 构建（无证书）
-        if: steps.check_certs.outputs.certificates_exist != 'true'
-        run: |
-          echo "跳过测试 HAP 构建 - 缺少签名证书"
-          echo "HAR 构建成功完成，测试 HAP 需要有效的 HarmonyOS 签名证书"
-          echo "如需在 CI 中构建测试 HAP，请在 runner 上配置签名证书"
+      - name: 编译 CI 签名的 Hypium 测试模块
+        run: devecocli build --product ci --modules entry@ohosTest
 
       - name: 说明端侧执行限制
         run: |
           echo 'GitHub 托管运行器没有 HarmonyOS 设备。'
           echo 'Hypium 用例需在受控设备通过 aa test 执行；本任务仅验证测试模块可以构建。'
-
-      - name: 清理签名材料
-        if: always()
-        run: |
-          rm -f signing/default.cer signing/default.p12 signing/default.p7b
-          echo "已清理工作区中的签名材料"
