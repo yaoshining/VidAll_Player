@@ -132,19 +132,20 @@
 
 **Independent Test**: macOS/Linux clean build、isolated consumer-smoke、HAR/native SHA、ELF、SBOM/LICENSE/NOTICE、候选 manifest 与双渠道回读均通过。
 
-- [ ] T055 [US5] 先写并运行失败的完整锁定校验测试：缺传递依赖、浮动版本、SHA/许可证/工具链缺失必须非零，更新 `scripts/build/test-sources-lock.sh`、`native/config/sources.lock.json`
-- [ ] T056 [US5] 实现并通过 T055 的完整不可变 sources lock，覆盖 libmpv、FFmpeg、子模块、补丁、工具链、许可证和构建开关，更新 `native/config/sources.lock.json`
-- [ ] T057 [US5] 先写并运行失败的受控离线构建测试：未校验下载、bootstrap 脚本、缺缓存输入均必须失败，更新 `scripts/build/test-reproducible-build.sh`、`scripts/build/reproducible-build.sh`
-- [ ] T058 [US5] 实现并通过 T057 的受控下载、校验、补丁与离线 ARM64 构建，禁止候选流程调用 bootstrap，更新 `scripts/build/reproducible-build.sh`
-- [ ] T059 [P] [US5] 先写并运行失败的 ELF 审计测试：架构、ABI、SONAME/NEEDED、导出白名单、禁止符号与工具缺失，更新 `scripts/audit/test-verify-release.sh`、`scripts/audit/verify-release.sh`
-- [ ] T060 [P] [US5] 实现并通过 T059 的 ELF/SHA/敏感信息审计，更新 `scripts/audit/verify-release.sh`、`scripts/audit/scan-sensitive-data.sh`
-- [ ] T061 [US5] 先写并运行失败的验证构件 manifest 测试：缺 HAR/native ABI、SHA、ELF 审计、内部装入或 consumer-smoke 证明必须阻断，但不要求尚未取得的真机证据，更新 `scripts/release/test-verification-manifest.sh`、`scripts/release/create-verification-artifact.sh`
-- [ ] T062 [US5] 实现并通过 T061 的不可变验证构件、SBOM、许可证结论、NOTICE、能力清单和 verification manifest 生成；验证构件不得上传或标称候选，更新 `scripts/release/create-verification-artifact.sh`、`scripts/release/generate-sbom.sh`、`scripts/release/generate-licenses.sh`
-- [ ] T063 [US5] 先写并运行失败的独立 consumer-smoke 测试：只能从受控验证构件安装、仅用公开 API、不能访问 `native/` 或 VidAll_TV，更新 `examples/consumer-smoke/oh-package.json5`、`examples/consumer-smoke/test/public-consumer-smoke.test.ets`
-- [ ] T064 [US5] 实现并通过 T063 的隔离 consumer-smoke 创建→附着→加载→播放→两次 release，更新 `examples/consumer-smoke/entry/src/main/ets/pages/Index.ets`
-- [ ] T065 [US5] 先写并运行失败的双渠道发布/回读测试：无批准/凭据、上传失败、版本或 SHA 不一致不得 published，且仅能由证据齐全的验证构件创建 candidate，更新 `scripts/release/test-publish-readback.sh`、`scripts/release/create-candidate.sh`、`scripts/release/publish-candidate.sh`
-- [ ] T066 [US5] 实现并通过 T065 的 candidate 创建、同一候选上传 GitHub Release/批准私有 ohpm 源和回读收据，更新 `scripts/release/create-candidate.sh`、`scripts/release/publish-candidate.sh`、`scripts/release/verify-publication-receipt.sh`
+- [X] T055 [US5] 先写并运行失败的完整锁定校验测试：缺传递依赖、浮动版本、SHA/许可证/工具链缺失必须非零，更新 `scripts/build/test-sources-lock.sh`、`native/config/sources.lock.json`
+- [X] T056 [US5] 实现并通过 T055 的完整不可变 sources lock，覆盖 libmpv、FFmpeg、子模块、补丁、工具链、许可证和构建开关，更新 `native/config/sources.lock.json`
+- [X] T057 [US5] 先写并运行失败的受控离线构建测试：未校验下载、bootstrap 脚本、缺缓存输入均必须失败，更新 `scripts/build/test-reproducible-build.sh`、`scripts/build/reproducible-build.sh`
+- [X] T058 [US5] 实现并通过 T057 的受控下载、校验、补丁与离线 ARM64 构建，禁止候选流程调用 bootstrap，更新 `scripts/build/reproducible-build.sh`
+- [X] T059 [P] [US5] 先写并运行失败的 ELF 审计测试：架构、ABI、SONAME/NEEDED、导出白名单、禁止符号与工具缺失，更新 `scripts/audit/test-verify-release.sh`、`scripts/audit/verify-release.sh`
+- [X] T060 [P] [US5] 实现并通过 T059 的 ELF/SHA/敏感信息审计，更新 `scripts/audit/verify-release.sh`、`scripts/audit/scan-sensitive-data.sh`
+- [X] T061 [US5] 先写并运行失败的验证构件 manifest 测试：缺 HAR/native ABI、SHA、ELF 审计、内部装入或 consumer-smoke 证明必须阻断，但不要求尚未取得的真机证据，更新 `scripts/release/test-verification-manifest.sh`、`scripts/release/create-verification-artifact.sh`
+- [X] T062 [US5] 实现并通过 T061 的不可变验证构件、SBOM、许可证结论、NOTICE、能力清单和 verification manifest 生成；验证构件不得上传或标称候选，更新 `scripts/release/create-verification-artifact.sh`、`scripts/release/generate-sbom.sh`、`scripts/release/generate-licenses.sh`
+- [X] T063 [US5] 先写并运行失败的独立 consumer-smoke 测试：只能从受控验证构件安装、仅用公开 API、不能访问 `native/` 或 VidAll_TV，更新 `examples/consumer-smoke/oh-package.json5`、`examples/consumer-smoke/test/public-consumer-smoke.test.ets`
+- [X] T064 [US5] 实现并通过 T063 的隔离 consumer-smoke 创建→附着→加载→播放→两次 release，更新 `examples/consumer-smoke/entry/src/main/ets/pages/Index.ets`
+- [X] T065 [US5] 先写并运行失败的双渠道发布/回读测试：无批准/凭据、上传失败、版本或 SHA 不一致不得 published，且仅能由证据齐全的验证构件创建 candidate，更新 `scripts/release/test-publish-readback.sh`、`scripts/release/create-candidate.sh`、`scripts/release/publish-candidate.sh`
+- [X] T066 [US5] 实现并通过 T065 的 candidate 创建、同一候选上传 GitHub Release/批准私有 ohpm 源和回读收据，更新 `scripts/release/create-candidate.sh`、`scripts/release/publish-candidate.sh`、`scripts/release/verify-publication-receipt.sh`
 - [ ] T067 [US5] 以真实 macOS 与 Linux 空目录执行 clean build，归档输入/差异解释；任何缺失保持未完成，更新 `release/manifests/clean-build-record.json`
+  - **BLOCKED**: `release/manifests/clean-build-record.json` 已创建（status: blocked），`scripts/build/record-clean-build.sh` 已实现；真实双平台 clean build 需配置完整交叉编译工具链（aarch64-linux-ohos）后在 macOS+Linux 空目录执行。
 - [ ] T068 [US5] 从受控验证构件真实安装并运行 consumer-smoke，归档安装/运行证据；未获源权限保持未完成，更新 `release/audits/consumer-smoke.json`
 
 ---

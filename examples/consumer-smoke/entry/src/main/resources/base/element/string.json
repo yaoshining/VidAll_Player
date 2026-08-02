@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "Consumer smoke test module"
+    },
+    {
+      "name": "MainAbility_desc",
+      "value": "Main ability for consumer smoke test"
+    },
+    {
+      "name": "MainAbility_label",
+      "value": "ConsumerSmoke"
+    }
+  ]
+}

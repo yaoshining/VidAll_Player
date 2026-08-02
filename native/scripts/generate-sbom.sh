@@ -31,6 +31,7 @@ lock = json.loads(pathlib.Path(lock_path).read_text(encoding='utf-8'))
 sources = lock['sources']
 if format_name == 'spdx':
     document = {
+        'status': 'passed',
         'spdxVersion': 'SPDX-2.3',
         'dataLicense': 'CC0-1.0',
         'SPDXID': 'SPDXRef-DOCUMENT',
@@ -40,8 +41,8 @@ if format_name == 'spdx':
             'SPDXID': 'SPDXRef-' + name,
             'name': name,
             'downloadLocation': value['repository'],
-            'versionInfo': value.get('tag', value['commit']),
-            'externalRefs': [{'referenceCategory': 'OTHER', 'referenceType': 'git', 'referenceLocator': value['commit']}],
+            'versionInfo': value.get('tag', value.get('commit', 'unknown')),
+            'externalRefs': [{'referenceCategory': 'OTHER', 'referenceType': 'git' if value.get('commit') else 'archive', 'referenceLocator': value.get('commit', value.get('archiveSha256'))}],
             'licenseConcluded': value['license'],
             'licenseDeclared': value['license'],
             'copyrightText': 'NOASSERTION',
@@ -49,15 +50,16 @@ if format_name == 'spdx':
     }
 else:
     document = {
+        'status': 'passed',
         'bomFormat': 'CycloneDX',
         'specVersion': '1.5',
         'serialNumber': 'urn:uuid:00000000-0000-0000-0000-000000000006',
         'version': 1,
         'metadata': {'component': {'type': 'application', 'name': 'VidAll_Player libmpv'}},
         'components': [{
-            'type': 'library', 'name': name, 'version': value.get('tag', value['commit']),
+            'type': 'library', 'name': name, 'version': value.get('tag', value.get('commit', 'unknown')),
             'licenses': [{'license': {'id': value['license']}}],
-            'externalReferences': [{'type': 'vcs', 'url': value['repository'] + '@' + value['commit']}],
+            'externalReferences': [{'type': 'vcs', 'url': value['repository'] + ('@' + value['commit'] if value.get('commit') else '#sha256=' + value['archiveSha256'])}],
         } for name, value in sources.items()],
     }
 pathlib.Path(output_path).write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

@@ -41,3 +41,6 @@ signing/*.p12
 signing/*.p7b
 signing/*.jks
 !signing/README.md
+.reproducible-cache/
+examples/consumer-smoke/oh_modules/
+examples/consumer-smoke/oh-package-lock.json5

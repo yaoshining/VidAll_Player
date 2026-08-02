@@ -1,0 +1,11 @@
+{
+  "name": "@vidall/consumer-smoke-test",
+  "version": "0.1.0",
+  "description": "Test module for consumer smoke test",
+  "main": "public-consumer-smoke.test.ets",
+  "author": "VidAll",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@vidall/player": "file:../candidate/vidall-player.har"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@vidall/consumer-smoke",
+  "version": "0.1.0",
+  "description": "Consumer smoke test for VidAll Player SDK - uses only public API, no access to native/entry/VidAll_TV",
+  "main": "Index.ets",
+  "author": "VidAll",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@vidall/player": "file:./candidate/vidall-player.har"
+  },
+  "modelVersion": "6.0.2"
+}

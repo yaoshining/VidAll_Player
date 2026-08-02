@@ -1,0 +1,10 @@
+{
+  "name": "entry",
+  "version": "0.1.0",
+  "description": "Consumer smoke test entry module",
+  "author": "VidAll",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@vidall/player": "file:../candidate/vidall-player.har"
+  }
+}

@@ -1,0 +1,2 @@
+# Candidate HAR is supplied by the release workflow and must not be committed.
+candidate/*.har
