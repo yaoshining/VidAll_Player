@@ -7,6 +7,7 @@ import {
   PlayerEvent,
   PlayerTrack,
   PlayerTrackKind,
+  VideoParams,
   ExternalAudio,
   ExternalSubtitle
 } from '@vidall/player';
@@ -15,6 +16,7 @@ import { common } from '@kit.AbilityKit';
 import { KeyCode } from '@kit.InputKit';
 import { image } from '@kit.ImageKit';
 import { detectMediaKind, newProxyLeaseId } from '../player/MediaKindDetection';
+import { computeLetterboxSize } from '../player/videoLetterbox';
 import { DemoLifecycleController } from '../player/DemoLifecycle';
 import { splitTracks, trackLabel } from '../player/TrackPresentation';
 import { buildBasicAuthorization, buildWebDavPlaybackHeaders, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
@@ -59,6 +61,21 @@ struct Index {
   @State smbConfigStatus: string = '';
   @State audioTracks: PlayerTrack[] = [];
   @State subtitleTracks: PlayerTrack[] = [];
+  // 视频真实宽高比：默认 16:9，收到原生 videoParams 事件后按真实分辨率更新，
+  // 用于让视频容器按比例居中显示，避免 SURFACE XComponent 在低 API 级别下强制拉伸填满。
+  @State videoAspectRatio: number = 16 / 9;
+  @State isFullscreen: boolean = false;
+  @State isExitButtonVisible: boolean = false;
+  private exitButtonHideTimer: number | undefined = undefined;
+  // 视频显示框（letterbox 内框）的最终尺寸，按外框尺寸与真实宽高比计算得出；
+  // 0 表示尚未测量到外框尺寸，此时先填满外框，等 onAreaChange 触发后立即校正。
+  @State videoBoxWidthVp: number = 0;
+  @State videoBoxHeightVp: number = 0;
+  private outerWidthVp: number = 0;
+  private outerHeightVp: number = 0;
+  // 初始默认值仅用于首次 attach 前的占位，onAreaChange 触发后会立即校正为真实像素尺寸。
+  private lastKnownWidthPx: number = 1280;
+  private lastKnownHeightPx: number = 720;
   private webDavBrowseGeneration: number = 0;
   private readonly lifecycle: DemoLifecycleController = new DemoLifecycleController();
 
@@ -116,6 +133,15 @@ struct Index {
         this.refreshTracksFromEvent(event.tracks ?? []);
         break;
       }
+      case 'videoParams': {
+        const params = event.params as VideoParams;
+        if (params !== undefined && params.width > 0 && params.height > 0) {
+          this.videoAspectRatio = params.width / params.height;
+          this.recomputeVideoBoxSize();
+          console.info(`VidAll_Player: videoParams ${params.width}x${params.height}`);
+        }
+        break;
+      }
       case 'buffering': {
         if (event.paused) {
           this.bufferingInfo = '缓冲中：等待缓存恢复 (paused-for-cache)';
@@ -125,6 +151,7 @@ struct Index {
         break;
       }
       case 'state': {
+        console.info(`VidAll_Player: state -> ${event.state}`);
         if (event.state === 'playing') {
           this.isPlaying = true;
           this.showVideo = true;
@@ -554,6 +581,54 @@ struct Index {
     this.lifecycle.markReleased();
   }
 
+  private vpToPx(vp: number): number {
+    return Math.round(this.getUIContext().vp2px(vp));
+  }
+
+  // 外框（letterbox 画框）尺寸变化时（初始布局、全屏切换）触发，
+  // 记录外框实际 vp 尺寸并据此重新计算内部按比例居中的视频框尺寸。
+  private onOuterAreaChange(newValue: Area): void {
+    const width = Number(newValue.width);
+    const height = Number(newValue.height);
+    if (!(width > 0) || !(height > 0)) {
+      return;
+    }
+    this.outerWidthVp = width;
+    this.outerHeightVp = height;
+    this.recomputeVideoBoxSize();
+  }
+
+  // 用显式计算的宽高代替 ArkUI 的 aspectRatio 自动布局：
+  // aspectRatio + constraintSize 在 Stack 场景下的最终尺寸解析存在不确定性，
+  // 曾观察到视频框失控放大到远超外框的尺寸（例如 3819x2148），
+  // 导致原生缓冲区与 XComponent 实际渲染尺寸不匹配、画面无法正常显示（全黑）。
+  // 因此改为自行按“取更小的缩放比例”算法算出确定的内框宽高，直接赋给 .width()/.height()。
+  private recomputeVideoBoxSize(): void {
+    const size = computeLetterboxSize(this.outerWidthVp, this.outerHeightVp, this.videoAspectRatio);
+    if (size === undefined) {
+      return;
+    }
+    this.videoBoxWidthVp = size.width;
+    this.videoBoxHeightVp = size.height;
+  }
+
+  // XComponent 自身尺寸变化（跟随 videoBoxWidthVp/videoBoxHeightVp 更新）时触发，
+  // 把真实像素尺寸同步给原生渲染器，使缓冲区尺寸与实际渲染尺寸保持一致。
+  private onSurfaceAreaChange(newValue: Area): void {
+    const width = this.vpToPx(Number(newValue.width));
+    const height = this.vpToPx(Number(newValue.height));
+    if (width <= 0 || height <= 0) {
+      return;
+    }
+    this.lastKnownWidthPx = width;
+    this.lastKnownHeightPx = height;
+    if (this.surfaceAdapter !== null) {
+      this.surfaceAdapter.onSizeChange(width, height).catch((e: Error) => {
+        console.error(`VidAll_Player onSizeChange failed: ${e}`);
+      });
+    }
+  }
+
   private attachSurface(): void {
     console.info(`VidAll_Player attachSurface: called`);
     const surfaceId = this.surfaceController.getXComponentSurfaceId();
@@ -564,8 +639,10 @@ struct Index {
       console.error(`VidAll_Player attachSurface: surfaceAdapter null`);
       return;
     }
-    // 委托给 XComponentSurfaceAdapter 处理 attach/generation/尺寸校验。
-    this.surfaceAdapter.onLoad(surfaceId, 1280, 720).then(() => {
+    // 委托给 XComponentSurfaceAdapter 处理 attach/generation/尺寸校验；
+    // 使用最近一次 onAreaChange 上报的真实像素尺寸而非固定值，
+    // 避免原生缓冲区宽高比与实际渲染区域宽高比不一致导致画面拉伸。
+    this.surfaceAdapter.onLoad(surfaceId, this.lastKnownWidthPx, this.lastKnownHeightPx).then(() => {
       this.nativeStatus = `Surface 已接入：${surfaceId}`;
       this.lifecycle.onSurfaceCreated();
       this.tryAutoPlay();
@@ -640,21 +717,12 @@ struct Index {
     }
   }
 
-  build() {
-    Scroll() {
-      Column({ space: 16 }) {
-      Text('VidAll Player')
-        .fontSize(36)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#F4F7FB')
-
-      Text('HarmonyOS libmpv + XComponent + EGL/GLES 验证')
-        .fontSize(18)
-        .fontColor('#AFC6E9')
-
-      // Video display area — XComponent provides surface, Image(PixelMap) overlays for emulator display
+  @Builder
+  VideoStack() {
+    Stack() {
+      // 内层按真实视频宽高比计算出确定的宽高，在外层黑色画框内居中显示（letterbox），
+      // 避免 SURFACE 类型 XComponent 在当前 API 级别下只能拉伸填满的限制。
       Stack() {
-        // XComponent surface (used for NativeWindow path on real hardware)
         XComponent({ id: 'mpv-video-surface', type: XComponentType.SURFACE, controller: this.surfaceController })
           .width('100%')
           .height('100%')
@@ -672,26 +740,96 @@ struct Index {
             this.lifecycle.onSurfaceDestroyed();
             this.surfaceId = '';
           })
-        // Status text when no video
-        if (!this.showVideo) {
-          Text(this.player !== null ? '正在等待视频帧...' : '点击"加载视频"开始播放')
-            .fontSize(18)
-            .fontColor('#D9E6F7')
-        }
+          .onAreaChange((_: Area, newValue: Area) => this.onSurfaceAreaChange(newValue))
       }
-      .width('88%')
-      .height(260)
-      .border({ width: 2, color: '#426991', radius: 12 })
-      .backgroundColor('#07121F')
+      .width(this.videoBoxWidthVp > 0 ? this.videoBoxWidthVp : '100%')
+      .height(this.videoBoxHeightVp > 0 ? this.videoBoxHeightVp : '100%')
 
-      // 播放控制栏：紧贴视频画面，方便操作
-      Row({ space: 10 }) {
-        Button(this.isPlaying ? '暂停' : '播放')
-          .id('toggle-playback-button')
+      // Status text when no video
+      if (!this.showVideo) {
+        Text(this.player !== null ? '正在等待视频帧...' : '点击"加载视频"开始播放')
+          .fontSize(18)
+          .fontColor('#D9E6F7')
+      }
+
+      if (this.isFullscreen) {
+        // 退出全屏按钮默认隐藏；鼠标悬停、点击画面或按返回键都能重新显示/退出，
+        // 兼顾桌面鼠标与 TV 遥控器等无鼠标输入场景。
+        Button('退出全屏')
+          .id('exit-fullscreen-button')
           .fontSize(16)
-          .backgroundColor('#1A9A78')
-          .enabled(this.player !== null)
-          .onClick(() => this.togglePlayback())
+          .backgroundColor('#4B6C8A')
+          .position({ x: 12, y: 12 })
+          .opacity(this.isExitButtonVisible ? 1 : 0)
+          .onClick(() => { this.isFullscreen = false; })
+      }
+    }
+    .width(this.isFullscreen ? '100%' : '88%')
+    .height(this.isFullscreen ? '100%' : 260)
+    .border({ width: 2, color: '#426991', radius: 12 })
+    .backgroundColor('#07121F')
+    .onAreaChange((_: Area, newValue: Area) => this.onOuterAreaChange(newValue))
+    .onHover((isHover: boolean) => {
+      if (this.isFullscreen && isHover) {
+        this.revealExitButton();
+      }
+    })
+    .onClick(() => {
+      if (this.isFullscreen) {
+        this.revealExitButton();
+      }
+    })
+  }
+
+  // 显示退出全屏按钮，并在 3 秒无操作后自动隐藏，避免遮挡画面。
+  private revealExitButton(): void {
+    this.isExitButtonVisible = true;
+    if (this.exitButtonHideTimer !== undefined) {
+      clearTimeout(this.exitButtonHideTimer);
+    }
+    this.exitButtonHideTimer = setTimeout(() => {
+      this.isExitButtonVisible = false;
+      this.exitButtonHideTimer = undefined;
+    }, 3000);
+  }
+
+  // 按返回键时优先退出全屏，而不是直接退出应用/页面。
+  onBackPress(): boolean {
+    if (this.isFullscreen) {
+      this.isFullscreen = false;
+      return true;
+    }
+    return false;
+  }
+
+  build() {
+    Column() {
+      if (!this.isFullscreen) {
+        Text('VidAll Player')
+          .fontSize(36)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#F4F7FB')
+
+        Text('HarmonyOS libmpv + XComponent + EGL/GLES 验证')
+          .fontSize(18)
+          .fontColor('#AFC6E9')
+      }
+
+      // Video display area — 常驻挂载，全屏切换只改变尺寸而不销毁重建 XComponent，
+      // 避免反复 attach/detach 原生 Surface 导致画面无法恢复（黑屏）。
+      this.VideoStack()
+
+      if (!this.isFullscreen) {
+        Scroll() {
+          Column({ space: 16 }) {
+          // 播放控制栏：紧贴视频画面，方便操作
+          Row({ space: 10 }) {
+            Button(this.isPlaying ? '暂停' : '播放')
+              .id('toggle-playback-button')
+              .fontSize(16)
+              .backgroundColor('#1A9A78')
+              .enabled(this.player !== null)
+              .onClick(() => this.togglePlayback())
 
         Button('快退 10s')
           .id('seek-backward-button')
@@ -713,6 +851,13 @@ struct Index {
           .backgroundColor('#9B6A2F')
           .enabled(this.player !== null)
           .onClick(() => this.stopPlayback())
+
+        Button('全屏')
+          .id('toggle-fullscreen-button')
+          .fontSize(16)
+          .backgroundColor('#5B4B8A')
+          .enabled(this.showVideo)
+          .onClick(() => { this.isFullscreen = true; })
       }
       .width('88%')
       .justifyContent(FlexAlign.Center)
@@ -1020,6 +1165,9 @@ struct Index {
       .justifyContent(FlexAlign.Start)
       .alignItems(HorizontalAlign.Center)
       .padding(28)
+    }
+    .layoutWeight(1)
+      }
     }
     .width('100%')
     .height('100%')

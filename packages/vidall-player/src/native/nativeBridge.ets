@@ -9,7 +9,7 @@ export interface DirectSmbCapability {
 }
 
 export interface NativeBridgeEvent {
-  type: 'state' | 'error';
+  type: 'state' | 'error' | 'videoParams';
   message: string;
   eventEpoch: number;
   sequence: number;
@@ -162,7 +162,7 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 
   pause(): Promise<void> {
-    return Promise.reject(new PlayerFailure({ domain: 'native', code: 'FEATURE_UNSUPPORTED', message: '暂停尚未由最小 libmpv bridge 提供。', retryable: false, context: {} }));
+    return this.complete(nativeSession.pause(this.handle));
   }
 
   stop(): Promise<void> {

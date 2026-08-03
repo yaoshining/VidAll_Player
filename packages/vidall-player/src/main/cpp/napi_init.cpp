@@ -133,6 +133,13 @@ public:
         mpv_set_option_string(player_.get(), "config", "no");
         mpv_set_option_string(player_.get(), "vo", "libmpv");
         if (mpv_initialize(player_.get()) < 0) return false;
+        // 观察 dwidth/dheight（已包含旋转与像素宽高比修正后的显示尺寸），
+        // 用于向 ArkTS 层上报真实视频宽高比，避免画面被拉伸。
+        mpv_observe_property(player_.get(), 0, "dwidth", MPV_FORMAT_INT64);
+        mpv_observe_property(player_.get(), 0, "dheight", MPV_FORMAT_INT64);
+        // 观察 pause 属性变化，用于在暂停/恢复播放时向 ArkTS 层上报状态，
+        // 使 playerSession 状态机能正确在 playing <-> paused 间迁移。
+        mpv_observe_property(player_.get(), 0, "pause", MPV_FORMAT_FLAG);
         eventThread_ = std::thread(&NativeSession::EventLoop, this, player_.get());
         return true;
     }
@@ -215,6 +222,15 @@ public:
         return {true, handle, "OK"};
     }
 
+    NativeResult Pause(std::uint64_t handle)
+    {
+        std::lock_guard<std::mutex> lock(lifecycleMutex_);
+        if (released_) return {false, handle, "RELEASED"};
+        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        if (mpv_set_property_string(player_.get(), "pause", "yes") < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
+        return {true, handle, "OK"};
+    }
+
     NativeResult Stop(std::uint64_t handle)
     {
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
@@ -294,6 +310,10 @@ private:
 
     void EventLoop(mpv_handle* player)
     {
+        // dwidth_/dheight_/pause 相关本地变量只在事件线程读写，无需原子操作。
+        int lastDispatchedWidth = 0;
+        int lastDispatchedHeight = 0;
+        int lastDispatchedPause = -1; // -1 表示尚未收到过第一次通知（用作基线，不上报）
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
@@ -301,8 +321,35 @@ private:
                 const auto* end = static_cast<mpv_event_end_file*>(event->data);
                 if (end != nullptr && end->reason == MPV_END_FILE_REASON_ERROR) Dispatch("error", "libmpv playback failed");
             }
+            if (event->event_id == MPV_EVENT_PROPERTY_CHANGE) {
+                const auto* prop = static_cast<mpv_event_property*>(event->data);
+                if (prop != nullptr && prop->format == MPV_FORMAT_INT64 && prop->data != nullptr) {
+                    const int64_t value = *static_cast<int64_t*>(prop->data);
+                    if (std::strcmp(prop->name, "dwidth") == 0) videoWidth_ = static_cast<int>(value);
+                    if (std::strcmp(prop->name, "dheight") == 0) videoHeight_ = static_cast<int>(value);
+                    const int width = videoWidth_;
+                    const int height = videoHeight_;
+                    if (width > 0 && height > 0 && (width != lastDispatchedWidth || height != lastDispatchedHeight)) {
+                        lastDispatchedWidth = width;
+                        lastDispatchedHeight = height;
+                        Dispatch("videoParams", std::to_string(width) + "x" + std::to_string(height));
+                    }
+                }
+                if (prop != nullptr && prop->format == MPV_FORMAT_FLAG && prop->data != nullptr &&
+                    std::strcmp(prop->name, "pause") == 0) {
+                    const int value = *static_cast<int*>(prop->data);
+                    if (lastDispatchedPause == -1) {
+                        // 首次通知只作为基线记录，避免在尚未真正暂停/恢复过时误报状态。
+                        lastDispatchedPause = value;
+                    } else if (value != lastDispatchedPause) {
+                        lastDispatchedPause = value;
+                        Dispatch("state", value ? "paused" : "resumed");
+                    }
+                }
+            }
         }
     }
+
 
     void RenderLoop()
     {
@@ -447,6 +494,9 @@ private:
     std::atomic<std::uint64_t> eventSequence_{0};
     std::atomic<int> width_{0};
     std::atomic<int> height_{0};
+    // videoWidth_/videoHeight_ 只在 EventLoop 所在的事件线程读写，无需原子操作。
+    int videoWidth_ = 0;
+    int videoHeight_ = 0;
     std::atomic<bool> firstFrameSent_{false};
     OHNativeWindow* window_ = nullptr;
     mpv_render_context* renderer_ = nullptr;
@@ -547,18 +597,22 @@ napi_value Load(napi_env env, napi_callback_info info)
 #endif
 }
 
-napi_value Control(napi_env env, napi_callback_info info, bool play)
+napi_value Control(napi_env env, napi_callback_info info, int action)
 {
     napi_value args[1] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
     if (!GetArguments(env, info, 1, args, argc) || argc != 1 || !ReadHandle(env, args[0], handle)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
-    std::shared_ptr<NativeSession> session = FindSession(handle); return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : (play ? session->Play(handle) : session->Stop(handle)));
+    std::shared_ptr<NativeSession> session = FindSession(handle);
+    if (session == nullptr) return CreateResult(env, {false, handle, "RELEASED"});
+    NativeResult result = action == 1 ? session->Play(handle) : (action == 2 ? session->Pause(handle) : session->Stop(handle));
+    return CreateResult(env, result);
 #else
     return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
 #endif
 }
-napi_value Play(napi_env env, napi_callback_info info) { return Control(env, info, true); }
-napi_value Stop(napi_env env, napi_callback_info info) { return Control(env, info, false); }
+napi_value Play(napi_env env, napi_callback_info info) { return Control(env, info, 1); }
+napi_value Pause(napi_env env, napi_callback_info info) { return Control(env, info, 2); }
+napi_value Stop(napi_env env, napi_callback_info info) { return Control(env, info, 0); }
 
 napi_value SetEventCallback(napi_env env, napi_callback_info info)
 {
@@ -589,6 +643,7 @@ napi_value Init(napi_env env, napi_value exports)
         {"detachSurface", nullptr, DetachSurface, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"load", nullptr, Load, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"play", nullptr, Play, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"pause", nullptr, Pause, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"stop", nullptr, Stop, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setEventCallback", nullptr, SetEventCallback, nullptr, nullptr, nullptr, napi_default, nullptr},
     };

@@ -5,7 +5,8 @@ import {
   PlayerEvent,
   PlayerOptions,
   PlayerSurface,
-  PlayerTrack, PlayerTrackKind
+  PlayerTrack, PlayerTrackKind,
+  VideoParams
 } from '../public/types';
 import { VidAllPlayer } from '../public/playerContract';
 import { CommandQueue } from './commandQueue';
@@ -254,6 +255,47 @@ export class PlayerSession implements VidAllPlayer {
         this.stateMachine.getState() !== 'playing') {
         this.stateMachine.transition('playing');
         this.stateMachine.emit({ type: 'firstFrame', sequence: event.sequence });
+      }
+      return;
+    }
+    if (event.type === 'state' && event.message === 'paused') {
+      // native 侧 mpv "pause" 属性变为 true（如调用 pause() 或用户在其他入口暂停），
+      // 转译为公开的 paused 状态，使 play()/pause() 的状态机校验能正确匹配。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        const state = this.stateMachine.getState();
+        if (state === 'playing' || state === 'buffering') {
+          this.stateMachine.transition('paused');
+        }
+      }
+      return;
+    }
+    if (event.type === 'state' && event.message === 'resumed') {
+      // native 侧 mpv "pause" 属性变回 false（暂停后恢复播放），转译为 playing 状态。
+      // 与首帧 'playing' 分开处理，避免重复触发 firstFrame 事件。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        const state = this.stateMachine.getState();
+        if (state === 'paused' || state === 'buffering') {
+          this.stateMachine.transition('playing');
+        }
+      }
+      return;
+    }
+    if (event.type === 'videoParams') {
+      // message 采用 "宽x高" 字符串编码（原生 Event 结构体未新增字段），
+      // 用于让消费方按真实视频宽高比布局，避免 XComponent 拉伸画面。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        const parts = event.message.split('x');
+        if (parts.length === 2) {
+          const width = Number(parts[0]);
+          const height = Number(parts[1]);
+          if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+            const params: VideoParams = { width, height };
+            this.stateMachine.emit({ type: 'videoParams', sequence: event.sequence, params });
+          }
+        }
       }
       return;
     }

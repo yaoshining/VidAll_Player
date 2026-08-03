@@ -9,7 +9,7 @@ export interface NativeSessionResult {
 }
 
 export interface NativePlayerEvent {
-  type: 'state' | 'error';
+  type: 'state' | 'error' | 'videoParams';
   message: string;
   eventEpoch: number;
   sequence: number;
@@ -24,6 +24,7 @@ export interface NativeSessionModule {
   detachSurface(handle: number, generation: number): NativeSessionResult;
   load(handle: number, uri: string, headerFields: string, smbUsername: string, smbPassword: string): NativeSessionResult;
   play(handle: number): NativeSessionResult;
+  pause(handle: number): NativeSessionResult;
   stop(handle: number): NativeSessionResult;
   setEventCallback(handle: number, callback: (event: NativePlayerEvent) => void): NativeSessionResult;
 }
