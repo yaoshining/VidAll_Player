@@ -109,6 +109,49 @@ std::string EscapeMpvOptionValue(const std::string& value)
     return escaped;
 }
 
+// 将 mpv "track-list" 属性（MPV_FORMAT_NODE_ARRAY，元素为 MPV_FORMAT_NODE_MAP）编码为
+// 纯字符串上报给 ArkTS 层（原生 Event 结构体未新增字段，沿用 videoParams 的编码思路）。
+// 记录间以 \x1e（record separator）分隔，字段间以 \x1f（unit separator）分隔——这两个
+// ASCII 控制字符几乎不可能出现在 mpv 上报的语言/标题字符串中，无需额外转义。
+// 只保留 audio/sub 类型（视频轨不参与 ArkTS 层音轨/字幕选择 UI）。
+std::string EncodeTrackList(const mpv_node* node)
+{
+    if (node == nullptr || node->format != MPV_FORMAT_NODE_ARRAY || node->u.list == nullptr) return "";
+    std::string encoded;
+    const mpv_node_list* list = node->u.list;
+    for (int i = 0; i < list->num; ++i) {
+        const mpv_node& entry = list->values[i];
+        if (entry.format != MPV_FORMAT_NODE_MAP || entry.u.list == nullptr) continue;
+        const mpv_node_list* map = entry.u.list;
+        int64_t id = -1;
+        std::string type;
+        std::string lang;
+        std::string title;
+        int selected = 0;
+        for (int j = 0; j < map->num; ++j) {
+            if (map->keys[j] == nullptr) continue;
+            const std::string key = map->keys[j];
+            const mpv_node& value = map->values[j];
+            if (key == "id" && value.format == MPV_FORMAT_INT64) {
+                id = value.u.int64;
+            } else if (key == "type" && value.format == MPV_FORMAT_STRING && value.u.string != nullptr) {
+                type = value.u.string;
+            } else if (key == "lang" && value.format == MPV_FORMAT_STRING && value.u.string != nullptr) {
+                lang = value.u.string;
+            } else if (key == "title" && value.format == MPV_FORMAT_STRING && value.u.string != nullptr) {
+                title = value.u.string;
+            } else if (key == "selected" && value.format == MPV_FORMAT_FLAG) {
+                selected = value.u.flag;
+            }
+        }
+        if (id < 0 || (type != "audio" && type != "sub")) continue;
+        if (!encoded.empty()) encoded.push_back('\x1e');
+        encoded += std::to_string(id) + "\x1f" + (type == "sub" ? "subtitle" : "audio") + "\x1f" + lang + "\x1f" + title +
+            "\x1f" + (selected ? "1" : "0");
+    }
+    return encoded;
+}
+
 class NativeSession {
 public:
     struct Event {
@@ -126,13 +169,26 @@ public:
 
     ~NativeSession() { Release(); }
 
-    bool Initialize()
+    bool Initialize(const std::string& fontsDir)
     {
         if (!player_) return false;
         mpv_set_option_string(player_.get(), "terminal", "no");
         mpv_set_option_string(player_.get(), "config", "no");
         mpv_set_option_string(player_.get(), "vo", "libmpv");
+        // 临时诊断：显式提升所有模块（含 libass 的 "ass" 模块）的日志级别，
+        // 仅调用 mpv_request_log_messages 不足以让某些模块打印到 trace/debug 级别的内部细节。
+        mpv_set_option_string(player_.get(), "msg-level", "all=trace");
+        if (!fontsDir.empty()) {
+            // HarmonyOS 沙箱内没有系统 fontconfig，libass 的 fontconfig provider 探测不到
+            // 任何字体，导致字幕轨道被正确选中但完全不可见（无渲染文字）。改用 "none"
+            // provider 并显式指定应用侧解包好的字体目录，让 libass 直接按目录匹配字体。
+            mpv_set_option_string(player_.get(), "sub-font-provider", "none");
+            mpv_set_option_string(player_.get(), "sub-fonts-dir", fontsDir.c_str());
+            mpv_set_option_string(player_.get(), "osd-fonts-dir", fontsDir.c_str());
+        }
         if (mpv_initialize(player_.get()) < 0) return false;
+        // 临时诊断：转发 mpv/libass 内部日志到 hilog，用于排查字幕不渲染问题。
+        mpv_request_log_messages(player_.get(), "trace");
         // 观察 dwidth/dheight（已包含旋转与像素宽高比修正后的显示尺寸），
         // 用于向 ArkTS 层上报真实视频宽高比，避免画面被拉伸。
         mpv_observe_property(player_.get(), 0, "dwidth", MPV_FORMAT_INT64);
@@ -140,6 +196,14 @@ public:
         // 观察 pause 属性变化，用于在暂停/恢复播放时向 ArkTS 层上报状态，
         // 使 playerSession 状态机能正确在 playing <-> paused 间迁移。
         mpv_observe_property(player_.get(), 0, "pause", MPV_FORMAT_FLAG);
+        // 观察 track-list，用于向 ArkTS 层上报媒体内嵌的音轨/字幕轨道元数据
+        // （之前的最小 libmpv bridge 从未枚举过内嵌轨道，导致音轨/字幕选择功能形同虚设）。
+        mpv_observe_property(player_.get(), 0, "track-list", MPV_FORMAT_NODE);
+        // 观察 sub-text：mpv 内部按当前播放位置解析出的当前字幕行纯文本
+        // （与 libass 渲染到视频帧内是否可见完全无关），用于向 ArkTS/消费方
+        // 提供一条不依赖软件渲染合成管线的字幕文本通道，供上层自行展示
+        // （例如 entry 调试页面的字幕条，或 vidall-tv 等消费方的自绘字幕 UI）。
+        mpv_observe_property(player_.get(), 0, "sub-text", MPV_FORMAT_STRING);
         eventThread_ = std::thread(&NativeSession::EventLoop, this, player_.get());
         return true;
     }
@@ -231,6 +295,62 @@ public:
         return {true, handle, "OK"};
     }
 
+    NativeResult SeekRelative(double seconds, std::uint64_t handle)
+    {
+        std::lock_guard<std::mutex> lock(lifecycleMutex_);
+        if (released_) return {false, handle, "RELEASED"};
+        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        const std::string secondsStr = std::to_string(seconds);
+        const char* command[] = {"seek", secondsStr.c_str(), "relative", nullptr};
+        return mpv_command_async(player_.get(), 0, command) >= 0
+            ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "NATIVE_PLAYBACK_FAILED"};
+    }
+
+    NativeResult SeekPercent(double percent, std::uint64_t handle)
+    {
+        std::lock_guard<std::mutex> lock(lifecycleMutex_);
+        if (released_) return {false, handle, "RELEASED"};
+        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        const std::string percentStr = std::to_string(percent);
+        const char* command[] = {"seek", percentStr.c_str(), "absolute-percent", nullptr};
+        return mpv_command_async(player_.get(), 0, command) >= 0
+            ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "NATIVE_PLAYBACK_FAILED"};
+    }
+
+    NativeResult SetRate(double rate, std::uint64_t handle)
+    {
+        std::lock_guard<std::mutex> lock(lifecycleMutex_);
+        if (released_) return {false, handle, "RELEASED"};
+        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        const std::string rateStr = std::to_string(rate);
+        return mpv_set_property_string(player_.get(), "speed", rateStr.c_str()) >= 0
+            ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "NATIVE_PLAYBACK_FAILED"};
+    }
+
+    // kind: "audio" -> mpv "aid"；"subtitle" -> mpv "sid"。trackId < 0 表示取消选择（"no"）。
+    NativeResult SelectTrack(const std::string& kind, int64_t trackId, std::uint64_t handle)
+    {
+        std::lock_guard<std::mutex> lock(lifecycleMutex_);
+        if (released_) return {false, handle, "RELEASED"};
+        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        const char* property = kind == "subtitle" ? "sid" : "aid";
+        const std::string value = trackId < 0 ? "no" : std::to_string(trackId);
+        return mpv_set_property_string(player_.get(), property, value.c_str()) >= 0
+            ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "NATIVE_PLAYBACK_FAILED"};
+    }
+
+    // kind: "audio" -> mpv "audio-add"；"subtitle" -> mpv "sub-add"。
+    NativeResult AddExternalTrack(const std::string& kind, const std::string& uri, std::uint64_t handle)
+    {
+        std::lock_guard<std::mutex> lock(lifecycleMutex_);
+        if (released_) return {false, handle, "RELEASED"};
+        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        if (uri.empty()) return {false, handle, "INPUT_INVALID"};
+        const char* command[] = {kind == "subtitle" ? "sub-add" : "audio-add", uri.c_str(), nullptr};
+        return mpv_command_async(player_.get(), 0, command) >= 0
+            ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "NATIVE_PLAYBACK_FAILED"};
+    }
+
     NativeResult Stop(std::uint64_t handle)
     {
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
@@ -314,9 +434,19 @@ private:
         int lastDispatchedWidth = 0;
         int lastDispatchedHeight = 0;
         int lastDispatchedPause = -1; // -1 表示尚未收到过第一次通知（用作基线，不上报）
+        std::string lastDispatchedTracks;
+        std::string lastDispatchedSubtitleText;
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
+            if (event->event_id == MPV_EVENT_LOG_MESSAGE) {
+                // 临时诊断：把 mpv/libass 日志打到 hilog，用于排查字幕不渲染问题。
+                const auto* msg = static_cast<mpv_event_log_message*>(event->data);
+                if (msg != nullptr && msg->text != nullptr) {
+                    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "mpv[%{public}s/%{public}s] %{public}s",
+                        msg->prefix ? msg->prefix : "", msg->level ? msg->level : "", msg->text);
+                }
+            }
             if (event->event_id == MPV_EVENT_END_FILE) {
                 const auto* end = static_cast<mpv_event_end_file*>(event->data);
                 if (end != nullptr && end->reason == MPV_END_FILE_REASON_ERROR) Dispatch("error", "libmpv playback failed");
@@ -344,6 +474,24 @@ private:
                     } else if (value != lastDispatchedPause) {
                         lastDispatchedPause = value;
                         Dispatch("state", value ? "paused" : "resumed");
+                    }
+                }
+                if (prop != nullptr && prop->format == MPV_FORMAT_NODE && prop->data != nullptr &&
+                    std::strcmp(prop->name, "track-list") == 0) {
+                    const std::string encoded = EncodeTrackList(static_cast<mpv_node*>(prop->data));
+                    if (encoded != lastDispatchedTracks) {
+                        lastDispatchedTracks = encoded;
+                        Dispatch("tracks", encoded);
+                    }
+                }
+                if (prop != nullptr && std::strcmp(prop->name, "sub-text") == 0) {
+                    // MPV_FORMAT_STRING 属性变化事件里 prop->data 是 char**；无字幕命中时
+                    // mpv 上报空字符串（而非属性不存在），据此可以上报"当前无字幕"。
+                    const std::string text = (prop->format == MPV_FORMAT_STRING && prop->data != nullptr)
+                        ? std::string(*static_cast<char**>(prop->data)) : std::string();
+                    if (text != lastDispatchedSubtitleText) {
+                        lastDispatchedSubtitleText = text;
+                        Dispatch("subtitleText", text);
                     }
                 }
             }
@@ -520,11 +668,16 @@ std::shared_ptr<NativeSession> FindSession(std::uint64_t handle)
 }
 #endif
 
-napi_value CreateSession(napi_env env, napi_callback_info)
+napi_value CreateSession(napi_env env, napi_callback_info info)
 {
+    napi_value args[1] = {nullptr}; size_t argc = 1;
+    std::string fontsDir;
+    if (napi_get_cb_info(env, info, &argc, args, nullptr, nullptr) == napi_ok && argc >= 1) {
+        ReadString(env, args[0], fontsDir);
+    }
 #if VIDALL_MPV_AVAILABLE
     auto session = std::make_shared<NativeSession>();
-    if (!session->Initialize()) return CreateResult(env, {false, 0, "NATIVE_PLAYBACK_FAILED"});
+    if (!session->Initialize(fontsDir)) return CreateResult(env, {false, 0, "NATIVE_PLAYBACK_FAILED"});
     std::lock_guard<std::mutex> lock(gSessionsMutex);
     const std::uint64_t handle = gNextSessionId++;
     gSessions.emplace(handle, std::move(session));
@@ -614,6 +767,73 @@ napi_value Play(napi_env env, napi_callback_info info) { return Control(env, inf
 napi_value Pause(napi_env env, napi_callback_info info) { return Control(env, info, 2); }
 napi_value Stop(napi_env env, napi_callback_info info) { return Control(env, info, 0); }
 
+napi_value SeekRelative(napi_env env, napi_callback_info info)
+{
+    napi_value args[2] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; double seconds = 0;
+    if (!GetArguments(env, info, 2, args, argc) || argc != 2 || !ReadHandle(env, args[0], handle) ||
+        napi_get_value_double(env, args[1], &seconds) != napi_ok) return nullptr;
+#if VIDALL_MPV_AVAILABLE
+    std::shared_ptr<NativeSession> session = FindSession(handle);
+    return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SeekRelative(seconds, handle));
+#else
+    return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
+#endif
+}
+
+napi_value SeekPercent(napi_env env, napi_callback_info info)
+{
+    napi_value args[2] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; double percent = 0;
+    if (!GetArguments(env, info, 2, args, argc) || argc != 2 || !ReadHandle(env, args[0], handle) ||
+        napi_get_value_double(env, args[1], &percent) != napi_ok) return nullptr;
+#if VIDALL_MPV_AVAILABLE
+    std::shared_ptr<NativeSession> session = FindSession(handle);
+    return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SeekPercent(percent, handle));
+#else
+    return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
+#endif
+}
+
+napi_value SetRate(napi_env env, napi_callback_info info)
+{
+    napi_value args[2] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; double rate = 0;
+    if (!GetArguments(env, info, 2, args, argc) || argc != 2 || !ReadHandle(env, args[0], handle) ||
+        napi_get_value_double(env, args[1], &rate) != napi_ok) return nullptr;
+#if VIDALL_MPV_AVAILABLE
+    std::shared_ptr<NativeSession> session = FindSession(handle);
+    return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SetRate(rate, handle));
+#else
+    return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
+#endif
+}
+
+napi_value SelectTrack(napi_env env, napi_callback_info info)
+{
+    napi_value args[3] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; std::string kind; int64_t trackId = 0;
+    if (!GetArguments(env, info, 3, args, argc) || argc != 3 || !ReadHandle(env, args[0], handle) ||
+        !ReadString(env, args[1], kind) || napi_get_value_int64(env, args[2], &trackId) != napi_ok) return nullptr;
+#if VIDALL_MPV_AVAILABLE
+    std::shared_ptr<NativeSession> session = FindSession(handle);
+    return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SelectTrack(kind, trackId, handle));
+#else
+    return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
+#endif
+}
+
+napi_value AddExternalTrack(napi_env env, napi_callback_info info, const char* kind)
+{
+    napi_value args[2] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; std::string uri;
+    if (!GetArguments(env, info, 2, args, argc) || argc != 2 || !ReadHandle(env, args[0], handle) ||
+        !ReadString(env, args[1], uri)) return nullptr;
+#if VIDALL_MPV_AVAILABLE
+    std::shared_ptr<NativeSession> session = FindSession(handle);
+    return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->AddExternalTrack(kind, uri, handle));
+#else
+    return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
+#endif
+}
+napi_value AddExternalAudio(napi_env env, napi_callback_info info) { return AddExternalTrack(env, info, "audio"); }
+napi_value AddExternalSubtitle(napi_env env, napi_callback_info info) { return AddExternalTrack(env, info, "subtitle"); }
+
 napi_value SetEventCallback(napi_env env, napi_callback_info info)
 {
     napi_value args[2] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
@@ -645,6 +865,12 @@ napi_value Init(napi_env env, napi_value exports)
         {"play", nullptr, Play, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"pause", nullptr, Pause, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"stop", nullptr, Stop, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"seekRelative", nullptr, SeekRelative, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"seekPercent", nullptr, SeekPercent, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"setRate", nullptr, SetRate, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"selectTrack", nullptr, SelectTrack, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"addExternalAudio", nullptr, AddExternalAudio, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"addExternalSubtitle", nullptr, AddExternalSubtitle, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setEventCallback", nullptr, SetEventCallback, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     if (!Check(env, napi_define_properties(env, exports, sizeof(descriptors) / sizeof(descriptors[0]), descriptors), "Failed to define native bridge exports.") ||

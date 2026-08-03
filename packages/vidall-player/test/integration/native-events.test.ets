@@ -69,3 +69,34 @@ export async function nativeEventsRejectStaleContextAndReleaseDelivery(): Promis
   bridge.emit({ type: 'error', message: 'sensitive://media/path', eventEpoch: 1, sequence: 4, surfaceGeneration: 1 });
   assert(received.length === beforeLateEvent, 'Release must prevent native bridge events from reaching subscribers.');
 }
+
+// 回归测试：验证原生 "sub-text" 属性变化（mpv 解析出的当前字幕纯文本）能正确
+// 转译为公开 subtitleText 事件，且遵循与其它原生事件一致的 epoch/generation 门控。
+// 这条通道独立于软件渲染合成管线是否把字幕像素画进视频帧，用于让消费方
+// （entry 调试页、vidall-tv 等）自行绘制字幕 UI、验证字幕解析是否生效。
+export async function nativeSubtitleTextEventUpdatesPublicSubtitleText(): Promise<void> {
+  const bridge = new RecordingNativeBridge();
+  const player = new PlayerSession(undefined, bridge);
+  const received: PlayerEvent[] = [];
+  player.subscribe((event: PlayerEvent): void => { received.push(event); });
+
+  await player.attachSurface({ componentId: 'surface', generation: 1, width: 1280, height: 720 });
+  await player.load({ kind: 'https', uri: 'https://fixture.invalid/media.mp4' });
+
+  bridge.emit({ type: 'subtitleText', message: 'Hello World Subtitle Test', eventEpoch: 1, sequence: 1, surfaceGeneration: 1 });
+  // 陈旧 epoch/generation 的字幕事件必须被丢弃，不得污染公开事件流。
+  bridge.emit({ type: 'subtitleText', message: 'stale epoch text', eventEpoch: 0, sequence: 2, surfaceGeneration: 1 });
+  bridge.emit({ type: 'subtitleText', message: 'stale generation text', eventEpoch: 1, sequence: 2, surfaceGeneration: 2 });
+  // 空字符串代表"当前无字幕命中"，必须原样透传，不能被当作无效值丢弃。
+  bridge.emit({ type: 'subtitleText', message: '', eventEpoch: 1, sequence: 2, surfaceGeneration: 1 });
+
+  const subtitleEvents = received.filter((event: PlayerEvent) => event.type === 'subtitleText');
+  assert(subtitleEvents.length === 2,
+    `Expected exactly 2 accepted subtitleText events, got ${subtitleEvents.length}`);
+  assert(subtitleEvents[0].subtitleText === 'Hello World Subtitle Test',
+    `Expected first subtitleText to carry native text, got ${subtitleEvents[0].subtitleText}`);
+  assert(subtitleEvents[1].subtitleText === '',
+    'Empty subtitleText (no active cue) must be forwarded, not dropped.');
+
+  await player.release();
+}

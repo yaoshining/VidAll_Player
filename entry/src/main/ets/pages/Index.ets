@@ -61,6 +61,10 @@ struct Index {
   @State smbConfigStatus: string = '';
   @State audioTracks: PlayerTrack[] = [];
   @State subtitleTracks: PlayerTrack[] = [];
+  // 当前字幕纯文本（来自原生 "sub-text" 事件），独立于软件渲染是否把字幕像素
+  // 画进视频帧；用于在视频下方展示一条调试字幕条，验证字幕解析/切换是否生效。
+  // 空字符串表示当前无字幕命中。
+  @State subtitleText: string = '';
   // 视频真实宽高比：默认 16:9，收到原生 videoParams 事件后按真实分辨率更新，
   // 用于让视频容器按比例居中显示，避免 SURFACE XComponent 在低 API 级别下强制拉伸填满。
   @State videoAspectRatio: number = 16 / 9;
@@ -85,7 +89,8 @@ struct Index {
 
   aboutToAppear(): void {
     // 在 aboutToAppear 中创建播放器与 Surface 适配器，避免 struct 构造函数字段赋值不可靠。
-    this.player = createPlayer();
+    const subtitleFontsDir = this.prepareSubtitleFontsDirSync();
+    this.player = createPlayer({ subtitleFontsDir });
     this.surfaceAdapter = new XComponentSurfaceAdapter(new VidAllPlayerSurfaceTarget(this.player));
     this.nativeStatus = '@vidall/player 已创建，等待 XComponent Surface...';
     console.info(`VidAll_Player: ${this.nativeStatus}`);
@@ -98,10 +103,74 @@ struct Index {
     }).catch((e: Error) => {
       console.error(`VidAll_Player: prepareLocalVideo failed: ${e}`);
     });
+    this.prepareTestSubtitleSync();
+  }
+
+  // 临时诊断：把内置的字幕诊断文件从 rawfile 解包到应用沙箱，自动填入外挂字幕 URL 输入框，
+  // 便于在本地测试视频上快速复现"字幕轨道选中但不渲染"问题，无需每次都重新导航 WebDAV 目录。
+  private prepareTestSubtitleSync(): void {
+    try {
+      const context = getContext(this);
+      const cacheDir = context.cacheDir;
+      const destPath = `${cacheDir}/test_subtitle.srt`;
+      try {
+        const stat = fs.statSync(destPath);
+        if (stat.size > 0) {
+          this.subtitleUrl = `file://${destPath}`;
+          return;
+        }
+      } catch (e) {
+        // 文件不存在，继续解包
+      }
+      const rawFile = context.resourceManager.getRawFileContentSync('subs/test.srt');
+      const file = fs.openSync(destPath, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
+      fs.writeSync(file.fd, rawFile.buffer);
+      fs.closeSync(file);
+      // externalSubtitles.uri 未经过 submitLoad() 里对主 URL 做的 file:// 归一化处理，
+      // 必须自己拼出绝对 URI，否则 SDK 的 URI 校验会把整个 load() 请求拒绝掉。
+      this.subtitleUrl = `file://${destPath}`;
+      console.info(`VidAll_Player: extracted test subtitle to ${destPath} (${rawFile.byteLength} bytes)`);
+    } catch (e) {
+      console.error(`VidAll_Player: failed to prepare test subtitle: ${e}`);
+    }
   }
 
   aboutToDisappear(): void {
     this.releasePlayer();
+  }
+
+  // 把内置的 Noto Sans 字体从 rawfile 解包到应用沙箱内的真实文件路径，供原生层
+  // libass 通过 sub-fonts-dir 匹配字幕字体使用（HarmonyOS 沙箱没有系统 fontconfig，
+  // 不解包字体的话字幕轨道会被正确选中但完全不可见）。同步执行以确保在
+  // createPlayer()（进而触发原生 mpv 初始化）之前就已经就绪。
+  private prepareSubtitleFontsDirSync(): string {
+    try {
+      const context = getContext(this);
+      const fontsDir = `${context.filesDir}/fonts`;
+      const destPath = `${fontsDir}/NotoSans-Regular.ttf`;
+      try {
+        const stat = fs.statSync(destPath);
+        if (stat.size > 0) {
+          return fontsDir;
+        }
+      } catch (e) {
+        // 目录或文件不存在，继续执行解包
+      }
+      try {
+        fs.mkdirSync(fontsDir, true);
+      } catch (e) {
+        // 目录已存在时会抛错，忽略
+      }
+      const rawFile = context.resourceManager.getRawFileContentSync('fonts/NotoSans-Regular.ttf');
+      const file = fs.openSync(destPath, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
+      fs.writeSync(file.fd, rawFile.buffer);
+      fs.closeSync(file);
+      console.info(`VidAll_Player: extracted subtitle font to ${destPath} (${rawFile.byteLength} bytes)`);
+      return fontsDir;
+    } catch (e) {
+      console.error(`VidAll_Player: failed to prepare subtitle fonts dir: ${e}`);
+      return '';
+    }
   }
 
   private subscribePlayerEvents(): void {
@@ -131,6 +200,10 @@ struct Index {
       }
       case 'tracks': {
         this.refreshTracksFromEvent(event.tracks ?? []);
+        break;
+      }
+      case 'subtitleText': {
+        this.subtitleText = event.subtitleText ?? '';
         break;
       }
       case 'videoParams': {
@@ -818,6 +891,25 @@ struct Index {
       // Video display area — 常驻挂载，全屏切换只改变尺寸而不销毁重建 XComponent，
       // 避免反复 attach/detach 原生 Surface 导致画面无法恢复（黑屏）。
       this.VideoStack()
+
+      // 调试字幕条：展示原生 "sub-text" 上报的当前字幕纯文本，最多两行，
+      // 独立于软件渲染合成管线是否把字幕像素画进视频帧，用于验证字幕解析
+      // 是否生效（而非依赖肉眼在画面里辨认字幕像素）。
+      if (this.subtitleText.length > 0) {
+        Text(this.subtitleText)
+          .id('subtitle-debug-text')
+          .fontSize(16)
+          .fontColor('#F4F7FB')
+          .backgroundColor('#000000')
+          .opacity(0.72)
+          .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+          .borderRadius(6)
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .textAlign(TextAlign.Center)
+          .margin({ top: 6 })
+          .width(this.isFullscreen ? '80%' : '88%')
+      }
 
       if (!this.isFullscreen) {
         Scroll() {

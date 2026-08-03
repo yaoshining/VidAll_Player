@@ -9,7 +9,7 @@ export interface DirectSmbCapability {
 }
 
 export interface NativeBridgeEvent {
-  type: 'state' | 'error' | 'videoParams';
+  type: 'state' | 'error' | 'videoParams' | 'tracks' | 'subtitleText';
   message: string;
   eventEpoch: number;
   sequence: number;
@@ -26,6 +26,12 @@ export interface NativePlayerBridge {
   play(): Promise<void>;
   pause(): Promise<void>;
   stop(): Promise<void>;
+  seekRelative(seconds: number): Promise<void>;
+  seekPercent(percent: number): Promise<void>;
+  setRate(rate: number): Promise<void>;
+  selectTrack(kind: 'audio' | 'subtitle', trackId: number): Promise<void>;
+  addExternalAudio(uri: string): Promise<void>;
+  addExternalSubtitle(uri: string): Promise<void>;
   release(): Promise<void>;
   subscribe(listener: (event: NativeBridgeEvent) => void): () => void;
 }
@@ -169,6 +175,30 @@ class HarNativePlayerBridge implements NativePlayerBridge {
     return this.complete(nativeSession.stop(this.handle));
   }
 
+  seekRelative(seconds: number): Promise<void> {
+    return this.complete(nativeSession.seekRelative(this.handle, seconds));
+  }
+
+  seekPercent(percent: number): Promise<void> {
+    return this.complete(nativeSession.seekPercent(this.handle, percent));
+  }
+
+  setRate(rate: number): Promise<void> {
+    return this.complete(nativeSession.setRate(this.handle, rate));
+  }
+
+  selectTrack(kind: 'audio' | 'subtitle', trackId: number): Promise<void> {
+    return this.complete(nativeSession.selectTrack(this.handle, kind, trackId));
+  }
+
+  addExternalAudio(uri: string): Promise<void> {
+    return this.complete(nativeSession.addExternalAudio(this.handle, uri));
+  }
+
+  addExternalSubtitle(uri: string): Promise<void> {
+    return this.complete(nativeSession.addExternalSubtitle(this.handle, uri));
+  }
+
   release(): Promise<void> {
     if (this.released) {
       return Promise.resolve();
@@ -209,6 +239,6 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 }
 
-export function createNativePlayerBridge(): NativePlayerBridge {
-  return new HarNativePlayerBridge(nativeSession.createSession());
+export function createNativePlayerBridge(subtitleFontsDir?: string): NativePlayerBridge {
+  return new HarNativePlayerBridge(nativeSession.createSession(subtitleFontsDir ?? ''));
 }

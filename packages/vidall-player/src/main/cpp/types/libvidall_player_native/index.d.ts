@@ -9,7 +9,7 @@ export interface NativeSessionResult {
 }
 
 export interface NativePlayerEvent {
-  type: 'state' | 'error' | 'videoParams';
+  type: 'state' | 'error' | 'videoParams' | 'tracks' | 'subtitleText';
   message: string;
   eventEpoch: number;
   sequence: number;
@@ -17,7 +17,7 @@ export interface NativePlayerEvent {
 }
 
 export interface NativeSessionModule {
-  createSession(): NativeSessionResult;
+  createSession(fontsDir?: string): NativeSessionResult;
   releaseSession(handle: number): NativeSessionResult;
   attachSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
   resizeSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
@@ -26,6 +26,12 @@ export interface NativeSessionModule {
   play(handle: number): NativeSessionResult;
   pause(handle: number): NativeSessionResult;
   stop(handle: number): NativeSessionResult;
+  seekRelative(handle: number, seconds: number): NativeSessionResult;
+  seekPercent(handle: number, percent: number): NativeSessionResult;
+  setRate(handle: number, rate: number): NativeSessionResult;
+  selectTrack(handle: number, kind: string, trackId: number): NativeSessionResult;
+  addExternalAudio(handle: number, uri: string): NativeSessionResult;
+  addExternalSubtitle(handle: number, uri: string): NativeSessionResult;
   setEventCallback(handle: number, callback: (event: NativePlayerEvent) => void): NativeSessionResult;
 }
 
