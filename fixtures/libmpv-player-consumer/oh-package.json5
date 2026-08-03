@@ -6,6 +6,6 @@
   "author": "VidAll",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "@vidall/player": "file:../../packages/vidall-player/build/default/outputs/default/vidall_player.har"
+    "@vidall/player": "file:../../packages/vidall-player"
   }
 }

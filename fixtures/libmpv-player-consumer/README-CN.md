@@ -10,7 +10,7 @@
 devecocli build --modules vidall_player libmpv_player_consumer libmpv_player_consumer@ohosTest
 ```
 
-fixture 通过 `oh-package.json5` 中的本地 HAR 路径依赖 `@vidall/player`，消费者代码只能从该包根入口导入。不要改为导入 `src/internal`、NAPI、NativeWindow、EGL/GLES 或 libmpv 路径。构建会生成本地 `oh-package-lock.json5`，该解析文件不属于候选交付或发布材料。
+fixture 通过 `oh-package.json5` 中的本地源码路径（`file:../../packages/vidall-player`）依赖 `@vidall/player`，消费者代码只能从该包根入口导入。不要改为导入 `src/internal`、NAPI、NativeWindow、EGL/GLES 或 libmpv 路径。使用源码路径（而非预先打包的 HAR 产物路径）是为了避免在全新检出仓库时，根目录 `ohpm install` 因为 HAR 尚未构建而失败（这也是 CI 中 `vidall_player@default` 编译任务失败的原因）。构建会生成本地 `oh-package-lock.json5`，该解析文件不属于候选交付或发布材料，已在 `.gitignore` 中忽略。
 
 如有可用的 ARM64 TV 模拟器，可进行开发期安装和生命周期回归：
 

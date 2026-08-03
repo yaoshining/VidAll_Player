@@ -50,3 +50,4 @@ signing/*
 .reproducible-cache/
 examples/consumer-smoke/oh_modules/
 examples/consumer-smoke/oh-package-lock.json5
+fixtures/libmpv-player-consumer/oh-package-lock.json5
