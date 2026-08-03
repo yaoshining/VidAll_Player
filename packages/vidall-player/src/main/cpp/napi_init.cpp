@@ -93,6 +93,22 @@ bool ReadHandle(napi_env env, napi_value value, std::uint64_t& output)
 }
 
 #if VIDALL_MPV_AVAILABLE
+// mpv 的 demuxer-lavf-o/stream-lavf-o 选项以逗号分隔 key=value 对；转义用户名/密码中的
+// 反斜杠、逗号与等号，避免凭据本身破坏选项解析（与旧版 entry/src/main/cpp/napi_bridge.cpp
+// 的实现保持一致，迁移到 @vidall/player HAR 时该转发逻辑此前被遗漏）。
+std::string EscapeMpvOptionValue(const std::string& value)
+{
+    std::string escaped;
+    escaped.reserve(value.size());
+    for (const char character : value) {
+        if (character == '\\' || character == ',' || character == '=') {
+            escaped.push_back('\\');
+        }
+        escaped.push_back(character);
+    }
+    return escaped;
+}
+
 class NativeSession {
 public:
     struct Event {
@@ -163,15 +179,24 @@ public:
         return {true, handle, "OK"};
     }
 
-    NativeResult Load(const std::string& uri, const std::string& headerFields, std::uint64_t handle)
+    NativeResult Load(const std::string& uri, const std::string& headerFields,
+                       const std::string& smbUsername, const std::string& smbPassword, std::uint64_t handle)
     {
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         if (released_) return {false, handle, "RELEASED"};
         if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
         if (uri.empty()) return {false, handle, "INPUT_INVALID"};
-        // 每次 load 都重设 http-header-fields：WebDAV/HTTP(S) 鉴权头必须在此显式转发给 mpv，
-        // 否则会静默丢失导致 401/403 而无法渲染；无 header 时清空，避免残留到下一次无鉴权加载。
-        mpv_set_option_string(player_.get(), "http-header-fields", headerFields.c_str());
+        // direct smb:// 走 FFmpeg 的 demuxer-lavf-o/stream-lavf-o username=/password= 选项
+        // 认证（libsmbclient 已静态链接进 libmpv.so），不走 HTTP header；其余来源仍使用
+        // http-header-fields 转发 WebDAV/HTTP(S) 鉴权头。每次 load 都重设两类选项，避免
+        // 上一次加载的凭据残留到下一次无凭据/不同协议的加载。
+        const bool isSmb = !smbUsername.empty() || !smbPassword.empty();
+        mpv_set_option_string(player_.get(), "http-header-fields", isSmb ? "" : headerFields.c_str());
+        const std::string smbOptions = isSmb
+            ? "username=" + EscapeMpvOptionValue(smbUsername) + ",password=" + EscapeMpvOptionValue(smbPassword)
+            : "";
+        mpv_set_option_string(player_.get(), "demuxer-lavf-o", smbOptions.c_str());
+        mpv_set_option_string(player_.get(), "stream-lavf-o", smbOptions.c_str());
         const char* command[] = {"loadfile", uri.c_str(), "replace", nullptr};
         if (mpv_command_async(player_.get(), 0, command) < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         ++eventEpoch_;
@@ -503,11 +528,20 @@ napi_value DetachSurface(napi_env env, napi_callback_info info)
 
 napi_value Load(napi_env env, napi_callback_info info)
 {
-    napi_value args[3] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; std::string uri; std::string headerFields;
-    if (!GetArguments(env, info, 3, args, argc) || argc != 3 || !ReadHandle(env, args[0], handle) ||
-        !ReadString(env, args[1], uri) || !ReadString(env, args[2], headerFields)) return nullptr;
+    napi_value args[5] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
+    std::string uri; std::string headerFields; std::string smbUsername; std::string smbPassword;
+    if (!GetArguments(env, info, 5, args, argc) || argc != 5 || !ReadHandle(env, args[0], handle) ||
+        !ReadString(env, args[1], uri) || !ReadString(env, args[2], headerFields) ||
+        !ReadString(env, args[3], smbUsername) || !ReadString(env, args[4], smbPassword)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
-    std::shared_ptr<NativeSession> session = FindSession(handle); return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->Load(uri, headerFields, handle));
+    std::shared_ptr<NativeSession> session = FindSession(handle);
+    if (session != nullptr) {
+        NativeResult result = session->Load(uri, headerFields, smbUsername, smbPassword, handle);
+        smbUsername.assign(smbUsername.size(), '\0');
+        smbPassword.assign(smbPassword.size(), '\0');
+        return CreateResult(env, result);
+    }
+    return CreateResult(env, {false, handle, "RELEASED"});
 #else
     return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
 #endif

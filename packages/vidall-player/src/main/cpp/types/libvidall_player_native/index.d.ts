@@ -22,7 +22,7 @@ export interface NativeSessionModule {
   attachSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
   resizeSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
   detachSurface(handle: number, generation: number): NativeSessionResult;
-  load(handle: number, uri: string, headerFields: string): NativeSessionResult;
+  load(handle: number, uri: string, headerFields: string, smbUsername: string, smbPassword: string): NativeSessionResult;
   play(handle: number): NativeSessionResult;
   stop(handle: number): NativeSessionResult;
   setEventCallback(handle: number, callback: (event: NativePlayerEvent) => void): NativeSessionResult;

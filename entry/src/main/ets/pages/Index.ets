@@ -328,27 +328,26 @@ struct Index {
     }
     const detected = detectMediaKind(targetUrl);
     const kind = this.mapMediaKind(detected, targetUrl);
-    const playbackHeaders = this.isWebDavSource
-      ? buildWebDavPlaybackHeaders(this.webDavUsername, this.webDavPassword)
-      : {} as Record<string, string>;
-    const authorization = playbackHeaders['Authorization'] !== undefined
-      ? `Authorization: ${playbackHeaders['Authorization']}`
-      : '';
+    const playbackHeaders: Record<string, string> = {};
+    if (this.isWebDavSource) {
+      const webDavHeaders = buildWebDavPlaybackHeaders(this.webDavUsername, this.webDavPassword);
+      if (webDavHeaders['Authorization'] !== undefined) {
+        playbackHeaders['Authorization'] = webDavHeaders['Authorization'];
+      }
+    } else if (detected === 'smb' && this.smbUsername.length > 0) {
+      playbackHeaders['Authorization'] = buildBasicAuthorization(this.smbUsername, this.smbPassword);
+    }
     const proxyLeaseId = detected === 'localhostProxy' ? newProxyLeaseId() : '';
-    const smbUsername = detected === 'smb' ? this.smbUsername : '';
-    const smbPassword = detected === 'smb' ? this.smbPassword : '';
     this.currentMediaKind = detected;
     this.currentProxyLeaseId = proxyLeaseId;
     this.activePlaybackUrl = targetUrl;
 
     const headers: Record<string, string> = {};
-    if (authorization.length > 0) {
-      headers['Authorization'] = playbackHeaders['Authorization'] ?? '';
-    }
-    if (smbUsername.length > 0) {
-      // SMB 用户名/密码通过自定义 header 传递，避免明文出现在 URI 中。
-      headers['X-SMB-Username'] = smbUsername;
-      headers['X-SMB-Password'] = smbPassword;
+    if (playbackHeaders['Authorization'] !== undefined) {
+      // SMB 凭据复用与 WebDAV 相同的 Authorization Basic 头传递给 @vidall/player SDK：
+      // SDK 内部会为 kind='smb' 单独解码出用户名/密码，转发给原生层的
+      // demuxer-lavf-o/stream-lavf-o 选项（libsmbclient 鉴权），不会作为 HTTP header 发出。
+      headers['Authorization'] = playbackHeaders['Authorization'];
     }
     const source: MediaSource = {
       kind: kind,
