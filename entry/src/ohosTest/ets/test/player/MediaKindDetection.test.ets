@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@ohos/hypium';
-import { detectMediaKind, newProxyLeaseId } from '../../../../main/ets/player/MediaKindDetection';
+import { detectMediaKind, isSmbDirectPlaybackSupported, newProxyLeaseId, SMB_UNSUPPORTED_MESSAGE } from '../../../../main/ets/player/MediaKindDetection';
 
 export default function mediaKindDetectionTest() {
   describe('MediaKindDetectionTest', () => {
@@ -31,6 +31,15 @@ export default function mediaKindDetectionTest() {
       const second = newProxyLeaseId();
       expect(first.length > 0).assertTrue();
       expect(first !== second).assertTrue();
+    });
+
+    // 直连 SMB 依赖交叉编译 libsmbclient 到 libmpv.so，属于受控发布门禁（Issue #41），
+    // 当前 nativeBridge.getDirectSmbCapability() 恒返回 false，因此演示层必须提前拦截，
+    // 而不是让用户看到 SDK 内部的 HEADER_NOT_ALLOWED/PROTOCOL_NOT_AVAILABLE 校验码。
+    it('reports direct smb playback as unsupported with a clear message', 0, () => {
+      expect(isSmbDirectPlaybackSupported()).assertFalse();
+      expect(SMB_UNSUPPORTED_MESSAGE.length > 0).assertTrue();
+      expect(SMB_UNSUPPORTED_MESSAGE.indexOf('SMB') >= 0).assertTrue();
     });
   });
 }
