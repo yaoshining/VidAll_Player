@@ -25,11 +25,11 @@ function assertCredentials(actual: SmbCredentials, expectedUsername: string, exp
 }
 
 // ══════════════════════════════════════════════════════════════════
-// 1. 非 SMB 源：即便携带 authorization header 也不应被当作 SMB 凭据解析
+// 1. 非 SMB 源（https）：即便携带 authorization header 也不应被当作 SMB 凭据解析
 // ══════════════════════════════════════════════════════════════════
 export async function extractSmbCredentials_nonSmbSourceReturnsEmpty(): Promise<void> {
   const source: MediaSource = {
-    kind: 'webdav',
+    kind: 'https',
     uri: 'https://fixture.invalid/video.mp4',
     headers: { authorization: basicAuthorization('alice', 'secret') }
   };

@@ -416,7 +416,7 @@ private:
         if (released_ || eventTsfn_ == nullptr) {
             OH_LOG_Print(LOG_APP, LOG_WARN, LOG_DOMAIN, LOG_TAG,
                 "Dispatch: dropped type=%{public}s message=%{public}s released=%{public}d tsfnNull=%{public}d",
-                type.c_str(), message.c_str(), released_, eventTsfn_ == nullptr);
+                type.c_str(), message.c_str(), released_.load(), eventTsfn_ == nullptr);
             return;
         }
         auto* event = new Event{type, message, eventEpoch_, ++eventSequence_, generation_};
@@ -620,9 +620,9 @@ private:
     bool stopRenderer_ = false;
     bool renderRequested_ = false;
     std::atomic<bool> geometryDirty_{false};
-    bool rendererReady_ = false;
-    bool rendererFailed_ = false;
-    bool released_ = false;
+    std::atomic<bool> rendererReady_{false};
+    std::atomic<bool> rendererFailed_{false};
+    std::atomic<bool> released_{false};
     std::string surfaceId_;
     std::atomic<std::uint64_t> generation_{0};
     std::atomic<std::uint64_t> eventEpoch_{0};
