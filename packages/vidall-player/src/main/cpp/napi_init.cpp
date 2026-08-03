@@ -163,12 +163,15 @@ public:
         return {true, handle, "OK"};
     }
 
-    NativeResult Load(const std::string& uri, std::uint64_t handle)
+    NativeResult Load(const std::string& uri, const std::string& headerFields, std::uint64_t handle)
     {
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         if (released_) return {false, handle, "RELEASED"};
         if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
         if (uri.empty()) return {false, handle, "INPUT_INVALID"};
+        // 每次 load 都重设 http-header-fields：WebDAV/HTTP(S) 鉴权头必须在此显式转发给 mpv，
+        // 否则会静默丢失导致 401/403 而无法渲染；无 header 时清空，避免残留到下一次无鉴权加载。
+        mpv_set_option_string(player_.get(), "http-header-fields", headerFields.c_str());
         const char* command[] = {"loadfile", uri.c_str(), "replace", nullptr};
         if (mpv_command_async(player_.get(), 0, command) < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         ++eventEpoch_;
@@ -500,10 +503,11 @@ napi_value DetachSurface(napi_env env, napi_callback_info info)
 
 napi_value Load(napi_env env, napi_callback_info info)
 {
-    napi_value args[2] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; std::string uri;
-    if (!GetArguments(env, info, 2, args, argc) || argc != 2 || !ReadHandle(env, args[0], handle) || !ReadString(env, args[1], uri)) return nullptr;
+    napi_value args[3] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; std::string uri; std::string headerFields;
+    if (!GetArguments(env, info, 3, args, argc) || argc != 3 || !ReadHandle(env, args[0], handle) ||
+        !ReadString(env, args[1], uri) || !ReadString(env, args[2], headerFields)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
-    std::shared_ptr<NativeSession> session = FindSession(handle); return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->Load(uri, handle));
+    std::shared_ptr<NativeSession> session = FindSession(handle); return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->Load(uri, headerFields, handle));
 #else
     return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
 #endif
