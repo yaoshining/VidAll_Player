@@ -14,7 +14,7 @@ import { fileIo as fs, picker } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
 import { KeyCode } from '@kit.InputKit';
 import { image } from '@kit.ImageKit';
-import { detectMediaKind, isSmbDirectPlaybackSupported, newProxyLeaseId, SMB_UNSUPPORTED_MESSAGE } from '../player/MediaKindDetection';
+import { detectMediaKind, newProxyLeaseId } from '../player/MediaKindDetection';
 import { DemoLifecycleController } from '../player/DemoLifecycle';
 import { splitTracks, trackLabel } from '../player/TrackPresentation';
 import { buildBasicAuthorization, buildWebDavPlaybackHeaders, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
@@ -237,13 +237,6 @@ struct Index {
   }
 
   private async loadSmbVideo(): Promise<void> {
-    // 直连 SMB 在 @vidall/player 中被永久 gate 住（见 MediaKindDetection 注释），提交前先
-    // 拦截并给出清晰提示，避免用户看到 SDK 内部的 HEADER_NOT_ALLOWED/PROTOCOL_NOT_AVAILABLE。
-    if (!isSmbDirectPlaybackSupported()) {
-      this.nativeStatus = SMB_UNSUPPORTED_MESSAGE;
-      this.smbConfigStatus = SMB_UNSUPPORTED_MESSAGE;
-      return;
-    }
     const config = this.getSmbConfig();
     this.smbConfigStatus = '正在验证 SMB 配置...';
     try {
@@ -334,13 +327,6 @@ struct Index {
       targetUrl = targetUrl.indexOf('/') === 0 ? `file://${targetUrl}` : `file:///${targetUrl}`;
     }
     const detected = detectMediaKind(targetUrl);
-    if (detected === 'smb' && !isSmbDirectPlaybackSupported()) {
-      // 直连 SMB 被永久 gate 住（见 MediaKindDetection 注释），提前拦截以给出清晰提示，
-      // 而不是让请求打到 SDK 后收到 HEADER_NOT_ALLOWED/PROTOCOL_NOT_AVAILABLE 报错。
-      this.nativeStatus = SMB_UNSUPPORTED_MESSAGE;
-      this.smbConfigStatus = SMB_UNSUPPORTED_MESSAGE;
-      return;
-    }
     const kind = this.mapMediaKind(detected, targetUrl);
     const playbackHeaders = this.isWebDavSource
       ? buildWebDavPlaybackHeaders(this.webDavUsername, this.webDavPassword)
@@ -349,6 +335,8 @@ struct Index {
       ? `Authorization: ${playbackHeaders['Authorization']}`
       : '';
     const proxyLeaseId = detected === 'localhostProxy' ? newProxyLeaseId() : '';
+    const smbUsername = detected === 'smb' ? this.smbUsername : '';
+    const smbPassword = detected === 'smb' ? this.smbPassword : '';
     this.currentMediaKind = detected;
     this.currentProxyLeaseId = proxyLeaseId;
     this.activePlaybackUrl = targetUrl;
@@ -356,6 +344,11 @@ struct Index {
     const headers: Record<string, string> = {};
     if (authorization.length > 0) {
       headers['Authorization'] = playbackHeaders['Authorization'] ?? '';
+    }
+    if (smbUsername.length > 0) {
+      // SMB 用户名/密码通过自定义 header 传递，避免明文出现在 URI 中。
+      headers['X-SMB-Username'] = smbUsername;
+      headers['X-SMB-Password'] = smbPassword;
     }
     const source: MediaSource = {
       kind: kind,
