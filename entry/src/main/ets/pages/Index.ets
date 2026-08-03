@@ -1,4 +1,15 @@
-import libentry, { BufferingState, LibMpvTrack, NativePlayerEvent } from 'libentry.so';
+import {
+  createPlayer,
+  VidAllPlayer,
+  XComponentSurfaceAdapter,
+  VidAllPlayerSurfaceTarget,
+  MediaSource,
+  PlayerEvent,
+  PlayerTrack,
+  PlayerTrackKind,
+  ExternalAudio,
+  ExternalSubtitle
+} from '@vidall/player';
 import { fileIo as fs, picker } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
 import { KeyCode } from '@kit.InputKit';
@@ -9,18 +20,13 @@ import { splitTracks, trackLabel } from '../player/TrackPresentation';
 import { buildBasicAuthorization, buildWebDavPlaybackHeaders, WebDavConfig, WebDavEntry, WebDavService } from '../webdav/WebDavService';
 import { buildSmbMediaUri, SmbConfig, SmbService } from '../smb/SmbService';
 
-interface FrameData {
-  width: number;
-  height: number;
-  data: ArrayBuffer;
-}
-
 @Entry
 @Component
 struct Index {
   private readonly surfaceController: XComponentController = new XComponentController();
-  @State nativeStatus: string = '正在检查 libmpv 原生模块...';
-  @State runtimeInfo: string = '';
+  private surfaceAdapter: XComponentSurfaceAdapter | null = null;
+  @State nativeStatus: string = '正在初始化 @vidall/player...';
+  @State runtimeInfo: string = '@vidall/player HAR';
   @State url: string = '';
   @State subtitleUrl: string = '';
   @State externalAudioUrl: string = '';
@@ -31,16 +37,13 @@ struct Index {
   @State errorDescription: string = '';
   @State errorRetryable: boolean = false;
   @StorageLink('vidallAppForeground') @Watch('onAppForegroundChanged') private appForeground: boolean = true;
-  @State playerHandle: number = 0;
+  private player: VidAllPlayer | null = null;
+  private unsubscribe: (() => void) | null = null;
+  private pendingAutoPlay: boolean = false;
   @State surfaceId: string = '';
   @State isPlaying: boolean = false;
-  @State videoPixelMap: image.PixelMap | null = null;
   private activePlaybackUrl: string = '';
   @State showVideo: boolean = false;
-  private pixelMapBuffers: image.PixelMap[] = [];
-  private pixelMapBufferIndex: number = 0;
-  private pixelMapWidth: number = 0;
-  private pixelMapHeight: number = 0;
   @State webDavEndpoint: string = 'http://192.168.3.59:5005';
   @State webDavUsername: string = '';
   @State webDavPassword: string = '';
@@ -54,20 +57,22 @@ struct Index {
   @State smbUsername: string = '';
   @State smbPassword: string = '';
   @State smbConfigStatus: string = '';
-  @State audioTracks: LibMpvTrack[] = [];
-  @State subtitleTracks: LibMpvTrack[] = [];
+  @State audioTracks: PlayerTrack[] = [];
+  @State subtitleTracks: PlayerTrack[] = [];
   private webDavBrowseGeneration: number = 0;
-  private framePollTimer: number = -1;
   private readonly lifecycle: DemoLifecycleController = new DemoLifecycleController();
-  private statusPollTimer: number = -1;
+
+  constructor() {
+    super();
+  }
 
   aboutToAppear(): void {
-    const buildInfo = libentry.getBuildInfo();
-    this.runtimeInfo = `ABI: ${buildInfo.abi} | libmpv: ${buildInfo.mpvVersion}`;
-    this.nativeStatus = buildInfo.available
-      ? 'ARM64 libmpv 已打包。等待 XComponent Surface 创建...'
-      : '当前为 x86_64 模拟器：ARM64 libmpv 未打包，不能播放。';
-    console.info(`VidAll_Player native: ${this.runtimeInfo}; ${this.nativeStatus}`);
+    // 在 aboutToAppear 中创建播放器与 Surface 适配器，避免 struct 构造函数字段赋值不可靠。
+    this.player = createPlayer();
+    this.surfaceAdapter = new XComponentSurfaceAdapter(new VidAllPlayerSurfaceTarget(this.player));
+    this.nativeStatus = '@vidall/player 已创建，等待 XComponent Surface...';
+    console.info(`VidAll_Player: ${this.nativeStatus}`);
+    this.subscribePlayerEvents();
     this.loadSavedWebDavConfig();
     this.loadSavedSmbConfig();
     this.prepareLocalVideo().then(() => {
@@ -80,9 +85,69 @@ struct Index {
 
   aboutToDisappear(): void {
     this.releasePlayer();
-    if (this.framePollTimer >= 0) {
-      clearInterval(this.framePollTimer);
-      this.framePollTimer = -1;
+  }
+
+  private subscribePlayerEvents(): void {
+    if (this.player === null || this.unsubscribe !== null) {
+      return;
+    }
+    this.unsubscribe = this.player.subscribe((event: PlayerEvent) => this.onPlayerEvent(event));
+  }
+
+  private onPlayerEvent(event: PlayerEvent): void {
+    switch (event.type) {
+      case 'error': {
+        this.isPlaying = false;
+        this.showVideo = false;
+        this.lifecycle.markPlaybackStopped();
+        if (event.error) {
+          this.setPlayerError(event.error.code, event.error.message, event.error.retryable);
+          this.nativeStatus = `媒体加载失败：${event.error.message} (${event.error.code})`;
+          console.error(`VidAll_Player error: ${event.error.message} (${event.error.code})`);
+        }
+        break;
+      }
+      case 'firstFrame': {
+        this.showVideo = true;
+        this.nativeStatus = `已提交真实首帧（事件 #${event.sequence}）`;
+        break;
+      }
+      case 'tracks': {
+        this.refreshTracksFromEvent(event.tracks ?? []);
+        break;
+      }
+      case 'buffering': {
+        if (event.paused) {
+          this.bufferingInfo = '缓冲中：等待缓存恢复 (paused-for-cache)';
+        } else {
+          this.bufferingInfo = '';
+        }
+        break;
+      }
+      case 'state': {
+        if (event.state === 'playing') {
+          this.isPlaying = true;
+          this.showVideo = true;
+        } else if (event.state === 'paused') {
+          this.isPlaying = false;
+        } else if (event.state === 'error' || event.state === 'completed' || event.state === 'released') {
+          this.isPlaying = false;
+          this.pendingAutoPlay = false;
+          if (event.state === 'released') {
+            this.showVideo = false;
+          }
+        }
+        if (event.state === 'preparing' || event.state === 'paused' || event.state === 'buffering') {
+          // 媒体已就绪（preparing/paused/buffering），此时才能安全调用 play()。
+          this.triggerPendingAutoPlay();
+        }
+        break;
+      }
+      default: {
+        if (event.message) {
+          console.info(`VidAll_Player event: ${event.type} ${event.message}`);
+        }
+      }
     }
   }
 
@@ -231,12 +296,10 @@ struct Index {
   }
 
   private tryAutoPlay(): void {
-    if (this.playerHandle <= 0 || this.url.length === 0 || this.surfaceId.length === 0) {
+    if (this.player === null || this.url.length === 0 || this.surfaceId.length === 0) {
       return;
     }
     console.info(`VidAll_Player: auto-playing, surfaceId = ${this.surfaceId}`);
-    this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
-    console.info(`VidAll_Player: attachSurface status = ${this.nativeStatus}`);
     this.startOrReloadMedia();
   }
 
@@ -245,207 +308,144 @@ struct Index {
     console.info(`VidAll_Player: load submitted`);
     this.isPlaying = true;
     this.lifecycle.markPlaybackStarted(this.activePlaybackUrl);
-    this.refreshTracksWhenReady();
-    // 启动帧轮询，供 PixelMap 回退渲染使用。
-    this.startFramePoll();
   }
 
   // 统一的媒体提交入口（US4）：按 URL 识别 hls/dash/localhostProxy/http/https，
   // SMB localhost 代理生成租约 ID 交给原生层关联，凭据仍只走 Authorization 头。
   private submitLoad(): void {
-    const targetUrl = this.url.trim();
+    if (this.player === null) {
+      this.nativeStatus = '播放器未创建。';
+      return;
+    }
+    let targetUrl = this.url.trim();
     if (targetUrl.length === 0) {
       this.nativeStatus = '请先输入或选择媒体地址。';
       return;
     }
-    const kind = detectMediaKind(targetUrl);
-    // WebDAV 播放使用 buildWebDavPlaybackHeaders 构建安全请求头，
-    // 确保 Authorization 仅在同源范围内传递，且支持 Range 请求。
+    // 本地文件路径（不含 scheme）规范化为 file:// URI，满足 @vidall/player 的绝对 URI 校验。
+    if (targetUrl.indexOf('://') < 0) {
+      targetUrl = targetUrl.indexOf('/') === 0 ? `file://${targetUrl}` : `file:///${targetUrl}`;
+    }
+    const detected = detectMediaKind(targetUrl);
+    const kind = this.mapMediaKind(detected, targetUrl);
     const playbackHeaders = this.isWebDavSource
       ? buildWebDavPlaybackHeaders(this.webDavUsername, this.webDavPassword)
       : {} as Record<string, string>;
     const authorization = playbackHeaders['Authorization'] !== undefined
       ? `Authorization: ${playbackHeaders['Authorization']}`
       : '';
-    const proxyLeaseId = kind === 'localhostProxy' ? newProxyLeaseId() : '';
-    const smbUsername = kind === 'smb' ? this.smbUsername : '';
-    const smbPassword = kind === 'smb' ? this.smbPassword : '';
-    this.currentMediaKind = kind;
+    const proxyLeaseId = detected === 'localhostProxy' ? newProxyLeaseId() : '';
+    const smbUsername = detected === 'smb' ? this.smbUsername : '';
+    const smbPassword = detected === 'smb' ? this.smbPassword : '';
+    this.currentMediaKind = detected;
     this.currentProxyLeaseId = proxyLeaseId;
     this.activePlaybackUrl = targetUrl;
-    this.nativeStatus = this.redactSensitiveText(libentry.loadMedia(this.playerHandle, kind, targetUrl, authorization, proxyLeaseId, smbUsername, smbPassword));
-    // 如果填写了外挂字幕/音频 URL，加载视频后立即附加（支持网络 URL）。
-    if (this.subtitleUrl.trim().length > 0) {
-      this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, this.subtitleUrl.trim());
+
+    const headers: Record<string, string> = {};
+    if (authorization.length > 0) {
+      headers['Authorization'] = playbackHeaders['Authorization'] ?? '';
     }
-    if (this.externalAudioUrl.trim().length > 0) {
-      this.nativeStatus = libentry.addExternalAudio(this.playerHandle, this.externalAudioUrl.trim());
+    if (smbUsername.length > 0) {
+      // SMB 用户名/密码通过自定义 header 传递，避免明文出现在 URI 中。
+      headers['X-SMB-Username'] = smbUsername;
+      headers['X-SMB-Password'] = smbPassword;
     }
+    const source: MediaSource = {
+      kind: kind,
+      uri: targetUrl,
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
+      proxyLeaseId: proxyLeaseId.length > 0 ? proxyLeaseId : undefined,
+      externalSubtitles: this.subtitleUrl.trim().length > 0
+        ? [{ uri: this.subtitleUrl.trim() } as ExternalSubtitle] : undefined,
+      externalAudio: this.externalAudioUrl.trim().length > 0
+        ? [{ uri: this.externalAudioUrl.trim() } as ExternalAudio] : undefined
+    };
     this.audioTracks = [];
     this.subtitleTracks = [];
+    // load() 的 Promise 在原生命令派发后即 resolve，实际状态转换到 preparing/paused 是
+    // 通过异步 state 事件到达的；这里不能在 load().then() 里直接调用 play()（会与状态机竞态），
+    // 而是置位 pendingAutoPlay，待 onPlayerEvent 收到可播放状态后再触发 play()。
+    this.pendingAutoPlay = true;
+    this.player.load(source).then(() => {
+      this.nativeStatus = this.redactSensitiveText(`已加载：${targetUrl}`);
+    }).catch((e: Error) => {
+      this.pendingAutoPlay = false;
+      this.setPlayerError('LOAD', e.message, true);
+      this.nativeStatus = `加载失败：${this.redactSensitiveText(e.message)}`;
+      console.error(`VidAll_Player load failed: ${e}`);
+    });
   }
 
-  private startFramePoll(): void {
-    if (this.framePollTimer >= 0) {
+  private triggerPendingAutoPlay(): void {
+    if (!this.pendingAutoPlay || this.player === null) {
       return;
     }
-    // 以约 30fps 轮询帧数据，供 PixelMap 显示。
-    this.framePollTimer = setInterval(() => {
-      this.pollFrame();
-    }, 33);
-    // 每 3 秒轮询一次播放器状态。
-    if (this.statusPollTimer < 0) {
-      this.statusPollTimer = setInterval(() => this.pollStatus(), 3000);
-    }
+    this.pendingAutoPlay = false;
+    this.player.play().then(() => {
+      this.nativeStatus = '播放中。';
+    }).catch((e: Error) => {
+      this.setPlayerError('PLAY', e.message, true);
+      this.nativeStatus = `播放失败：${this.redactSensitiveText(e.message)}`;
+      console.error(`VidAll_Player play failed: ${e}`);
+    });
   }
 
-  private releasePixelMapBuffers(): void {
-    for (const pixelMap of this.pixelMapBuffers) {
-      try {
-        pixelMap.release();
-      } catch (_) {
-        // The PixelMap may already have been released after a failed write.
-      }
+  private mapMediaKind(detected: string, uri: string): 'localFile' | 'http' | 'https' | 'hls' | 'dash' | 'localhostProxy' | 'smb' {
+    if (uri.indexOf('file://') === 0) {
+      return 'localFile';
     }
-    this.pixelMapBuffers = [];
-    this.pixelMapBufferIndex = 0;
-    this.pixelMapWidth = 0;
-    this.pixelMapHeight = 0;
-    this.videoPixelMap = null;
-  }
-
-  private pollFrame(): void {
-    if (this.playerHandle <= 0) {
-      return;
+    if (uri.indexOf('smb://') === 0) {
+      return 'smb';
     }
-    const frameData: FrameData | null = libentry.getFrameData(this.playerHandle) as FrameData | null;
-    if (frameData === null || frameData === undefined || frameData.width <= 0 || frameData.height <= 0) {
-      return;
+    if (detected === 'hls') {
+      return 'hls';
     }
-    try {
-      const opts: image.InitializationOptions = {
-        size: { width: frameData.width, height: frameData.height },
-        srcPixelFormat: image.PixelMapFormat.RGBA_8888,
-        pixelFormat: image.PixelMapFormat.RGBA_8888,
-        alphaType: image.AlphaType.OPAQUE,
-      };
-      if (this.videoPixelMap !== null &&
-        (this.pixelMapWidth !== frameData.width || this.pixelMapHeight !== frameData.height)) {
-        this.releasePixelMapBuffers();
-      }
-      const nextBuffer = this.pixelMapBuffers[this.pixelMapBufferIndex];
-      if (nextBuffer === undefined) {
-        this.pixelMapBuffers.push(image.createPixelMapSync(frameData.data, opts));
-        this.pixelMapWidth = frameData.width;
-        this.pixelMapHeight = frameData.height;
-      } else {
-        nextBuffer.writeBufferToPixels(frameData.data);
-      }
-      this.videoPixelMap = this.pixelMapBuffers[this.pixelMapBufferIndex];
-      this.pixelMapBufferIndex = (this.pixelMapBufferIndex + 1) % 2;
-      this.showVideo = true;
-    } catch (_) {
-      this.releasePixelMapBuffers();
+    if (detected === 'dash') {
+      return 'dash';
     }
-  }
-
-  private createPlayer(): boolean {
-    if (this.playerHandle > 0) {
-      return true;
+    if (detected === 'localhostProxy') {
+      return 'localhostProxy';
     }
-    // 先设置字体目录，确保 libass/fontconfig 能找到系统字体渲染字幕
-    try {
-      const cacheDir = getContext(this).cacheDir;
-      libentry.setDataDir(cacheDir);
-    } catch (e) {
-      console.error(`VidAll_Player: setDataDir failed: ${e}`);
+    if (detected === 'https') {
+      return 'https';
     }
-    const handle = libentry.createPlayer();
-    if (handle <= 0) {
-      this.nativeStatus = '创建 libmpv 失败；请确认运行在 ARM64 真机且 libmpv.so 已打包。';
-      return false;
+    if (detected === 'http') {
+      return 'http';
     }
-    this.playerHandle = handle;
-    const eventStatus = libentry.setEventCallback(handle, (event: NativePlayerEvent) => this.onNativePlayerEvent(event));
-    if (eventStatus !== '事件回调已注册') {
-      this.nativeStatus = `libmpv 事件回调注册失败：${eventStatus}`;
-      libentry.release(handle);
-      this.playerHandle = 0;
-      return false;
-    }
-    this.nativeStatus = `libmpv 已创建，句柄 #${handle}`;
-    this.clearPlayerError();
-    return true;
-  }
-
-  private onNativePlayerEvent(event: NativePlayerEvent): void {
-    if (event.type === 'error') {
-      this.isPlaying = false;
-      this.showVideo = false;
-      this.lifecycle.markPlaybackStopped();
-      this.setPlayerError(event.errorCode, event.message);
-      this.nativeStatus = `媒体加载失败：${this.errorDescription} (${event.errorCode})`;
-      console.error(`VidAll_Player libmpv error: ${this.errorDescription} (${event.errorCode})`);
-      return;
-    }
-    if (event.type === 'firstFrame') {
-      this.showVideo = true;
-      this.nativeStatus = `已提交真实首帧（事件 #${event.sequence}）`;
-      return;
-    }
-    if (event.type === 'tracks') {
-      this.refreshTracks();
-      return;
-    }
-    if (event.type === 'buffering') {
-      this.pollStatus();
-      return;
-    }
-    console.warn(`VidAll_Player libmpv: ${this.redactSensitiveText(event.message ?? '')}`);
+    return 'localFile';
   }
 
   private loadVideo(): void {
-    if (!this.createPlayer()) {
+    if (this.player === null) {
+      this.nativeStatus = '播放器未创建。';
       return;
     }
     if (this.surfaceId.length === 0) {
       this.nativeStatus = '正在等待 XComponent Surface 创建。';
       return;
     }
-    this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
     this.startOrReloadMedia();
   }
 
-  private refreshTracks(): boolean {
-    if (this.playerHandle <= 0) {
-      return false;
-    }
-    const groups = splitTracks(libentry.getTracks(this.playerHandle));
+  private refreshTracksFromEvent(tracks: PlayerTrack[]): void {
+    const groups = splitTracks(tracks);
     this.audioTracks = groups.audio;
     this.subtitleTracks = groups.subtitle;
-    return this.audioTracks.length > 0 || this.subtitleTracks.length > 0;
   }
 
-  private refreshTracksWhenReady(): void {
-    let attempts = 0;
-    const timer = setInterval(() => {
-      attempts++;
-      if (this.refreshTracks() || attempts >= 10) {
-        clearInterval(timer);
-      }
-    }, 500);
-  }
-
-  private selectAudioTrack(track: LibMpvTrack): void {
-    if (this.playerHandle <= 0 || track.id === undefined) {
+  private selectAudioTrack(track: PlayerTrack): void {
+    if (this.player === null) {
       return;
     }
-    this.nativeStatus = libentry.selectAudioTrack(this.playerHandle, track.id);
-    this.pollTracksAfterSwitch();
+    this.player.selectTrack('audio', track.id).then(() => {
+      this.nativeStatus = `已选择音轨 #${track.id}`;
+    }).catch((e: Error) => {
+      this.nativeStatus = `切换音轨失败：${e.message}`;
+    });
   }
 
   private loadExternalSubtitle(): void {
-    if (this.playerHandle <= 0) {
+    if (this.player === null) {
       this.nativeStatus = '请先加载视频。';
       return;
     }
@@ -454,13 +454,15 @@ struct Index {
       this.nativeStatus = '请先填写外挂字幕 URL。';
       return;
     }
-    this.nativeStatus = libentry.addExternalSubtitle(this.playerHandle, uri);
-    // 字幕加载后刷新轨道列表，让新字幕出现在字幕轨面板中
-    this.pollTracksAfterSwitch();
+    this.player.addExternalSubtitle({ uri }).then(() => {
+      this.nativeStatus = `已加载外挂字幕：${uri}`;
+    }).catch((e: Error) => {
+      this.nativeStatus = `加载外挂字幕失败：${e.message}`;
+    });
   }
 
   private loadExternalAudio(): void {
-    if (this.playerHandle <= 0) {
+    if (this.player === null) {
       this.nativeStatus = '请先加载视频。';
       return;
     }
@@ -469,99 +471,88 @@ struct Index {
       this.nativeStatus = '请先填写外挂音频 URL。';
       return;
     }
-    this.nativeStatus = libentry.addExternalAudio(this.playerHandle, uri);
-    // 音轨加载后刷新轨道列表，让新音轨出现在音轨面板中
-    this.pollTracksAfterSwitch();
+    this.player.addExternalAudio({ uri }).then(() => {
+      this.nativeStatus = `已加载外挂音频：${uri}`;
+    }).catch((e: Error) => {
+      this.nativeStatus = `加载外挂音频失败：${e.message}`;
+    });
   }
 
-  private selectSubtitleTrack(track: LibMpvTrack | null): void {
-    if (this.playerHandle <= 0) {
+  private selectSubtitleTrack(track: PlayerTrack | null): void {
+    if (this.player === null) {
       return;
     }
-    this.nativeStatus = libentry.selectSubtitleTrack(this.playerHandle, track?.id ?? null);
-    this.pollTracksAfterSwitch();
-  }
-
-  private pollTracksAfterSwitch(): void {
-    this.refreshTracks();
-    let attempts = 0;
-    const timer = setInterval(() => {
-      attempts++;
-      this.refreshTracks();
-      if (attempts >= 4) {
-        clearInterval(timer);
-      }
-    }, 250);
+    this.player.selectTrack('subtitle', track?.id ?? null).then(() => {
+      this.nativeStatus = track === null ? '已关闭字幕' : `已选择字幕 #${track.id}`;
+    }).catch((e: Error) => {
+      this.nativeStatus = `切换字幕失败：${e.message}`;
+    });
   }
 
   private togglePlayback(): void {
-    if (this.playerHandle <= 0) {
+    if (this.player === null) {
       this.nativeStatus = '请先加载视频。';
       return;
     }
     this.isPlaying = !this.isPlaying;
-    this.nativeStatus = libentry.setPause(this.playerHandle, !this.isPlaying);
     if (this.isPlaying) {
-      this.lifecycle.markPlaybackStarted(this.activePlaybackUrl);
+      this.player.play().then(() => {
+        this.nativeStatus = '播放中。';
+        this.lifecycle.markPlaybackStarted(this.activePlaybackUrl);
+      }).catch((e: Error) => {
+        this.nativeStatus = `播放失败：${e.message}`;
+      });
     } else {
-      this.lifecycle.markPlaybackStopped();
+      this.player.pause().then(() => {
+        this.nativeStatus = '已暂停。';
+        this.lifecycle.markPlaybackStopped();
+      }).catch((e: Error) => {
+        this.nativeStatus = `暂停失败：${e.message}`;
+      });
     }
   }
 
   private seekBy(deltaSeconds: number): void {
-    if (this.playerHandle <= 0) {
+    if (this.player === null) {
       this.nativeStatus = '请先加载视频。';
       return;
     }
-    this.nativeStatus = libentry.seekRelative(this.playerHandle, deltaSeconds);
+    this.player.seekRelative(deltaSeconds).then(() => {
+      this.nativeStatus = `已跳转 ${deltaSeconds}s`;
+    }).catch((e: Error) => {
+      this.nativeStatus = `跳转失败：${e.message}`;
+    });
   }
 
   private stopPlayback(): void {
-    if (this.playerHandle > 0) {
-      this.nativeStatus = libentry.stop(this.playerHandle);
+    if (this.player === null) {
+      return;
+    }
+    this.player.stop().then(() => {
+      this.nativeStatus = '已停止。';
       this.isPlaying = false;
       this.showVideo = false;
       this.lifecycle.markPlaybackStopped();
-    }
+    }).catch((e: Error) => {
+      this.nativeStatus = `停止失败：${e.message}`;
+    });
   }
 
   private releasePlayer(): void {
-    if (this.playerHandle > 0) {
-      this.nativeStatus = libentry.release(this.playerHandle);
-      this.playerHandle = 0;
+    if (this.unsubscribe !== null) {
+      this.unsubscribe();
+      this.unsubscribe = null;
+    }
+    if (this.player !== null) {
+      this.player.release().then(() => {
+        this.nativeStatus = '@vidall/player 已释放。';
+      }).catch((e: Error) => {
+        this.nativeStatus = `释放失败：${e.message}`;
+      });
       this.isPlaying = false;
       this.showVideo = false;
     }
-    if (this.framePollTimer >= 0) {
-      clearInterval(this.framePollTimer);
-      this.framePollTimer = -1;
-    }
-    if (this.statusPollTimer >= 0) {
-      clearInterval(this.statusPollTimer);
-      this.statusPollTimer = -1;
-    }
-    this.releasePixelMapBuffers();
     this.lifecycle.markReleased();
-  }
-
-  private pollStatus(): void {
-    if (this.playerHandle > 0) {
-      this.nativeStatus = libentry.getPlayerStatus(this.playerHandle);
-      // 缓冲/缓存状态（US4）：paused-for-cache 表示等待缓存，demuxer 预读显示已缓存时长。
-      const buffering: BufferingState = libentry.getBufferingState(this.playerHandle);
-      this.currentMediaKind = buffering.mediaKind;
-      this.currentProxyLeaseId = buffering.proxyLeaseId;
-      if (buffering.pausedForCache) {
-        this.bufferingInfo = '缓冲中：等待缓存恢复 (paused-for-cache)';
-      } else if (buffering.demuxerBuffering) {
-        this.bufferingInfo = `预读中：已缓存 ${buffering.cacheDurationSeconds.toFixed(1)} 秒`;
-      } else {
-        this.bufferingInfo = '';
-      }
-      if (buffering.errorText.length > 0) {
-        this.setPlayerError(-1, buffering.errorText);
-      }
-    }
   }
 
   private attachSurface(): void {
@@ -569,33 +560,27 @@ struct Index {
     const surfaceId = this.surfaceController.getXComponentSurfaceId();
     console.info(`VidAll_Player attachSurface: surfaceId = ${surfaceId}`);
     this.surfaceId = surfaceId;
-    const createdPlayer = this.playerHandle <= 0;
-    if (createdPlayer) {
-      console.info(`VidAll_Player attachSurface: creating player...`);
-      if (!this.createPlayer()) {
-        console.error(`VidAll_Player attachSurface: createPlayer FAILED`);
-        return;
-      }
-      console.info(`VidAll_Player attachSurface: createPlayer returned ${this.playerHandle}`);
-    }
-    this.nativeStatus = libentry.attachSurface(this.playerHandle, this.surfaceId);
-    if (createdPlayer) {
-      this.tryAutoPlay();
+    if (this.surfaceAdapter === null) {
+      this.nativeStatus = 'Surface 适配器未初始化。';
+      console.error(`VidAll_Player attachSurface: surfaceAdapter null`);
       return;
     }
-    if (this.lifecycle.onSurfaceCreated()) {
-      this.nativeStatus = 'Surface 已重建，正在恢复播放。';
-      this.isPlaying = true;
-      this.nativeStatus = libentry.setPause(this.playerHandle, false);
-      this.startFramePoll();
-    }
+    // 委托给 XComponentSurfaceAdapter 处理 attach/generation/尺寸校验。
+    this.surfaceAdapter.onLoad(surfaceId, 1280, 720).then(() => {
+      this.nativeStatus = `Surface 已接入：${surfaceId}`;
+      this.lifecycle.onSurfaceCreated();
+      this.tryAutoPlay();
+    }).catch((e: Error) => {
+      this.nativeStatus = `Surface 接入失败：${e.message}`;
+      console.error(`VidAll_Player attachSurface failed: ${e}`);
+    });
   }
 
-  private setPlayerError(code: number, message: string): void {
+  private setPlayerError(code: string, message: string, retryable: boolean): void {
     const sanitized = this.redactSensitiveText(message);
-    this.errorCode = code >= 0 ? `MPV_${code}` : 'NETWORK_OR_PLAYBACK_ERROR';
+    this.errorCode = code;
     this.errorDescription = sanitized.length > 0 ? sanitized : '播放器无法继续播放当前媒体。';
-    this.errorRetryable = code < 0 || /network|timeout|cache|connect/i.test(message);
+    this.errorRetryable = retryable;
   }
 
   private clearPlayerError(): void {
@@ -630,26 +615,29 @@ struct Index {
       }
       this.url = result[0];
       this.isWebDavSource = false;
-      this.nativeStatus = '已选择本地视频，请点击“加载视频”。';
+      this.nativeStatus = '已选择本地视频，请点击"加载视频"。';
     } catch (error) {
-      this.setPlayerError(-1, '无法选择本地视频文件。');
+      this.setPlayerError('PICK', '无法选择本地视频文件。', false);
       console.error(`VidAll_Player local picker error: ${JSON.stringify(error)}`);
     }
   }
 
   onAppForegroundChanged(): void {
+    if (this.player === null) {
+      return;
+    }
     if (this.appForeground && this.lifecycle.onForeground()) {
       this.nativeStatus = '已回到前台，正在恢复渲染。';
-      if (this.playerHandle > 0) {
-        this.nativeStatus = libentry.setPause(this.playerHandle, false);
-      }
+      this.player.play().catch((e: Error) => {
+        this.nativeStatus = `恢复播放失败：${e.message}`;
+      });
       return;
     }
     if (!this.appForeground && this.lifecycle.onBackground()) {
       this.nativeStatus = '应用进入后台，已暂停渲染。';
-      if (this.playerHandle > 0) {
-        libentry.setPause(this.playerHandle, true);
-      }
+      this.player.pause().catch((e: Error) => {
+        this.nativeStatus = `暂停失败：${e.message}`;
+      });
     }
   }
 
@@ -677,22 +665,17 @@ struct Index {
           })
           .onDestroy(() => {
             console.info(`VidAll_Player: XComponent onDestroy fired`);
-            if (this.playerHandle > 0) {
-              this.nativeStatus = libentry.detachSurface(this.playerHandle);
+            if (this.surfaceAdapter !== null) {
+              this.surfaceAdapter.onDestroy().catch((e: Error) => {
+                console.error(`VidAll_Player detachSurface failed: ${e}`);
+              });
             }
             this.lifecycle.onSurfaceDestroyed();
             this.surfaceId = '';
           })
-        // PixelMap overlay for emulator display (when NativeWindow BufferQueue is broken)
-        if (this.showVideo && this.videoPixelMap !== null) {
-          Image(this.videoPixelMap)
-            .width('100%')
-            .height('100%')
-            .objectFit(ImageFit.Contain)
-        }
         // Status text when no video
         if (!this.showVideo) {
-          Text(this.playerHandle > 0 ? '正在等待视频帧...' : '点击"加载视频"开始播放')
+          Text(this.player !== null ? '正在等待视频帧...' : '点击"加载视频"开始播放')
             .fontSize(18)
             .fontColor('#D9E6F7')
         }
@@ -708,28 +691,28 @@ struct Index {
           .id('toggle-playback-button')
           .fontSize(16)
           .backgroundColor('#1A9A78')
-          .enabled(this.playerHandle > 0)
+          .enabled(this.player !== null)
           .onClick(() => this.togglePlayback())
 
         Button('快退 10s')
           .id('seek-backward-button')
           .fontSize(16)
           .backgroundColor('#4B6C8A')
-          .enabled(this.playerHandle > 0)
+          .enabled(this.player !== null)
           .onClick(() => this.seekBy(-10))
 
         Button('快进 10s')
           .id('seek-forward-button')
           .fontSize(16)
           .backgroundColor('#4B6C8A')
-          .enabled(this.playerHandle > 0)
+          .enabled(this.player !== null)
           .onClick(() => this.seekBy(10))
 
         Button('停止')
           .id('stop-video-button')
           .fontSize(16)
           .backgroundColor('#9B6A2F')
-          .enabled(this.playerHandle > 0)
+          .enabled(this.player !== null)
           .onClick(() => this.stopPlayback())
       }
       .width('88%')
@@ -774,9 +757,16 @@ struct Index {
             .layoutWeight(1)
           Button('刷新轨道')
             .id('refresh-tracks-button')
-            .enabled(this.playerHandle > 0)
+            .enabled(this.player !== null)
             .backgroundColor('#2F7DE1')
-            .onClick(() => this.refreshTracks())
+            .onClick(() => {
+              // 轨道列表由事件驱动；此处仅提示用户当前状态。
+              if (this.audioTracks.length === 0 && this.subtitleTracks.length === 0) {
+                this.nativeStatus = '暂无轨道信息。加载媒体后会通过事件自动刷新。';
+              } else {
+                this.nativeStatus = `当前音轨 ${this.audioTracks.length} 条，字幕 ${this.subtitleTracks.length} 条。`;
+              }
+            })
         }
         if (this.audioTracks.length === 0 && this.subtitleTracks.length === 0) {
           Text('加载包含多音轨或字幕的视频后显示轨道元数据。')
@@ -787,13 +777,13 @@ struct Index {
             .fontSize(16)
             .fontColor('#AFC6E9')
           Row({ space: 8 }) {
-            ForEach(this.audioTracks, (track: LibMpvTrack) => {
+            ForEach(this.audioTracks, (track: PlayerTrack) => {
               Button(trackLabel(track))
                 .id(`audio-track-${track.id}`)
                 .fontSize(15)
                 .backgroundColor(track.selected ? '#1A9A78' : '#315473')
                 .onClick(() => this.selectAudioTrack(track))
-            }, (track: LibMpvTrack) => `audio-${track.id}-${track.selected}`)
+            }, (track: PlayerTrack) => `audio-${track.id}-${track.selected}`)
           }
           .width('100%')
           Text('字幕')
@@ -803,15 +793,15 @@ struct Index {
             Button('关闭字幕')
               .id('subtitle-track-off')
               .fontSize(15)
-              .backgroundColor(this.subtitleTracks.every((track: LibMpvTrack) => !track.selected) ? '#9B6A2F' : '#315473')
+              .backgroundColor(this.subtitleTracks.every((track: PlayerTrack) => !track.selected) ? '#9B6A2F' : '#315473')
               .onClick(() => this.selectSubtitleTrack(null))
-            ForEach(this.subtitleTracks, (track: LibMpvTrack) => {
+            ForEach(this.subtitleTracks, (track: PlayerTrack) => {
               Button(trackLabel(track))
                 .id(`subtitle-track-${track.id}`)
                 .fontSize(15)
                 .backgroundColor(track.selected ? '#1A9A78' : '#315473')
                 .onClick(() => this.selectSubtitleTrack(track))
-            }, (track: LibMpvTrack) => `subtitle-${track.id}-${track.selected}`)
+            }, (track: PlayerTrack) => `subtitle-${track.id}-${track.selected}`)
           }
           .width('100%')
         }
@@ -841,7 +831,7 @@ struct Index {
         Button('加载外挂字幕')
           .id('load-external-subtitle-button')
           .fontSize(15)
-          .enabled(this.playerHandle > 0 && this.subtitleUrl.trim().length > 0)
+          .enabled(this.player !== null && this.subtitleUrl.trim().length > 0)
           .backgroundColor('#2F7DE1')
           .onClick(() => this.loadExternalSubtitle())
       }
@@ -858,7 +848,7 @@ struct Index {
         Button('加载外挂音频')
           .id('load-external-audio-button')
           .fontSize(15)
-          .enabled(this.playerHandle > 0 && this.externalAudioUrl.trim().length > 0)
+          .enabled(this.player !== null && this.externalAudioUrl.trim().length > 0)
           .backgroundColor('#2F7DE1')
           .onClick(() => this.loadExternalAudio())
       }
@@ -1019,8 +1009,8 @@ struct Index {
           .fontSize(18)
           .backgroundColor('#5B4D8A')
           .onClick(() => {
-            if (this.playerHandle > 0) {
-              this.nativeStatus = libentry.getPlayerStatus(this.playerHandle);
+            if (this.player !== null) {
+              this.nativeStatus = '@vidall/player 会话已创建。';
             } else {
               this.nativeStatus = '播放器未创建';
             }

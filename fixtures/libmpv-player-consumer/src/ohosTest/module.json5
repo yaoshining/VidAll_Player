@@ -1,0 +1,21 @@
+{
+  "module": {
+    "name": "libmpv_player_consumer_test",
+    "type": "feature",
+    "description": "@vidall/player 公共入口回归测试模块",
+    "mainElement": "TestAbility",
+    "deviceTypes": ["tv"],
+    "deliveryWithInstall": true,
+    "installationFree": false,
+    "abilities": [
+      {
+        "name": "TestAbility",
+        "srcEntry": "./ets/testability/TestAbility.ets",
+        "description": "运行 @vidall/player 公共入口回归测试",
+        "startWindowIcon": "$media:test_start_icon",
+        "startWindowBackground": "$color:test_start_window_background",
+        "exported": true
+      }
+    ]
+  }
+}

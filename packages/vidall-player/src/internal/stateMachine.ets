@@ -10,6 +10,7 @@ export class SessionStateMachine {
   private sequence: number = 0;
   private eventEpoch: number = 0;
   private surfaceGeneration?: number;
+  private nativeSequence: number = 0;
   private readonly listeners: EventListener[] = [];
 
   getState(): PlayerState { return this.state; }
@@ -17,11 +18,24 @@ export class SessionStateMachine {
 
   advanceEventEpoch(): number {
     this.eventEpoch += 1;
+    this.nativeSequence = 0;
     return this.eventEpoch;
   }
 
   setSurfaceGeneration(generation: number | undefined): void {
     this.surfaceGeneration = generation;
+  }
+
+  matchesNativeContext(eventEpoch: number, surfaceGeneration: number): boolean {
+    return this.phase === 'open' && eventEpoch === this.eventEpoch && surfaceGeneration === this.surfaceGeneration;
+  }
+
+  acceptNativeSequence(eventEpoch: number, sequence: number): boolean {
+    if (eventEpoch !== this.eventEpoch || sequence <= this.nativeSequence) {
+      return false;
+    }
+    this.nativeSequence = sequence;
+    return true;
   }
 
   emitIncoming(event: PlayerEvent): boolean {

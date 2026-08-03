@@ -1,0 +1,11 @@
+{
+  "name": "libmpv-player-consumer",
+  "version": "0.1.0",
+  "description": "仅用于验证 @vidall/player 根入口和会话生命周期的本地消费者。",
+  "main": "",
+  "author": "VidAll",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "@vidall/player": "file:../../packages/vidall-player/build/default/outputs/default/vidall_player.har"
+  }
+}

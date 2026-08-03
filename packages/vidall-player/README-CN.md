@@ -1,95 +1,41 @@
 # VidAll Player SDK
 
-`@vidall/player` 是面向 HarmonyOS TV 和手机应用的 ArkTS 播放器候选 HAR。播放器的目标内核是 libmpv，不使用 HarmonyOS AVPlayer。包的唯一公开入口是 `Index.ets`；只应导入本文列出的 API。
+`@vidall/player` 是面向 HarmonyOS 的 ArkTS 播放器候选 HAR。播放器唯一的播放内核是 libmpv，不使用 HarmonyOS `AVPlayer`。包的唯一公开入口是 `Index.ets`；只应导入本文列出的 API。
 
 ## 候选状态
 
-该包尚未发布到 OHPM，当前仅用于 VidAll_TV 集成验证。现有 HAR 仅包含内部 NAPI 打包探针，尚未包含 libmpv 播放桥接或可分发的 libmpv 运行时；构建成功不能视为真实媒体播放已支持。
+该包尚未发布到 OHPM，只能由本仓库的独立 fixture 用于开发期验证；不修改或依赖 VidAll_TV。HAR 包含内部 NAPI 和 ARM64 libmpv 候选产物，但 G1（目标设备/样本）、G2（供应链）和 G3（Surface/线程）尚未关闭。构建、模拟器安装、会话创建或 XComponent attach/detach 成功都不能视为媒体播放、首帧、TV 支持或可发布能力。
 
-公开 API 暂严格限定为本文所列契约。其余 libmpv 能力须先在 VidAll_TV 完成实现和验证后再按需加入；未在本文声明的 mpv 命令、属性、脚本、滤镜、录制、流捕获和截图均不是公开 API。
+公开 API 暂严格限定为本文所列契约。未在本文声明的 mpv 命令、属性、脚本、滤镜、录制、流捕获和截图均不是公开 API，并返回 `FEATURE_UNSUPPORTED` 或其他类型化错误。
 
-## 安装
+## 本地 fixture
 
-验证后的版本可在应用工程根目录执行：
+当前不提供 OHPM 安装、上传或公开发布方式。仅可由本仓库的 `fixtures/libmpv-player-consumer/` 通过本地 HAR 路径依赖进行开发期验证：
 
 ```sh
-ohpm install @vidall/player
+devecocli build --modules vidall_player libmpv_player_consumer libmpv_player_consumer@ohosTest
 ```
 
-然后在应用模块的 `oh-package.json5` 中声明依赖：
+fixture 只能从 `@vidall/player` 根入口导入；不要导入 `src/internal`、NAPI、NativeWindow、EGL/GLES 或 libmpv 相关路径，它们不属于兼容性承诺。
 
-```json5
-{
-  "dependencies": {
-    "@vidall/player": "0.1.0"
-  }
-}
-```
+## 开发期接口
 
-安装后执行 `ohpm install`，再使用 DevEco Studio 或 `devecocli build` 构建应用。
+`createPlayer()`、`attachSurface()`、`resizeSurface()`、`detachSurface()`、`load()`、`play()`、`stop()` 和 `release()` 是候选接口。调用成功、生命周期事件或模拟器日志只证明受控桥接路径执行，不构成媒体播放或首帧结论。页面销毁时仍应调用 `release()`；释放后的实例不可复用，应重新调用 `createPlayer()`。
 
-## 快速开始
+未批准的能力会返回类型化错误。例如，`requestCache()` 返回 `FEATURE_UNSUPPORTED`；无有效 Surface 的 `load()` 返回 `SURFACE_UNAVAILABLE`；释放后控制调用返回 `RELEASED`。公开错误经过脱敏，不能依赖其包含完整 URI、原生句柄或加载路径。
 
-```ts
-import {
-  createPlayer,
-  MediaSource,
-  PlayerEvent,
-  PlayerSurface,
-  VidAllPlayer
-} from '@vidall/player';
+## 能力状态与门禁
 
-const player: VidAllPlayer = createPlayer({
-  eventListener: (event: PlayerEvent) => {
-    if (event.type === 'error') {
-      console.error(`${event.error?.code}: ${event.error?.message}`);
-    }
-  }
-});
+能力只能标为 `已构建待验证`、`已通过真机样本` 或 `不支持或暂缓`。当前候选是 `已构建待验证`。
 
-const surface: PlayerSurface = {
-  componentId: 'video-surface',
-  generation: 1,
-  width: 1920,
-  height: 1080
-};
-const source: MediaSource = {
-  kind: 'https',
-  uri: 'https://example.com/video.m3u8'
-};
+ARM64 TV 模拟器仅用于构建、安装、根入口导入、NAPI 加载和生命周期回归。它不能关闭以下门禁：
 
-await player.attachSurface(surface);
-await player.load(source);
-await player.play();
-```
+- G1：目标 ARM64 TV/API、媒体样本闭集和复现规则。
+- G2：libmpv 来源、GPL 材料、加载边界、ABI/ELF 和候选准入。
+- G3：XComponent/Surface、NativeWindow、线程、输入和真实首帧。
 
-页面销毁或 Surface 重建时必须释放播放器：
+在同一 `candidateId` 的真机证据和 G1/G2/G3 书面批准完成前，不得交付 HAR、上传 OHPM、公开发布，或声明播放、首帧、TV 支持及 ijkplayer 已被替换。
 
-```ts
-await player.detachSurface(surface.generation);
-await player.release();
-```
+## 许可
 
-Surface 尺寸变化时，使用新的 `generation` 调用 `resizeSurface()`；释放后的实例不可复用，应重新调用 `createPlayer()`。
-
-## API 概览
-
-- `createPlayer(options?)`：创建播放器实例；可通过 `eventListener` 接收状态、首帧、进度、音轨、字幕、日志和错误事件。
-- `attachSurface`、`resizeSurface`、`detachSurface`：管理渲染 Surface 生命周期。
-- `load`、`play`、`pause`、`stop`、`seekRelative`、`seekPercent`：管理媒体播放。
-- `setVolume`、`mute`、`setRate`、`selectTrack`：设置播放参数和轨道。
-- `addExternalAudio`、`addExternalSubtitle`、`setSubtitleDelay`：添加外部音频、字幕并调整字幕延迟。
-- `subscribe(listener)`：订阅事件；返回的函数用于取消订阅。
-- `release()`：释放原生和播放资源；页面退出前必须调用。
-
-## 输入与限制
-
-`MediaSource.kind` 支持 `localFile`、`http`、`https`、`hls`、`dash`、`localhostProxy` 和 `smb`。HTTP(S) 可使用 `headers`，但不要在 URI 或日志中写入凭据。当前 `smb`、缓存请求、裁剪、去隔行与截图不属于稳定支持能力，调用时可能返回结构化错误。
-
-仅导入 `@vidall/player`；不要导入 `src/internal`、NAPI、NativeWindow、EGL/GLES 或 libmpv 相关路径，它们不属于兼容性承诺的一部分。
-
-## 兼容性与许可
-
-HAR 声明支持 `phone` 和 `tv`，兼容 HarmonyOS API 15，目标 API 22。媒体能力需要在目标设备验证；构建通过不代表特定编码、协议或硬件解码器已得到支持。
-
-目标 libmpv 分发物包含 GPL 组件，其中 SMB 路径静态链接 Samba。因此，本包采用 [GNU General Public License v3.0 or later](LICENSE)。分发义务见 `docs/controlled-libmpv-release.md`，版本记录见 [CHANGELOG.md](CHANGELOG.md)。
+候选 libmpv 分发物包含 GPL 组件，SMB 路径涉及 Samba。任何后续受控分发必须依照 [GNU General Public License v3.0 or later](LICENSE) 并完成 `docs/controlled-libmpv-release.md` 规定的材料和审批；当前状态不构成分发授权。

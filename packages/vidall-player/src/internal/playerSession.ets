@@ -15,19 +15,23 @@ import { lifecycleFailure, PlayerFailure } from './playerFailure';
 import { ProxyLeaseRecord, ProxyLeaseRegistry } from './proxyLeaseRegistry';
 import { redactError } from './redaction';
 import { SessionStateMachine } from './stateMachine';
+import { createNativePlayerBridge, NativeBridgeEvent, NativePlayerBridge } from '../native/nativeBridge';
 
 export class PlayerSession implements VidAllPlayer {
   private readonly queue: CommandQueue = new CommandQueue();
   private readonly stateMachine: SessionStateMachine = new SessionStateMachine();
   private readonly leases: ProxyLeaseRegistry = new ProxyLeaseRegistry();
   private readonly recovery: NetworkRecoveryController = new NetworkRecoveryController();
+  private readonly nativeBridge: NativePlayerBridge;
   private surface?: PlayerSurface;
   private source?: MediaSource;
   private tracks: PlayerTrack[] = [];
   private resumeState?: 'playing' | 'paused';
   private leaseEpoch: number = 0;
 
-  constructor(options?: PlayerOptions) {
+  constructor(options?: PlayerOptions, nativeBridge?: NativePlayerBridge) {
+    this.nativeBridge = nativeBridge ?? createNativePlayerBridge();
+    this.nativeBridge.subscribe((event) => this.handleNativeBridgeEvent(event));
     if (options?.eventListener !== undefined) {
       this.stateMachine.subscribe(options.eventListener);
     }
@@ -43,8 +47,10 @@ export class PlayerSession implements VidAllPlayer {
       if (this.surface !== undefined && surface.generation < this.surface.generation) {
         return;
       }
-      this.surface = surface;
-      this.stateMachine.setSurfaceGeneration(surface.generation);
+      return this.nativeBridge.attachSurface(surface).then(() => {
+        this.surface = surface;
+        this.stateMachine.setSurfaceGeneration(surface.generation);
+      });
     });
   }
 
@@ -54,17 +60,22 @@ export class PlayerSession implements VidAllPlayer {
       if (this.surface === undefined || surface.generation !== this.surface.generation) {
         throw lifecycleFailure('INVALID_SURFACE_GENERATION', 'Surface generation is not attached.');
       }
-      this.surface = surface;
-      this.stateMachine.setSurfaceGeneration(surface.generation);
+      return this.nativeBridge.resizeSurface(surface).then(() => {
+        this.surface = surface;
+        this.stateMachine.setSurfaceGeneration(surface.generation);
+      });
     });
   }
 
   detachSurface(generation: number): Promise<void> {
     return this.enqueue('detachSurface', () => {
       if (this.surface !== undefined && this.surface.generation === generation) {
-        this.surface = undefined;
-        this.stateMachine.setSurfaceGeneration(undefined);
+        return this.nativeBridge.detachSurface(generation).then(() => {
+          this.surface = undefined;
+          this.stateMachine.setSurfaceGeneration(undefined);
+        });
       }
+      return Promise.resolve();
     });
   }
 
@@ -88,12 +99,12 @@ export class PlayerSession implements VidAllPlayer {
       // 避免旧连接、旧租约或旧轨道泄漏到新媒体会话。
       this.abortActiveMedia('source-switch');
       this.stateMachine.advanceEventEpoch();
-      this.source = source;
-      this.tracks = this.createExternalAudioTracks(source.externalAudio).concat(
+      return this.nativeBridge.load(source).then(() => {
+        this.source = source;
+        this.tracks = this.createExternalAudioTracks(source.externalAudio).concat(
         this.createExternalSubtitleTracks(source.externalSubtitles, source.externalAudio?.length ?? 0)
       );
       this.recovery.clear();
-      this.stateMachine.transition('preparing');
       if (source.kind === 'localhostProxy' && source.proxyLeaseId !== undefined) {
         this.leaseEpoch++;
         const lease = this.leases.track(source.proxyLeaseId, source.uri, this.leaseEpoch);
@@ -108,6 +119,7 @@ export class PlayerSession implements VidAllPlayer {
       if (this.tracks.length > 0) {
         this.emitTracks();
       }
+      });
     });
   }
 
@@ -117,7 +129,7 @@ export class PlayerSession implements VidAllPlayer {
       if (state !== 'preparing' && state !== 'paused' && state !== 'buffering') {
         throw lifecycleFailure('INVALID_STATE', 'Play requires prepared, paused, or buffering media.');
       }
-      this.stateMachine.transition('playing');
+      return this.nativeBridge.play();
     });
   }
 
@@ -126,7 +138,7 @@ export class PlayerSession implements VidAllPlayer {
       if (this.stateMachine.getState() !== 'playing' && this.stateMachine.getState() !== 'buffering') {
         throw lifecycleFailure('INVALID_STATE', 'Pause requires playing or buffering media.');
       }
-      this.stateMachine.transition('paused');
+      return this.nativeBridge.pause();
     });
   }
 
@@ -226,6 +238,34 @@ export class PlayerSession implements VidAllPlayer {
     return this.stateMachine.emitIncoming(event);
   }
 
+  private handleNativeBridgeEvent(event: NativeBridgeEvent): void {
+    if (event.type === 'state' && event.message === 'preparing') {
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        this.stateMachine.transition('preparing');
+      }
+      return;
+    }
+    if (event.type === 'state' && event.message === 'playing') {
+      // 仅当 native RenderLoop 真正成功提交过一次解码帧后才会到达这里，
+      // 因此可以安全地把首帧证据转译为公开的 playing 状态与 firstFrame 事件。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
+        this.stateMachine.getState() !== 'playing') {
+        this.stateMachine.transition('playing');
+        this.stateMachine.emit({ type: 'firstFrame', sequence: event.sequence });
+      }
+      return;
+    }
+    if (event.type === 'error' && this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+      this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+      this.stateMachine.transition('error');
+      this.stateMachine.emit({ type: 'error', sequence: 0, error: redactError({
+        domain: 'native', code: 'NATIVE_PLAYBACK_FAILED', message: event.message, retryable: false, context: {}
+      }) });
+    }
+  }
+
   stop(): Promise<void> {
     return this.enqueue('stop', () => {
       const state = this.stateMachine.getState();
@@ -235,8 +275,10 @@ export class PlayerSession implements VidAllPlayer {
       if (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering') {
         throw lifecycleFailure('INVALID_STATE', 'Stop requires an active media session.');
       }
-      this.abortActiveMedia('stop');
-      this.source = undefined;
+      return this.nativeBridge.stop().then(() => {
+        this.abortActiveMedia('stop');
+        this.source = undefined;
+      });
     });
   }
 
@@ -245,15 +287,14 @@ export class PlayerSession implements VidAllPlayer {
       return Promise.resolve();
     }
     this.queue.close();
-    return new Promise<void>((resolve) => {
-      // 关闭前请求代理释放；只有业务层携带相同 epoch 的确认才能宣布 released。
+    return this.nativeBridge.release().then(() => {
+      // Native release completes before the public session publishes closed.
       this.releaseLeases('release');
       this.stateMachine.release();
       this.surface = undefined;
       this.stateMachine.setSurfaceGeneration(undefined);
       this.source = undefined;
       this.tracks = [];
-      resolve();
     });
   }
 
@@ -307,11 +348,8 @@ export class PlayerSession implements VidAllPlayer {
     return this.recovery;
   }
 
-  private enqueue(_name: string, operation: () => void): Promise<void> {
-    return this.queue.enqueue(() => {
-      operation();
-      return Promise.resolve();
-    });
+  private enqueue(_name: string, operation: () => void | Promise<void>): Promise<void> {
+    return this.queue.enqueue(() => Promise.resolve(operation()));
   }
 
   private abortActiveMedia(reason: string): void {

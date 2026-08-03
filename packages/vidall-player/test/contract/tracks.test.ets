@@ -11,6 +11,7 @@ import {
   PlayerTrack,
   VidAllPlayer
 } from '@vidall/player';
+import { PlayerFailure } from '../../src/internal/playerFailure';
 
 // ── 辅助：等待 N 个事件 ──────────────────────────────────────────
 function waitForEvents(player: VidAllPlayer, count: number, filter: (e: PlayerEvent) => boolean): Promise<PlayerEvent[]> {
@@ -333,8 +334,11 @@ export async function trackOperations_rejectedAfterRelease(): Promise<void> {
     await player.selectTrack('audio', 1);
     throw new Error('selectTrack after release should have thrown');
   } catch (error) {
-    if (error instanceof Error && error.message.indexOf('SESSION_RELEASED') < 0) {
-      throw new Error(`Expected SESSION_RELEASED, got: ${error}`);
+    if (!(error instanceof PlayerFailure)) {
+      throw new Error(`Expected PlayerFailure, got ${error}`);
+    }
+    if (error.playerError.code !== 'RELEASED') {
+      throw new Error(`Expected RELEASED, got ${error.playerError.code}`);
     }
   }
 }

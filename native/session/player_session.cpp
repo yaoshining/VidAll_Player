@@ -14,6 +14,12 @@ ReleaseResult PlayerSession::release()
 {
   if (closing_) return ReleaseResult::AlreadyReleased;
   closing_ = true;
+  eventLoopStopped_ = true;
+  rendererDrained_ = true;
   return ReleaseResult::Released;
+}
+bool PlayerSession::releaseStagesComplete() const
+{
+  return closing_ && eventLoopStopped_ && rendererDrained_;
 }
 } // namespace vidall

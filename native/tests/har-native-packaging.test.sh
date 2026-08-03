@@ -23,13 +23,20 @@ require_file "$BRIDGE"
 require_contains "$BUILD_PROFILE" '"externalNativeOptions"'
 require_contains "$CMAKE" 'add_library(vidall_player_native SHARED napi_init.cpp)'
 require_contains "$CMAKE" 'libace_napi.z.so'
+require_contains "$CMAKE" 'VIDALL_MPV_AVAILABLE=1'
 require_contains "$SOURCE" 'NAPI_MODULE(vidall_player_native, Init)'
-require_contains "$SOURCE" 'napi_call_function'
+require_contains "$SOURCE" 'mpv_create()'
+require_contains "$SOURCE" 'mpv_initialize'
+require_contains "$SOURCE" 'CreateSession'
+require_contains "$SOURCE" 'ReleaseSession'
 require_contains "$MANIFEST" '"name": "libvidall_player_native.so"'
-require_contains "$TYPES" 'ping(): string;'
-require_contains "$TYPES" 'setCallback(callback: ProbeCallback): string;'
+require_contains "$TYPES" 'createSession(): NativeSessionResult;'
+require_contains "$TYPES" 'releaseSession(handle: number): NativeSessionResult;'
 require_contains "$BRIDGE" "from 'libvidall_player_native.so'"
-require_contains "$BRIDGE" 'runHarNativePackagingProbe'
+NATIVE_BRIDGE="$ROOT/packages/vidall-player/src/native/nativeBridge.ets"
+require_contains "$NATIVE_BRIDGE" 'createNativePlayerBridge'
+require_contains "$NATIVE_BRIDGE" 'NativePlayerBridge'
+require_contains "$NATIVE_BRIDGE" 'release(): Promise<void>'
 for forbidden in 'libvidall_player_native' 'NativePackagingProbe' 'napi'; do
   ! rg -q --fixed-strings "$forbidden" "$ENTRY" || fail "公开入口泄露内部符号：$forbidden"
 done

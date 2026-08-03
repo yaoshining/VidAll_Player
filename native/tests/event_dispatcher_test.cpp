@@ -22,5 +22,6 @@ int main() {
   passed &= check(events.accept(current), "current event is accepted");
   events.close();
   passed &= check(!events.enqueue("closed").valid && !events.accept(current), "closed dispatcher cannot deliver callbacks");
+  passed &= check(events.closedAfterDrain(), "dispatcher marks closed only after queued callbacks drain");
   return passed ? 0 : 1;
 }

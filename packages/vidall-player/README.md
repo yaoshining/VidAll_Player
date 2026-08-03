@@ -2,96 +2,38 @@
 
 [中文文档](README-CN.md)
 
-`@vidall/player` is a candidate ArkTS player HAR for HarmonyOS TV and phone apps. Its intended playback core is libmpv; it does not use HarmonyOS AVPlayer. `Index.ets` is the only public entry point; import only the APIs documented here.
+`@vidall/player` is a candidate ArkTS HAR for HarmonyOS. Its only playback core is libmpv; it does not use HarmonyOS `AVPlayer`. `Index.ets` is the sole public entry point.
 
 ## Candidate status
 
-This package is not published to OHPM and is currently for VidAll_TV integration validation only. The current HAR includes only the internal NAPI packaging probe, not a libmpv playback bridge or a bundled libmpv runtime. Do not treat a successful build as actual media playback support.
+The package is not published to OHPM. It is used only by this repository's independent fixture for development validation and neither modifies nor depends on VidAll_TV. The HAR contains an internal NAPI bridge and an ARM64 libmpv candidate artifact, but G1 (device/sample), G2 (supply chain), and G3 (Surface/threading) remain open. A build, emulator installation, session creation, or XComponent attach/detach does not prove media playback, first frame, TV support, or release readiness.
 
-The public API remains limited to the contract documented here. Additional libmpv capabilities are introduced only after they have been implemented and validated in VidAll_TV; undocumented mpv commands, properties, scripts, filters, recording, stream capture, and screenshots are not public APIs.
+## Local fixture
 
-## Install
-
-When a validated release is available, from the application project root run:
+There is no OHPM installation, upload, or public release path. Build the local HAR, fixture, and test module from the repository root:
 
 ```sh
-ohpm install @vidall/player
+devecocli build --modules vidall_player libmpv_player_consumer libmpv_player_consumer@ohosTest
 ```
 
-Declare the dependency in the application's `oh-package.json5`:
+The fixture imports only from `@vidall/player`. Do not import `src/internal`, NAPI, NativeWindow, EGL/GLES, or libmpv paths; they are not compatibility commitments.
 
-```json5
-{
-  "dependencies": {
-    "@vidall/player": "0.1.0"
-  }
-}
-```
+## Development interfaces
 
-Run `ohpm install` after editing dependencies, then build with DevEco Studio or `devecocli build`.
+`createPlayer()`, Surface lifecycle calls, `load()`, `play()`, `stop()`, and `release()` are candidate interfaces. A successful call, lifecycle event, or emulator log only demonstrates execution of the controlled bridge path; it is not playback or first-frame evidence. Call `release()` when a page is destroyed; released instances cannot be reused.
 
-## Quick start
+Unapproved capabilities return typed errors. For example, `requestCache()` returns `FEATURE_UNSUPPORTED`, `load()` without a valid Surface returns `SURFACE_UNAVAILABLE`, and controls after release return `RELEASED`. Public errors are redacted and must not be relied on for full URIs, native handles, or load paths.
 
-```ts
-import {
-  createPlayer,
-  MediaSource,
-  PlayerEvent,
-  PlayerSurface,
-  VidAllPlayer
-} from '@vidall/player';
+## Capability status and gates
 
-const player: VidAllPlayer = createPlayer({
-  eventListener: (event: PlayerEvent) => {
-    if (event.type === 'error') {
-      console.error(`${event.error?.code}: ${event.error?.message}`);
-    }
-  }
-});
+Capabilities may only be described as `built pending verification`, `verified on real-device samples`, or `unsupported/deferred`. This candidate is `built pending verification`.
 
-const surface: PlayerSurface = {
-  componentId: 'video-surface',
-  generation: 1,
-  width: 1920,
-  height: 1080
-};
-const source: MediaSource = {
-  kind: 'https',
-  uri: 'https://example.com/video.m3u8'
-};
+The ARM64 TV emulator is only for build, installation, public-import, NAPI-load, and lifecycle regression work. It cannot close G1 (target ARM64 TV/API and media sample rules), G2 (libmpv source, GPL materials, loading boundary, ABI/ELF, and candidate admission), or G3 (XComponent/Surface, NativeWindow, threads, input, and actual first frame).
 
-await player.attachSurface(surface);
-await player.load(source);
-await player.play();
-```
+Until real-device evidence and written G1/G2/G3 approval exist for the same `candidateId`, do not deliver the HAR, upload to OHPM, publish publicly, or claim playback, first-frame, TV support, or ijkplayer replacement.
 
-Release the instance when the page disappears or the Surface is rebuilt:
+中文说明：当前仅能用于本仓库 fixture 的开发期验证；模拟器和构建成功均不能作为播放、首帧、TV 支持或发布依据。
 
-```ts
-await player.detachSurface(surface.generation);
-await player.release();
-```
+## License
 
-Use a new `generation` with `resizeSurface()` when the Surface size changes. A released instance cannot be reused; call `createPlayer()` again.
-
-## API overview
-
-- `createPlayer(options?)` creates a player. `eventListener` receives state, first-frame, position, track, subtitle, log, and error events.
-- `attachSurface`, `resizeSurface`, and `detachSurface` manage the rendering Surface lifecycle.
-- `load`, `play`, `pause`, `stop`, `seekRelative`, and `seekPercent` control playback.
-- `setVolume`, `mute`, `setRate`, and `selectTrack` configure playback and tracks.
-- `addExternalAudio`, `addExternalSubtitle`, and `setSubtitleDelay` add external media and adjust subtitle timing.
-- `subscribe(listener)` registers another event listener and returns its unsubscribe function.
-- `release()` frees native and playback resources and must be called before the page exits.
-
-## Inputs and limitations
-
-`MediaSource.kind` accepts `localFile`, `http`, `https`, `hls`, `dash`, `localhostProxy`, and `smb`. HTTP(S) headers are supported, but credentials must not be placed in URIs or logs. SMB, cache requests, crop, deinterlacing, and screenshots are not stable supported features and can return structured errors.
-
-Do not import `src/internal`, NAPI, NativeWindow, EGL/GLES, or libmpv paths. They are not part of the compatibility contract.
-
-## Compatibility and license
-
-The HAR declares `phone` and `tv`, with HarmonyOS API 15 compatibility and API 22 as its target. Verify media behavior on actual target devices; a successful build does not prove codec, protocol, or hardware-decoding support.
-
-The intended libmpv distribution includes GPL components, including the static Samba SMB path. This package is therefore licensed under the [GNU General Public License v3.0 or later](LICENSE). See [CHANGELOG.md](CHANGELOG.md) for release history and `docs/controlled-libmpv-release.md` for distribution obligations.
+The candidate libmpv distribution contains GPL components and the SMB path involves Samba. Any future controlled distribution must comply with the [GNU General Public License v3.0 or later](LICENSE) and the materials and approvals in `docs/controlled-libmpv-release.md`; the current status is not distribution authorization.

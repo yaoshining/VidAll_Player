@@ -1,9 +1,32 @@
-export type ProbeCallback = (message: string) => void;
+export type NativeResultCode =
+  'OK' | 'RELEASED' | 'ALREADY_RELEASED' | 'FEATURE_UNSUPPORTED' |
+  'NATIVE_PLAYBACK_FAILED' | 'SURFACE_UNAVAILABLE' | 'INPUT_INVALID';
 
-export interface HarNativePackagingProbe {
-  ping(): string;
-  setCallback(callback: ProbeCallback): string;
+export interface NativeSessionResult {
+  ok: boolean;
+  handle: number;
+  code: NativeResultCode;
 }
 
-declare const probe: HarNativePackagingProbe;
-export default probe;
+export interface NativePlayerEvent {
+  type: 'state' | 'error';
+  message: string;
+  eventEpoch: number;
+  sequence: number;
+  surfaceGeneration: number;
+}
+
+export interface NativeSessionModule {
+  createSession(): NativeSessionResult;
+  releaseSession(handle: number): NativeSessionResult;
+  attachSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
+  resizeSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
+  detachSurface(handle: number, generation: number): NativeSessionResult;
+  load(handle: number, uri: string): NativeSessionResult;
+  play(handle: number): NativeSessionResult;
+  stop(handle: number): NativeSessionResult;
+  setEventCallback(handle: number, callback: (event: NativePlayerEvent) => void): NativeSessionResult;
+}
+
+declare const nativeSession: NativeSessionModule;
+export default nativeSession;
