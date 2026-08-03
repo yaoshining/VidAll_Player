@@ -12,12 +12,12 @@
 
 **目的**：固定最小公开 API、无 AVPlayer 约束和模拟器开发期边界。
 
-- [ ] T001 [P] 在 `packages/vidall-player/test/contract/public-api.test.ets` 编写失败的根入口契约测试：仅导出最小 `createPlayer`、`VidAllPlayer`、会话/画面/事件/错误类型，且不导出 NAPI 模块、NativeWindow、EGL/GLES、libmpv 或内部路径
-- [ ] T002 [P] 在 `packages/vidall-player/test/contract/public-api.test.ets` 编写失败的能力边界测试：未批准输入与脚本、滤镜、录制、流捕获、截图返回类型化 `FEATURE_UNSUPPORTED`，公开错误不含完整 URI、原生句柄或加载路径
+- [X] T001 [P] 在 `packages/vidall-player/test/contract/public-api.test.ets` 编写失败的根入口契约测试：仅导出最小 `createPlayer`、`VidAllPlayer`、会话/画面/事件/错误类型，且不导出 NAPI 模块、NativeWindow、EGL/GLES、libmpv 或内部路径
+- [X] T002 [P] 在 `packages/vidall-player/test/contract/public-api.test.ets` 编写失败的能力边界测试：未批准输入与脚本、滤镜、录制、流捕获、截图返回类型化 `FEATURE_UNSUPPORTED`，公开错误不含完整 URI、原生句柄或加载路径
 - [X] T003 [P] 在 `native/tests/contract-baseline.test.sh` 编写失败的静态回归测试：`packages/vidall-player/`、`native/`、`entry/` 和 fixture 不得引用 `AVPlayer`，唯一播放内核绑定为 libmpv
 - [X] T004 [P] 在 `native/tests/har-native-packaging.test.sh` 编写失败的受控 HAR 布局测试：ARM64 候选可绑定 libmpv 原生产物，x86_64 模拟器构建不得被表述为真实播放能力
-- [ ] T005 在 `packages/vidall-player/src/public/types.ets`、`packages/vidall-player/src/public/playerContract.ets`、`packages/vidall-player/src/public/player.ets` 和 `packages/vidall-player/Index.ets` 实现最小公开类型、`createPlayer()` 与受限控制契约，使 T001、T002 通过
-- [ ] T006 在 `native/tests/contract-baseline.test.sh`、`native/tests/har-native-packaging.test.sh` 和 `packages/vidall-player/test/contract/public-api.test.ets` 运行 Phase 1 测试，确认公开边界、无 AVPlayer 约束和模拟器开发期限制通过
+- [X] T005 在 `packages/vidall-player/src/public/types.ets`、`packages/vidall-player/src/public/playerContract.ets`、`packages/vidall-player/src/public/player.ets` 和 `packages/vidall-player/Index.ets` 实现最小公开类型、`createPlayer()` 与受限控制契约，使 T001、T002 通过
+- [X] T006 在 `native/tests/contract-baseline.test.sh`、`native/tests/har-native-packaging.test.sh` 和 `packages/vidall-player/test/contract/public-api.test.ets` 运行 Phase 1 测试，确认公开边界、无 AVPlayer 约束和模拟器开发期限制通过
 
 **检查点**：创建成功不是播放成功；模拟器只可用于开发回归，G1/G2/G3 均保持待关闭。
 
@@ -27,15 +27,15 @@
 
 **目的**：建立 ArkTS 到唯一 libmpv 会话的最小内部边界、严格事件过滤和资源所有权；完成后用户故事方可实施。
 
-- [ ] T007 [P] 在 `native/tests/player_session_test.cpp` 编写失败测试：每个 native 会话拥有独立 ID、命令序列、关闭状态，`release()` 幂等且释放后控制返回 `RejectedClosing`
-- [ ] T008 [P] 在 `native/tests/event_dispatcher_test.cpp` 编写失败测试：事件带 session、epoch、sequence、surface generation，重复、乱序、旧 epoch 和关闭后的回调全部被拒绝
-- [ ] T009 [P] 在 `native/tests/surface_renderer_test.cpp` 编写失败测试：零尺寸和旧 generation 被拒绝，当前 generation 的 attach/resize/detach/rebuild 仅保留一个渲染目标，detach 后不再提交帧
-- [ ] T010 [P] 在 `native/tests/napi-event-bridge.test.sh` 编写失败测试：NAPI 导出包含创建、销毁、画面绑定、load/play/stop/release 与事件注册，且不能仅保留 `ping`/同步回调 probe
-- [ ] T011 在 `native/session/player_session.h`、`native/session/player_session.cpp`、`native/bridge/event_dispatcher.h` 和 `native/bridge/event_dispatcher.cpp` 实现会话标识、命令关闭、epoch/序列/generation 过滤，使 T007、T008 通过
-- [ ] T012 在 `native/render/surface_renderer.h` 和 `native/render/surface_renderer.cpp` 实现不暴露系统句柄的 generation 守卫、有效尺寸校验和 attach/resize/detach/rebuild 状态，使 T009 通过
-- [ ] T013 在 `packages/vidall-player/src/native/nativeBridge.ets` 和 `packages/vidall-player/src/internal/playerFailure.ets` 定义类型化内部 bridge、`INPUT_INVALID`、`SURFACE_UNAVAILABLE`、`LIFECYCLE_INVALID`、`NATIVE_PLAYBACK_FAILED`、`RELEASED`、`FEATURE_UNSUPPORTED` 错误映射与脱敏规则
-- [ ] T014 在 `packages/vidall-player/src/main/cpp/napi_init.cpp`、`packages/vidall-player/src/main/cpp/CMakeLists.txt`、`native/session/player_session.cpp`、`native/bridge/event_dispatcher.cpp` 和 `native/render/surface_renderer.cpp` 将 NAPI 从 probe 改为内部会话 bridge，并仅链接已审计候选的 libmpv、EGL/GLES、NativeWindow 边界，使 T010 通过
-- [ ] T015 在 `native/tests/CMakeLists.txt`、`native/tests/player_session_test.cpp`、`native/tests/event_dispatcher_test.cpp`、`native/tests/surface_renderer_test.cpp` 和 `native/tests/napi-event-bridge.test.sh` 运行原生单元与 NAPI 回归测试，确认失败路径、释放后拒绝和陈旧回调过滤通过
+- [X] T007 [P] 在 `native/tests/player_session_test.cpp` 编写失败测试：每个 native 会话拥有独立 ID、命令序列、关闭状态，`release()` 幂等且释放后控制返回 `RejectedClosing`
+- [X] T008 [P] 在 `native/tests/event_dispatcher_test.cpp` 编写失败测试：事件带 session、epoch、sequence、surface generation，重复、乱序、旧 epoch 和关闭后的回调全部被拒绝
+- [X] T009 [P] 在 `native/tests/surface_renderer_test.cpp` 编写失败测试：零尺寸和旧 generation 被拒绝，当前 generation 的 attach/resize/detach/rebuild 仅保留一个渲染目标，detach 后不再提交帧
+- [X] T010 [P] 在 `native/tests/napi-event-bridge.test.sh` 编写失败测试：NAPI 导出包含创建、销毁、画面绑定、load/play/stop/release 与事件注册，且不能仅保留 `ping`/同步回调 probe
+- [X] T011 在 `native/session/player_session.h`、`native/session/player_session.cpp`、`native/bridge/event_dispatcher.h` 和 `native/bridge/event_dispatcher.cpp` 实现会话标识、命令关闭、epoch/序列/generation 过滤，使 T007、T008 通过
+- [X] T012 在 `native/render/surface_renderer.h` 和 `native/render/surface_renderer.cpp` 实现不暴露系统句柄的 generation 守卫、有效尺寸校验和 attach/resize/detach/rebuild 状态，使 T009 通过
+- [X] T013 在 `packages/vidall-player/src/native/nativeBridge.ets` 和 `packages/vidall-player/src/internal/playerFailure.ets` 定义类型化内部 bridge、`INPUT_INVALID`、`SURFACE_UNAVAILABLE`、`LIFECYCLE_INVALID`、`NATIVE_PLAYBACK_FAILED`、`RELEASED`、`FEATURE_UNSUPPORTED` 错误映射与脱敏规则
+- [X] T014 在 `packages/vidall-player/src/main/cpp/napi_init.cpp`、`packages/vidall-player/src/main/cpp/CMakeLists.txt`、`native/session/player_session.cpp`、`native/bridge/event_dispatcher.cpp` 和 `native/render/surface_renderer.cpp` 将 NAPI 从 probe 改为内部会话 bridge，并仅链接已审计候选的 libmpv、EGL/GLES、NativeWindow 边界，使 T010 通过
+- [X] T015 在 `native/tests/CMakeLists.txt`、`native/tests/player_session_test.cpp`、`native/tests/event_dispatcher_test.cpp`、`native/tests/surface_renderer_test.cpp` 和 `native/tests/napi-event-bridge.test.sh` 运行原生单元与 NAPI 回归测试，确认失败路径、释放后拒绝和陈旧回调过滤通过
 
 **检查点**：本阶段不声明首帧；UI、NAPI、mpv 事件循环和渲染线程的实际交接仍需 G3 真机记录确认。
 
@@ -67,7 +67,7 @@
 - [X] T022 [P] [US2] 在 `native/tests/surface_renderer_test.cpp` 编写失败测试：经当前有效 NativeWindow binding 的 resize/rebuild 不允许旧画面接管，detach/release 后提交帧被丢弃且不产生 `firstFrame`
 - [X] T023 [P] [US2] 在 `packages/vidall-player/test/contract/public-api.test.ets` 编写失败测试：`attachSurface`、`resizeSurface`、`detachSurface` 不暴露 NativeWindow/EGL/GLES 句柄，且 `load`/`play` 在无有效画面时返回 `SURFACE_UNAVAILABLE`
 - [X] T024 [US2] 在 `packages/vidall-player/src/xcomponent/surfaceAdapter.ets`、`packages/vidall-player/src/internal/playerSession.ets` 和 `packages/vidall-player/src/native/nativeBridge.ets` 实现 XComponent 生命周期到 bridge 的串行 attach/resize/detach、generation 与有效尺寸验证，使 T021、T023 通过
-- [ ] T025 [US2] 在 `native/render/surface_renderer.h`、`native/render/surface_renderer.cpp`、`packages/vidall-player/src/main/cpp/napi_init.cpp` 和 `packages/vidall-player/src/main/cpp/CMakeLists.txt` 实现经 G3 确认的 XComponent/NativeWindow/EGL/GLES 绑定与销毁路径，并使 T022 通过；不得发出合成首帧事件
+- [X] T025 [US2] 在 `native/render/surface_renderer.h`、`native/render/surface_renderer.cpp`、`packages/vidall-player/src/main/cpp/napi_init.cpp` 和 `packages/vidall-player/src/main/cpp/CMakeLists.txt` 实现经 G3 确认的 XComponent/NativeWindow/EGL/GLES 绑定与销毁路径，并使 T022 通过；不得发出合成首帧事件
 - [X] T026 [US2] 在 `fixtures/libmpv-player-consumer/src/main/ets/pages/Index.ets` 和 `fixtures/libmpv-player-consumer/src/ohosTest/ets/test/XComponentLifecycle.test.ets` 接入 XComponent fixture 和自动化生命周期回归；模拟器只验证开发期 attach/detach/error 行为
 - [ ] T027 [US2] 在 `specs/003-libmpv-player-har/evidence/g1-device-run-template.md` 和 `specs/003-libmpv-player-har/evidence/g3-surface-spike-record.md` 使用相同 `candidateId`、负责人批准媒体样本和指定 ARM64 TV 记录 attach、resize、detach、rebuild、真实首帧、失败与 release；未获书面 G1/G3 批准时将此任务标记阻断
 
