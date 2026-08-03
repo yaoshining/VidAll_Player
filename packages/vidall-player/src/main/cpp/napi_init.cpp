@@ -175,9 +175,6 @@ public:
         mpv_set_option_string(player_.get(), "terminal", "no");
         mpv_set_option_string(player_.get(), "config", "no");
         mpv_set_option_string(player_.get(), "vo", "libmpv");
-        // 临时诊断：显式提升所有模块（含 libass 的 "ass" 模块）的日志级别，
-        // 仅调用 mpv_request_log_messages 不足以让某些模块打印到 trace/debug 级别的内部细节。
-        mpv_set_option_string(player_.get(), "msg-level", "all=trace");
         if (!fontsDir.empty()) {
             // HarmonyOS 沙箱内没有系统 fontconfig，libass 的 fontconfig provider 探测不到
             // 任何字体，导致字幕轨道被正确选中但完全不可见（无渲染文字）。改用 "none"
@@ -187,8 +184,6 @@ public:
             mpv_set_option_string(player_.get(), "osd-fonts-dir", fontsDir.c_str());
         }
         if (mpv_initialize(player_.get()) < 0) return false;
-        // 临时诊断：转发 mpv/libass 内部日志到 hilog，用于排查字幕不渲染问题。
-        mpv_request_log_messages(player_.get(), "trace");
         // 观察 dwidth/dheight（已包含旋转与像素宽高比修正后的显示尺寸），
         // 用于向 ArkTS 层上报真实视频宽高比，避免画面被拉伸。
         mpv_observe_property(player_.get(), 0, "dwidth", MPV_FORMAT_INT64);
@@ -439,14 +434,6 @@ private:
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
-            if (event->event_id == MPV_EVENT_LOG_MESSAGE) {
-                // 临时诊断：把 mpv/libass 日志打到 hilog，用于排查字幕不渲染问题。
-                const auto* msg = static_cast<mpv_event_log_message*>(event->data);
-                if (msg != nullptr && msg->text != nullptr) {
-                    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "mpv[%{public}s/%{public}s] %{public}s",
-                        msg->prefix ? msg->prefix : "", msg->level ? msg->level : "", msg->text);
-                }
-            }
             if (event->event_id == MPV_EVENT_END_FILE) {
                 const auto* end = static_cast<mpv_event_end_file*>(event->data);
                 if (end != nullptr && end->reason == MPV_END_FILE_REASON_ERROR) Dispatch("error", "libmpv playback failed");
