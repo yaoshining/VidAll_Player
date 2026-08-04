@@ -39,6 +39,11 @@ jobs:
     # 受控运行器必须预装 DevEco Studio 与 HarmonyOS SDK。
     runs-on: [self-hosted, macos, deveco]
     timeout-minutes: 30
+    outputs:
+      # 供下游发布验收门禁消费：签名材料是否就绪、测试 HAP 是否真正构建。
+      # 缺少签名材料时跳过 entry@ohosTest 构建，需明确标记，避免被当作测试 HAP 已验证。
+      signing_ready: ${{ steps.check_signing.outputs.signing_ready }}
+      test_module_built: ${{ steps.test_module_status.outputs.built }}
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
@@ -92,6 +97,16 @@ jobs:
       - name: 编译 CI 签名的 Hypium 测试模块（有签名材料）
         if: steps.check_signing.outputs.signing_ready == 'true'
         run: devecocli build --product ci --modules entry@ohosTest
+
+      - name: 记录测试模块构建状态
+        id: test_module_status
+        if: always()
+        run: |
+          if [ "${{ steps.check_signing.outputs.signing_ready }}" == "true" ]; then
+            echo "built=true" >> $GITHUB_OUTPUT
+          else
+            echo "built=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: 跳过测试 HAP 构建（无签名材料）
         if: steps.check_signing.outputs.signing_ready != 'true'
