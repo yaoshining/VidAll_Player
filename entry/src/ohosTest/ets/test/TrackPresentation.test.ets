@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@ohos/hypium';
-import { splitTracks, trackLabel } from '../../../main/ets/player/TrackPresentation';
+import { splitTracks, trackLabel, NativeTrack } from '../../../main/ets/player/TrackPresentation';
 
 export default function trackPresentationTest(): void {
   describe('TrackPresentationTest', () => {
@@ -60,8 +60,10 @@ export default function trackPresentationTest(): void {
       expect(after.audio[1].selected).assertTrue();
     });
 
-    // 回归测试：关闭字幕后所有字幕轨 selected=false
-    it('marks all subtitle tracks unselected when subtitle is off', 0, () => {
+    // 回归测试：关闭字幕后（会话层 selectTrack('subtitle', null) 已将各字幕轨
+    // selected 置为 false）splitTracks 应保留该关闭状态，不重新选中任何字幕轨。
+    // 状态转换本身由会话/原生契约测试覆盖，本测试只验证纯函数的保留语义。
+    it('preserves the off state of all subtitle tracks', 0, () => {
       const tracks = splitTracks([
         { id: 1, kind: 'audio', language: 'zh', selected: true, recognitionStatus: 'recognized' },
         { id: 2, kind: 'subtitle', language: 'en', selected: false, recognitionStatus: 'recognized' },
@@ -75,8 +77,9 @@ export default function trackPresentationTest(): void {
       const tracks = splitTracks([
         { id: 0, kind: 'audio', language: 'zh', recognitionStatus: 'recognized', selected: false },
         { id: -1, kind: 'subtitle', language: 'en', recognitionStatus: 'recognized', selected: false },
+        { id: undefined, kind: 'subtitle', language: 'ko', selected: false, recognitionStatus: 'recognized' },
         { id: 1, kind: 'audio', language: 'ja', selected: true, recognitionStatus: 'recognized' }
-      ]);
+      ] as NativeTrack[]);
 
       expect(tracks.audio.length).assertEqual(1);
       expect(tracks.audio[0].id).assertEqual(1);

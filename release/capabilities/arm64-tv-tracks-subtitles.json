@@ -35,8 +35,8 @@
   },
   "arktsContractTests": {
     "file": "packages/vidall-player/test/contract/tracks.test.ets",
-    "cases": 13,
-    "note": "契约测试覆盖：枚举字段完整性、selectTrack 选择/取消、连续切换、跳转后状态保持、非法轨道 ID、负数 ID、外挂音频 HTTP/HTTPS、字幕 recognitionStatus 按格式、字幕延迟、缓存请求 FEATURE_UNSUPPORTED、release 后拒绝、深拷贝隔离、同 kind 互斥"
+    "cases": 14,
+    "note": "契约测试覆盖：枚举字段完整性、selectTrack 选择/取消、selectTrack('subtitle', null) 关闭字幕后全部字幕轨 selected=false、连续切换、跳转后状态保持、非法轨道 ID、负数 ID、外挂音频 HTTP/HTTPS、字幕 recognitionStatus 按格式、字幕延迟、缓存请求 FEATURE_UNSUPPORTED、release 后拒绝、深拷贝隔离、同 kind 互斥"
   },
   "capabilities": {
     "trackEnumeration": { "status": "已构建待验证", "note": "TrackController.updateTrackList 和 ArkTS emitTracks 已实现，需 ARM64 TV 多轨样本验证" },
