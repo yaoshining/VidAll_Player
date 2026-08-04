@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@ohos/hypium';
-import { DemoLifecycleController } from '../../../main/ets/player/DemoLifecycle';
+import { DemoLifecycleController } from '../../../../main/ets/player/DemoLifecycle';
 
 export default function demoLifecycleTest(): void {
   describe('DemoLifecycleTest', () => {

@@ -1,4 +1,4 @@
-import nativeSession from 'libvidall_player_native.so';
+import nativeSession, { NativeSessionResult } from 'libvidall_player_native.so';
 
 export interface HarNativePackagingResult {
   created: boolean;
@@ -7,7 +7,7 @@ export interface HarNativePackagingResult {
 
 // 仅供 HAR 内部构建验证使用，公开 Index.ets 不会导出该模块或其 NAPI 类型。
 export function runHarNativePackagingProbe(): HarNativePackagingResult {
-  const result = nativeSession.createSession();
+  const result: NativeSessionResult = nativeSession.createSession();
   if (result.ok) {
     nativeSession.releaseSession(result.handle);
   }
