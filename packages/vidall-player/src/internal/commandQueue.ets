@@ -6,11 +6,11 @@ export class CommandQueue {
 
   enqueue(operation: () => Promise<void>): Promise<void> {
     if (!this.accepting) {
-      return Promise.reject(lifecycleFailure('SESSION_RELEASED', 'Player session has been released.'));
+      return Promise.reject(lifecycleFailure('RELEASED', 'Player session has been released.'));
     }
     const next = this.tail.then(() => {
       if (!this.accepting) {
-        throw lifecycleFailure('SESSION_RELEASED', 'Player session has been released.');
+        throw lifecycleFailure('RELEASED', 'Player session has been released.');
       }
       return operation();
     });

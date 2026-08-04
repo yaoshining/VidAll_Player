@@ -11,8 +11,11 @@ int main() {
   passed &= check(second.acceptCommand() == vidall::SessionCommandResult::Accepted, "second accepts commands");
   passed &= check(first.commandSequence() == 1 && second.commandSequence() == 1, "command sequences are per session");
   passed &= check(first.release() == vidall::ReleaseResult::Released, "first release succeeds");
+  passed &= check(first.releaseStagesComplete(), "release waits for the event loop and renderer drain");
   passed &= check(first.acceptCommand() == vidall::SessionCommandResult::RejectedClosing, "released session rejects commands");
   passed &= check(second.acceptCommand() == vidall::SessionCommandResult::Accepted, "releasing first does not affect second");
   passed &= check(first.release() == vidall::ReleaseResult::AlreadyReleased, "release is idempotent");
+  vidall::PlayerSession recovered(3);
+  passed &= check(recovered.acceptCommand() == vidall::SessionCommandResult::Accepted, "new session remains usable after another session releases");
   return passed ? 0 : 1;
 }

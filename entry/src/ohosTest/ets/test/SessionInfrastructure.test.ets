@@ -6,7 +6,7 @@ import { SessionStateMachine } from '@vidall/player/src/internal/stateMachine';
 import { PlayerSession } from '@vidall/player/src/internal/playerSession';
 import { XComponentSurfaceAdapter, PlayerSurfaceTarget } from '@vidall/player/src/xcomponent/surfaceAdapter';
 
-class TestSurfaceTarget implements PlayerSurfaceTarget {
+class TestSurfaceTarget extends PlayerSurfaceTarget {
   attached: number = 0;
 
   async attachSurface(): Promise<void> { this.attached += 1; }
@@ -18,7 +18,7 @@ class Api18Provider implements ApiLevelProvider {
   getApiLevel(): number { return 18; }
 }
 
-class ControlledSurfaceTarget implements PlayerSurfaceTarget {
+class ControlledSurfaceTarget extends PlayerSurfaceTarget {
   attachCount: number = 0;
   resizeCount: number = 0;
   detachCount: number = 0;
@@ -28,6 +28,7 @@ class ControlledSurfaceTarget implements PlayerSurfaceTarget {
   private readonly attachGate: Promise<void>;
 
   constructor() {
+    super();
     this.attachGate = new Promise<void>((resolve) => { this.resolveAttach = resolve; });
   }
 
@@ -126,22 +127,22 @@ export default function sessionInfrastructureTest() {
 
     it('validates surface dimensions before invoking the target', 0, async (done: Function) => {
       const target = new TestSurfaceTarget();
-      const adapter = new XComponentSurfaceAdapter('player', target);
+      const adapter = new XComponentSurfaceAdapter(target);
       try {
-        await adapter.onLoad(0, 1080);
+        await adapter.onLoad('player', 0, 1080);
         expect(true).assertFalse();
       } catch (_) {
         expect(target.attached).assertEqual(0);
       }
-      await adapter.onLoad(1920, 1080);
+      await adapter.onLoad('player', 1920, 1080);
       expect(target.attached).assertEqual(1);
       done();
     });
 
     it('serializes Surface teardown and preserves state after target failures', 0, async (done: Function) => {
       const target = new ControlledSurfaceTarget();
-      const adapter = new XComponentSurfaceAdapter('player', target);
-      const loading = adapter.onLoad(1920, 1080);
+      const adapter = new XComponentSurfaceAdapter(target);
+      const loading = adapter.onLoad('player', 1920, 1080);
       const destroying = adapter.onDestroy();
       expect(target.attachCount).assertEqual(0);
       expect(target.detachCount).assertEqual(0);
@@ -152,15 +153,15 @@ export default function sessionInfrastructureTest() {
 
       const failedAttachTarget = new ControlledSurfaceTarget();
       failedAttachTarget.rejectAttach = true;
-      const failedAttachAdapter = new XComponentSurfaceAdapter('player', failedAttachTarget);
-      const failedAttach = failedAttachAdapter.onLoad(1920, 1080).then(() => false, () => true);
+      const failedAttachAdapter = new XComponentSurfaceAdapter(failedAttachTarget);
+      const failedAttach = failedAttachAdapter.onLoad('player', 1920, 1080).then(() => false, () => true);
       expect(await failedAttach).assertTrue();
       await failedAttachAdapter.onSizeChange(1280, 720);
       expect(failedAttachTarget.resizeCount).assertEqual(0);
 
       const failedDetachTarget = new ControlledSurfaceTarget();
-      const failedDetachAdapter = new XComponentSurfaceAdapter('player', failedDetachTarget);
-      const attach = failedDetachAdapter.onLoad(1920, 1080);
+      const failedDetachAdapter = new XComponentSurfaceAdapter(failedDetachTarget);
+      const attach = failedDetachAdapter.onLoad('player', 1920, 1080);
       failedDetachTarget.completeAttach();
       await attach;
       failedDetachTarget.rejectDetach = true;
@@ -170,12 +171,12 @@ export default function sessionInfrastructureTest() {
       expect(failedDetachTarget.resizeCount).assertEqual(1);
 
       const reattachTarget = new ControlledSurfaceTarget();
-      const reattachAdapter = new XComponentSurfaceAdapter('player', reattachTarget);
-      const initialAttach = reattachAdapter.onLoad(1920, 1080);
+      const reattachAdapter = new XComponentSurfaceAdapter(reattachTarget);
+      const initialAttach = reattachAdapter.onLoad('player', 1920, 1080);
       reattachTarget.completeAttach();
       await initialAttach;
       await reattachAdapter.onDestroy();
-      const reattach = reattachAdapter.onLoad(1280, 720);
+      const reattach = reattachAdapter.onLoad('player', 1280, 720);
       await reattach;
       await reattachAdapter.onSizeChange(1024, 576);
       expect(reattachTarget.resizeCount).assertEqual(1);

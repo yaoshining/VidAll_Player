@@ -1,6 +1,6 @@
-import { LibMpvTrack } from 'libentry.so';
+import { PlayerTrack } from '@vidall/player';
 
-export type NativeTrack = LibMpvTrack;
+export type NativeTrack = PlayerTrack;
 
 export interface TrackGroups {
   audio: NativeTrack[];
@@ -15,9 +15,9 @@ export function splitTracks(tracks: NativeTrack[]): TrackGroups {
     if (track.id === undefined || track.id <= 0) {
       continue;
     }
-    if (track.type === 'audio') {
+    if (track.kind === 'audio') {
       audio.push(track);
-    } else if (track.type === 'sub') {
+    } else if (track.kind === 'subtitle') {
       subtitle.push(track);
     }
   }
@@ -26,7 +26,7 @@ export function splitTracks(tracks: NativeTrack[]): TrackGroups {
 
 export function trackLabel(track: NativeTrack): string {
   const title = track.title?.trim() ?? '';
-  const language = track.lang?.trim() ?? '';
+  const language = track.language?.trim() ?? '';
   if (title.length > 0 && language.length > 0) {
     return `${title} (${language})`;
   }

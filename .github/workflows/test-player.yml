@@ -39,15 +39,87 @@ jobs:
     # 受控运行器必须预装 DevEco Studio 与 HarmonyOS SDK。
     runs-on: [self-hosted, macos, deveco]
     timeout-minutes: 30
+    outputs:
+      # 供下游发布验收门禁消费：签名材料是否就绪、测试 HAP 是否真正构建。
+      # 缺少签名材料时跳过 entry@ohosTest 构建，需明确标记，避免被当作测试 HAP 已验证。
+      signing_ready: ${{ steps.check_signing.outputs.signing_ready }}
+      test_module_built: ${{ steps.test_module_status.outputs.built }}
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
 
+      - name: 检查 CI 签名材料
+        id: check_signing
+        env:
+          # 受控 runner 可注入稳定签名 basename；未设置时自动探测 ~/.ohos/config
+          OHOS_SIGNING_BASENAME: ${{ vars.OHOS_SIGNING_BASENAME }}
+        run: |
+          CONFIG_DIR="$HOME/.ohos/config"
+          BASE=""
+
+          # 1. 若已注入 basename，按该名称查找
+          if [ -n "$OHOS_SIGNING_BASENAME" ]; then
+            if [ -f "$CONFIG_DIR/${OHOS_SIGNING_BASENAME}.cer" ] && \
+               [ -f "$CONFIG_DIR/${OHOS_SIGNING_BASENAME}.p12" ] && \
+               [ -f "$CONFIG_DIR/${OHOS_SIGNING_BASENAME}.p7b" ]; then
+              BASE="$OHOS_SIGNING_BASENAME"
+            fi
+          fi
+
+          # 2. 未指定或未找到时，自动探测同 basename 的 .cer/.p12/.p7b 组合
+          if [ -z "$BASE" ] && [ -d "$CONFIG_DIR" ]; then
+            for cer in "$CONFIG_DIR"/*.cer; do
+              [ -f "$cer" ] || continue
+              stem="${cer%.cer}"
+              if [ -f "${stem}.p12" ] && [ -f "${stem}.p7b" ]; then
+                BASE="$(basename "$stem")"
+                break
+              fi
+            done
+          fi
+
+          if [ -n "$BASE" ]; then
+            echo "signing_ready=true" >> $GITHUB_OUTPUT
+            mkdir -p signing/ci
+            cp "$CONFIG_DIR/${BASE}.cer" signing/ci/app.cer
+            cp "$CONFIG_DIR/${BASE}.p12" signing/ci/app.p12
+            cp "$CONFIG_DIR/${BASE}.p7b" signing/ci/app.p7b
+            echo "已复制 CI 签名材料到 signing/ci/ (basename: $BASE)"
+          else
+            echo "signing_ready=false" >> $GITHUB_OUTPUT
+            echo "警告：未找到 CI 签名材料，跳过测试 HAP 签名构建"
+            echo "HAR 编译将继续执行；如需构建测试 HAP，请在 runner 的 $CONFIG_DIR 放置签名材料"
+          fi
+
       - name: 还原 ohpm 依赖并编译 HAR
         run: devecocli build --modules vidall_player@default
 
-      - name: 编译 CI 签名的 Hypium 测试模块
+      - name: 编译 CI 签名的 Hypium 测试模块（有签名材料）
+        if: steps.check_signing.outputs.signing_ready == 'true'
         run: devecocli build --product ci --modules entry@ohosTest
+
+      - name: 记录测试模块构建状态
+        id: test_module_status
+        if: always()
+        run: |
+          if [ "${{ steps.check_signing.outputs.signing_ready }}" == "true" ]; then
+            echo "built=true" >> $GITHUB_OUTPUT
+          else
+            echo "built=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 跳过测试 HAP 构建（无签名材料）
+        if: steps.check_signing.outputs.signing_ready != 'true'
+        run: |
+          echo "跳过测试 HAP 构建 - 缺少 CI 签名材料"
+          echo "HAR 构建成功完成；测试 HAP 需要有效的 HarmonyOS 签名证书"
+          echo "如需在 CI 中构建测试 HAP，请在 runner 上配置签名材料"
+
+      - name: 清理签名材料
+        if: always()
+        run: |
+          rm -f signing/ci/app.cer signing/ci/app.p12 signing/ci/app.p7b
+          echo "已清理工作区中的签名材料"
 
       - name: 说明端侧执行限制
         run: |

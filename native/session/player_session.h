@@ -14,10 +14,13 @@ public:
   std::uint64_t commandSequence() const;
   SessionCommandResult acceptCommand();
   ReleaseResult release();
+  bool releaseStagesComplete() const;
 private:
   std::uint64_t id_;
   std::uint64_t commandSequence_ = 0;
   bool closing_ = false;
+  bool eventLoopStopped_ = false;
+  bool rendererDrained_ = false;
 };
 } // namespace vidall
 #endif

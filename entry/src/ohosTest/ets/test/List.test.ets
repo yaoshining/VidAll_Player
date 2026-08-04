@@ -4,6 +4,7 @@ import streamingInternalsTest from './StreamingInternals.test';
 import mediaKindDetectionTest from './player/MediaKindDetection.test';
 import demoLifecycleTest from './player/DemoLifecycle.test';
 import trackPresentationTest from './TrackPresentation.test';
+import videoLetterboxTest from './videoLetterbox.test';
 import webDavServiceTest from './webdav/WebDavService.test';
 import sessionInfrastructureTest from './SessionInfrastructure.test';
 
@@ -14,6 +15,7 @@ export default function testsuite(): void {
   mediaKindDetectionTest();
   demoLifecycleTest();
   trackPresentationTest();
+  videoLetterboxTest();
   webDavServiceTest();
   sessionInfrastructureTest();
 }

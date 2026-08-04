@@ -370,8 +370,8 @@ export async function afterRelease_operationsRejected(): Promise<void> {
     if (!(error instanceof PlayerFailure)) {
       throw new Error(`Expected PlayerFailure, got ${error}`);
     }
-    if (error.playerError.code !== 'SESSION_RELEASED') {
-      throw new Error(`Expected SESSION_RELEASED, got ${error.playerError.code}`);
+    if (error.playerError.code !== 'RELEASED') {
+      throw new Error(`Expected RELEASED, got ${error.playerError.code}`);
     }
   }
   if (!rejected) {

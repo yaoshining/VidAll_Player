@@ -14,12 +14,40 @@ import {
   PlayerTrack,
   PlayerTrackKind,
   ProxyLeaseStatus,
-  VidAllPlayer
+  VidAllPlayer,
+  VidAllPlayerSurfaceTarget,
+  XComponentSurfaceAdapter
 } from '@vidall/player';
+
+interface PlayerFailureLike {
+  playerError?: PlayerError;
+}
+
+function expectRejected(operation: () => Promise<void>, code: string): Promise<void> {
+  return operation().then(() => {
+    throw new Error(`Expected ${code}.`);
+  }).catch((error: PlayerFailureLike) => {
+    if (error.playerError?.code !== code) {
+      throw new Error(`Expected ${code}.`);
+    }
+  });
+}
+
+export async function publicPlayerReleaseContract(): Promise<void> {
+  const player: VidAllPlayer = createPlayer();
+  await player.release();
+  await player.release();
+  await expectRejected(() => player.load({ kind: 'https', uri: 'https://fixture.invalid/media.mp4' }), 'RELEASED');
+  await expectRejected(() => player.play(), 'RELEASED');
+  await expectRejected(() => player.attachSurface({ componentId: 'player', generation: 1, width: 1920, height: 1080 }), 'RELEASED');
+  await expectRejected(() => player.resizeSurface({ componentId: 'player', generation: 1, width: 1920, height: 1080 }), 'RELEASED');
+  await expectRejected(() => player.detachSurface(1), 'RELEASED');
+}
 
 export function compilePublicApiContract(): void {
   const options: PlayerOptions = { eventListener: (_event: PlayerEvent): void => {} };
   const player: VidAllPlayer = createPlayer(options);
+  const adapter: XComponentSurfaceAdapter = new XComponentSurfaceAdapter(new VidAllPlayerSurfaceTarget(player));
   const source: MediaSource = {
     kind: 'https',
     uri: 'https://fixture.invalid/media.mp4',
@@ -39,5 +67,5 @@ export function compilePublicApiContract(): void {
   void player.setRate(1);
   void player.mute(false);
   void player.addExternalAudio(audio);
-  void [source, surface, state, eventType, track, subtitle, error, log, lease];
+  void [adapter, source, surface, state, eventType, track, subtitle, error, log, lease];
 }

@@ -11,6 +11,7 @@ import {
   PlayerTrack,
   VidAllPlayer
 } from '@vidall/player';
+import { PlayerFailure } from '../../src/internal/playerFailure';
 
 // ── 辅助：等待 N 个事件 ──────────────────────────────────────────
 function waitForEvents(player: VidAllPlayer, count: number, filter: (e: PlayerEvent) => boolean): Promise<PlayerEvent[]> {
@@ -115,6 +116,35 @@ export async function selectTrack_selectAndDeselect(): Promise<void> {
   }
   // 取消选择
   await player.selectTrack('audio', null);
+  void player.release();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 2b. selectTrack('subtitle', null) 关闭字幕后所有字幕轨 selected=false
+// ══════════════════════════════════════════════════════════════════
+
+export async function selectTrack_subtitleOff_unselectsAllSubtitles(): Promise<void> {
+  const { player, tracksPromise } = createLoadedPlayer();
+
+  const event = await tracksPromise;
+  const subTracks = event.tracks!.filter((t: PlayerTrack) => t.kind === 'subtitle');
+  if (subTracks.length < 1) {
+    throw new Error('Need at least one subtitle track');
+  }
+  // 先选中一条字幕轨，再执行关闭操作，验证状态确实发生转换
+  await player.selectTrack('subtitle', subTracks[0].id);
+  const afterSelect = await waitForEvent(player, (e) => e.type === 'tracks');
+  const selectedAfterSelect = afterSelect.tracks!.filter((t: PlayerTrack) => t.kind === 'subtitle' && t.selected);
+  if (selectedAfterSelect.length !== 1 || selectedAfterSelect[0].id !== subTracks[0].id) {
+    throw new Error(`Expected subtitle ${subTracks[0].id} selected, got ${JSON.stringify(selectedAfterSelect)}`);
+  }
+
+  await player.selectTrack('subtitle', null);
+  const afterOff = await waitForEvent(player, (e) => e.type === 'tracks');
+  const selectedAfterOff = afterOff.tracks!.filter((t: PlayerTrack) => t.kind === 'subtitle' && t.selected);
+  if (selectedAfterOff.length !== 0) {
+    throw new Error(`Expected no subtitle selected after off, got ${JSON.stringify(selectedAfterOff)}`);
+  }
   void player.release();
 }
 
@@ -333,8 +363,11 @@ export async function trackOperations_rejectedAfterRelease(): Promise<void> {
     await player.selectTrack('audio', 1);
     throw new Error('selectTrack after release should have thrown');
   } catch (error) {
-    if (error instanceof Error && error.message.indexOf('SESSION_RELEASED') < 0) {
-      throw new Error(`Expected SESSION_RELEASED, got: ${error}`);
+    if (!(error instanceof PlayerFailure)) {
+      throw new Error(`Expected PlayerFailure, got ${error}`);
+    }
+    if (error.playerError.code !== 'RELEASED') {
+      throw new Error(`Expected RELEASED, got ${error.playerError.code}`);
     }
   }
 }

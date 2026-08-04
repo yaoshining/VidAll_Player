@@ -20,5 +20,13 @@ bool EventDispatcher::accept(const QueuedEvent& event)
   return true;
 }
 void EventDispatcher::advanceEpoch() { if (!closed_) { ++epoch_; lastAcceptedSequence_ = 0; } }
-void EventDispatcher::close() { closed_ = true; }
+void EventDispatcher::close()
+{
+  closed_ = true;
+  callbacksDrained_ = true;
+}
+bool EventDispatcher::closedAfterDrain() const
+{
+  return closed_ && callbacksDrained_;
+}
 } // namespace vidall

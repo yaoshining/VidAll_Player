@@ -5,7 +5,8 @@ import {
   PlayerEvent,
   PlayerOptions,
   PlayerSurface,
-  PlayerTrack, PlayerTrackKind
+  PlayerTrack, PlayerTrackKind,
+  VideoParams
 } from '../public/types';
 import { VidAllPlayer } from '../public/playerContract';
 import { CommandQueue } from './commandQueue';
@@ -15,19 +16,27 @@ import { lifecycleFailure, PlayerFailure } from './playerFailure';
 import { ProxyLeaseRecord, ProxyLeaseRegistry } from './proxyLeaseRegistry';
 import { redactError } from './redaction';
 import { SessionStateMachine } from './stateMachine';
+import { createNativePlayerBridge, NativeBridgeEvent, NativePlayerBridge } from '../native/nativeBridge';
 
 export class PlayerSession implements VidAllPlayer {
   private readonly queue: CommandQueue = new CommandQueue();
   private readonly stateMachine: SessionStateMachine = new SessionStateMachine();
   private readonly leases: ProxyLeaseRegistry = new ProxyLeaseRegistry();
   private readonly recovery: NetworkRecoveryController = new NetworkRecoveryController();
+  private readonly nativeBridge: NativePlayerBridge;
   private surface?: PlayerSurface;
   private source?: MediaSource;
   private tracks: PlayerTrack[] = [];
+  // ETS 侧对外暴露的音轨/字幕 id -> 真实 mpv track-list id 的映射，仅覆盖由原生
+  // track-list 事件枚举出的内嵌轨道（见 mergeNativeTracks）；外挂音频/字幕沿用
+  // 原有的本地 id 分配方式直接转发给原生层。
+  private readonly nativeTrackIdMap: Map<number, number> = new Map();
   private resumeState?: 'playing' | 'paused';
   private leaseEpoch: number = 0;
 
-  constructor(options?: PlayerOptions) {
+  constructor(options?: PlayerOptions, nativeBridge?: NativePlayerBridge) {
+    this.nativeBridge = nativeBridge ?? createNativePlayerBridge(options?.subtitleFontsDir);
+    this.nativeBridge.subscribe((event) => this.handleNativeBridgeEvent(event));
     if (options?.eventListener !== undefined) {
       this.stateMachine.subscribe(options.eventListener);
     }
@@ -43,8 +52,10 @@ export class PlayerSession implements VidAllPlayer {
       if (this.surface !== undefined && surface.generation < this.surface.generation) {
         return;
       }
-      this.surface = surface;
-      this.stateMachine.setSurfaceGeneration(surface.generation);
+      return this.nativeBridge.attachSurface(surface).then(() => {
+        this.surface = surface;
+        this.stateMachine.setSurfaceGeneration(surface.generation);
+      });
     });
   }
 
@@ -54,17 +65,22 @@ export class PlayerSession implements VidAllPlayer {
       if (this.surface === undefined || surface.generation !== this.surface.generation) {
         throw lifecycleFailure('INVALID_SURFACE_GENERATION', 'Surface generation is not attached.');
       }
-      this.surface = surface;
-      this.stateMachine.setSurfaceGeneration(surface.generation);
+      return this.nativeBridge.resizeSurface(surface).then(() => {
+        this.surface = surface;
+        this.stateMachine.setSurfaceGeneration(surface.generation);
+      });
     });
   }
 
   detachSurface(generation: number): Promise<void> {
     return this.enqueue('detachSurface', () => {
       if (this.surface !== undefined && this.surface.generation === generation) {
-        this.surface = undefined;
-        this.stateMachine.setSurfaceGeneration(undefined);
+        return this.nativeBridge.detachSurface(generation).then(() => {
+          this.surface = undefined;
+          this.stateMachine.setSurfaceGeneration(undefined);
+        });
       }
+      return Promise.resolve();
     });
   }
 
@@ -88,12 +104,12 @@ export class PlayerSession implements VidAllPlayer {
       // 避免旧连接、旧租约或旧轨道泄漏到新媒体会话。
       this.abortActiveMedia('source-switch');
       this.stateMachine.advanceEventEpoch();
-      this.source = source;
-      this.tracks = this.createExternalAudioTracks(source.externalAudio).concat(
+      return this.nativeBridge.load(source).then(() => {
+        this.source = source;
+        this.tracks = this.createExternalAudioTracks(source.externalAudio).concat(
         this.createExternalSubtitleTracks(source.externalSubtitles, source.externalAudio?.length ?? 0)
       );
       this.recovery.clear();
-      this.stateMachine.transition('preparing');
       if (source.kind === 'localhostProxy' && source.proxyLeaseId !== undefined) {
         this.leaseEpoch++;
         const lease = this.leases.track(source.proxyLeaseId, source.uri, this.leaseEpoch);
@@ -108,6 +124,29 @@ export class PlayerSession implements VidAllPlayer {
       if (this.tracks.length > 0) {
         this.emitTracks();
       }
+      // MediaSource.externalAudio/externalSubtitles 此前只在此处生成了 ETS 侧的
+      // PlayerTrack 记录（音轨/字幕在 UI 上"看起来"存在），但从未真正转发给原生
+      // mpv 会话（sub-add/audio-add 只有 addExternalSubtitle()/addExternalAudio()
+      // 这两个独立 API 会调用）。导致通过 load() 一次性传入外挂字幕/音频时，选中
+      // 的轨道在 mpv 里根本不存在，字幕自然无法被解析/渲染。这里在 load 成功后
+      // 立即把 source 里声明的外挂音频/字幕逐一推送到原生层，与 addExternalAudio/
+      // addExternalSubtitle 走同一条原生命令，保持两条路径行为一致。
+      const externalTrackPushes: Promise<void>[] = [];
+      if (source.externalAudio !== undefined) {
+        for (let index = 0; index < source.externalAudio.length; index++) {
+          externalTrackPushes.push(this.nativeBridge.addExternalAudio(source.externalAudio[index].uri));
+        }
+      }
+      if (source.externalSubtitles !== undefined) {
+        for (let index = 0; index < source.externalSubtitles.length; index++) {
+          externalTrackPushes.push(this.nativeBridge.addExternalSubtitle(source.externalSubtitles[index].uri));
+        }
+      }
+      if (externalTrackPushes.length > 0) {
+        return Promise.all(externalTrackPushes).then(() => {});
+      }
+      return Promise.resolve();
+      });
     });
   }
 
@@ -117,7 +156,7 @@ export class PlayerSession implements VidAllPlayer {
       if (state !== 'preparing' && state !== 'paused' && state !== 'buffering') {
         throw lifecycleFailure('INVALID_STATE', 'Play requires prepared, paused, or buffering media.');
       }
-      this.stateMachine.transition('playing');
+      return this.nativeBridge.play();
     });
   }
 
@@ -126,12 +165,15 @@ export class PlayerSession implements VidAllPlayer {
       if (this.stateMachine.getState() !== 'playing' && this.stateMachine.getState() !== 'buffering') {
         throw lifecycleFailure('INVALID_STATE', 'Pause requires playing or buffering media.');
       }
-      this.stateMachine.transition('paused');
+      return this.nativeBridge.pause();
     });
   }
 
   seekRelative(seconds: number): Promise<void> {
-    return this.enqueue('seekRelative', () => this.requireActiveMedia('seekRelative', seconds));
+    return this.enqueue('seekRelative', () => {
+      this.requireActiveMedia('seekRelative', seconds);
+      return this.nativeBridge.seekRelative(seconds);
+    });
   }
 
   seekPercent(percent: number): Promise<void> {
@@ -140,6 +182,7 @@ export class PlayerSession implements VidAllPlayer {
         throw lifecycleFailure('INVALID_SEEK_PERCENT', '跳转百分比必须是 0 到 100 之间的有限值。Seek percent must be a finite value between 0 and 100.');
       }
       this.requireActiveMedia('seekPercent', percent);
+      return this.nativeBridge.seekPercent(percent);
     });
   }
 
@@ -149,6 +192,7 @@ export class PlayerSession implements VidAllPlayer {
         throw lifecycleFailure('INVALID_RATE', '播放速度必须是大于零的有限值。Playback rate must be a finite value greater than zero.');
       }
       this.requireActiveMedia('setRate', rate);
+      return this.nativeBridge.setRate(rate);
     });
   }
 
@@ -178,6 +222,13 @@ export class PlayerSession implements VidAllPlayer {
         candidates[index].selected = id !== null && candidates[index].id === id;
       }
       this.emitTracks();
+      // kind === 'subtitle' 且 id === null 表示关闭字幕；映射表命中时说明该 id
+      // 来自原生 track-list 枚举，须转发真实 mpv track id，否则按本地 id 直传
+      // （外挂音频/字幕在 addExternalAudio/addExternalSubtitle 添加时通常已被
+      // mpv 自动选中，这里的直传主要用于后续切换）。
+      const nativeTrackId = id === null ? -1 : (this.nativeTrackIdMap.get(id) ?? id);
+      const nativeKind: 'audio' | 'subtitle' = kind === 'subtitle' ? 'subtitle' : 'audio';
+      return this.nativeBridge.selectTrack(nativeKind, nativeTrackId);
     });
   }
 
@@ -187,6 +238,7 @@ export class PlayerSession implements VidAllPlayer {
       validateExternalAudio(audio);
       this.tracks.push({ id: this.nextTrackId(), kind: 'audio', title: audio.title, language: audio.language, selected: false, recognitionStatus: 'recognized' });
       this.emitTracks();
+      return this.nativeBridge.addExternalAudio(audio.uri);
     });
   }
 
@@ -205,6 +257,7 @@ export class PlayerSession implements VidAllPlayer {
         recognitionStatus: subtitle.format === 'pgs' || subtitle.format === 'vobsub' ? 'recognized' : 'renderable'
       });
       this.emitTracks();
+      return this.nativeBridge.addExternalSubtitle(subtitle.uri);
     });
   }
 
@@ -226,6 +279,95 @@ export class PlayerSession implements VidAllPlayer {
     return this.stateMachine.emitIncoming(event);
   }
 
+  private handleNativeBridgeEvent(event: NativeBridgeEvent): void {
+    if (event.type === 'state' && event.message === 'preparing') {
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        this.stateMachine.transition('preparing');
+      }
+      return;
+    }
+    if (event.type === 'state' && event.message === 'playing') {
+      // 仅当 native RenderLoop 真正成功提交过一次解码帧后才会到达这里，
+      // 因此可以安全地把首帧证据转译为公开的 playing 状态与 firstFrame 事件。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
+        this.stateMachine.getState() !== 'playing') {
+        this.stateMachine.transition('playing');
+        this.stateMachine.emit({ type: 'firstFrame', sequence: event.sequence });
+      }
+      return;
+    }
+    if (event.type === 'state' && event.message === 'paused') {
+      // native 侧 mpv "pause" 属性变为 true（如调用 pause() 或用户在其他入口暂停），
+      // 转译为公开的 paused 状态，使 play()/pause() 的状态机校验能正确匹配。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        const state = this.stateMachine.getState();
+        if (state === 'playing' || state === 'buffering') {
+          this.stateMachine.transition('paused');
+        }
+      }
+      return;
+    }
+    if (event.type === 'state' && event.message === 'resumed') {
+      // native 侧 mpv "pause" 属性变回 false（暂停后恢复播放），转译为 playing 状态。
+      // 与首帧 'playing' 分开处理，避免重复触发 firstFrame 事件。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        const state = this.stateMachine.getState();
+        if (state === 'paused' || state === 'buffering') {
+          this.stateMachine.transition('playing');
+        }
+      }
+      return;
+    }
+    if (event.type === 'tracks') {
+      // message 编码为原生 track-list 快照（见 napi_init.cpp 的 EncodeTrackList），
+      // 上报媒体内嵌的音轨/字幕元数据；此前该属性从未被观察，导致这些轨道对
+      // ArkTS 层完全不可见，音轨/字幕选择功能形同虚设。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        this.mergeNativeTracks(event.message);
+      }
+      return;
+    }
+    if (event.type === 'videoParams') {
+      // message 采用 "宽x高" 字符串编码（原生 Event 结构体未新增字段），
+      // 用于让消费方按真实视频宽高比布局，避免 XComponent 拉伸画面。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        const parts = event.message.split('x');
+        if (parts.length === 2) {
+          const width = Number(parts[0]);
+          const height = Number(parts[1]);
+          if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+            const params: VideoParams = { width, height };
+            this.stateMachine.emit({ type: 'videoParams', sequence: event.sequence, params });
+          }
+        }
+      }
+      return;
+    }
+    if (event.type === 'subtitleText') {
+      // message 为 mpv "sub-text" 属性上报的当前字幕纯文本（空字符串表示当前无
+      // 字幕命中）。独立于软件渲染合成管线是否把字幕像素画进视频帧，供消费方
+      // （entry 调试页、vidall-tv 等）自行绘制字幕 UI、验证字幕解析是否生效。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        this.stateMachine.emit({ type: 'subtitleText', sequence: event.sequence, subtitleText: event.message });
+      }
+      return;
+    }
+    if (event.type === 'error' && this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+      this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+      this.stateMachine.transition('error');
+      this.stateMachine.emit({ type: 'error', sequence: 0, error: redactError({
+        domain: 'native', code: 'NATIVE_PLAYBACK_FAILED', message: event.message, retryable: false, context: {}
+      }) });
+    }
+  }
+
   stop(): Promise<void> {
     return this.enqueue('stop', () => {
       const state = this.stateMachine.getState();
@@ -235,8 +377,10 @@ export class PlayerSession implements VidAllPlayer {
       if (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering') {
         throw lifecycleFailure('INVALID_STATE', 'Stop requires an active media session.');
       }
-      this.abortActiveMedia('stop');
-      this.source = undefined;
+      return this.nativeBridge.stop().then(() => {
+        this.abortActiveMedia('stop');
+        this.source = undefined;
+      });
     });
   }
 
@@ -245,15 +389,14 @@ export class PlayerSession implements VidAllPlayer {
       return Promise.resolve();
     }
     this.queue.close();
-    return new Promise<void>((resolve) => {
-      // 关闭前请求代理释放；只有业务层携带相同 epoch 的确认才能宣布 released。
+    return this.nativeBridge.release().then(() => {
+      // Native release completes before the public session publishes closed.
       this.releaseLeases('release');
       this.stateMachine.release();
       this.surface = undefined;
       this.stateMachine.setSurfaceGeneration(undefined);
       this.source = undefined;
       this.tracks = [];
-      resolve();
     });
   }
 
@@ -307,11 +450,8 @@ export class PlayerSession implements VidAllPlayer {
     return this.recovery;
   }
 
-  private enqueue(_name: string, operation: () => void): Promise<void> {
-    return this.queue.enqueue(() => {
-      operation();
-      return Promise.resolve();
-    });
+  private enqueue(_name: string, operation: () => void | Promise<void>): Promise<void> {
+    return this.queue.enqueue(() => Promise.resolve(operation()));
   }
 
   private abortActiveMedia(reason: string): void {
@@ -409,6 +549,51 @@ export class PlayerSession implements VidAllPlayer {
       highestId = Math.max(highestId, this.tracks[index].id);
     }
     return highestId + 1;
+  }
+
+  // 原生 track-list 枚举出的内嵌轨道 id 起点，避免与外挂音频/字幕的本地 id
+  // （从 1 开始递增，见 nextTrackId）互相碰撞。
+  private static readonly NATIVE_TRACK_ID_OFFSET: number = 100000;
+
+  private mergeNativeTracks(encoded: string): void {
+    const offset = PlayerSession.NATIVE_TRACK_ID_OFFSET;
+    // 移除上一次的内嵌轨道快照，保留仅来自本地外挂音频/字幕逻辑的轨道，
+    // 避免原生每次 track-list 变化都重复累积同一批内嵌轨道。
+    this.tracks = this.tracks.filter((track: PlayerTrack) => track.id < offset);
+    this.nativeTrackIdMap.clear();
+    if (encoded.length > 0) {
+      const records = encoded.split('\x1e');
+      for (let index = 0; index < records.length; index++) {
+        const fields = records[index].split('\x1f');
+        if (fields.length !== 5) {
+          continue;
+        }
+        const nativeId = Number(fields[0]);
+        const kind = fields[1];
+        const language = fields[2];
+        const title = fields[3];
+        const selected = fields[4] === '1';
+        if (!Number.isFinite(nativeId) || nativeId < 0 || (kind !== 'audio' && kind !== 'subtitle')) {
+          continue;
+        }
+        const etsId = offset + nativeId;
+        const track: PlayerTrack = {
+          id: etsId,
+          kind: kind as PlayerTrackKind,
+          selected: selected,
+          recognitionStatus: 'recognized'
+        };
+        if (language.length > 0) {
+          track.language = language;
+        }
+        if (title.length > 0) {
+          track.title = title;
+        }
+        this.tracks.push(track);
+        this.nativeTrackIdMap.set(etsId, nativeId);
+      }
+    }
+    this.emitTracks();
   }
 
   private emitTracks(): void {

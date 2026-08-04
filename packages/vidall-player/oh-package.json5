@@ -1,7 +1,7 @@
 {
   "name": "@vidall/player",
   "version": "0.1.0",
-  "description": "基于 libmpv 的 HarmonyOS ArkTS 播放器候选 SDK；当前版本仅供 VidAll_TV 集成验证，不发布至 OHPM。",
+  "description": "基于 libmpv 的 HarmonyOS ArkTS 播放器候选 SDK；仅供本仓库 fixture 开发期验证，不发布至 OHPM。",
   "main": "Index.ets",
   "author": "VidAll",
   "license": "GPL-3.0-or-later",

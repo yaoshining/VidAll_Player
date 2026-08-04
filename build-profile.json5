@@ -104,6 +104,18 @@
           ]
         }
       ]
+    },
+    {
+      "name": "libmpv_player_consumer",
+      "srcPath": "./fixtures/libmpv-player-consumer",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
     }
   ]
 }

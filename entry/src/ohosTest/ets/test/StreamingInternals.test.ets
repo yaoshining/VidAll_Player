@@ -198,11 +198,11 @@ export default function streamingInternalsTest() {
       done();
     });
 
-    it('loads the HAR-internal native probe and receives its callback', 0, () => {
+    it('loads the HAR-internal native probe and confirms the session round-trip', 0, () => {
       const result = runHarNativePackagingProbe();
-      console.info(`HAR_NATIVE_PROBE command=${result.commandResult}; callback=${result.callbackResult}`);
-      expect(result.commandResult).assertEqual('har-native-ping:callback-dispatched');
-      expect(result.callbackResult).assertEqual('har-native-callback');
+      console.info(`HAR_NATIVE_PROBE created=${result.created}; code=${result.code}`);
+      expect(result.created).assertTrue();
+      expect(result.code).assertEqual('OK');
     });
 
     it('accepts file URIs for cached external subtitles but rejects user information', 0, async (done: Function) => {

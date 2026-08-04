@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "libmpv HAR 本地消费者模块"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "本地消费者入口"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "HAR 生命周期验证"
+    }
+  ]
+}

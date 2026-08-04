@@ -10,11 +10,13 @@ public:
   bool accept(const QueuedEvent& event);
   void advanceEpoch();
   void close();
+  bool closedAfterDrain() const;
 private:
   std::uint64_t sequence_ = 0;
   std::uint64_t epoch_ = 1;
   std::uint64_t lastAcceptedSequence_ = 0;
   bool closed_ = false;
+  bool callbacksDrained_ = false;
 };
 } // namespace vidall
 #endif

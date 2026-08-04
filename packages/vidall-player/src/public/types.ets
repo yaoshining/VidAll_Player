@@ -2,7 +2,7 @@ export type PlayerState = 'idle' | 'preparing' | 'playing' | 'paused' |
   'buffering' | 'completed' | 'error' | 'released';
 export type PlayerTrackKind = 'audio' | 'video' | 'subtitle';
 export type PlayerEventType = 'state' | 'firstFrame' | 'position' | 'buffering' | 'tracks' |
-  'videoParams' | 'audioParams' | 'proxyLease' | 'streamingConfig' | 'log' | 'closed' | 'error';
+  'videoParams' | 'audioParams' | 'proxyLease' | 'streamingConfig' | 'log' | 'closed' | 'error' | 'subtitleText';
 
 export interface PlayerSurface {
   componentId: string;
@@ -15,6 +15,10 @@ export interface PlayerOptions {
   eventListener?: (event: PlayerEvent) => void;
   // 仅允许通过真实运行时参数报告的高级显示项；裁剪、去隔行和截图固定不支持。
   advancedVideoOptions?: ('rotation' | 'pixelAspectRatio')[];
+  // HarmonyOS 沙箱内没有系统 fontconfig，libass 默认的字体查找会失败，导致字幕轨道
+  // 被选中但不可见。传入一个真实文件系统目录（应用需预先把字体解包到此目录），
+  // 原生层会用它替代 fontconfig 完成字幕字体匹配。省略则不设置任何字体目录。
+  subtitleFontsDir?: string;
 }
 
 export interface MediaSource {
@@ -108,4 +112,8 @@ export interface PlayerEvent {
   log?: PlayerLog;
   error?: PlayerError;
   message?: string;
+  // 当前播放位置对应的字幕纯文本（已去除 ASS/SRT 标记），来自 mpv "sub-text"
+  // 属性；空字符串表示当前无字幕命中。与视频帧内是否真正合成字幕像素无关，
+  // 供消费方（entry 调试页、vidall-tv 等）自行绘制字幕 UI 时使用。
+  subtitleText?: string;
 }
