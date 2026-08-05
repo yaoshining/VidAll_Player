@@ -26,6 +26,7 @@
 | `eventEpoch` | 事件批次/生命周期纪元 | release 后递增或关闭；旧事件必须丢弃 |
 | `sequence` | 会话内事件序号 | 单调递增，用于审计顺序 |
 | `mediaSampleId` | 首期媒体样本 ID | 仅负责人确认的闭集可用于真机结论 |
+| `hardwareDecoding` | 播放选项：`'auto'`（默认，GL 路径下自动选中 ohcodec 硬解）或 `'disabled'`（强制 mpv `hwdec=no` 软件解码） | 通过公开 `PlayerOptions.hardwareDecoding` 下发到 native；是否激活以真机 `hwdec-current` 为准；待证实 |
 | `releasedAt` | 释放记录 | 一旦设置，控制操作稳定失败或按明确幂等规则完成 |
 
 ### 状态转换（暂定/待证实）

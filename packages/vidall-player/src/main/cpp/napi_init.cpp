@@ -20,8 +20,12 @@
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <mpv/client.h>
 #include <mpv/render.h>
+#include <mpv/render_gl.h>
 #include <native_window/external_window.h>
 #include <native_buffer/native_buffer.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <GLES3/gl3.h>
 #endif
 
 #undef LOG_TAG
@@ -152,6 +156,15 @@ std::string EncodeTrackList(const mpv_node* node)
     return encoded;
 }
 
+// mpv GL 渲染所需的 GL 函数指针解析器：HarmonyOS EGL 的 eglGetProcAddress
+// 能返回所有 ES3 扩展与核心函数指针，满足 mpv render_gl 的需求。
+#if VIDALL_MPV_AVAILABLE
+static void* MpvGlGetProcAddress(void* /*ctx*/, const char* name)
+{
+    return reinterpret_cast<void*>(eglGetProcAddress(name));
+}
+#endif
+
 class NativeSession {
 public:
     struct Event {
@@ -169,12 +182,18 @@ public:
 
     ~NativeSession() { Release(); }
 
-    bool Initialize(const std::string& fontsDir)
+    bool Initialize(const std::string& fontsDir, const std::string& hwdec)
     {
         if (!player_) return false;
         mpv_set_option_string(player_.get(), "terminal", "no");
         mpv_set_option_string(player_.get(), "config", "no");
         mpv_set_option_string(player_.get(), "vo", "libmpv");
+        // 硬件解码：libmpv 编译时 --enable-ohcodec，链接 libnative_media_vdec.so。
+        // hwdec 为空时保留 mpv 默认（软件解码）；"auto-safe" 自动选择 ohcodec 硬解后端，
+        // 失败时回退软件解码；"no" 强制软件解码。
+        if (!hwdec.empty()) {
+            mpv_set_option_string(player_.get(), "hwdec", hwdec.c_str());
+        }
         if (!fontsDir.empty()) {
             // HarmonyOS 沙箱内没有系统 fontconfig，libass 的 fontconfig provider 探测不到
             // 任何字体，导致字幕轨道被正确选中但完全不可见（无渲染文字）。改用 "none"
@@ -184,6 +203,12 @@ public:
             mpv_set_option_string(player_.get(), "osd-fonts-dir", fontsDir.c_str());
         }
         if (mpv_initialize(player_.get()) < 0) return false;
+        // 输出当前 hwdec 设置，便于真机日志确认硬件解码策略已下发到 mpv。
+        const char* hwdecValue = mpv_get_property_string(player_.get(), "hwdec");
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "hwdec configured: %{public}s", hwdecValue != nullptr ? hwdecValue : "(null)");
+        // 观察 hwdec-current：mpv 在文件加载并选定解码器后会设置此属性，
+        // 用于真机日志确认 ohcodec 硬件解码后端是否真正激活（空串=软解）。
+        mpv_observe_property(player_.get(), 0, "hwdec-current", MPV_FORMAT_STRING);
         // 观察 dwidth/dheight（已包含旋转与像素宽高比修正后的显示尺寸），
         // 用于向 ArkTS 层上报真实视频宽高比，避免画面被拉伸。
         mpv_observe_property(player_.get(), 0, "dwidth", MPV_FORMAT_INT64);
@@ -431,6 +456,7 @@ private:
         int lastDispatchedPause = -1; // -1 表示尚未收到过第一次通知（用作基线，不上报）
         std::string lastDispatchedTracks;
         std::string lastDispatchedSubtitleText;
+        std::string lastDispatchedHwdec;
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
@@ -440,6 +466,20 @@ private:
             }
             if (event->event_id == MPV_EVENT_PROPERTY_CHANGE) {
                 const auto* prop = static_cast<mpv_event_property*>(event->data);
+                if (prop != nullptr && prop->format == MPV_FORMAT_STRING && prop->data != nullptr &&
+                    std::strcmp(prop->name, "hwdec-current") == 0) {
+                    const char* hwdecCurrent = *static_cast<char**>(prop->data);
+                    const std::string hwdec = (hwdecCurrent != nullptr) ? hwdecCurrent : "";
+                    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "hwdec-current: %{public}s", hwdec.c_str());
+                    if (hwdec != lastDispatchedHwdec) {
+                        lastDispatchedHwdec = hwdec;
+                        const int width = videoWidth_;
+                        const int height = videoHeight_;
+                        if (width > 0 && height > 0) {
+                            Dispatch("videoParams", std::to_string(width) + "x" + std::to_string(height) + "|" + hwdec);
+                        }
+                    }
+                }
                 if (prop != nullptr && prop->format == MPV_FORMAT_INT64 && prop->data != nullptr) {
                     const int64_t value = *static_cast<int64_t*>(prop->data);
                     if (std::strcmp(prop->name, "dwidth") == 0) videoWidth_ = static_cast<int>(value);
@@ -449,7 +489,8 @@ private:
                     if (width > 0 && height > 0 && (width != lastDispatchedWidth || height != lastDispatchedHeight)) {
                         lastDispatchedWidth = width;
                         lastDispatchedHeight = height;
-                        Dispatch("videoParams", std::to_string(width) + "x" + std::to_string(height));
+                        // 附带当前已知的 hwdec 状态（可能为空，尚未收到 hwdec-current 通知）。
+                        Dispatch("videoParams", std::to_string(width) + "x" + std::to_string(height) + "|" + lastDispatchedHwdec);
                     }
                 }
                 if (prop != nullptr && prop->format == MPV_FORMAT_FLAG && prop->data != nullptr &&
@@ -497,86 +538,96 @@ private:
             MarkRendererFailed(); return;
         }
         window_ = window;
-        // mpv 软件渲染输出 RGBA8888（每像素 4 字节），Surface 缓冲区格式必须匹配，
-        // 否则显示 HDI 层会拒绝分配缓冲区（"format X can not support"）。
-        int32_t format = NATIVEBUFFER_PIXEL_FMT_RGBA_8888;
-        OH_NativeWindow_NativeWindowHandleOpt(window_, SET_FORMAT, format);
         OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width_.load(), height_.load());
-        // 软件渲染需要 CPU 直接写入缓冲区，必须显式声明 CPU 读写 usage，
-        // 否则分配到的 BufferHandle::virAddr 为空（仅 GPU 可访问），导致每帧都被丢弃。
-        uint64_t usage = NATIVEBUFFER_USAGE_CPU_READ | NATIVEBUFFER_USAGE_CPU_WRITE;
-        OH_NativeWindow_NativeWindowHandleOpt(window_, SET_USAGE, usage);
-        const char* api = MPV_RENDER_API_TYPE_SW;
-        mpv_render_param params[] = {{MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(api)}, {MPV_RENDER_PARAM_INVALID, nullptr}};
-        int renderCreateRc = mpv_render_context_create(&renderer_, player_.get(), params);
-        if (renderCreateRc < 0) {
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "mpv_render_context_create failed rc=%{public}d", renderCreateRc);
+        // GL 渲染路径：EGL context + mpv render_gl，ohcodec 硬解帧可直接输出到 GL texture，
+        // 无需 CPU 读写 buffer（与 SW 渲染不同，不需要声明 CPU_READ|WRITE usage）。
+
+        // EGL display + config + context + window surface
+        eglDisplay_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        if (eglDisplay_ == EGL_NO_DISPLAY) {
+            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglGetDisplay failed");
             MarkRendererFailed(); DestroyRenderer(); return;
         }
-        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "renderer created, entering loop width=%{public}d height=%{public}d", width_.load(), height_.load());
+        EGLint major = 0, minor = 0;
+        if (!eglInitialize(eglDisplay_, &major, &minor)) {
+            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglInitialize failed");
+            MarkRendererFailed(); DestroyRenderer(); return;
+        }
+        EGLint configAttribs[] = {
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+            EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE
+        };
+        EGLint numConfigs = 0;
+        if (!eglChooseConfig(eglDisplay_, configAttribs, &eglConfig_, 1, &numConfigs) || numConfigs < 1) {
+            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglChooseConfig failed");
+            MarkRendererFailed(); DestroyRenderer(); return;
+        }
+        EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
+        eglContext_ = eglCreateContext(eglDisplay_, eglConfig_, EGL_NO_CONTEXT, contextAttribs);
+        if (eglContext_ == EGL_NO_CONTEXT) {
+            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglCreateContext failed");
+            MarkRendererFailed(); DestroyRenderer(); return;
+        }
+        eglSurface_ = eglCreateWindowSurface(eglDisplay_, eglConfig_, reinterpret_cast<EGLNativeWindowType>(window_), nullptr);
+        if (eglSurface_ == EGL_NO_SURFACE) {
+            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglCreateWindowSurface failed err=0x%{public}x", eglGetError());
+            MarkRendererFailed(); DestroyRenderer(); return;
+        }
+        if (!eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_)) {
+            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglMakeCurrent failed");
+            MarkRendererFailed(); DestroyRenderer(); return;
+        }
+
+        // mpv GL render context
+        mpv_opengl_init_params glInit{ &MpvGlGetProcAddress, nullptr };
+        const char* api = MPV_RENDER_API_TYPE_OPENGL;
+        mpv_render_param params[] = {
+            {MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(api)},
+            {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &glInit},
+            {MPV_RENDER_PARAM_INVALID, nullptr}
+        };
+        int renderCreateRc = mpv_render_context_create(&renderer_, player_.get(), params);
+        if (renderCreateRc < 0) {
+            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "mpv_render_context_create(GL) failed rc=%{public}d", renderCreateRc);
+            MarkRendererFailed(); DestroyRenderer(); return;
+        }
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "GL renderer created, entering loop width=%{public}d height=%{public}d", width_.load(), height_.load());
         mpv_render_context_set_update_callback(renderer_, NotifyRender, this);
         { std::lock_guard<std::mutex> lock(rendererMutex_); rendererReady_ = true; rendererReadyCv_.notify_one(); }
 
-        std::vector<uint8_t> pixels;
         while (true) {
             bool geometryDirty = false;
             { std::unique_lock<std::mutex> lock(rendererMutex_); renderCondition_.wait_for(lock, std::chrono::milliseconds(16), [this] { return stopRenderer_ || renderRequested_ || geometryDirty_; }); if (stopRenderer_) break; renderRequested_ = false; geometryDirty = geometryDirty_.exchange(false); }
             int width = width_; int height = height_;
-            if (geometryDirty) OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width, height);
+            if (geometryDirty) {
+                // Surface 尺寸变化时需重建 EGL surface（eglQuerySurface 的尺寸不会自动跟随 NativeWindow）
+                eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+                eglDestroySurface(eglDisplay_, eglSurface_);
+                eglSurface_ = EGL_NO_SURFACE;
+                OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width, height);
+                eglSurface_ = eglCreateWindowSurface(eglDisplay_, eglConfig_, reinterpret_cast<EGLNativeWindowType>(window_), nullptr);
+                eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_);
+            }
             uint64_t updateFlags = mpv_render_context_update(renderer_);
             if ((updateFlags & MPV_RENDER_UPDATE_FRAME) == 0) continue;
             if (width <= 0 || height <= 0) continue;
-            size_t stride = static_cast<size_t>(width) * 4;
-            pixels.resize(stride * static_cast<size_t>(height));
-            int size[] = {width, height}; char* rgba = const_cast<char*>("rgba");
-            mpv_render_param frame[] = {{MPV_RENDER_PARAM_SW_SIZE, size}, {MPV_RENDER_PARAM_SW_FORMAT, rgba}, {MPV_RENDER_PARAM_SW_STRIDE, &stride}, {MPV_RENDER_PARAM_SW_POINTER, pixels.data()}, {MPV_RENDER_PARAM_INVALID, nullptr}};
+            // mpv 渲染到默认 FBO（0 = 当前绑定的 EGL window surface）
+            mpv_opengl_fbo fbo{ 0, width, height, 0 };
+            // EGL window surface 原点在左上角，mpv GL 渲染器默认原点在左下角，
+            // 不翻转会导致画面上下颠倒。
+            int flipY = 1;
+            mpv_render_param frame[] = {
+                {MPV_RENDER_PARAM_OPENGL_FBO, &fbo},
+                {MPV_RENDER_PARAM_FLIP_Y, &flipY},
+                {MPV_RENDER_PARAM_INVALID, nullptr}
+            };
             int renderResult = mpv_render_context_render(renderer_, frame);
             if (renderResult < 0) {
                 OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "mpv_render_context_render failed rc=%{public}d", renderResult);
                 continue;
             }
-            OHNativeWindowBuffer* buffer = nullptr;
-            int fence = -1;
-            int requestRc = OH_NativeWindow_NativeWindowRequestBuffer(window_, &buffer, &fence);
-            if (requestRc != 0 || buffer == nullptr) {
-                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "RequestBuffer failed rc=%{public}d buffer=%{public}d", requestRc, buffer != nullptr);
-                continue;
-            }
-            BufferHandle* target = OH_NativeWindow_GetBufferHandleFromNative(buffer);
-            void* mappedAddr = nullptr;
-            bool ownsMapping = false;
-            if (target != nullptr && target->virAddr == nullptr && target->fd >= 0 && target->size > 0) {
-                // 部分设备/模拟器上 HDI 不会自动为 BufferHandle 填充 virAddr（CPU 可访问的映射地址），
-                // 需要应用侧通过 fd 自行 mmap，这是软件渲染路径写入像素数据的常见回退方案。
-                mappedAddr = mmap(nullptr, static_cast<size_t>(target->size), PROT_READ | PROT_WRITE, MAP_SHARED, target->fd, 0);
-                if (mappedAddr != MAP_FAILED && mappedAddr != nullptr) {
-                    ownsMapping = true;
-                } else {
-                    mappedAddr = nullptr;
-                }
-            }
-            void* virAddr = (target != nullptr && target->virAddr != nullptr) ? target->virAddr : mappedAddr;
-            if (target == nullptr || virAddr == nullptr || target->stride < width * 4 || target->height < height) {
-                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
-                    "target invalid target=%{public}d virAddr=%{public}d fd=%{public}d size=%{public}d stride=%{public}d needStride=%{public}d bufHeight=%{public}d needHeight=%{public}d",
-                    target != nullptr, virAddr != nullptr, target != nullptr ? target->fd : -1, target != nullptr ? target->size : -1,
-                    target != nullptr ? target->stride : -1, width * 4, target != nullptr ? target->height : -1, height);
-                Region empty{};
-                OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, empty);
-                if (ownsMapping) munmap(mappedAddr, static_cast<size_t>(target->size));
-                continue;
-            }
-            for (int row = 0; row < height; ++row) {
-                memcpy(static_cast<uint8_t*>(virAddr) + static_cast<size_t>(row) * target->stride, pixels.data() + static_cast<size_t>(row) * stride, stride);
-            }
-            if (ownsMapping) munmap(mappedAddr, static_cast<size_t>(target->size));
-            Region region{};
-            Region::Rect rect = {0, 0, static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
-            region.rects = &rect;
-            region.rectNumber = 1;
-            OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, region);
-            // 只在真正成功提交过一次真实解码帧到 NativeWindow 后才上报 playing，
-            // 避免把 attach/load 命令成功等间接信号伪造成首帧证据。
+            eglSwapBuffers(eglDisplay_, eglSurface_);
             if (!firstFrameSent_.exchange(true)) {
                 Dispatch("state", "playing");
             }
@@ -601,6 +652,13 @@ private:
     void DestroyRenderer()
     {
         if (renderer_ != nullptr) { mpv_render_context_set_update_callback(renderer_, nullptr, nullptr); mpv_render_context_free(renderer_); renderer_ = nullptr; }
+        if (eglDisplay_ != EGL_NO_DISPLAY) {
+            eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+            if (eglSurface_ != EGL_NO_SURFACE) { eglDestroySurface(eglDisplay_, eglSurface_); eglSurface_ = EGL_NO_SURFACE; }
+            if (eglContext_ != EGL_NO_CONTEXT) { eglDestroyContext(eglDisplay_, eglContext_); eglContext_ = EGL_NO_CONTEXT; }
+            eglTerminate(eglDisplay_);
+            eglDisplay_ = EGL_NO_DISPLAY;
+        }
         if (window_ != nullptr) { OH_NativeWindow_DestroyNativeWindow(window_); window_ = nullptr; }
     }
 
@@ -635,6 +693,11 @@ private:
     std::atomic<bool> firstFrameSent_{false};
     OHNativeWindow* window_ = nullptr;
     mpv_render_context* renderer_ = nullptr;
+    // EGL 渲染上下文（GL 渲染路径，支持 ohcodec 硬件解码输出到 GL texture）
+    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
+    EGLSurface eglSurface_ = EGL_NO_SURFACE;
+    EGLContext eglContext_ = EGL_NO_CONTEXT;
+    EGLConfig eglConfig_ = nullptr;
     std::mutex callbackMutex_;
     napi_threadsafe_function eventTsfn_ = nullptr;
 };
@@ -657,14 +720,15 @@ std::shared_ptr<NativeSession> FindSession(std::uint64_t handle)
 
 napi_value CreateSession(napi_env env, napi_callback_info info)
 {
-    napi_value args[1] = {nullptr}; size_t argc = 1;
-    std::string fontsDir;
-    if (napi_get_cb_info(env, info, &argc, args, nullptr, nullptr) == napi_ok && argc >= 1) {
-        ReadString(env, args[0], fontsDir);
+    napi_value args[2] = {nullptr}; size_t argc = 2;
+    std::string fontsDir, hwdec;
+    if (napi_get_cb_info(env, info, &argc, args, nullptr, nullptr) == napi_ok) {
+        if (argc >= 1) ReadString(env, args[0], fontsDir);
+        if (argc >= 2) ReadString(env, args[1], hwdec);
     }
 #if VIDALL_MPV_AVAILABLE
     auto session = std::make_shared<NativeSession>();
-    if (!session->Initialize(fontsDir)) return CreateResult(env, {false, 0, "NATIVE_PLAYBACK_FAILED"});
+    if (!session->Initialize(fontsDir, hwdec)) return CreateResult(env, {false, 0, "NATIVE_PLAYBACK_FAILED"});
     std::lock_guard<std::mutex> lock(gSessionsMutex);
     const std::uint64_t handle = gNextSessionId++;
     gSessions.emplace(handle, std::move(session));

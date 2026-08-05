@@ -112,6 +112,8 @@
 | ArkTS `PlayerSession` 内存状态机 | 不支持或暂缓 | 不可作为播放内核、状态或首帧成功依据 | 替换为真实 libmpv 会话后的接口、测试与真机证据 |
 | libmpv 真实加载、播放与首帧 | 已构建待验证 | 不得对消费方声称可播放 | 目标 TV 上经批准样本的加载、首帧、播放与错误证据 |
 | Surface/XComponent 视频画面生命周期 | 已构建待验证 | 不得声称能够稳定渲染或重建画面 | 画面所有权、线程模型及 attach/resize/detach 真机样本 |
+| 渲染路径（SW 软件渲染 → GL 硬件加速） | 已构建待验证 | 真机已打通 EGL context + mpv OpenGL render context + eglSwapBuffers（hilog `GL renderer created`）；不得作为正式支持声明 | 完整 Surface spike 的 attach/resize/detach/rebuild/stop/release 真机生成期记录与负责人确认 |
+| 硬件解码（ohcodec） | 已构建待验证 | 真机 GL 路径下 `hwdec-current: ohcodec` 激活；可通过 `PlayerOptions.hardwareDecoding: 'auto'\|'disabled'` 控制 | `VideoParams.hardwareDecoding` 从 native 上报至 ArkTS、跨设备复现、负责人确认 |
 | 停止、重复释放与释放后调用 | 已构建待验证 | 不得仅凭状态机测试承诺资源安全 | 真实会话的成功、边界和失败路径测试及真机记录 |
 | 脚本、滤镜、录制、流捕获、截图 | 不支持或暂缓 | 公开接口、文档和示例均不得承诺 | 单独规格、接口、测试和目标真机证据 |
 

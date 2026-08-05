@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "audit": "g2-har-loading-boundary",
+  "date": "2026-08-05T10:26:32+08:00",
+  "trigger": "发现 release/audits 中此前结论基于 8月2日过时 default@PackageHar 缓存；该缓存内 libvidall_player_native.so 为 8.6KB NAPI probe、未含 libmpv.so",
+  "rootCause": "packages/vidall-player/build/default/cache/default/default@PackageHar 缓存未随源码更新（native bridge 于 08-04 更新为 860KB mpv 版，缓存仍为 08-02 8.6KB probe），导致 HAR 打包沿用旧 native 且未纳入 libmpv.so",
+  "fix": "devecocli build clean 清空缓存后全量重建 vidall_player 模块，PackageHar 重新执行并纳入当前 native + libmpv.so",
+  "artifacts": {
+    "har": {
+      "path": "packages/vidall-player/build/default/outputs/default/vidall_player.har",
+      "sizeBytes": 22831640,
+      "builtAt": "2026-08-05T10:26:32+08:00",
+      "libsArm64": [
+        "libmpv.so (53662960 bytes)",
+        "libvidall_player_native.so (176744 bytes, stripped)",
+        "libc++_shared.so (1262504 bytes)"
+      ]
+    },
+    "ciHap": {
+      "path": "entry/build/ci/outputs/default/app/entry-default.hap",
+      "sizeBytes": 61206199,
+      "builtAt": "2026-08-05T10:28:00+08:00",
+      "libsArm64": [
+        "libentry.so (245648 bytes)",
+        "libmpv.so (53662960 bytes)",
+        "libvidall_player_native.so (176744 bytes)",
+        "libc++_shared.so (1262504 bytes)"
+      ]
+    }
+  },
+  "nativeBridgeVerification": {
+    "libvidall_player_native.so NEEDED": [
+      "libace_napi.z.so",
+      "libace_ndk.z.so",
+      "libhilog_ndk.z.so",
+      "libmpv.so",
+      "libnative_window.so",
+      "libEGL.so",
+      "libGLESv3.so",
+      "libc++_shared.so",
+      "libc.so"
+    ],
+    "undMpvSymbolCount": 14,
+    "undMpvSymbolSamples": [
+      "mpv_create",
+      "mpv_initialize",
+      "mpv_set_option_string",
+      "mpv_observe_property",
+      "mpv_wakeup",
+      "mpv_wait_event",
+      "mpv_render_context_create",
+      "mpv_terminate_destroy"
+    ],
+    "conclusion": "NAPI bridge 真实链接并驱动 libmpv.so"
+  },
+  "sha256Consistency": {
+    "libmpvSo": {
+      "independentBuild": "75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d",
+      "harBundled": "75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d",
+      "hapBundled": "75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d",
+      "reproducible": true
+    },
+    "nativeBridgeNote": "HAR 与 HAP 内 libvidall_player_native.so SHA 不同（4860c681 vs 8c0aa207）但大小均为 176744、NEEDED 与 UND mpv_* 符号一致（功能等价）；差异来自构建元数据/时间戳，不影响 ABI/加载结论"
+  },
+  "previousAuditCorrection": {
+    "obsoleteClaim": "HAR 未打包 libmpv.so，native bridge 未链接 mpv（无真实播放内核）",
+    "correction": "该结论基于过时缓存；clean 重建后 HAR/HAP 均真实携带 libmpv.so，native bridge NEEDED 含 libmpv.so 且 UND mpv_* 符号完整",
+    "impactedFiles": [
+      "specs/003-libmpv-player-har/audits/g2-elf-abi-audit-template.md",
+      "specs/003-libmpv-player-har/audits/g2-loading-strategy-comparison.md",
+      "specs/003-libmpv-player-har/audits/g2-candidate-materials-checklist.md",
+      "specs/003-libmpv-player-har/audits/g2-completeness-review.md",
+      "specs/003-libmpv-player-har/evidence/gate-approvals.md",
+      "specs/003-libmpv-player-har/evidence/gate-review-summary.md"
+    ]
+  },
+  "status": "passed",
+  "remainingGaps": [
+    "真机加载/首帧/播放证据（G1/G3，需真机握手成功）",
+    "受控源码树 + build-libmpv-controlled.sh 生成 feature-manifest/build manifest",
+    "NOTICE/license-audit 法务复核（GPL-2.0/GPL-3.0/LGPL-2.1、samba）",
+    "G1/G2/G3 负责人书面 Go 确认"
+  ]
+}

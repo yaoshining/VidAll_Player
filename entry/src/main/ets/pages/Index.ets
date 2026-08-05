@@ -211,7 +211,8 @@ struct Index {
         if (params !== undefined && params.width > 0 && params.height > 0) {
           this.videoAspectRatio = params.width / params.height;
           this.recomputeVideoBoxSize();
-          console.info(`VidAll_Player: videoParams ${params.width}x${params.height}`);
+          const hwdec = params.hardwareDecoding ?? 'n/a';
+          this.runtimeInfo = `${params.width}x${params.height} 硬解: ${hwdec}`;
         }
         break;
       }
@@ -839,8 +840,8 @@ struct Index {
     }
     .width(this.isFullscreen ? '100%' : '88%')
     .height(this.isFullscreen ? '100%' : 260)
-    .border({ width: 2, color: '#426991', radius: 12 })
-    .backgroundColor('#07121F')
+    .border(this.isFullscreen ? { width: 0, radius: 0 } : { width: 2, color: '#426991', radius: 12 })
+    .backgroundColor(this.isFullscreen ? '#000000' : '#07121F')
     .onAreaChange((_: Area, newValue: Area) => this.onOuterAreaChange(newValue))
     .onHover((isHover: boolean) => {
       if (this.isFullscreen && isHover) {

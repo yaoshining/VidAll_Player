@@ -47,6 +47,9 @@ export async function publicPlayerReleaseContract(): Promise<void> {
 export function compilePublicApiContract(): void {
   const options: PlayerOptions = { eventListener: (_event: PlayerEvent): void => {} };
   const player: VidAllPlayer = createPlayer(options);
+  // 硬件解码开关：'auto'（默认，优先 OHOS ohcodec 硬解、失败回退软解）或 'disabled'（纯软解）
+  const hwdecAuto: VidAllPlayer = createPlayer({ hardwareDecoding: 'auto' });
+  const hwdecDisabled: VidAllPlayer = createPlayer({ hardwareDecoding: 'disabled' });
   const adapter: XComponentSurfaceAdapter = new XComponentSurfaceAdapter(new VidAllPlayerSurfaceTarget(player));
   const source: MediaSource = {
     kind: 'https',
@@ -67,5 +70,5 @@ export function compilePublicApiContract(): void {
   void player.setRate(1);
   void player.mute(false);
   void player.addExternalAudio(audio);
-  void [adapter, source, surface, state, eventType, track, subtitle, error, log, lease];
+  void [adapter, source, surface, state, eventType, track, subtitle, error, log, lease, hwdecAuto, hwdecDisabled];
 }

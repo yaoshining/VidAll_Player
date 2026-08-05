@@ -26,6 +26,10 @@ release/**
 !release/audits/vidall-tv-isolation.json
 !release/audits/api-compatibility-gate.json
 !release/audits/quickstart-validation.json
+!release/audits/g2-elf-audit.json
+!release/audits/g2-reproducible-build.json
+!release/audits/g2-har-loading-audit.json
+!release/audits/g3-gl-render-audit.json
 !release/capabilities/arm64-tv-evidence.json
 !release/capabilities/arm64-tv-media-matrix.json
 !release/capabilities/phone-demo-evidence.json

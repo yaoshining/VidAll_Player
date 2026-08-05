@@ -239,6 +239,21 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 }
 
-export function createNativePlayerBridge(subtitleFontsDir?: string): NativePlayerBridge {
-  return new HarNativePlayerBridge(nativeSession.createSession(subtitleFontsDir ?? ''));
+// PlayerOptions.hardwareDecoding → mpv hwdec 选项值映射。
+// - 'auto'（默认）：优先 OHOS ohcodec 硬件解码，失败回退软件解码
+// - 'disabled'：强制软件解码
+// undefined 时传空串，native 层保留 mpv 默认行为（软件解码）；但调用方经
+// resolveHardwareDecoding() 已把 undefined 归一为 'auto'，所以空串仅作兜底。
+function resolveHardwareDecoding(mode: 'auto' | 'disabled' | undefined): string {
+  if (mode === 'disabled') {
+    return 'no';
+  }
+  // 用 'auto'：GL 渲染路径下 mpv 会自动选择 ohcodec 硬件解码后端
+  // （需要 compatible GL context，已在 RenderLoop 中创建 EGL context 满足该前提）；
+  // 硬解失败时 mpv 自动回退软件解码。
+  return 'auto';
+}
+
+export function createNativePlayerBridge(subtitleFontsDir?: string, hardwareDecoding?: 'auto' | 'disabled'): NativePlayerBridge {
+  return new HarNativePlayerBridge(nativeSession.createSession(subtitleFontsDir ?? '', resolveHardwareDecoding(hardwareDecoding)));
 }

@@ -19,6 +19,12 @@ export interface PlayerOptions {
   // 被选中但不可见。传入一个真实文件系统目录（应用需预先把字体解包到此目录），
   // 原生层会用它替代 fontconfig 完成字幕字体匹配。省略则不设置任何字体目录。
   subtitleFontsDir?: string;
+  // 硬件解码策略。libmpv 编译时已通过 --enable-ohcodec 集成 OHOS 硬件解码后端
+  // （链接 libnative_media_vdec.so），由原生层 mpv 的 hwdec 选项驱动。
+  // - 'auto'（默认）：优先使用 ohcodec 硬件解码，硬解失败自动回退软件解码；
+  // - 'disabled'：强制纯软件解码（兼容性最高，但高分辨率/高码率可能卡顿）。
+  // 省略时按 'auto' 处理。硬件解码是否真正生效由 VideoParams.hardwareDecoding 上报。
+  hardwareDecoding?: 'auto' | 'disabled';
 }
 
 export interface MediaSource {

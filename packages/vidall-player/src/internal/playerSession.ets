@@ -35,7 +35,7 @@ export class PlayerSession implements VidAllPlayer {
   private leaseEpoch: number = 0;
 
   constructor(options?: PlayerOptions, nativeBridge?: NativePlayerBridge) {
-    this.nativeBridge = nativeBridge ?? createNativePlayerBridge(options?.subtitleFontsDir);
+    this.nativeBridge = nativeBridge ?? createNativePlayerBridge(options?.subtitleFontsDir, options?.hardwareDecoding);
     this.nativeBridge.subscribe((event) => this.handleNativeBridgeEvent(event));
     if (options?.eventListener !== undefined) {
       this.stateMachine.subscribe(options.eventListener);
@@ -333,16 +333,29 @@ export class PlayerSession implements VidAllPlayer {
       return;
     }
     if (event.type === 'videoParams') {
-      // message 采用 "宽x高" 字符串编码（原生 Event 结构体未新增字段），
-      // 用于让消费方按真实视频宽高比布局，避免 XComponent 拉伸画面。
+      // message 编码格式："宽x高" 或 "宽x高|hwdec值"。
+      // hwdec 段可选：来自 mpv "hwdec-current" 属性，在原生层合并进 videoParams 事件。
+      // 映射：ohcodec → active；空串/软件解码器 → fallback；no → unavailable。
       if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
-        const parts = event.message.split('x');
-        if (parts.length === 2) {
-          const width = Number(parts[0]);
-          const height = Number(parts[1]);
+        const pipeParts = event.message.split('|');
+        const dimParts = pipeParts[0].split('x');
+        if (dimParts.length === 2) {
+          const width = Number(dimParts[0]);
+          const height = Number(dimParts[1]);
           if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
             const params: VideoParams = { width, height };
+            if (pipeParts.length > 1) {
+              const hwdec = pipeParts[1];
+              if (hwdec === 'no') {
+                params.hardwareDecoding = 'unavailable';
+              } else if (hwdec === '') {
+                params.hardwareDecoding = 'fallback';
+              } else {
+                // ohcodec 或其他硬件解码器名 → active
+                params.hardwareDecoding = 'active';
+              }
+            }
             this.stateMachine.emit({ type: 'videoParams', sequence: event.sequence, params });
           }
         }

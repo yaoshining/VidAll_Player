@@ -100,3 +100,43 @@ export async function nativeSubtitleTextEventUpdatesPublicSubtitleText(): Promis
 
   await player.release();
 }
+
+// 回归测试：验证原生 "hwdec-current" 属性通过 videoParams 事件上报，
+// ArkTS 层正确映射为 VideoParams.hardwareDecoding 三态。
+// message 编码格式："宽x高|hwdec值"（兼容旧格式 "宽x高" 无 hwdec 段时 hardwareDecoding 为 undefined）。
+export async function videoParamsHardwareDecodingMappedFromNativeHwdec(): Promise<void> {
+  const bridge = new RecordingNativeBridge();
+  const player = new PlayerSession(undefined, bridge);
+  const received: PlayerEvent[] = [];
+  player.subscribe((event: PlayerEvent): void => { received.push(event); });
+
+  await player.attachSurface({ componentId: 'surface', generation: 1, width: 1280, height: 720 });
+  await player.load({ kind: 'https', uri: 'https://fixture.invalid/media.mp4' });
+
+  // 1) 旧格式 "宽x高" — 无 hwdec 段，hardwareDecoding 应为 undefined
+  bridge.emit({ type: 'videoParams', message: '1920x1080', eventEpoch: 1, sequence: 1, surfaceGeneration: 1 });
+  // 2) 新格式 "宽x高|ohcodec" — 硬解激活
+  bridge.emit({ type: 'videoParams', message: '1920x1080|ohcodec', eventEpoch: 1, sequence: 2, surfaceGeneration: 1 });
+  // 3) 新格式 "宽x高|" — 空串=软件回退（选项为 auto 但实际软解）
+  bridge.emit({ type: 'videoParams', message: '1920x1080|', eventEpoch: 1, sequence: 3, surfaceGeneration: 1 });
+  // 4) 新格式 "宽x高|no" — 硬解不可用
+  bridge.emit({ type: 'videoParams', message: '1920x1080|no', eventEpoch: 1, sequence: 4, surfaceGeneration: 1 });
+
+  const vpEvents = received.filter((event: PlayerEvent) => event.type === 'videoParams');
+  assert(vpEvents.length === 4,
+    `Expected 4 videoParams events, got ${vpEvents.length}`);
+
+  assert(vpEvents[0].params !== undefined && (vpEvents[0].params as Record<string, Object>).hardwareDecoding === undefined,
+    'Old format without hwdec segment should leave hardwareDecoding undefined');
+
+  assert(vpEvents[1].params !== undefined && (vpEvents[1].params as Record<string, Object>).hardwareDecoding === 'active',
+    `ohcodec hwdec should map to "active", got ${(vpEvents[1].params as Record<string, Object>).hardwareDecoding}`);
+
+  assert(vpEvents[2].params !== undefined && (vpEvents[2].params as Record<string, Object>).hardwareDecoding === 'fallback',
+    `Empty hwdec (software fallback) should map to "fallback", got ${(vpEvents[2].params as Record<string, Object>).hardwareDecoding}`);
+
+  assert(vpEvents[3].params !== undefined && (vpEvents[3].params as Record<string, Object>).hardwareDecoding === 'unavailable',
+    `"no" hwdec should map to "unavailable", got ${(vpEvents[3].params as Record<string, Object>).hardwareDecoding}`);
+
+  await player.release();
+}

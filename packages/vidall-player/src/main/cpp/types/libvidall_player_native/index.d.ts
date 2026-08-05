@@ -17,7 +17,7 @@ export interface NativePlayerEvent {
 }
 
 export interface NativeSessionModule {
-  createSession(fontsDir?: string): NativeSessionResult;
+  createSession(fontsDir?: string, hwdec?: string): NativeSessionResult;
   releaseSession(handle: number): NativeSessionResult;
   attachSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
   resizeSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
