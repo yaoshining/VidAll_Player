@@ -9,11 +9,17 @@ export interface NativeSessionResult {
 }
 
 export interface NativePlayerEvent {
-  type: 'state' | 'error' | 'videoParams' | 'tracks' | 'subtitleText';
+  type: 'state' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText';
   message: string;
   eventEpoch: number;
   sequence: number;
   surfaceGeneration: number;
+}
+
+export interface NativeFrameData {
+  width: number;
+  height: number;
+  data: ArrayBuffer;
 }
 
 export interface NativeSessionModule {
@@ -33,6 +39,7 @@ export interface NativeSessionModule {
   addExternalAudio(handle: number, uri: string): NativeSessionResult;
   addExternalSubtitle(handle: number, uri: string): NativeSessionResult;
   setEventCallback(handle: number, callback: (event: NativePlayerEvent) => void): NativeSessionResult;
+  getFrameData(handle: number): NativeFrameData | null;
 }
 
 declare const nativeSession: NativeSessionModule;

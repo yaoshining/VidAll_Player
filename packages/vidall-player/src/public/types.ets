@@ -55,6 +55,22 @@ export interface PlayerTrack {
   title?: string;
   selected: boolean;
   recognitionStatus: 'recognized' | 'renderable' | 'degraded' | 'unsupported';
+  // 扩展轨道元数据（来自 mpv track-list/N/*）
+  codec?: string;
+  profile?: string;
+  level?: number;
+  bitrate?: number;
+  isDefault?: boolean;
+  isForced?: boolean;
+  // 视频轨道特有
+  resolution?: string;
+  fps?: number;
+  aspectRatio?: string;
+  isInterlaced?: boolean;
+  // 音频轨道特有
+  sampleRate?: number;
+  channels?: number;
+  channelLayout?: string;
 }
 
 export interface PlayerError {
@@ -73,6 +89,17 @@ export interface VideoParams {
   pixelAspectRatio?: string;
   decoder?: string;
   hardwareDecoding?: 'active' | 'fallback' | 'unavailable';
+  // 扩展视频参数元数据（来自 mpv video-params/*）
+  bitDepth?: number;
+  colorPrimaries?: string;
+  colorTransfer?: string;
+  colorMatrix?: string;
+  videoRange?: string;
+  fps?: number;
+  aspectRatio?: string;
+  isInterlaced?: boolean;
+  colorLevels?: string;
+  videoBitrate?: number; // 实时视频码率（bps，来自 mpv video-bitrate）
 }
 
 export interface AudioParams {
@@ -80,6 +107,8 @@ export interface AudioParams {
   channels?: number;
   channelLayout?: string;
   codec?: string;
+  sampleFormat?: string;
+  audioBitrate?: number; // 实时音频码率（bps，来自 mpv audio-bitrate）
 }
 
 export interface PlayerLog {
@@ -122,4 +151,13 @@ export interface PlayerEvent {
   // 属性；空字符串表示当前无字幕命中。与视频帧内是否真正合成字幕像素无关，
   // 供消费方（entry 调试页、vidall-tv 等）自行绘制字幕 UI 时使用。
   subtitleText?: string;
+}
+
+// SW 软件渲染帧数据（模拟器等无 GL 环境下的 PixelMap 回调路径）。
+// data 为 RGBA 紧凑排列的 ArrayBuffer，宽高由 width/height 描述。
+// 消费方可创建 PixelMap 并写入 Image 组件显示。
+export interface FrameData {
+  width: number;
+  height: number;
+  data: ArrayBuffer;
 }

@@ -1,5 +1,5 @@
 import { util } from '@kit.ArkTS';
-import nativeSession, { NativePlayerEvent, NativeSessionResult } from 'libvidall_player_native.so';
+import nativeSession, { NativeFrameData, NativePlayerEvent, NativeSessionResult } from 'libvidall_player_native.so';
 import { MediaSource, PlayerSurface } from '../public/types';
 import { PlayerFailure } from '../internal/playerFailure';
 
@@ -9,7 +9,7 @@ export interface DirectSmbCapability {
 }
 
 export interface NativeBridgeEvent {
-  type: 'state' | 'error' | 'videoParams' | 'tracks' | 'subtitleText';
+  type: 'state' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText';
   message: string;
   eventEpoch: number;
   sequence: number;
@@ -17,6 +17,12 @@ export interface NativeBridgeEvent {
 }
 
 // Internal-only contract. System handles stay inside the native implementation.
+export interface FrameData {
+  width: number;
+  height: number;
+  data: ArrayBuffer;
+}
+
 export interface NativePlayerBridge {
   getDirectSmbCapability(): Promise<DirectSmbCapability>;
   attachSurface(surface: PlayerSurface): Promise<void>;
@@ -34,6 +40,7 @@ export interface NativePlayerBridge {
   addExternalSubtitle(uri: string): Promise<void>;
   release(): Promise<void>;
   subscribe(listener: (event: NativeBridgeEvent) => void): () => void;
+  getFrameData(): FrameData | null;
 }
 
 function nativeFailure(result: NativeSessionResult): PlayerFailure {
@@ -220,6 +227,19 @@ class HarNativePlayerBridge implements NativePlayerBridge {
         this.listeners.splice(index, 1);
       }
     };
+  }
+
+  getFrameData(): FrameData | null {
+    const result: NativeFrameData | null = nativeSession.getFrameData(this.handle);
+    if (result === null || result === undefined) {
+      return null;
+    }
+    const frameData: FrameData = {
+      width: result.width,
+      height: result.height,
+      data: result.data
+    };
+    return frameData;
   }
 
   private complete(result: NativeSessionResult): Promise<void> {

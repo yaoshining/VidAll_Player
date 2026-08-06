@@ -1,4 +1,4 @@
-import { ExternalAudio, ExternalSubtitle, MediaSource, PlayerEvent, PlayerSurface, PlayerTrackKind } from './types';
+import { ExternalAudio, ExternalSubtitle, FrameData, MediaSource, PlayerEvent, PlayerSurface, PlayerTrackKind } from './types';
 
 export interface VidAllPlayer {
   attachSurface(surface: PlayerSurface): Promise<void>;
@@ -18,6 +18,7 @@ export interface VidAllPlayer {
   setSubtitleDelay(delayMs: number): Promise<void>;
   requestCache(uri: string): Promise<void>;
   subscribe(listener: (event: PlayerEvent) => void): () => void;
+  getFrameData(): FrameData | null;
   stop(): Promise<void>;
   release(): Promise<void>;
 }

@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cstring>
 #include <unistd.h>
 #include <sys/mman.h>
@@ -113,25 +114,55 @@ std::string EscapeMpvOptionValue(const std::string& value)
     return escaped;
 }
 
+// JSON 字符串转义：处理反斜杠和双引号，防止破坏 JSON 结构。
+std::string EscapeJsonString(const std::string& s)
+{
+    std::string out;
+    out.reserve(s.size());
+    for (char c : s) {
+        if (c == '\\') { out += "\\\\"; }
+        else if (c == '"') { out += "\\\""; }
+        else if (c == '\n') { out += "\\n"; }
+        else if (c == '\r') { out += "\\r"; }
+        else if (c == '\t') { out += "\\t"; }
+        else { out += c; }
+    }
+    return out;
+}
+
 // 将 mpv "track-list" 属性（MPV_FORMAT_NODE_ARRAY，元素为 MPV_FORMAT_NODE_MAP）编码为
-// 纯字符串上报给 ArkTS 层（原生 Event 结构体未新增字段，沿用 videoParams 的编码思路）。
-// 记录间以 \x1e（record separator）分隔，字段间以 \x1f（unit separator）分隔——这两个
-// ASCII 控制字符几乎不可能出现在 mpv 上报的语言/标题字符串中，无需额外转义。
+// JSON 字符串上报给 ArkTS 层。每条轨道记录包含扩展元数据字段（codec/profile/level/
+// bitrate/default/forced/demux-fps/demux-samplerate/demux-channels 等）。
+// 记录间以 \x1e（record separator）分隔作为去重键，完整 JSON 数组作为消息体。
 // 只保留 audio/sub 类型（视频轨不参与 ArkTS 层音轨/字幕选择 UI）。
 std::string EncodeTrackList(const mpv_node* node)
 {
     if (node == nullptr || node->format != MPV_FORMAT_NODE_ARRAY || node->u.list == nullptr) return "";
-    std::string encoded;
+    std::string json = "[";
+    std::string dedupKey;
     const mpv_node_list* list = node->u.list;
+    bool first = true;
     for (int i = 0; i < list->num; ++i) {
         const mpv_node& entry = list->values[i];
         if (entry.format != MPV_FORMAT_NODE_MAP || entry.u.list == nullptr) continue;
         const mpv_node_list* map = entry.u.list;
+        // 收集字段
         int64_t id = -1;
         std::string type;
         std::string lang;
         std::string title;
         int selected = 0;
+        std::string codec;
+        std::string profile;
+        double level = 0;
+        double bitrate = 0;
+        int defaultTrack = 0;
+        int forced = 0;
+        double demuxFps = 0;
+        double demuxSamplerate = 0;
+        double demuxChannels = 0;
+        int64_t demuxW = 0;
+        int64_t demuxH = 0;
         for (int j = 0; j < map->num; ++j) {
             if (map->keys[j] == nullptr) continue;
             const std::string key = map->keys[j];
@@ -146,14 +177,69 @@ std::string EncodeTrackList(const mpv_node* node)
                 title = value.u.string;
             } else if (key == "selected" && value.format == MPV_FORMAT_FLAG) {
                 selected = value.u.flag;
+            } else if (key == "codec" && value.format == MPV_FORMAT_STRING && value.u.string != nullptr) {
+                codec = value.u.string;
+            } else if (key == "profile" && value.format == MPV_FORMAT_STRING && value.u.string != nullptr) {
+                profile = value.u.string;
+            } else if (key == "level" && value.format == MPV_FORMAT_DOUBLE) {
+                level = value.u.double_;
+            } else if (key == "demux-bitrate" && value.format == MPV_FORMAT_DOUBLE) {
+                bitrate = value.u.double_;
+            } else if (key == "default" && value.format == MPV_FORMAT_FLAG) {
+                defaultTrack = value.u.flag;
+            } else if (key == "forced" && value.format == MPV_FORMAT_FLAG) {
+                forced = value.u.flag;
+            } else if (key == "demux-fps" && value.format == MPV_FORMAT_DOUBLE) {
+                demuxFps = value.u.double_;
+            } else if (key == "demux-samplerate" && value.format == MPV_FORMAT_DOUBLE) {
+                demuxSamplerate = value.u.double_;
+            } else if (key == "demux-channels" && value.format == MPV_FORMAT_DOUBLE) {
+                demuxChannels = value.u.double_;
+            } else if (key == "demux-w" && value.format == MPV_FORMAT_INT64) {
+                demuxW = value.u.int64;
+            } else if (key == "demux-h" && value.format == MPV_FORMAT_INT64) {
+                demuxH = value.u.int64;
             }
         }
-        if (id < 0 || (type != "audio" && type != "sub")) continue;
-        if (!encoded.empty()) encoded.push_back('\x1e');
-        encoded += std::to_string(id) + "\x1f" + (type == "sub" ? "subtitle" : "audio") + "\x1f" + lang + "\x1f" + title +
-            "\x1f" + (selected ? "1" : "0");
+        if (id < 0 || (type != "audio" && type != "sub" && type != "video")) continue;
+        // 去重键
+        if (!dedupKey.empty()) dedupKey.push_back('\x1e');
+        dedupKey += std::to_string(id) + "\x1f" + type + "\x1f" + lang + "\x1f" + title +
+            "\x1f" + (selected ? "1" : "0") + "\x1f" + codec + "\x1f" + std::to_string(bitrate);
+        // JSON 条目
+        if (!first) json += ",";
+        first = false;
+        json += "{\"id\":" + std::to_string(id) +
+            ",\"type\":\"" + type + "\"" +
+            ",\"lang\":\"" + EscapeJsonString(lang) + "\"" +
+            ",\"title\":\"" + EscapeJsonString(title) + "\"" +
+            ",\"selected\":" + (selected ? "1" : "0") +
+            ",\"default\":" + (defaultTrack ? "1" : "0") +
+            ",\"forced\":" + (forced ? "1" : "0");
+        if (!codec.empty()) json += ",\"codec\":\"" + EscapeJsonString(codec) + "\"";
+        if (!profile.empty()) json += ",\"profile\":\"" + EscapeJsonString(profile) + "\"";
+        if (level > 0) json += ",\"level\":" + std::to_string(static_cast<int>(level));
+        if (bitrate > 0) json += ",\"bitrate\":" + std::to_string(static_cast<int64_t>(bitrate));
+        if (type == "audio") {
+            if (demuxSamplerate > 0) json += ",\"demux_samplerate\":" + std::to_string(static_cast<int>(demuxSamplerate));
+            if (demuxChannels > 0) json += ",\"demux_channels\":" + std::to_string(static_cast<int>(demuxChannels));
+        }
+        if (type == "video" && demuxFps > 0) {
+            json += ",\"demux_fps\":" + std::to_string(demuxFps);
+        }
+        if (type == "video") {
+            // 视频轨道分辨率与宽高比
+            if (demuxW > 0 && demuxH > 0) {
+                json += ",\"resolution\":\"" + std::to_string(demuxW) + "x" + std::to_string(demuxH) + "\"";
+            }
+        }
+        json += "}";
     }
-    return encoded;
+    json += "]";
+    // 如果没有任何有效轨道，返回空字符串
+    if (first) return "";
+    // 拼接：去重键 + \x1f + JSON
+    return dedupKey + "\x1f" + json;
 }
 
 // mpv GL 渲染所需的 GL 函数指针解析器：HarmonyOS EGL 的 eglGetProcAddress
@@ -193,6 +279,7 @@ public:
         // 失败时回退软件解码；"no" 强制软件解码。
         if (!hwdec.empty()) {
             mpv_set_option_string(player_.get(), "hwdec", hwdec.c_str());
+            hardwareDecodingRequested_.store(hwdec != "no");
         }
         if (!fontsDir.empty()) {
             // HarmonyOS 沙箱内没有系统 fontconfig，libass 的 fontconfig provider 探测不到
@@ -224,6 +311,21 @@ public:
         // 提供一条不依赖软件渲染合成管线的字幕文本通道，供上层自行展示
         // （例如 entry 调试页面的字幕条，或 vidall-tv 等消费方的自绘字幕 UI）。
         mpv_observe_property(player_.get(), 0, "sub-text", MPV_FORMAT_STRING);
+        // 观察 video-params：mpv 上报的视频色彩与格式元数据（像素格式/位深度/
+        // 基色/传输/色偏矩阵/视频范围/旋转/宽高比/隔行扫描），用于向 ArkTS 层
+        // 暴露与系统 AVPlayer 对等的视频参数详情。
+        mpv_observe_property(player_.get(), 0, "video-params", MPV_FORMAT_NODE);
+        // 观察 container-fps：mpv 上报的容器帧率，用于 videoParams.fps 字段。
+        mpv_observe_property(player_.get(), 0, "container-fps", MPV_FORMAT_DOUBLE);
+        // 观察 audio-params：mpv 上报的音频输出格式（采样率/声道布局/声道数/采样格式），
+        // 用于向 ArkTS 层暴露与系统 AVPlayer 对等的音频参数详情。声道布局字符串
+        // （如 "stereo"/"5.1"）只存在于 audio-params，track-list 仅有数字声道数。
+        mpv_observe_property(player_.get(), 0, "audio-params", MPV_FORMAT_NODE);
+        // 观察 video-bitrate/audio-bitrate：实时解码码率，用于元数据弹层显示。
+        // 某些容器（如 MKV）不报告 demux-bitrate（track-list 中为 0），需要用
+        // 实时码率作为替代数据源。
+        mpv_observe_property(player_.get(), 0, "video-bitrate", MPV_FORMAT_DOUBLE);
+        mpv_observe_property(player_.get(), 0, "audio-bitrate", MPV_FORMAT_DOUBLE);
         eventThread_ = std::thread(&NativeSession::EventLoop, this, player_.get());
         return true;
     }
@@ -457,12 +559,61 @@ private:
         std::string lastDispatchedTracks;
         std::string lastDispatchedSubtitleText;
         std::string lastDispatchedHwdec;
+        // 构建完整的 videoParams 消息：宽x高|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced|colorLevels
+        auto BuildVideoParamsMessage = [this, &lastDispatchedHwdec]() -> std::string {
+            // pixelformat 在硬解时可能返回硬件名（如 "ohcodec"），此时用 hw-pixelformat
+            // 作为 fallback（后者通常是标准格式如 "yuv420p"）。
+            std::string displayPixfmt = vpPixfmt_;
+            const bool isStdPixfmt = !displayPixfmt.empty() &&
+                (displayPixfmt.find("yuv") == 0 || displayPixfmt.find("rgb") == 0 ||
+                 displayPixfmt.find("nv") == 0 || displayPixfmt.find("p010") == 0 ||
+                 displayPixfmt.find("gbrp") == 0 || displayPixfmt.find("gray") == 0 ||
+                 displayPixfmt.find("ayuv") == 0 || displayPixfmt.find("ya8") == 0);
+            if (!isStdPixfmt && !vpHwPixfmt_.empty()) {
+                const bool isHwStd = vpHwPixfmt_.find("yuv") == 0 || vpHwPixfmt_.find("rgb") == 0 ||
+                    vpHwPixfmt_.find("nv") == 0 || vpHwPixfmt_.find("p010") == 0 ||
+                    vpHwPixfmt_.find("gbrp") == 0 || vpHwPixfmt_.find("gray") == 0;
+                if (isHwStd) displayPixfmt = vpHwPixfmt_;
+            }
+            std::string msg = std::to_string(videoWidth_) + "x" + std::to_string(videoHeight_) + "|" + lastDispatchedHwdec;
+            msg += "|" + displayPixfmt;
+            msg += "|" + (vpBitDepth_ > 0 ? std::to_string(vpBitDepth_) : std::string());
+            msg += "|" + vpPrimaries_;
+            msg += "|" + vpTransfer_;
+            msg += "|" + vpMatrix_;
+            msg += "|" + vpVideoRange_;
+            msg += "|" + (vpFps_ > 0 ? std::to_string(vpFps_) : std::string());
+            msg += "|" + (vpRotate_ != 0 ? std::to_string(vpRotate_) : std::string("0"));
+            msg += "|" + vpAspect_;
+            msg += "|" + std::string(vpInterlaced_ ? "1" : "0");
+            msg += "|" + vpColorLevels_;
+            msg += "|" + (vpBitrate_ > 0 ? std::to_string(static_cast<int64_t>(vpBitrate_)) : std::string());
+            return msg;
+        };
+        // 构建完整的 audioParams 消息：samplerate|channels|channelCount|format
+        auto BuildAudioParamsMessage = [this]() -> std::string {
+            std::string msg = std::to_string(apSamplerate_);
+            msg += "|" + apChannels_;
+            msg += "|" + std::to_string(apChannelCount_);
+            msg += "|" + apFormat_;
+            msg += "|" + (apBitrate_ > 0 ? std::to_string(static_cast<int64_t>(apBitrate_)) : std::string());
+            return msg;
+        };
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
             if (event->event_id == MPV_EVENT_END_FILE) {
                 const auto* end = static_cast<mpv_event_end_file*>(event->data);
                 if (end != nullptr && end->reason == MPV_END_FILE_REASON_ERROR) Dispatch("error", "libmpv playback failed");
+                // 重置 video-params 缓存，避免跨文件残留旧属性
+                vpPixfmt_.clear(); vpHwPixfmt_.clear(); vpBitDepth_ = 0; vpPrimaries_.clear();
+                vpTransfer_.clear(); vpMatrix_.clear(); vpVideoRange_.clear();
+                vpFps_ = 0; vpRotate_ = 0; vpAspect_.clear(); vpInterlaced_ = false;
+                vpColorLevels_.clear();
+                vpBitrate_ = 0;
+                // 重置 audio-params 缓存
+                apSamplerate_ = 0; apChannels_.clear(); apChannelCount_ = 0; apFormat_.clear();
+                apBitrate_ = 0;
             }
             if (event->event_id == MPV_EVENT_PROPERTY_CHANGE) {
                 const auto* prop = static_cast<mpv_event_property*>(event->data);
@@ -476,7 +627,7 @@ private:
                         const int width = videoWidth_;
                         const int height = videoHeight_;
                         if (width > 0 && height > 0) {
-                            Dispatch("videoParams", std::to_string(width) + "x" + std::to_string(height) + "|" + hwdec);
+                            Dispatch("videoParams", BuildVideoParamsMessage());
                         }
                     }
                 }
@@ -489,8 +640,8 @@ private:
                     if (width > 0 && height > 0 && (width != lastDispatchedWidth || height != lastDispatchedHeight)) {
                         lastDispatchedWidth = width;
                         lastDispatchedHeight = height;
-                        // 附带当前已知的 hwdec 状态（可能为空，尚未收到 hwdec-current 通知）。
-                        Dispatch("videoParams", std::to_string(width) + "x" + std::to_string(height) + "|" + lastDispatchedHwdec);
+                        // 附带当前已知的 hwdec 状态和 video-params 扩展字段。
+                        Dispatch("videoParams", BuildVideoParamsMessage());
                     }
                 }
                 if (prop != nullptr && prop->format == MPV_FORMAT_FLAG && prop->data != nullptr &&
@@ -504,12 +655,145 @@ private:
                         Dispatch("state", value ? "paused" : "resumed");
                     }
                 }
+                // container-fps 属性变化：更新缓存并触发 videoParams 重新上报
+                if (prop != nullptr && prop->format == MPV_FORMAT_DOUBLE && prop->data != nullptr &&
+                    std::strcmp(prop->name, "container-fps") == 0) {
+                    const double fps = *static_cast<double*>(prop->data);
+                    if (vpFps_ != fps && fps > 0) {
+                        vpFps_ = fps;
+                        if (videoWidth_ > 0 && videoHeight_ > 0) {
+                            Dispatch("videoParams", BuildVideoParamsMessage());
+                        }
+                    }
+                }
                 if (prop != nullptr && prop->format == MPV_FORMAT_NODE && prop->data != nullptr &&
                     std::strcmp(prop->name, "track-list") == 0) {
                     const std::string encoded = EncodeTrackList(static_cast<mpv_node*>(prop->data));
                     if (encoded != lastDispatchedTracks) {
                         lastDispatchedTracks = encoded;
                         Dispatch("tracks", encoded);
+                    }
+                }
+                // video-params 属性变化：更新扩展字段缓存并重新 Dispatch videoParams
+                if (prop != nullptr && prop->format == MPV_FORMAT_NODE && prop->data != nullptr &&
+                    std::strcmp(prop->name, "video-params") == 0) {
+                    const mpv_node* vpNode = static_cast<mpv_node*>(prop->data);
+                    if (vpNode != nullptr && vpNode->format == MPV_FORMAT_NODE_MAP && vpNode->u.list != nullptr) {
+                        const mpv_node_list* map = vpNode->u.list;
+                        bool changed = false;
+                        for (int j = 0; j < map->num; ++j) {
+                            if (map->keys[j] == nullptr) continue;
+                            const std::string key = map->keys[j];
+                            const mpv_node& val = map->values[j];
+                            // mpv video-params 节点键名：pixelformat（不是 pixfmt）、
+                            // aspect（DOUBLE 不是 STRING）、无 bits-per-component。
+                            // 位深度从 pixelformat 字符串尾部数字推断（如 yuv420p10→10）。
+                            if (key == "pixelformat" && val.format == MPV_FORMAT_STRING && val.u.string != nullptr) {
+                                const std::string pf = val.u.string;
+                                if (vpPixfmt_ != pf) {
+                                    vpPixfmt_ = pf;
+                                    // 从像素格式字符串推断位深度：yuv420p→8, yuv420p10→10, yuv420p12→12
+                                    int bd = 8;
+                                    auto pos = pf.find_last_not_of("0123456789");
+                                    if (pos != std::string::npos && pos + 1 < pf.length()) {
+                                        const std::string numPart = pf.substr(pos + 1);
+                                        const int parsed = std::atoi(numPart.c_str());
+                                        if (parsed > 0) bd = parsed;
+                                    }
+                                    if (vpBitDepth_ != bd) { vpBitDepth_ = bd; }
+                                    changed = true;
+                                }
+                            } else if (key == "hw-pixelformat" && val.format == MPV_FORMAT_STRING && val.u.string != nullptr) {
+                                // hw-pixelformat 是硬件解码器输出的像素格式，当 pixelformat
+                                // 为硬件名（如 "ohcodec"）时作为 fallback。
+                                const std::string hwpf = val.u.string;
+                                if (vpHwPixfmt_ != hwpf) { vpHwPixfmt_ = hwpf; changed = true; }
+                            } else if (key == "primaries" && val.format == MPV_FORMAT_STRING && val.u.string != nullptr) {
+                                if (vpPrimaries_ != val.u.string) { vpPrimaries_ = val.u.string; changed = true; }
+                            } else if (key == "gamma" && val.format == MPV_FORMAT_STRING && val.u.string != nullptr) {
+                                // mpv video-params 节点用 "gamma" 表示传输函数（transfer function），
+                                // 不是 "transfer"。旧代码用 "transfer" 导致始终读不到值。
+                                if (vpTransfer_ != val.u.string) { vpTransfer_ = val.u.string; changed = true; }
+                            } else if (key == "colormatrix" && val.format == MPV_FORMAT_STRING && val.u.string != nullptr) {
+                                // mpv video-params 节点用 "colormatrix"，不是 "matrix"。
+                                if (vpMatrix_ != val.u.string) { vpMatrix_ = val.u.string; changed = true; }
+                            } else if (key == "colorlevels" && val.format == MPV_FORMAT_STRING && val.u.string != nullptr) {
+                                if (vpColorLevels_ != val.u.string) { vpColorLevels_ = val.u.string; changed = true; }
+                            } else if (key == "sig-peak" && val.format == MPV_FORMAT_DOUBLE) {
+                                // 从 sig-peak 推断视频范围：>1.0→HDR，≈1.0→SDR
+                                const std::string range = val.u.double_ > 1.01 ? "HDR" : "SDR";
+                                if (vpVideoRange_ != range) { vpVideoRange_ = range; changed = true; }
+                            } else if (key == "rotate" && val.format == MPV_FORMAT_INT64) {
+                                const int rot = static_cast<int>(val.u.int64);
+                                if (vpRotate_ != rot) { vpRotate_ = rot; changed = true; }
+                            } else if (key == "aspect" && val.format == MPV_FORMAT_DOUBLE) {
+                                // mpv video-params 的 aspect 是 DOUBLE（如 1.777778），不是 STRING。
+                                // 格式化为简短字符串（保留 3 位小数）。
+                                char buf[32];
+                                snprintf(buf, sizeof(buf), "%.3f", val.u.double_);
+                                const std::string aspectStr(buf);
+                                if (vpAspect_ != aspectStr) { vpAspect_ = aspectStr; changed = true; }
+                            } else if (key == "interlaced" && val.format == MPV_FORMAT_FLAG) {
+                                const bool il = val.u.flag != 0;
+                                if (vpInterlaced_ != il) { vpInterlaced_ = il; changed = true; }
+                            }
+                        }
+                        if (changed && videoWidth_ > 0 && videoHeight_ > 0) {
+                            Dispatch("videoParams", BuildVideoParamsMessage());
+                        }
+                    }
+                }
+                // audio-params 属性变化：更新音频参数缓存并 Dispatch audioParams
+                if (prop != nullptr && prop->format == MPV_FORMAT_NODE && prop->data != nullptr &&
+                    std::strcmp(prop->name, "audio-params") == 0) {
+                    const mpv_node* apNode = static_cast<mpv_node*>(prop->data);
+                    if (apNode != nullptr && apNode->format == MPV_FORMAT_NODE_MAP && apNode->u.list != nullptr) {
+                        const mpv_node_list* map = apNode->u.list;
+                        bool changed = false;
+                        for (int j = 0; j < map->num; ++j) {
+                            if (map->keys[j] == nullptr) continue;
+                            const std::string key = map->keys[j];
+                            const mpv_node& val = map->values[j];
+                            if (key == "samplerate" && val.format == MPV_FORMAT_INT64) {
+                                const int sr = static_cast<int>(val.u.int64);
+                                if (apSamplerate_ != sr) { apSamplerate_ = sr; changed = true; }
+                            } else if (key == "channels" && val.format == MPV_FORMAT_STRING && val.u.string != nullptr) {
+                                if (apChannels_ != val.u.string) { apChannels_ = val.u.string; changed = true; }
+                            } else if (key == "channel-count" && val.format == MPV_FORMAT_INT64) {
+                                const int cc = static_cast<int>(val.u.int64);
+                                if (apChannelCount_ != cc) { apChannelCount_ = cc; changed = true; }
+                            } else if (key == "format" && val.format == MPV_FORMAT_STRING && val.u.string != nullptr) {
+                                if (apFormat_ != val.u.string) { apFormat_ = val.u.string; changed = true; }
+                            }
+                        }
+                        if (changed) {
+                            Dispatch("audioParams", BuildAudioParamsMessage());
+                        }
+                    }
+                }
+                // video-bitrate 属性变化：实时视频解码码率（bps），追加到 videoParams 消息。
+                // 码率波动频繁，仅在变化超过 5% 时才 dispatch，避免 UI 刷屏。
+                if (prop != nullptr && prop->format == MPV_FORMAT_DOUBLE && prop->data != nullptr &&
+                    std::strcmp(prop->name, "video-bitrate") == 0) {
+                    const double br = *static_cast<double*>(prop->data);
+                    if (br > 0 && videoWidth_ > 0 && videoHeight_ > 0) {
+                        const double threshold = vpBitrate_ > 0 ? vpBitrate_ * 0.05 : 1.0;
+                        if (std::abs(br - vpBitrate_) > threshold) {
+                            vpBitrate_ = br;
+                            Dispatch("videoParams", BuildVideoParamsMessage());
+                        }
+                    }
+                }
+                // audio-bitrate 属性变化：实时音频解码码率（bps），追加到 audioParams 消息。
+                if (prop != nullptr && prop->format == MPV_FORMAT_DOUBLE && prop->data != nullptr &&
+                    std::strcmp(prop->name, "audio-bitrate") == 0) {
+                    const double br = *static_cast<double*>(prop->data);
+                    if (br > 0) {
+                        const double threshold = apBitrate_ > 0 ? apBitrate_ * 0.05 : 1.0;
+                        if (std::abs(br - apBitrate_) > threshold) {
+                            apBitrate_ = br;
+                            Dispatch("audioParams", BuildAudioParamsMessage());
+                        }
                     }
                 }
                 if (prop != nullptr && std::strcmp(prop->name, "sub-text") == 0) {
@@ -538,48 +822,74 @@ private:
             MarkRendererFailed(); return;
         }
         window_ = window;
-        OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width_.load(), height_.load());
-        // GL 渲染路径：EGL context + mpv render_gl，ohcodec 硬解帧可直接输出到 GL texture，
-        // 无需 CPU 读写 buffer（与 SW 渲染不同，不需要声明 CPU_READ|WRITE usage）。
 
-        // EGL display + config + context + window surface
+        // 策略：先创建 SW render context（永远安全），再尝试升级 GL。
+        // GL 在模拟器上可能 SIGSEGV，需要安全检测。
+        // 第一步：SW context（保证播放能力）
+        {
+            const char* swApi = MPV_RENDER_API_TYPE_SW;
+            mpv_render_param swParams[] = {
+                {MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(swApi)},
+                {MPV_RENDER_PARAM_INVALID, nullptr}
+            };
+            int swRc = mpv_render_context_create(&renderer_, player_.get(), swParams);
+            if (swRc < 0) {
+                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "mpv_render_context_create(SW) failed rc=%{public}d", swRc);
+                MarkRendererFailed(); return;
+            }
+        }
+        isSwRenderer_ = true;
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "SW renderer created as baseline");
+
+        // 第二步：如果硬件解码已启用，检测 GL 可用性后尝试升级
+        // 安全检测：检查 libEGL_impl.so 是否存在（模拟器上不存在 → GL 不可用）
+        // 不使用 fork 方案，因为 HarmonyOS EGL 内部使用 binder IPC，
+        // fork 后子进程继承的 binder 连接状态不一致会导致主进程崩溃。
+        if (hardwareDecodingRequested_.load()) {
+            bool glAvailable = false;
+            FILE* eglImpl = fopen("/vendor/lib64/chipsetsdk/libEGL_impl.so", "r");
+            if (eglImpl != nullptr) {
+                fclose(eglImpl);
+                glAvailable = true;
+            } else {
+                OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "GL impl not found, skipping GL upgrade (emulator?)");
+            }
+            if (glAvailable && TryUpgradeToGlRenderer()) {
+                OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "Upgraded to GL renderer");
+                GlRenderLoop();
+                return;
+            }
+        }
+
+        // SW render loop（恢复 63222bd0 的可靠实现）
+        SwRenderLoop();
+    }
+
+    // 检测 GL 可用性并升级渲染 context：SW → GL
+    // 前提：已确认 libEGL_impl.so 存在（调用方已检查），此函数不再使用 fork。
+    bool TryUpgradeToGlRenderer()
+    {
+        // 先释放已有的 SW renderer
+        if (renderer_ != nullptr) {
+            mpv_render_context_set_update_callback(renderer_, nullptr, nullptr);
+            mpv_render_context_free(renderer_);
+            renderer_ = nullptr;
+        }
+
+        // 直接在主进程中创建 GL context（调用方已确认 GL impl 存在）
         eglDisplay_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        if (eglDisplay_ == EGL_NO_DISPLAY) {
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglGetDisplay failed");
-            MarkRendererFailed(); DestroyRenderer(); return;
-        }
+        if (eglDisplay_ == EGL_NO_DISPLAY) return false;
         EGLint major = 0, minor = 0;
-        if (!eglInitialize(eglDisplay_, &major, &minor)) {
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglInitialize failed");
-            MarkRendererFailed(); DestroyRenderer(); return;
-        }
-        EGLint configAttribs[] = {
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE
-        };
+        if (!eglInitialize(eglDisplay_, &major, &minor)) { eglDisplay_ = EGL_NO_DISPLAY; return false; }
+        EGLint configAttribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE };
         EGLint numConfigs = 0;
-        if (!eglChooseConfig(eglDisplay_, configAttribs, &eglConfig_, 1, &numConfigs) || numConfigs < 1) {
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglChooseConfig failed");
-            MarkRendererFailed(); DestroyRenderer(); return;
-        }
+        if (!eglChooseConfig(eglDisplay_, configAttribs, &eglConfig_, 1, &numConfigs) || numConfigs < 1) { eglTerminate(eglDisplay_); eglDisplay_ = EGL_NO_DISPLAY; return false; }
         EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
         eglContext_ = eglCreateContext(eglDisplay_, eglConfig_, EGL_NO_CONTEXT, contextAttribs);
-        if (eglContext_ == EGL_NO_CONTEXT) {
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglCreateContext failed");
-            MarkRendererFailed(); DestroyRenderer(); return;
-        }
+        if (eglContext_ == EGL_NO_CONTEXT) { eglTerminate(eglDisplay_); eglDisplay_ = EGL_NO_DISPLAY; return false; }
         eglSurface_ = eglCreateWindowSurface(eglDisplay_, eglConfig_, reinterpret_cast<EGLNativeWindowType>(window_), nullptr);
-        if (eglSurface_ == EGL_NO_SURFACE) {
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglCreateWindowSurface failed err=0x%{public}x", eglGetError());
-            MarkRendererFailed(); DestroyRenderer(); return;
-        }
-        if (!eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_)) {
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "eglMakeCurrent failed");
-            MarkRendererFailed(); DestroyRenderer(); return;
-        }
-
-        // mpv GL render context
+        if (eglSurface_ == EGL_NO_SURFACE) { eglDestroyContext(eglDisplay_, eglContext_); eglContext_ = EGL_NO_CONTEXT; eglTerminate(eglDisplay_); eglDisplay_ = EGL_NO_DISPLAY; return false; }
+        if (!eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_)) { eglDestroySurface(eglDisplay_, eglSurface_); eglSurface_ = EGL_NO_SURFACE; eglDestroyContext(eglDisplay_, eglContext_); eglContext_ = EGL_NO_CONTEXT; eglTerminate(eglDisplay_); eglDisplay_ = EGL_NO_DISPLAY; return false; }
         mpv_opengl_init_params glInit{ &MpvGlGetProcAddress, nullptr };
         const char* api = MPV_RENDER_API_TYPE_OPENGL;
         mpv_render_param params[] = {
@@ -587,12 +897,21 @@ private:
             {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &glInit},
             {MPV_RENDER_PARAM_INVALID, nullptr}
         };
-        int renderCreateRc = mpv_render_context_create(&renderer_, player_.get(), params);
-        if (renderCreateRc < 0) {
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "mpv_render_context_create(GL) failed rc=%{public}d", renderCreateRc);
-            MarkRendererFailed(); DestroyRenderer(); return;
+        int rc = mpv_render_context_create(&renderer_, player_.get(), params);
+        if (rc < 0) {
+            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "GL context create failed rc=%{public}d after child confirmed safe", rc);
+            eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+            eglDestroySurface(eglDisplay_, eglSurface_); eglSurface_ = EGL_NO_SURFACE;
+            eglDestroyContext(eglDisplay_, eglContext_); eglContext_ = EGL_NO_CONTEXT;
+            eglTerminate(eglDisplay_); eglDisplay_ = EGL_NO_DISPLAY;
+            return false;
         }
-        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "GL renderer created, entering loop width=%{public}d height=%{public}d", width_.load(), height_.load());
+        isSwRenderer_ = false;
+        return true;
+    }
+
+    void GlRenderLoop()
+    {
         mpv_render_context_set_update_callback(renderer_, NotifyRender, this);
         { std::lock_guard<std::mutex> lock(rendererMutex_); rendererReady_ = true; rendererReadyCv_.notify_one(); }
 
@@ -601,7 +920,6 @@ private:
             { std::unique_lock<std::mutex> lock(rendererMutex_); renderCondition_.wait_for(lock, std::chrono::milliseconds(16), [this] { return stopRenderer_ || renderRequested_ || geometryDirty_; }); if (stopRenderer_) break; renderRequested_ = false; geometryDirty = geometryDirty_.exchange(false); }
             int width = width_; int height = height_;
             if (geometryDirty) {
-                // Surface 尺寸变化时需重建 EGL surface（eglQuerySurface 的尺寸不会自动跟随 NativeWindow）
                 eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
                 eglDestroySurface(eglDisplay_, eglSurface_);
                 eglSurface_ = EGL_NO_SURFACE;
@@ -612,10 +930,7 @@ private:
             uint64_t updateFlags = mpv_render_context_update(renderer_);
             if ((updateFlags & MPV_RENDER_UPDATE_FRAME) == 0) continue;
             if (width <= 0 || height <= 0) continue;
-            // mpv 渲染到默认 FBO（0 = 当前绑定的 EGL window surface）
             mpv_opengl_fbo fbo{ 0, width, height, 0 };
-            // EGL window surface 原点在左上角，mpv GL 渲染器默认原点在左下角，
-            // 不翻转会导致画面上下颠倒。
             int flipY = 1;
             mpv_render_param frame[] = {
                 {MPV_RENDER_PARAM_OPENGL_FBO, &fbo},
@@ -633,6 +948,135 @@ private:
             }
         }
         DestroyRenderer();
+    }
+
+    // SW 渲染循环：基于 63222bd0 的可靠实现，增加 PixelMap fallback
+    // 优先 NativeWindow（SET_FORMAT/SET_USAGE/mmap 回退），连续失败时降级 PixelMap
+    void SwRenderLoop()
+    {
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "Entering SW render loop");
+        // mpv 软件渲染输出 RGBA8888（每像素 4 字节），Surface 缓冲区格式必须匹配，
+        // 否则显示 HDI 层会拒绝分配缓冲区（"format X can not support"）。
+        int32_t format = NATIVEBUFFER_PIXEL_FMT_RGBA_8888;
+        OH_NativeWindow_NativeWindowHandleOpt(window_, SET_FORMAT, format);
+        OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width_.load(), height_.load());
+        // 软件渲染需要 CPU 直接写入缓冲区，必须显式声明 CPU 读写 usage，
+        // 否则分配到的 BufferHandle::virAddr 为空（仅 GPU 可访问），导致每帧都被丢弃。
+        uint64_t usage = NATIVEBUFFER_USAGE_CPU_READ | NATIVEBUFFER_USAGE_CPU_WRITE;
+        OH_NativeWindow_NativeWindowHandleOpt(window_, SET_USAGE, usage);
+
+        mpv_render_context_set_update_callback(renderer_, NotifyRender, this);
+        { std::lock_guard<std::mutex> lock(rendererMutex_); rendererReady_ = true; rendererReadyCv_.notify_one(); }
+
+        std::vector<uint8_t> pixels;
+        bool useNativeWindow = true;
+        int nativeWindowFailCount = 0;
+        constexpr int MAX_NATIVE_WINDOW_FAILS = 30;
+
+        while (true) {
+            bool geometryDirty = false;
+            { std::unique_lock<std::mutex> lock(rendererMutex_); renderCondition_.wait_for(lock, std::chrono::milliseconds(16), [this] { return stopRenderer_ || renderRequested_ || geometryDirty_; }); if (stopRenderer_) break; renderRequested_ = false; geometryDirty = geometryDirty_.exchange(false); }
+            int width = width_; int height = height_;
+            if (geometryDirty && useNativeWindow) OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width, height);
+            uint64_t updateFlags = mpv_render_context_update(renderer_);
+            if ((updateFlags & MPV_RENDER_UPDATE_FRAME) == 0) continue;
+            if (width <= 0 || height <= 0) continue;
+            size_t stride = static_cast<size_t>(width) * 4;
+            pixels.resize(stride * static_cast<size_t>(height));
+            int size[] = {width, height}; char* rgba = const_cast<char*>("rgba");
+            mpv_render_param frame[] = {{MPV_RENDER_PARAM_SW_SIZE, size}, {MPV_RENDER_PARAM_SW_FORMAT, rgba}, {MPV_RENDER_PARAM_SW_STRIDE, &stride}, {MPV_RENDER_PARAM_SW_POINTER, pixels.data()}, {MPV_RENDER_PARAM_INVALID, nullptr}};
+            int renderResult = mpv_render_context_render(renderer_, frame);
+            if (renderResult < 0) {
+                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "mpv_render_context_render failed rc=%{public}d", renderResult);
+                continue;
+            }
+
+            if (useNativeWindow) {
+                // NativeWindow 直接写入路径（高优先级，大部分设备可用）
+                OHNativeWindowBuffer* buffer = nullptr;
+                int fence = -1;
+                int requestRc = OH_NativeWindow_NativeWindowRequestBuffer(window_, &buffer, &fence);
+                if (requestRc != 0 || buffer == nullptr) {
+                    nativeWindowFailCount++;
+                    if (nativeWindowFailCount >= MAX_NATIVE_WINDOW_FAILS) {
+                        OH_LOG_Print(LOG_APP, LOG_WARN, LOG_DOMAIN, LOG_TAG, "NativeWindow failed %d times, switching to PixelMap fallback", nativeWindowFailCount);
+                        useNativeWindow = false;
+                    }
+                    continue;
+                }
+                nativeWindowFailCount = 0;
+                BufferHandle* target = OH_NativeWindow_GetBufferHandleFromNative(buffer);
+                void* mappedAddr = nullptr;
+                bool ownsMapping = false;
+                if (target != nullptr && target->virAddr == nullptr && target->fd >= 0 && target->size > 0) {
+                    mappedAddr = mmap(nullptr, static_cast<size_t>(target->size), PROT_READ | PROT_WRITE, MAP_SHARED, target->fd, 0);
+                    if (mappedAddr != MAP_FAILED && mappedAddr != nullptr) {
+                        ownsMapping = true;
+                    } else {
+                        mappedAddr = nullptr;
+                    }
+                }
+                void* virAddr = (target != nullptr && target->virAddr != nullptr) ? target->virAddr : mappedAddr;
+                if (target == nullptr || virAddr == nullptr || target->stride < width * 4 || target->height < height) {
+                    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                        "target invalid target=%{public}d virAddr=%{public}d fd=%{public}d size=%{public}d stride=%{public}d needStride=%{public}d bufHeight=%{public}d needHeight=%{public}d",
+                        target != nullptr, virAddr != nullptr, target != nullptr ? target->fd : -1, target != nullptr ? target->size : -1,
+                        target != nullptr ? target->stride : -1, width * 4, target != nullptr ? target->height : -1, height);
+                    Region empty{};
+                    OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, empty);
+                    if (ownsMapping) munmap(mappedAddr, static_cast<size_t>(target->size));
+                    continue;
+                }
+                for (int row = 0; row < height; ++row) {
+                    memcpy(static_cast<uint8_t*>(virAddr) + static_cast<size_t>(row) * target->stride, pixels.data() + static_cast<size_t>(row) * stride, stride);
+                }
+                if (ownsMapping) munmap(mappedAddr, static_cast<size_t>(target->size));
+                Region region{};
+                Region::Rect rect = {0, 0, static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+                region.rects = &rect;
+                region.rectNumber = 1;
+                OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, region);
+            } else {
+                // PixelMap 回调路径：NativeWindow 不可用时的兜底方案
+                // 将帧数据存入内存，ArkTS 通过 getFrameData() 获取并显示
+                {
+                    std::lock_guard<std::mutex> lock(frameMutex_);
+                    if (pendingFrame_.size() != static_cast<size_t>(width * height * 4)) {
+                        pendingFrame_.resize(width * height * 4);
+                    }
+                    memcpy(pendingFrame_.data(), pixels.data(), pendingFrame_.size());
+                    frameWidth_ = width;
+                    frameHeight_ = height;
+                    frameReady_ = true;
+                }
+            }
+
+            if (!firstFrameSent_.exchange(true)) {
+                Dispatch("state", "playing");
+            }
+        }
+        DestroyRenderer();
+    }
+
+    public:
+    napi_value GetFrameData(napi_env env)
+    {
+        std::lock_guard<std::mutex> lock(frameMutex_);
+        if (!frameReady_ || pendingFrame_.empty()) return nullptr;
+        napi_value result = nullptr;
+        napi_create_object(env, &result);
+        napi_value widthVal = nullptr, heightVal = nullptr;
+        napi_create_int32(env, frameWidth_, &widthVal);
+        napi_create_int32(env, frameHeight_, &heightVal);
+        napi_set_named_property(env, result, "width", widthVal);
+        napi_set_named_property(env, result, "height", heightVal);
+        napi_value arrayBuffer = nullptr;
+        void* data = nullptr;
+        napi_create_arraybuffer(env, pendingFrame_.size(), &data, &arrayBuffer);
+        memcpy(data, pendingFrame_.data(), pendingFrame_.size());
+        napi_set_named_property(env, result, "data", arrayBuffer);
+        frameReady_ = false;
+        return result;
     }
 
     void MarkRendererFailed()
@@ -690,9 +1134,37 @@ private:
     // videoWidth_/videoHeight_ 只在 EventLoop 所在的事件线程读写，无需原子操作。
     int videoWidth_ = 0;
     int videoHeight_ = 0;
+    // video-params 扩展字段缓存（只在 EventLoop 读写，无需原子操作）
+    std::string vpPixfmt_;
+    std::string vpHwPixfmt_; // mpv video-params "hw-pixelformat"：硬件输出像素格式
+    int vpBitDepth_ = 0;
+    std::string vpPrimaries_;
+    std::string vpTransfer_;
+    std::string vpMatrix_;
+    std::string vpVideoRange_; // 从 sig-peak 推断：>1.0→HDR，=1.0→SDR，其他→Unknown
+    double vpFps_ = 0;
+    int vpRotate_ = 0;
+    std::string vpAspect_;
+    bool vpInterlaced_ = false;
+    std::string vpColorLevels_; // mpv video-params "colorlevels"：limited/full
+    double vpBitrate_ = 0; // mpv "video-bitrate"：实时视频码率（bps）
+    // audio-params 缓存（只在 EventLoop 读写，无需原子操作）
+    int apSamplerate_ = 0;
+    std::string apChannels_; // 声道布局字符串，如 "stereo"/"5.1"
+    int apChannelCount_ = 0;
+    std::string apFormat_; // 采样格式，如 "s16"/"float"
+    double apBitrate_ = 0; // mpv "audio-bitrate"：实时音频码率（bps）
     std::atomic<bool> firstFrameSent_{false};
     OHNativeWindow* window_ = nullptr;
     mpv_render_context* renderer_ = nullptr;
+    bool isSwRenderer_ = false; // true = SW 软件渲染（模拟器/无GL环境），false = GL 渲染（真机）
+    std::atomic<bool> hardwareDecodingRequested_{false}; // ArkTS 层是否请求了硬件解码
+    // PixelMap fallback（模拟器 SW 渲染路径，NativeWindow 不可用时将帧数据暴露给 ArkTS）
+    std::mutex frameMutex_;
+    std::vector<uint8_t> pendingFrame_;
+    int frameWidth_ = 0;
+    int frameHeight_ = 0;
+    bool frameReady_ = false;
     // EGL 渲染上下文（GL 渲染路径，支持 ohcodec 硬件解码输出到 GL texture）
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
@@ -896,6 +1368,18 @@ napi_value SetEventCallback(napi_env env, napi_callback_info info)
 #endif
 }
 
+napi_value GetFrameData(napi_env env, napi_callback_info info)
+{
+    napi_value args[1] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
+    if (!GetArguments(env, info, 1, args, argc) || argc != 1 || !ReadHandle(env, args[0], handle)) return nullptr;
+#if VIDALL_MPV_AVAILABLE
+    std::shared_ptr<NativeSession> session = FindSession(handle);
+    return session ? session->GetFrameData(env) : nullptr;
+#else
+    return nullptr;
+#endif
+}
+
 void CleanupSessions(void*)
 {
 #if VIDALL_MPV_AVAILABLE
@@ -923,6 +1407,7 @@ napi_value Init(napi_env env, napi_value exports)
         {"addExternalAudio", nullptr, AddExternalAudio, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"addExternalSubtitle", nullptr, AddExternalSubtitle, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setEventCallback", nullptr, SetEventCallback, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getFrameData", nullptr, GetFrameData, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     if (!Check(env, napi_define_properties(env, exports, sizeof(descriptors) / sizeof(descriptors[0]), descriptors), "Failed to define native bridge exports.") ||
         !Check(env, napi_add_env_cleanup_hook(env, CleanupSessions, nullptr), "Failed to register cleanup hook.")) return nullptr;

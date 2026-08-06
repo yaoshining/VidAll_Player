@@ -29,6 +29,74 @@
 | `hardwareDecoding` | 播放选项：`'auto'`（默认，GL 路径下自动选中 ohcodec 硬解）或 `'disabled'`（强制 mpv `hwdec=no` 软件解码） | 通过公开 `PlayerOptions.hardwareDecoding` 下发到 native；是否激活以真机 `hwdec-current` 为准；待证实 |
 | `releasedAt` | 释放记录 | 一旦设置，控制操作稳定失败或按明确幂等规则完成 |
 
+### 轨道元数据（暂定/待证实）
+
+消费方（vidall-tv 等）需要展示与系统 AVPlayer 对等的轨道详情。mpv `track-list` 属性提供完整的轨道元数据，当前仅编码 `id/kind/language/title/selected`，大量字段被丢弃。以下为拟扩展的 `PlayerTrack` 字段及其 mpv 属性来源：
+
+| 字段 | 类型 | mpv 属性 | 说明 |
+| --- | --- | --- | --- |
+| `id` | number | `track-list/N/id` | 已暴露 |
+| `kind` | `'audio'\|'video'\|'subtitle'` | `track-list/N/type` | 已暴露 |
+| `language` | string? | `track-list/N/lang` | 已暴露 |
+| `title` | string? | `track-list/N/title` | 已暴露 |
+| `selected` | boolean | `track-list/N/default` | 已暴露 |
+| `codec` | string? | `track-list/N/codec` | 编码名称（h264/aac/ass 等） |
+| `profile` | string? | `track-list/N/profile` | 配置文件（High/LC 等） |
+| `level` | number? | `track-list/N/level` | 等级（41 等） |
+| `bitrate` | number? | `track-list/N/demux-bitrate` | 码率（bps） |
+| `isDefault` | boolean? | `track-list/N/default` | 是否默认轨道 |
+| `isForced` | boolean? | `track-list/N/forced` | 是否强制轨道 |
+| **视频轨道特有** | | | |
+| `resolution` | string? | `dwidth`×`dheight` | 分辨率（如 "1920x1080"） |
+| `fps` | number? | `track-list/N/demux-fps` | 帧率 |
+| `aspectRatio` | string? | `video-params/aspect` | 宽高比（如 "16:9"） |
+| `isInterlaced` | boolean? | `video-params/interlaced` | 是否隔行扫描 |
+| **音频轨道特有** | | | |
+| `sampleRate` | number? | `track-list/N/demux-samplerate` | 采样率（Hz） |
+| `channels` | number? | `track-list/N/demux-channels` | 声道数 |
+| `channelLayout` | string? | `track-list/N/demux-channels` | 声道布局（stereo/5.1 等） |
+
+### 视频参数元数据（暂定/待证实）
+
+`VideoParams` 已有 `width/height/hardwareDecoding`，以下为拟扩展的色彩与格式字段：
+
+| 字段 | 类型 | mpv 属性 | 说明 |
+| --- | --- | --- | --- |
+| `width` | number | `dwidth` | 已暴露 |
+| `height` | number | `dheight` | 已暴露 |
+| `hardwareDecoding` | `'active'\|'fallback'\|'unavailable'?` | `hwdec-current` | 已暴露（真机验证通过） |
+| `pixelFormat` | string? | `video-params/pixfmt` | 像素格式（yuv420p 等） |
+| `bitDepth` | number? | `video-params/bits-per-component` | 位深度（8/10/12） |
+| `colorPrimaries` | string? | `video-params/primaries` | 基色（bt709/bt2020 等） |
+| `colorTransfer` | string? | `video-params/transfer` | 传输特性（bt709/smrp428/pq 等） |
+| `colorMatrix` | string? | `video-params/matrix` | 色偏矩阵（bt709/bt2020nc 等） |
+| `videoRange` | string? | `video-params/sig-peak` + 推断 | 视频范围（SDR/HDR/Unknown） |
+| `fps` | number? | `track-list/N/demux-fps`（视频轨道） | 帧率 |
+| `rotation` | number? | `video-params/rotate` | 旋转角度 |
+| `aspectRatio` | string? | `video-params/aspect` | 显示宽高比 |
+| `isInterlaced` | boolean? | `video-params/interlaced` | 是否隔行扫描 |
+
+### 音频参数元数据（暂定/待证实）
+
+`AudioParams` 拟扩展字段：
+
+| 字段 | 类型 | mpv 属性 | 说明 |
+| --- | --- | --- | --- |
+| `sampleRate` | number? | `track-list/N/demux-samplerate` | 采样率 |
+| `channels` | number? | `track-list/N/demux-channels` | 声道数 |
+| `channelLayout` | string? | `track-list/N/demux-channels` | 声道布局 |
+| `codec` | string? | `track-list/N/codec` | 编码名称 |
+
+### 原生编码方案（暂定/待证实）
+
+扩展后的元数据量增大，当前 `\x1e`/`\x1f` 分隔符编码方案需评估是否仍适用：
+
+- **方案 A（沿用分隔符编码）**：扩展 `EncodeTrackList` 增加 `\x1f` 分隔的 key=value 对，每个轨道一条记录。优点：不改动 Event 结构体；缺点：编码复杂度增加，解析容错性差。
+- **方案 B（JSON 编码）**：message 改为 JSON 字符串。优点：结构清晰、扩展性强；缺点：native 层需引入 JSON 序列化，消息体积增大。
+- **方案 C（新增事件类型）**：将轨道详情和视频参数分别拆为独立事件类型（如 `trackDetail`、`colorParams`）。优点：职责分离；缺点：增加事件类型，消费方需处理多事件时序。
+
+视频参数元数据编码可复用 videoParams message 的 `|` 扩展模式：`"宽x高|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced"`。
+
 ### 状态转换（暂定/待证实）
 
 - `idle -> preparing`：有效画面与已批准输入均存在，且真实原生会话确认开始准备。

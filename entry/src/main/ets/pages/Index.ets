@@ -8,8 +8,10 @@ import {
   PlayerTrack,
   PlayerTrackKind,
   VideoParams,
+  AudioParams,
   ExternalAudio,
-  ExternalSubtitle
+  ExternalSubtitle,
+  FrameData
 } from '@vidall/player';
 import { fileIo as fs, picker } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
@@ -61,6 +63,12 @@ struct Index {
   @State smbConfigStatus: string = '';
   @State audioTracks: PlayerTrack[] = [];
   @State subtitleTracks: PlayerTrack[] = [];
+  @State videoTracks: PlayerTrack[] = [];
+  // 元数据弹层：存储最新的 VideoParams/AudioParams 用于弹层显示。
+  // videoParams/audioParams 由原生 mpv 属性事件驱动更新，tracks 事件补充轨道编码/码率。
+  @State latestVideoParams: VideoParams | null = null;
+  @State latestAudioParams: AudioParams | null = null;
+  @State showMetadataSheet: boolean = false;
   // 当前字幕纯文本（来自原生 "sub-text" 事件），独立于软件渲染是否把字幕像素
   // 画进视频帧；用于在视频下方展示一条调试字幕条，验证字幕解析/切换是否生效。
   // 空字符串表示当前无字幕命中。
@@ -72,6 +80,9 @@ struct Index {
   @State isExitButtonVisible: boolean = false;
   private exitButtonHideTimer: number | undefined = undefined;
   // 视频显示框（letterbox 内框）的最终尺寸，按外框尺寸与真实宽高比计算得出；
+  // 模拟器 SW 渲染 PixelMap 显示（真机 GL 渲染时此值为 null）
+  @State swFramePixelMap: image.PixelMap | null = null;
+  private swFrameTimer: number | undefined = undefined;
   // 0 表示尚未测量到外框尺寸，此时先填满外框，等 onAreaChange 触发后立即校正。
   @State videoBoxWidthVp: number = 0;
   @State videoBoxHeightVp: number = 0;
@@ -136,6 +147,10 @@ struct Index {
   }
 
   aboutToDisappear(): void {
+    if (this.swFrameTimer !== undefined) {
+      clearInterval(this.swFrameTimer);
+      this.swFrameTimer = undefined;
+    }
     this.releasePlayer();
   }
 
@@ -196,10 +211,19 @@ struct Index {
       case 'firstFrame': {
         this.showVideo = true;
         this.nativeStatus = `已提交真实首帧（事件 #${event.sequence}）`;
+        // 启动 SW 帧轮询定时器（模拟器上 NativeWindow 不可用时，用 PixelMap 显示帧）
+        this.startSwFramePolling();
         break;
       }
       case 'tracks': {
         this.refreshTracksFromEvent(event.tracks ?? []);
+        break;
+      }
+      case 'audioParams': {
+        const params = event.params as AudioParams;
+        if (params !== undefined) {
+          this.latestAudioParams = params;
+        }
         break;
       }
       case 'subtitleText': {
@@ -209,10 +233,17 @@ struct Index {
       case 'videoParams': {
         const params = event.params as VideoParams;
         if (params !== undefined && params.width > 0 && params.height > 0) {
+          this.latestVideoParams = params;
           this.videoAspectRatio = params.width / params.height;
           this.recomputeVideoBoxSize();
           const hwdec = params.hardwareDecoding ?? 'n/a';
-          this.runtimeInfo = `${params.width}x${params.height} 硬解: ${hwdec}`;
+          let info = `${params.width}x${params.height} 硬解: ${hwdec}`;
+          if (params.pixelFormat !== undefined) info += ` | ${params.pixelFormat}`;
+          if (params.bitDepth !== undefined) info += ` ${params.bitDepth}bit`;
+          if (params.colorPrimaries !== undefined) info += ` ${params.colorPrimaries}`;
+          if (params.videoRange !== undefined) info += ` ${params.videoRange}`;
+          if (params.fps !== undefined) info += ` ${params.fps}fps`;
+          this.runtimeInfo = info;
         }
         break;
       }
@@ -462,6 +493,7 @@ struct Index {
     };
     this.audioTracks = [];
     this.subtitleTracks = [];
+    this.videoTracks = [];
     // load() 的 Promise 在原生命令派发后即 resolve，实际状态转换到 preparing/paused 是
     // 通过异步 state 事件到达的；这里不能在 load().then() 里直接调用 play()（会与状态机竞态），
     // 而是置位 pendingAutoPlay，待 onPlayerEvent 收到可播放状态后再触发 play()。
@@ -531,6 +563,7 @@ struct Index {
     const groups = splitTracks(tracks);
     this.audioTracks = groups.audio;
     this.subtitleTracks = groups.subtitle;
+    this.videoTracks = groups.video;
   }
 
   private selectAudioTrack(track: PlayerTrack): void {
@@ -636,6 +669,45 @@ struct Index {
     }).catch((e: Error) => {
       this.nativeStatus = `停止失败：${e.message}`;
     });
+  }
+
+  private startSwFramePolling(): void {
+    // 如果已有定时器在跑，先停掉
+    if (this.swFrameTimer !== undefined) {
+      clearInterval(this.swFrameTimer);
+    }
+    // ~30fps 轮询 getFrameData()
+    this.swFrameTimer = setInterval(() => {
+      this.pollSwFrame();
+    }, 33);
+  }
+
+  private pollSwFrame(): void {
+    if (this.player === null || this.player === undefined) {
+      return;
+    }
+    const frameData: FrameData | null = this.player.getFrameData();
+    if (frameData === null) {
+      return;
+    }
+    // 如果有帧数据，创建 PixelMap 并更新状态
+    if (frameData.data !== undefined && frameData.width > 0 && frameData.height > 0) {
+      const opts: image.InitializationOptions = {
+        size: { width: frameData.width, height: frameData.height },
+        pixelFormat: image.PixelMapFormat.RGBA_8888,
+        editable: false,
+      };
+      try {
+        const pm: image.PixelMap = image.createPixelMapSync(frameData.data, opts);
+        // 释放旧 PixelMap 防止内存累积
+        if (this.swFramePixelMap !== null) {
+          this.swFramePixelMap.release();
+        }
+        this.swFramePixelMap = pm;
+      } catch (e) {
+        console.warn(`SW frame PixelMap 创建失败`);
+      }
+    }
   }
 
   private releasePlayer(): void {
@@ -815,6 +887,14 @@ struct Index {
             this.surfaceId = '';
           })
           .onAreaChange((_: Area, newValue: Area) => this.onSurfaceAreaChange(newValue))
+
+        // SW 渲染 fallback：模拟器上 NativeWindow 不可用时通过 PixelMap 显示帧
+        if (this.swFramePixelMap !== null) {
+          Image(this.swFramePixelMap)
+            .width('100%')
+            .height('100%')
+            .objectFit(ImageFit.Fill)
+        }
       }
       .width(this.videoBoxWidthVp > 0 ? this.videoBoxWidthVp : '100%')
       .height(this.videoBoxHeightVp > 0 ? this.videoBoxHeightVp : '100%')
@@ -867,8 +947,145 @@ struct Index {
     }, 3000);
   }
 
-  // 按返回键时优先退出全屏，而不是直接退出应用/页面。
+  // 元数据弹层：以分栏表格形式展示视频/音频轨道元数据和实时视频/音频参数。
+  // 数据来自 tracks 事件（PlayerTrack，含编码/配置/等级/码率）和 videoParams/audioParams
+  // 事件（实时色彩/格式/声道布局）。弹层可通过点击按钮打开、按返回键关闭。
+  @Builder
+  MetadataRow(label: string, value: string) {
+    Row() {
+      Text(label)
+        .fontSize(15)
+        .fontColor('#8FA7C5')
+        .width(120)
+      Text(value.length > 0 ? value : '—')
+        .fontSize(15)
+        .fontColor('#DDE8F8')
+        .layoutWeight(1)
+        .textAlign(TextAlign.End)
+    }
+    .width('100%')
+    .padding({ top: 6, bottom: 6 })
+  }
+
+  @Builder
+  MetadataSheet() {
+    Column({ space: 16 }) {
+      Row() {
+        Text('媒体元数据')
+          .fontSize(22)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#F4F7FB')
+          .layoutWeight(1)
+        Button('关闭')
+          .id('close-metadata-button')
+          .fontSize(16)
+          .backgroundColor('#4B6C8A')
+          .onClick(() => { this.showMetadataSheet = false; })
+      }
+      .width('100%')
+
+      Scroll() {
+        Column({ space: 16 }) {
+          // 视频轨道元数据（来自 track-list）
+          if (this.videoTracks.length > 0) {
+            Column({ space: 4 }) {
+              Text('视频轨道')
+                .fontSize(18)
+                .fontWeight(FontWeight.Medium)
+                .fontColor('#AFC6E9')
+                .width('100%')
+              ForEach(this.videoTracks, (track: PlayerTrack) => {
+                this.MetadataRow('标题', track.title ?? '')
+                this.MetadataRow('编码', track.codec ?? '')
+                this.MetadataRow('配置文件', track.profile ?? '')
+                this.MetadataRow('等级', track.level !== undefined ? String(track.level) : '')
+                this.MetadataRow('分辨率', track.resolution ?? (this.latestVideoParams ? `${this.latestVideoParams.width}x${this.latestVideoParams.height}` : ''))
+                this.MetadataRow('宽高比', this.latestVideoParams?.aspectRatio ?? track.aspectRatio ?? '')
+                this.MetadataRow('隔行扫描', this.latestVideoParams?.isInterlaced !== undefined ? (this.latestVideoParams.isInterlaced ? '是' : '否') : (track.isInterlaced !== undefined ? (track.isInterlaced ? '是' : '否') : ''))
+                this.MetadataRow('帧率', this.latestVideoParams?.fps !== undefined ? `${this.latestVideoParams.fps.toFixed(3)}` : (track.fps !== undefined ? `${track.fps}` : ''))
+                this.MetadataRow('比特率', track.bitrate !== undefined ? `${Math.round(track.bitrate / 1000)} kbps` : (this.latestVideoParams?.videoBitrate !== undefined ? `${Math.round(this.latestVideoParams.videoBitrate / 1000)} kbps` : ''))
+              }, (track: PlayerTrack, index: number) => `video-meta-${track.id}-${index}`)
+            }
+            .width('100%')
+            .padding(12)
+            .border({ width: 1, color: '#426991', radius: 10 })
+            .backgroundColor('#0C1A2A')
+          }
+
+          // 视频参数（来自 mpv video-params）
+          if (this.latestVideoParams !== null) {
+            Column({ space: 4 }) {
+              Text('视频参数')
+                .fontSize(18)
+                .fontWeight(FontWeight.Medium)
+                .fontColor('#AFC6E9')
+                .width('100%')
+              this.MetadataRow('视频范围', this.latestVideoParams.videoRange ?? '')
+              this.MetadataRow('基色', this.latestVideoParams.colorPrimaries ?? '')
+              this.MetadataRow('色偏矩阵', this.latestVideoParams.colorMatrix ?? '')
+              this.MetadataRow('传输函数', this.latestVideoParams.colorTransfer ?? '')
+              this.MetadataRow('色量范围', this.latestVideoParams.colorLevels ?? '')
+              this.MetadataRow('像素格式', this.latestVideoParams.pixelFormat ?? '')
+              this.MetadataRow('位深度', this.latestVideoParams.bitDepth !== undefined ? `${this.latestVideoParams.bitDepth} bit` : '')
+              this.MetadataRow('硬件解码', this.latestVideoParams.hardwareDecoding ?? '')
+            }
+            .width('100%')
+            .padding(12)
+            .border({ width: 1, color: '#426991', radius: 10 })
+            .backgroundColor('#0C1A2A')
+          }
+
+          // 音频轨道元数据（来自 track-list）
+          if (this.audioTracks.length > 0) {
+            Column({ space: 4 }) {
+              Text('音频轨道')
+                .fontSize(18)
+                .fontWeight(FontWeight.Medium)
+                .fontColor('#AFC6E9')
+                .width('100%')
+              ForEach(this.audioTracks, (track: PlayerTrack) => {
+                this.MetadataRow('标题', track.title ?? '')
+                this.MetadataRow('编码', track.codec ?? '')
+                this.MetadataRow('配置文件', track.profile ?? '')
+                this.MetadataRow('声道布局', this.latestAudioParams?.channelLayout ?? '')
+                this.MetadataRow('声道数', this.latestAudioParams?.channels !== undefined ? `${this.latestAudioParams.channels} ch` : (track.channels !== undefined ? `${track.channels} ch` : ''))
+                this.MetadataRow('采样率', this.latestAudioParams?.sampleRate !== undefined ? `${this.latestAudioParams.sampleRate} Hz` : (track.sampleRate !== undefined ? `${track.sampleRate} Hz` : ''))
+                this.MetadataRow('采样格式', this.latestAudioParams?.sampleFormat ?? '')
+                this.MetadataRow('比特率', track.bitrate !== undefined ? `${Math.round(track.bitrate / 1000)} kbps` : (this.latestAudioParams?.audioBitrate !== undefined ? `${Math.round(this.latestAudioParams.audioBitrate / 1000)} kbps` : ''))
+              }, (track: PlayerTrack, index: number) => `audio-meta-${track.id}-${index}`)
+            }
+            .width('100%')
+            .padding(12)
+            .border({ width: 1, color: '#426991', radius: 10 })
+            .backgroundColor('#0C1A2A')
+          }
+
+          if (this.latestVideoParams === null && this.latestAudioParams === null &&
+            this.videoTracks.length === 0 && this.audioTracks.length === 0) {
+            Text('暂无元数据。加载视频后将自动刷新。')
+              .fontSize(16)
+              .fontColor('#8FA7C5')
+              .textAlign(TextAlign.Center)
+              .width('100%')
+          }
+        }
+        .width('100%')
+      }
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
+    }
+    .width('100%')
+    .height('100%')
+    .padding({ left: 20, right: 20, top: 16, bottom: 16 })
+    .backgroundColor('#102033')
+  }
+
+  // 按返回键时优先关闭元数据弹层，再退出全屏，而不是直接退出应用/页面。
   onBackPress(): boolean {
+    if (this.showMetadataSheet) {
+      this.showMetadataSheet = false;
+      return true;
+    }
     if (this.isFullscreen) {
       this.isFullscreen = false;
       return true;
@@ -951,6 +1168,13 @@ struct Index {
           .backgroundColor('#5B4B8A')
           .enabled(this.showVideo)
           .onClick(() => { this.isFullscreen = true; })
+
+        Button('元数据')
+          .id('show-metadata-button')
+          .fontSize(16)
+          .backgroundColor('#1A6B5C')
+          .enabled(this.latestVideoParams !== null || this.latestAudioParams !== null)
+          .onClick(() => { this.showMetadataSheet = true; })
       }
       .width('88%')
       .justifyContent(FlexAlign.Center)
@@ -998,14 +1222,14 @@ struct Index {
             .backgroundColor('#2F7DE1')
             .onClick(() => {
               // 轨道列表由事件驱动；此处仅提示用户当前状态。
-              if (this.audioTracks.length === 0 && this.subtitleTracks.length === 0) {
+              if (this.audioTracks.length === 0 && this.subtitleTracks.length === 0 && this.videoTracks.length === 0) {
                 this.nativeStatus = '暂无轨道信息。加载媒体后会通过事件自动刷新。';
               } else {
-                this.nativeStatus = `当前音轨 ${this.audioTracks.length} 条，字幕 ${this.subtitleTracks.length} 条。`;
+                this.nativeStatus = `视频 ${this.videoTracks.length} 条，音轨 ${this.audioTracks.length} 条，字幕 ${this.subtitleTracks.length} 条。`;
               }
             })
         }
-        if (this.audioTracks.length === 0 && this.subtitleTracks.length === 0) {
+        if (this.audioTracks.length === 0 && this.subtitleTracks.length === 0 && this.videoTracks.length === 0) {
           Text('加载包含多音轨或字幕的视频后显示轨道元数据。')
             .fontSize(14)
             .fontColor('#8FA7C5')
@@ -1041,6 +1265,20 @@ struct Index {
             }, (track: PlayerTrack) => `subtitle-${track.id}-${track.selected}`)
           }
           .width('100%')
+          if (this.videoTracks.length > 0) {
+            Text('视频轨')
+              .fontSize(16)
+              .fontColor('#AFC6E9')
+            Column({ space: 4 }) {
+              ForEach(this.videoTracks, (track: PlayerTrack) => {
+                Text(trackLabel(track))
+                  .fontSize(14)
+                  .fontColor('#8FA7C5')
+              }, (track: PlayerTrack) => `video-${track.id}`)
+            }
+            .width('100%')
+            .alignItems(HorizontalAlign.Start)
+          }
         }
       }
       .width('88%')
@@ -1265,5 +1503,10 @@ struct Index {
     .width('100%')
     .height('100%')
     .backgroundColor('#102033')
+    .bindSheet($$this.showMetadataSheet, this.MetadataSheet, {
+      height: '80%',
+      dragBar: true,
+      backgroundColor: '#102033'
+    })
   }
 }

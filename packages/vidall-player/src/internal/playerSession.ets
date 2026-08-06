@@ -1,6 +1,8 @@
 import {
+  AudioParams,
   ExternalAudio,
   ExternalSubtitle,
+  FrameData,
   MediaSource,
   PlayerEvent,
   PlayerOptions,
@@ -333,7 +335,9 @@ export class PlayerSession implements VidAllPlayer {
       return;
     }
     if (event.type === 'videoParams') {
-      // message 编码格式："宽x高" 或 "宽x高|hwdec值"。
+      // message 编码格式（渐进扩展）：
+      // 旧格式："宽x高" 或 "宽x高|hwdec值"
+      // 新格式："宽x高|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced|colorLevels|videoBitrate"
       // hwdec 段可选：来自 mpv "hwdec-current" 属性，在原生层合并进 videoParams 事件。
       // 映射：ohcodec → active；空串/软件解码器 → fallback；no → unavailable。
       if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
@@ -345,6 +349,7 @@ export class PlayerSession implements VidAllPlayer {
           const height = Number(dimParts[1]);
           if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
             const params: VideoParams = { width, height };
+            // hwdec（索引1）
             if (pipeParts.length > 1) {
               const hwdec = pipeParts[1];
               if (hwdec === 'no') {
@@ -356,9 +361,93 @@ export class PlayerSession implements VidAllPlayer {
                 params.hardwareDecoding = 'active';
               }
             }
+            // 扩展色彩与格式元数据（索引2-11）
+            if (pipeParts.length > 2 && pipeParts[2].length > 0) {
+              params.pixelFormat = pipeParts[2];
+            }
+            if (pipeParts.length > 3 && pipeParts[3].length > 0) {
+              const bd = Number(pipeParts[3]);
+              if (Number.isFinite(bd) && bd > 0) {
+                params.bitDepth = bd;
+              }
+            }
+            if (pipeParts.length > 4 && pipeParts[4].length > 0) {
+              params.colorPrimaries = pipeParts[4];
+            }
+            if (pipeParts.length > 5 && pipeParts[5].length > 0) {
+              params.colorTransfer = pipeParts[5];
+            }
+            if (pipeParts.length > 6 && pipeParts[6].length > 0) {
+              params.colorMatrix = pipeParts[6];
+            }
+            if (pipeParts.length > 7 && pipeParts[7].length > 0) {
+              params.videoRange = pipeParts[7];
+            }
+            if (pipeParts.length > 8 && pipeParts[8].length > 0) {
+              const fps = Number(pipeParts[8]);
+              if (Number.isFinite(fps) && fps > 0) {
+                params.fps = fps;
+              }
+            }
+            if (pipeParts.length > 9 && pipeParts[9].length > 0) {
+              const rot = Number(pipeParts[9]);
+              if (Number.isFinite(rot) && rot !== 0) {
+                params.rotation = rot;
+              }
+            }
+            if (pipeParts.length > 10 && pipeParts[10].length > 0) {
+              params.aspectRatio = pipeParts[10];
+            }
+            if (pipeParts.length > 11 && pipeParts[11].length > 0) {
+              params.isInterlaced = pipeParts[11] === '1';
+            }
+            if (pipeParts.length > 12 && pipeParts[12].length > 0) {
+              params.colorLevels = pipeParts[12];
+            }
+            if (pipeParts.length > 13 && pipeParts[13].length > 0) {
+              const vb = Number(pipeParts[13]);
+              if (Number.isFinite(vb) && vb > 0) {
+                params.videoBitrate = vb;
+              }
+            }
             this.stateMachine.emit({ type: 'videoParams', sequence: event.sequence, params });
           }
         }
+      }
+      return;
+    }
+    if (event.type === 'audioParams') {
+      // message 编码格式："samplerate|channels|channelCount|format|audioBitrate"
+      // channels 为声道布局字符串（如 "stereo"/"5.1"），channelCount 为声道数。
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        const pipeParts = event.message.split('|');
+        const params: AudioParams = {};
+        if (pipeParts.length > 0 && pipeParts[0].length > 0) {
+          const sr = Number(pipeParts[0]);
+          if (Number.isFinite(sr) && sr > 0) {
+            params.sampleRate = sr;
+          }
+        }
+        if (pipeParts.length > 1 && pipeParts[1].length > 0) {
+          params.channelLayout = pipeParts[1];
+        }
+        if (pipeParts.length > 2 && pipeParts[2].length > 0) {
+          const cc = Number(pipeParts[2]);
+          if (Number.isFinite(cc) && cc > 0) {
+            params.channels = cc;
+          }
+        }
+        if (pipeParts.length > 3 && pipeParts[3].length > 0) {
+          params.sampleFormat = pipeParts[3];
+        }
+        if (pipeParts.length > 4 && pipeParts[4].length > 0) {
+          const ab = Number(pipeParts[4]);
+          if (Number.isFinite(ab) && ab > 0) {
+            params.audioBitrate = ab;
+          }
+        }
+        this.stateMachine.emit({ type: 'audioParams', sequence: event.sequence, params });
       }
       return;
     }
@@ -411,6 +500,10 @@ export class PlayerSession implements VidAllPlayer {
       this.source = undefined;
       this.tracks = [];
     });
+  }
+
+  getFrameData(): FrameData | null {
+    return this.nativeBridge.getFrameData();
   }
 
   // 供原生适配层上报 paused-for-cache / cache-buffering-state：
@@ -575,38 +668,141 @@ export class PlayerSession implements VidAllPlayer {
     this.tracks = this.tracks.filter((track: PlayerTrack) => track.id < offset);
     this.nativeTrackIdMap.clear();
     if (encoded.length > 0) {
-      const records = encoded.split('\x1e');
-      for (let index = 0; index < records.length; index++) {
-        const fields = records[index].split('\x1f');
-        if (fields.length !== 5) {
-          continue;
+      // 新格式：去重键 \x1f JSON（最后一个 \x1f 分隔）
+      // 旧格式：纯 \x1e/\x1f 分隔的5字段编码
+      const lastSep = encoded.lastIndexOf('\x1f');
+      let jsonPart: string | null = null;
+      if (lastSep >= 0) {
+        const candidate = encoded.substring(lastSep + 1);
+        if (candidate.startsWith('[')) {
+          try {
+            const parsed: Object[] = JSON.parse(candidate) as Object[];
+            if (Array.isArray(parsed)) {
+              jsonPart = candidate;
+            }
+          } catch (_e) {
+            // 非有效 JSON，回退旧格式
+          }
         }
-        const nativeId = Number(fields[0]);
-        const kind = fields[1];
-        const language = fields[2];
-        const title = fields[3];
-        const selected = fields[4] === '1';
-        if (!Number.isFinite(nativeId) || nativeId < 0 || (kind !== 'audio' && kind !== 'subtitle')) {
-          continue;
-        }
-        const etsId = offset + nativeId;
-        const track: PlayerTrack = {
-          id: etsId,
-          kind: kind as PlayerTrackKind,
-          selected: selected,
-          recognitionStatus: 'recognized'
-        };
-        if (language.length > 0) {
-          track.language = language;
-        }
-        if (title.length > 0) {
-          track.title = title;
-        }
-        this.tracks.push(track);
-        this.nativeTrackIdMap.set(etsId, nativeId);
+      }
+      if (jsonPart !== null) {
+        const parsed: Array<Record<string, Object>> = JSON.parse(jsonPart!) as Array<Record<string, Object>>;
+        this.mergeNativeTracksJson(parsed, offset);
+      } else {
+        this.mergeNativeTracksLegacy(encoded, offset);
       }
     }
     this.emitTracks();
+  }
+
+  private mergeNativeTracksJson(records: Array<Record<string, Object>>, offset: number): void {
+    for (let index = 0; index < records.length; index++) {
+      const r = records[index];
+      const nativeId = Number(r['id'] ?? -1);
+      const rawType = String(r['type'] ?? '');
+      const kind: string = rawType === 'sub' ? 'subtitle' : rawType;
+      if (!Number.isFinite(nativeId) || nativeId < 0 || (kind !== 'audio' && kind !== 'subtitle' && kind !== 'video')) {
+        continue;
+      }
+      const etsId = offset + nativeId;
+      const selected = r['selected'] === 1 || r['selected'] === true;
+      const track: PlayerTrack = {
+        id: etsId,
+        kind: kind as PlayerTrackKind,
+        selected: selected,
+        recognitionStatus: 'recognized'
+      };
+      const lang = String(r['lang'] ?? '');
+      if (lang.length > 0) {
+        track.language = lang;
+      }
+      const title = String(r['title'] ?? '');
+      if (title.length > 0) {
+        track.title = title;
+      }
+      // 扩展元数据
+      const codec = String(r['codec'] ?? '');
+      if (codec.length > 0) {
+        track.codec = codec;
+      }
+      const profile = String(r['profile'] ?? '');
+      if (profile.length > 0) {
+        track.profile = profile;
+      }
+      const level = r['level'];
+      if (level !== undefined && level !== null && Number.isFinite(Number(level)) && Number(level) > 0) {
+        track.level = Number(level);
+      }
+      const bitrate = r['bitrate'] ?? r['demux-bitrate'];
+      if (bitrate !== undefined && bitrate !== null && Number.isFinite(Number(bitrate)) && Number(bitrate) > 0) {
+        track.bitrate = Number(bitrate);
+      }
+      const isDefault = r['default'];
+      if (isDefault !== undefined && isDefault !== null) {
+        track.isDefault = isDefault === 1 || isDefault === true;
+      }
+      const isForced = r['forced'];
+      if (isForced !== undefined && isForced !== null) {
+        track.isForced = isForced === 1 || isForced === true;
+      }
+      // 音频轨道特有
+      if (kind === 'audio') {
+        const sampleRate = r['demux_samplerate'] ?? r['demux-samplerate'];
+        if (sampleRate !== undefined && sampleRate !== null && Number.isFinite(Number(sampleRate)) && Number(sampleRate) > 0) {
+          track.sampleRate = Number(sampleRate);
+        }
+        const channels = r['demux_channels'] ?? r['demux-channels'];
+        if (channels !== undefined && channels !== null && Number.isFinite(Number(channels)) && Number(channels) > 0) {
+          track.channels = Number(channels);
+        }
+      }
+      // 视频轨道特有（如果 type 包含 video）
+      if (kind === 'video') {
+        const fps = r['demux_fps'] ?? r['demux-fps'];
+        if (fps !== undefined && fps !== null && Number.isFinite(Number(fps)) && Number(fps) > 0) {
+          track.fps = Number(fps);
+        }
+        const resolution = String(r['resolution'] ?? '');
+        if (resolution.length > 0) {
+          track.resolution = resolution;
+        }
+      }
+      this.tracks.push(track);
+      this.nativeTrackIdMap.set(etsId, nativeId);
+    }
+  }
+
+  private mergeNativeTracksLegacy(encoded: string, offset: number): void {
+    const records = encoded.split('\x1e');
+    for (let index = 0; index < records.length; index++) {
+      const fields = records[index].split('\x1f');
+      if (fields.length !== 5) {
+        continue;
+      }
+      const nativeId = Number(fields[0]);
+      const kind = fields[1];
+      const language = fields[2];
+      const title = fields[3];
+      const selected = fields[4] === '1';
+      if (!Number.isFinite(nativeId) || nativeId < 0 || (kind !== 'audio' && kind !== 'subtitle')) {
+        continue;
+      }
+      const etsId = offset + nativeId;
+      const track: PlayerTrack = {
+        id: etsId,
+        kind: kind as PlayerTrackKind,
+        selected: selected,
+        recognitionStatus: 'recognized'
+      };
+      if (language.length > 0) {
+        track.language = language;
+      }
+      if (title.length > 0) {
+        track.title = title;
+      }
+      this.tracks.push(track);
+      this.nativeTrackIdMap.set(etsId, nativeId);
+    }
   }
 
   private emitTracks(): void {
@@ -627,6 +823,20 @@ export class PlayerSession implements VidAllPlayer {
       if (track.title !== undefined) {
         copy.title = track.title;
       }
+      // 扩展元数据深拷贝
+      if (track.codec !== undefined) { copy.codec = track.codec; }
+      if (track.profile !== undefined) { copy.profile = track.profile; }
+      if (track.level !== undefined) { copy.level = track.level; }
+      if (track.bitrate !== undefined) { copy.bitrate = track.bitrate; }
+      if (track.isDefault !== undefined) { copy.isDefault = track.isDefault; }
+      if (track.isForced !== undefined) { copy.isForced = track.isForced; }
+      if (track.resolution !== undefined) { copy.resolution = track.resolution; }
+      if (track.fps !== undefined) { copy.fps = track.fps; }
+      if (track.aspectRatio !== undefined) { copy.aspectRatio = track.aspectRatio; }
+      if (track.isInterlaced !== undefined) { copy.isInterlaced = track.isInterlaced; }
+      if (track.sampleRate !== undefined) { copy.sampleRate = track.sampleRate; }
+      if (track.channels !== undefined) { copy.channels = track.channels; }
+      if (track.channelLayout !== undefined) { copy.channelLayout = track.channelLayout; }
       snapshot.push(copy);
     }
     this.stateMachine.emit({ type: 'tracks', sequence: 0, tracks: snapshot });

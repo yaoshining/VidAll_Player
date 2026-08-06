@@ -113,9 +113,11 @@
 | libmpv 真实加载、播放与首帧 | 已构建待验证 | 不得对消费方声称可播放 | 目标 TV 上经批准样本的加载、首帧、播放与错误证据 |
 | Surface/XComponent 视频画面生命周期 | 已构建待验证 | 不得声称能够稳定渲染或重建画面 | 画面所有权、线程模型及 attach/resize/detach 真机样本 |
 | 渲染路径（SW 软件渲染 → GL 硬件加速） | 已构建待验证 | 真机已打通 EGL context + mpv OpenGL render context + eglSwapBuffers（hilog `GL renderer created`）；不得作为正式支持声明 | 完整 Surface spike 的 attach/resize/detach/rebuild/stop/release 真机生成期记录与负责人确认 |
-| 硬件解码（ohcodec） | 已构建待验证 | 真机 GL 路径下 `hwdec-current: ohcodec` 激活；可通过 `PlayerOptions.hardwareDecoding: 'auto'\|'disabled'` 控制 | `VideoParams.hardwareDecoding` 从 native 上报至 ArkTS、跨设备复现、负责人确认 |
+| 硬件解码（ohcodec） | 已构建待验证 | 真机 GL 路径下 `hwdec-current: ohcodec` 激活；可通过 `PlayerOptions.hardwareDecoding: 'auto'\|'disabled'` 控制；`VideoParams.hardwareDecoding` 已从 native 上报至 ArkTS（真机验证 `active`） | 跨设备复现、负责人确认 |
+| 轨道与视频元数据完整暴露 | 已构建待验证 | mpv `track-list`/`video-params` 属性可提供完整元数据（codec/profile/level/bitrate/fps/色彩空间等）；当前仅暴露 `id/kind/language/title/selected` 和 `width/height/hardwareDecoding`；设计已记录于 data-model.md | PlayerTrack/VideoParams/AudioParams 扩展字段实现、EncodeTrackList 编码方案决策、真机验证 |
 | 停止、重复释放与释放后调用 | 已构建待验证 | 不得仅凭状态机测试承诺资源安全 | 真实会话的成功、边界和失败路径测试及真机记录 |
 | 脚本、滤镜、录制、流捕获、截图 | 不支持或暂缓 | 公开接口、文档和示例均不得承诺 | 单独规格、接口、测试和目标真机证据 |
+| VPE/AI 画质增强（超分） | 不支持或暂缓 | VPE 仅通过 AVPlayer 内部 `DecoderSurfaceFilter` 管线激活（`SetPostProcessorType(SUPER_RESOLUTION)`），无公开 NDK API；ohcodec 直连路径无法接入 VPE 硬件单元。备选方案：mpv GL 着色器软超分（FSR/RAVU），或需要 VPE 时回退 AVPlayer | 华为开放 `OH_VideoProcessingEngine` NDK，或 mpv 着色器方案实现与真机验证 |
 
 ### 强制 Go/No-Go 门槛
 

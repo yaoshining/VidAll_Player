@@ -115,6 +115,27 @@
 - [X] T043 在 `fixtures/libmpv-player-consumer/` 使用 `devecocli build` 与可用模拟器执行开发期 fixture 回归，并将结果记录在 `specs/003-libmpv-player-har/evidence/emulator-development-validation.md`；明确该记录不关闭 G1/G2/G3、不支持发布/能力声明
 - [X] T044 在 `specs/003-libmpv-player-har/evidence/gate-approvals.md`、`specs/003-libmpv-player-har/evidence/gate-review-summary.md` 和 `specs/003-libmpv-player-har/evidence/final-readiness-record.md` 汇总同一 candidateId 的真机证据、G1/G2/G3 书面批准、自动化回归和限制；任一项缺失时记录 No-Go 并保持候选阻断
 
+---
+
+## Phase 8：轨道与视频元数据完整暴露
+
+**目的**：将 mpv `track-list`/`video-params` 属性提供的完整轨道与视频元数据暴露给 ArkTS 消费方，使其可展示与系统 AVPlayer 对等的轨道详情（编码/配置文件/码率/帧率/色彩空间等）。当前仅暴露 `id/kind/language/title/selected` 和 `width/height/hardwareDecoding`，大量 mpv 可检测的元数据被丢弃。
+
+**设计决策**：已确定——tracks 使用 JSON 编码（`dedupKey\x1fJSON`，兼容旧分隔符格式），videoParams 使用扩展 `|` 分隔符（渐进兼容旧 2 段格式）。详细字段映射与 mpv 属性来源见 `data-model.md`。
+
+**独立测试标准**：TDD——扩展字段的正常路径、缺失/空值边界、超大/异常值均需覆盖；native 层编码与 ArkTS 层解码对称性测试。
+
+- [x] T045 [P] 在 `packages/vidall-player/test/integration/native-events.test.ets` 编写失败测试：native bridge 上报含扩展字段的 tracks 事件后，playerSession 发出包含 codec/profile/level/bitrate/fps 等字段的 PlayerTrack 数组
+- [x] T046 [P] 在 `packages/vidall-player/test/integration/native-events.test.ets` 编写失败测试：native bridge 上报含色彩参数的 videoParams 事件后，playerSession 发出包含 pixelFormat/bitDepth/colorPrimaries/colorTransfer/colorMatrix/videoRange 的 VideoParams
+- [x] T047 [P] 在 `packages/vidall-player/test/contract/public-api.test.ets` 编写失败测试：PlayerTrack/VideoParams/AudioParams 扩展字段在公开类型中声明，且所有扩展字段为可选（兼容旧版本消费方）
+- [x] T048 在 `packages/vidall-player/src/public/types.ets` 扩展 PlayerTrack（codec/profile/level/bitrate/isDefault/isForced + 视频特有 resolution/fps/aspectRatio/isInterlaced + 音频特有 sampleRate/channels/channelLayout）、VideoParams（pixelFormat/bitDepth/colorPrimaries/colorTransfer/colorMatrix/videoRange/fps/rotation/aspectRatio/isInterlaced）、AudioParams（codec），使 T047 通过
+- [x] T049 在 `packages/vidall-player/src/main/cpp/napi_init.cpp` 的 `EncodeTrackList` 扩展编码，增加 codec/profile/level/bitrate/demux-fps/demux-samplerate/demux-channels/default/forced 等字段；决策编码方案后实施
+- [x] T050 在 `packages/vidall-player/src/main/cpp/napi_init.cpp` 的 videoParams Dispatch 扩展编码，增加 video-params 属性（pixfmt/bits-per-component/primaries/transfer/matrix/sig-peak/rotate/aspect/interlaced）
+- [x] T051 在 `packages/vidall-player/src/internal/playerSession.ets` 的 tracks 分支解析扩展字段并映射到 PlayerTrack 扩展字段，使 T045 通过
+- [x] T052 在 `packages/vidall-player/src/internal/playerSession.ets` 的 videoParams 分支解析色彩与格式字段并映射到 VideoParams 扩展字段，使 T046 通过
+- [x] T053 在 `packages/vidall-player/index.d.ts` 同步公开类型扩展
+- [ ] T054 使用 `devecocli build clean && devecocli build --modules vidall_player && devecocli build --modules entry && devecocli run --module entry --device 192.168.3.85:5555` 真机验证元数据上报；entry 调试页展示完整轨道详情与视频参数
+
 ## 依赖与执行顺序
 
 - **Phase 1**：T001--T004 可并行；T005 依赖 T001、T002；T006 依赖 T003--T005。

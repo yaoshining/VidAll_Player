@@ -5,6 +5,7 @@ export {
   AudioParams,
   ExternalAudio,
   ExternalSubtitle,
+  FrameData,
   MediaSource,
   PlayerError,
   PlayerEvent,
