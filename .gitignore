@@ -34,6 +34,7 @@ release/**
 !release/capabilities/arm64-tv-media-matrix.json
 !release/capabilities/phone-demo-evidence.json
 !release/manifests/release-manifest.json
+!release/manifests/candidate-003-libmpv-player-har.json
 # Generated HAR compatibility source
 packages/vidall-player/BuildProfile.ets
 

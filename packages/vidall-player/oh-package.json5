@@ -10,3 +10,5 @@
   "repository": "https://github.com/yaoshining/VidAll_Player.git",
   "dependencies": {}
 }
+// G2 材料引用：release/licenses/NOTICE | release/licenses/license-audit.json |
+// release/sbom/sbom.spdx.json | release/manifests/candidate-003-libmpv-player-har.json

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "003-libmpv-player-har",
+  "date": "2026-08-06T15:40:00+08:00",
+  "status": "ready",
+  "goDate": "2026-08-07T02:30:00+08:00",
+  "goBy": "yaoshining",
+  "blockingReason": null,
+  "loadingBoundary": {
+    "description": "ARM64 候选绑定 libmpv 原生产物，x86_64 模拟器构建不表述为真实播放能力",
+    "cmakeLogic": {
+      "file": "packages/vidall-player/src/main/cpp/CMakeLists.txt",
+      "arm64_v8a": {
+        "VIDALL_MPV_AVAILABLE": 1,
+        "linkedLibraries": ["mpv", "native_window", "EGL", "GLESv3"],
+        "libmpvSource": "entry/src/main/cpp/third_party/libmpv/arm64-v8a/libmpv.so",
+        "libmpvSha256": "75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d"
+      },
+      "x86_64": {
+        "VIDALL_MPV_AVAILABLE": 0,
+        "linkedLibraries": [],
+        "note": "NAPI probe 仅用于开发期构建/安装回归，不表述为真实播放能力"
+      }
+    },
+    "buildOption": {
+      "file": "packages/vidall-player/build-profile.json5",
+      "abiFilters": ["arm64-v8a", "x86_64"],
+      "cppStandard": "c++17"
+    }
+  },
+  "arm64Deliverables": {
+    "har": {
+      "path": "packages/vidall-player/build/default/outputs/default/vidall_player.har",
+      "sizeBytes": 22831640,
+      "contents": {
+        "libs/arm64-v8a": [
+          "libmpv.so (53662960 bytes)",
+          "libvidall_player_native.so (176744 bytes, stripped)",
+          "libc++_shared.so (1262504 bytes)"
+        ]
+      }
+    },
+    "nativeBridge": {
+      "library": "libvidall_player_native.so",
+      "needed": [
+        "libace_napi.z.so",
+        "libace_ndk.z.so",
+        "libhilog_ndk.z.so",
+        "libmpv.so",
+        "libnative_window.so",
+        "libEGL.so",
+        "libGLESv3.so",
+        "libc++_shared.so",
+        "libc.so"
+      ],
+      "mpvUndSymbols": 14,
+      "mpvUndSamples": [
+        "mpv_create", "mpv_initialize", "mpv_set_option_string",
+        "mpv_observe_property", "mpv_wakeup", "mpv_wait_event",
+        "mpv_render_context_create", "mpv_terminate_destroy"
+      ]
+    }
+  },
+  "gplMaterialRef": {
+    "license": "GPL-3.0-or-later",
+    "ohPackageLicense": "GPL-3.0-or-later",
+    "notice": "release/licenses/NOTICE",
+    "licenseAudit": "release/licenses/license-audit.json",
+    "sbomSpdx": "release/sbom/sbom.spdx.json",
+    "sbomCdx": "release/sbom/sbom.cdx.json",
+    "upstreamSources": {
+      "mpv": { "license": "GPL-2.0-or-later", "commit": "287d7cdb78975ae350d7c2a287eae3c2072c93f7" },
+      "ffmpeg": { "license": "LGPL-2.1-or-later", "commit": "a1328e68877e12ab5a6e5d92a84aefa566783ea5" }
+    }
+  },
+  "audits": {
+    "elfAbi": "release/audits/g2-elf-audit.json",
+    "harLoading": "release/audits/g2-har-loading-audit.json",
+    "reproducibleBuild": "release/audits/g2-reproducible-build.json",
+    "glRender": "release/audits/g3-gl-render-audit.json"
+  },
+  "gaps": [
+    "受控源码树（build-libmpv-controlled.sh 生成 feature-manifest/build manifest）未归档至 release/manifests/（首期使用预构建二进制）",
+    "跨设备复现基线未建立（首期仅华为智慧屏 MateTV Pro 单设备验证）",
+    "不得上传 OHPM 或公开发布，直至跨设备复现基线建立"
+  ]
+}

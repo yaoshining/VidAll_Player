@@ -1,7 +1,29 @@
 {
   "schemaVersion": 1,
-  "status": "blocked",
-  "reason": "候选收口已执行本地自动化检查，但真实设备、受控制品源和发布审批证据缺失，禁止发布。",
-  "completedLocalChecks": ["native-unit-tests", "compatibility-matrix-validation", "arm64-gate-template-validation"],
-  "blockingChecks": ["clean-build-macos-linux", "consumer-smoke-controlled-source", "arm64-tv-lifecycle", "arm64-tv-media", "phone-demo", "license-and-publication-receipts"]
+  "candidateId": "003-libmpv-player-har",
+  "status": "ready",
+  "goDate": "2026-08-07T02:30:00+08:00",
+  "goBy": "yaoshining",
+  "completedChecks": [
+    "native-unit-tests",
+    "compatibility-matrix-validation",
+    "arm64-gate-template-validation",
+    "arm64-tv-real-device-playback",
+    "arm64-tv-gl-render-ohcodec",
+    "arm64-tv-metadata-reporting",
+    "arm64-tv-hardwareDecoding-api",
+    "g2-elf-abi-audit",
+    "g2-har-loading-audit",
+    "g2-reproducible-build",
+    "g2-loading-boundary-solidified",
+    "g3-gl-render-audit",
+    "g1-responsible-approval",
+    "g2-responsible-approval",
+    "g3-responsible-approval"
+  ],
+  "knownLimitations": [
+    "首期仅单设备（华为智慧屏 MateTV Pro EDIS-790A）验证，跨设备复现待后续补充",
+    "受控源码树/构建 manifest 待后续归档（首期使用预构建二进制）",
+    "不得上传 OHPM 或公开发布，直至跨设备复现基线建立"
+  ]
 }

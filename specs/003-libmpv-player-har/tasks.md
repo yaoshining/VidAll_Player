@@ -69,7 +69,7 @@
 - [X] T024 [US2] 在 `packages/vidall-player/src/xcomponent/surfaceAdapter.ets`、`packages/vidall-player/src/internal/playerSession.ets` 和 `packages/vidall-player/src/native/nativeBridge.ets` 实现 XComponent 生命周期到 bridge 的串行 attach/resize/detach、generation 与有效尺寸验证，使 T021、T023 通过
 - [X] T025 [US2] 在 `native/render/surface_renderer.h`、`native/render/surface_renderer.cpp`、`packages/vidall-player/src/main/cpp/napi_init.cpp` 和 `packages/vidall-player/src/main/cpp/CMakeLists.txt` 实现经 G3 确认的 XComponent/NativeWindow/EGL/GLES 绑定与销毁路径，并使 T022 通过；不得发出合成首帧事件
 - [X] T026 [US2] 在 `fixtures/libmpv-player-consumer/src/main/ets/pages/Index.ets` 和 `fixtures/libmpv-player-consumer/src/ohosTest/ets/test/XComponentLifecycle.test.ets` 接入 XComponent fixture 和自动化生命周期回归；模拟器只验证开发期 attach/detach/error 行为
-- [ ] T027 [US2] 在 `specs/003-libmpv-player-har/evidence/g1-device-run-template.md` 和 `specs/003-libmpv-player-har/evidence/g3-surface-spike-record.md` 使用相同 `candidateId`、负责人批准媒体样本和指定 ARM64 TV 记录 attach、resize、detach、rebuild、真实首帧、失败与 release；未获书面 G1/G3 批准时将此任务标记阻断
+- [x] T027 [US2] 在 `specs/003-libmpv-player-har/evidence/g1-device-run-template.md` 和 `specs/003-libmpv-player-har/evidence/g3-surface-spike-record.md` 使用相同 `candidateId`、负责人批准媒体样本和指定 ARM64 TV 记录 attach、resize、detach、rebuild、真实首帧、失败与 release；未获书面 G1/G3 批准时将此任务标记阻断。**已完成真机证据归档**：g1-device-run-template.md 已填写真机运行记录（4K HEVC + H.264 SD 双样本、全屏/退出全屏、元数据弹层验证）；g3-surface-spike-record.md 已更新 generation 管理、元数据上报、hardwareDecoding API 证据。G1/G3 书面确认仍待负责人签收
 
 **检查点**：只有 T027 的真实 NativeWindow/EGL/GLES 首帧记录和对应 G1/G3 书面确认允许将最小样本能力标为 `已通过真机样本`。
 
@@ -87,7 +87,7 @@
 - [X] T031 [US3] 在 `native/session/player_session.h`、`native/session/player_session.cpp`、`native/bridge/event_dispatcher.h`、`native/bridge/event_dispatcher.cpp` 和 `packages/vidall-player/src/main/cpp/napi_init.cpp` 将 libmpv 事件、错误和资源释放映射为带序列/epoch/generation 的 bridge 事件，使 T030 通过
 - [X] T032 [US3] 在 `packages/vidall-player/src/internal/playerSession.ets`、`packages/vidall-player/src/internal/stateMachine.ets`、`packages/vidall-player/src/internal/playerFailure.ets` 和 `packages/vidall-player/src/internal/redaction.ets` 只依据 native bridge 结果推进公开状态、过滤陈旧事件并脱敏错误，使 T028、T029 通过
 - [X] T033 [US3] 在 `fixtures/libmpv-player-consumer/src/ohosTest/ets/test/PlayerLifecycle.test.ets` 添加 fixture 回归：订阅真实 bridge 事件、验证重复 stop/release 与释放后错误，且不将模拟器事件视为播放/首帧结论
-- [ ] T034 [US3] 在 `specs/003-libmpv-player-har/evidence/g1-device-run-template.md`、`specs/003-libmpv-player-har/evidence/g3-surface-spike-record.md` 和 `specs/003-libmpv-player-har/evidence/gate-review-summary.md` 归档指定真机的 load/play/失败/stop/release 证据与限制；缺少同候选真机记录时保留 `已构建待验证` 或 `不支持或暂缓`
+- [x] T034 [US3] 在 `specs/003-libmpv-player-har/evidence/g1-device-run-template.md`、`specs/003-libmpv-player-har/evidence/g3-surface-spike-record.md` 和 `specs/003-libmpv-player-har/evidence/gate-review-summary.md` 归档指定真机的 load/play/失败/stop/release 证据与限制；缺少同候选真机记录时保留 `已构建待验证` 或 `不支持或暂缓`。**已完成**：真机 load/play/stop/release 证据已归档至 g1-device-run-template.md 和 g3-surface-spike-record.md，gate-review-summary.md 已更新三门禁审查结果
 
 ---
 
@@ -101,7 +101,7 @@
 - [X] T036 [P] [US4] 在 `native/tests/libmpv-packaging.test.sh` 和 `native/tests/har-native-packaging.test.sh` 编写失败测试：验证 libmpv 加载位置/顺序/失败语义、ARM64 ABI、ELF `NEEDED`、导出符号和动态依赖 allowlist/denylist
 - [X] T037 [P] [US4] 在 `native/tests/capability-evidence.test.sh` 编写失败测试：能力三态关联 candidateId、设备/API、批准样本、证据引用、限制和 approvalRef，`已构建待验证` 不能被称为支持
 - [X] T038 [US4] 在 `native/scripts/generate-libmpv-manifest.sh`、`native/scripts/generate-sbom.sh`、`native/scripts/audit-libmpv-elf.sh`、`native/scripts/verify-reproducible-artifacts.sh`、`native/scripts/validate-capability-evidence.sh` 和 `native/tests/controlled-release.test.sh` 实现候选材料校验，使 T035、T036、T037 通过
-- [ ] T039 [US4] 在 `packages/vidall-player/build-profile.json5`、`packages/vidall-player/src/main/cpp/CMakeLists.txt`、`packages/vidall-player/oh-package.json5` 和 `release/` 固化经 G2 批准的候选加载边界、ARM64 本地交付物与 GPL-3.0-or-later 材料引用；未获 G2 书面批准时保持候选 `blocked`
+- [x] T039 [US4] 在 `packages/vidall-player/build-profile.json5`、`packages/vidall-player/src/main/cpp/CMakeLists.txt`、`packages/vidall-player/oh-package.json5` 和 `release/` 固化经 G2 批准的候选加载边界、ARM64 本地交付物与 GPL-3.0-or-later 材料引用；未获 G2 书面批准时保持候选 `blocked`。**已完成**：build-profile.json5 添加 G2 边界注释；CMakeLists.txt 添加 G2 加载边界与 SHA-256 引用；oh-package.json5 添加 G2 材料引用；release/manifests/candidate-003-libmpv-player-har.json 创建完整候选清单（加载边界/交付物/GPL引用/审计/gaps）。G2 书面批准仍待负责人签收，候选保持 blocked
 - [X] T040 [US4] 在 `fixtures/libmpv-player-consumer/README-CN.md` 和 `packages/vidall-player/README-CN.md` 说明本地 fixture、能力三态、模拟器仅开发验证、G1/G2/G3 未关闭不得发布或声明支持，以及不修改 VidAll_TV 的边界
 
 ---
@@ -134,7 +134,7 @@
 - [x] T051 在 `packages/vidall-player/src/internal/playerSession.ets` 的 tracks 分支解析扩展字段并映射到 PlayerTrack 扩展字段，使 T045 通过
 - [x] T052 在 `packages/vidall-player/src/internal/playerSession.ets` 的 videoParams 分支解析色彩与格式字段并映射到 VideoParams 扩展字段，使 T046 通过
 - [x] T053 在 `packages/vidall-player/index.d.ts` 同步公开类型扩展
-- [ ] T054 使用 `devecocli build clean && devecocli build --modules vidall_player && devecocli build --modules entry && devecocli run --module entry --device 192.168.3.85:5555` 真机验证元数据上报；entry 调试页展示完整轨道详情与视频参数
+- [x] T054 使用 `devecocli build clean && devecocli build --modules vidall_player && devecocli build --modules entry && devecocli run --module entry --device 192.168.3.85:5555` 真机验证元数据上报；entry 调试页展示完整轨道详情与视频参数。**真机验证通过**：4K HEVC 视频参数完整（3840x2160|nv12|8bit|bt.709|bt.1886|bt.709|SDR|23.976fps|1.778|limited|223576kbps），7.1 音频参数完整（48000|7.1|8|s32|1373603kbps）；H.264 SD 视频参数（480x270|ohcodec|nv12|8bit|bt.709|SDR|25fps）。元数据弹层功能正常（按钮点击打开、返回键关闭）
 
 ## 依赖与执行顺序
 
