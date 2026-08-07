@@ -8,7 +8,6 @@ fail() { echo "测试失败：$*" >&2; exit 1; }
 python3 - "$ROOT" <<'PY'
 from pathlib import Path
 import json
-import re
 import sys
 
 # oh-package.json5 / build-profile.json5 等 HarmonyOS 配置使用 JSON5 语法，
@@ -42,8 +41,41 @@ def _strip_json5_comments(text: str) -> str:
         else:
             out.append(ch)
             i += 1
-    cleaned = re.sub(r',\s*([}\]])', r'\1', ''.join(out))
-    return cleaned
+    no_comments = ''.join(out)
+    # 去尾逗号同样需要字符串感知：直接对整段文本做 re.sub(r',\s*([}\]])', ...)
+    # 会误删字符串字面量内恰好形如 ",}" 的文本（例如 note 字段写 "foo ,}"），
+    # 因此复用同样的逐字符扫描，只在字符串外部识别 `, <空白> } 或 ]` 才剔除逗号。
+    result = []
+    in_str = False
+    escaped = False
+    i, n = 0, len(no_comments)
+    while i < n:
+        ch = no_comments[i]
+        if in_str:
+            result.append(ch)
+            if escaped:
+                escaped = False
+            elif ch == '\\':
+                escaped = True
+            elif ch == '"':
+                in_str = False
+            i += 1
+            continue
+        if ch == '"':
+            in_str = True
+            result.append(ch)
+            i += 1
+            continue
+        if ch == ',':
+            j = i + 1
+            while j < n and no_comments[j] in ' \t\r\n':
+                j += 1
+            if j < n and no_comments[j] in '}]':
+                i += 1
+                continue
+        result.append(ch)
+        i += 1
+    return ''.join(result)
 
 def load_json5(path: Path):
     return json.loads(_strip_json5_comments(path.read_text(encoding='utf-8')))
@@ -54,6 +86,9 @@ assert json.loads(_strip_json5_comments('// 独立注释\n{"a": 1}')) == {'a': 1
 assert json.loads(_strip_json5_comments('{"a": 1 // 行尾注释\n}')) == {'a': 1}
 assert json.loads(_strip_json5_comments('{"b": 2,}')) == {'b': 2}
 assert json.loads(_strip_json5_comments('{"url": "https://github.com/x"}')) == {'url': 'https://github.com/x'}
+# 回归：去尾逗号必须字符串感知，不能破坏字符串字面量内恰好形如 ",}" / ",]" 的文本。
+assert json.loads(_strip_json5_comments('{"note": "trailing text ,}"}')) == {'note': 'trailing text ,}'}
+assert json.loads(_strip_json5_comments('{"note": "a ,] b", "c": 1,}')) == {'note': 'a ,] b', 'c': 1}
 
 root = Path(sys.argv[1])
 package = load_json5(root / 'packages/vidall-player/oh-package.json5')
