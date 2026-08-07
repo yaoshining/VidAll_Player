@@ -326,6 +326,11 @@ public:
         // 实时码率作为替代数据源。
         mpv_observe_property(player_.get(), 0, "video-bitrate", MPV_FORMAT_DOUBLE);
         mpv_observe_property(player_.get(), 0, "audio-bitrate", MPV_FORMAT_DOUBLE);
+        // 观察 time-pos/duration：mpv 上报的当前播放位置与媒体总时长（秒），
+        // 用于向 ArkTS 层周期性 emit 'position' 事件（VidAll_TV 进度条/续播依赖
+        // 的 IPlayer.onTimeUpdate 契约）。ArkTS 侧再做 100ms 节流避免事件洪泛。
+        mpv_observe_property(player_.get(), 0, "time-pos", MPV_FORMAT_DOUBLE);
+        mpv_observe_property(player_.get(), 0, "duration", MPV_FORMAT_DOUBLE);
         eventThread_ = std::thread(&NativeSession::EventLoop, this, player_.get());
         return true;
     }
@@ -395,6 +400,9 @@ public:
         ++eventEpoch_;
         eventSequence_ = 0;
         firstFrameSent_ = false;
+        // 抑制旧文件残留 time-pos：在新文件 FILE_LOADED 之前不派发 position，
+        // 避免旧媒体进度携带新 eventEpoch_ 误报到 ArkTS。
+        positionActive_ = false;
         Dispatch("state", "preparing");
         return {true, handle, "OK"};
     }
@@ -599,6 +607,28 @@ private:
             msg += "|" + (apBitrate_ > 0 ? std::to_string(static_cast<int64_t>(apBitrate_)) : std::string());
             return msg;
         };
+        // 把当前缓存的 time-pos/duration（秒）转成毫秒并以 JSON 字符串派发给 ArkTS。
+        // 仅当至少有一个有效值且与上次派发值不同时才发，避免 mpv 同值重复触发造成洪泛。
+        // ArkTS 侧再叠加 100ms 节流（见 playerSession.ets 的 position 分支）。
+        // time-pos < 0（mpv 初始化/无媒体）或 duration <= 0（直播/未知时长）按 0 上报，
+        // 让消费方知道"位置未知"而非收到陈旧的旧值。
+        auto DispatchPositionIfChanged = [this]() -> void {
+            // 旧文件残留的 time-pos 在新文件 FILE_LOADED 之前不派发，避免携带新
+            // eventEpoch_ 把旧媒体进度误报给 ArkTS（Load() 已置 positionActive_=false）。
+            if (!positionActive_) return;
+            const long long posMs = positionSeconds_ > 0 ? static_cast<long long>(positionSeconds_ * 1000.0 + 0.5) : 0;
+            const long long durMs = durationSeconds_ > 0 ? static_cast<long long>(durationSeconds_ * 1000.0 + 0.5) : 0;
+            if (positionSeconds_ < 0 && durationSeconds_ < 0) return;
+            if (posMs == lastPositionMs_ && durMs == lastDurationMs_) return;
+            lastPositionMs_ = posMs;
+            lastDurationMs_ = durMs;
+            std::string msg = "{\"positionMs\":";
+            msg += std::to_string(posMs);
+            msg += ",\"durationMs\":";
+            msg += std::to_string(durMs);
+            msg += "}";
+            Dispatch("position", msg);
+        };
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
@@ -614,6 +644,20 @@ private:
                 // 重置 audio-params 缓存
                 apSamplerate_ = 0; apChannels_.clear(); apChannelCount_ = 0; apFormat_.clear();
                 apBitrate_ = 0;
+                // 重置 position 缓存，避免跨文件残留旧进度；下次新文件的 time-pos/duration
+                // 属性变化会重新填充并触发派发。
+                positionSeconds_ = -1.0;
+                durationSeconds_ = -1.0;
+                lastPositionMs_ = -1;
+                lastDurationMs_ = -1;
+                // 抑制旧文件残留 time-pos：END_FILE 后到新文件 FILE_LOADED 之间不派发 position。
+                positionActive_ = false;
+            }
+            if (event->event_id == MPV_EVENT_FILE_LOADED) {
+                // 新文件已加载就绪，激活 position 派发。在此之前 Load() 已把
+                // positionActive_ 置 false，旧文件残留的 time-pos 会被丢弃，
+                // 不会携带新 eventEpoch_ 误报旧媒体进度。
+                positionActive_ = true;
             }
             if (event->event_id == MPV_EVENT_PROPERTY_CHANGE) {
                 const auto* prop = static_cast<mpv_event_property*>(event->data);
@@ -795,6 +839,19 @@ private:
                             Dispatch("audioParams", BuildAudioParamsMessage());
                         }
                     }
+                }
+                if (prop != nullptr && prop->format == MPV_FORMAT_DOUBLE && prop->data != nullptr &&
+                    (std::strcmp(prop->name, "time-pos") == 0 || std::strcmp(prop->name, "duration") == 0)) {
+                    // mpv time-pos/duration 均为秒（double）。time-pos 在文件加载初期可能
+                    // 为负或缺失（属性不存在）；duration 在直播/未知时长时为 0 或负。这里只更新
+                    // 对应缓存，再交给 DispatchPositionIfChanged 决定是否派发，避免同值洪泛。
+                    const double seconds = *static_cast<double*>(prop->data);
+                    if (std::strcmp(prop->name, "time-pos") == 0) {
+                        positionSeconds_ = seconds;
+                    } else {
+                        durationSeconds_ = seconds;
+                    }
+                    DispatchPositionIfChanged();
                 }
                 if (prop != nullptr && std::strcmp(prop->name, "sub-text") == 0) {
                     // MPV_FORMAT_STRING 属性变化事件里 prop->data 是 char**；无字幕命中时
@@ -1154,6 +1211,16 @@ private:
     int apChannelCount_ = 0;
     std::string apFormat_; // 采样格式，如 "s16"/"float"
     double apBitrate_ = 0; // mpv "audio-bitrate"：实时音频码率（bps）
+    // time-pos/duration 缓存（只在 EventLoop 读写，无需原子操作）。单位：秒。
+    // time-pos 在播放中可能为负（mpv 初始化阶段）或缺失（无媒体），用 -1.0 表示尚未收到。
+    double positionSeconds_ = -1.0;
+    double durationSeconds_ = -1.0;
+    // 上一次已 Dispatch 的 positionMs/durationMs，用于同值去抖（避免 mpv 重复上报相同值）。
+    long long lastPositionMs_ = -1;
+    long long lastDurationMs_ = -1;
+    // position 派发开关：仅在新文件 FILE_LOADED 后为 true，抑制切源期间旧文件残留
+    // 的 time-pos。Load() 与 END_FILE 置 false，FILE_LOADED 置 true。跨线程读写故用原子。
+    std::atomic<bool> positionActive_{false};
     std::atomic<bool> firstFrameSent_{false};
     OHNativeWindow* window_ = nullptr;
     mpv_render_context* renderer_ = nullptr;

@@ -9,9 +9,9 @@
 - 目标 ABI：`arm64-v8a`（TV / 负责人 G1 确认中）
 - 产物路径与 SHA-256：
   - `entry/src/main/cpp/third_party/libmpv/arm64-v8a/libmpv.so`（来源，not stripped，56MB）`99204080…`
-  - CI/default 构建 stripped 产物：`75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d`
-  - 重建 HAR `packages/vidall-player/build/default/outputs/default/vidall_player.har`（22.8MB）：内 `package/libs/arm64-v8a/libmpv.so` SHA `75d7240e…`（与独立构建一致）；`libvidall_player_native.so` strip 后 176KB
-  - CI HAP `entry/build/ci/outputs/default/app/entry-default.hap`（61MB）：内 `libmpv.so` SHA `75d7240e…`；native 176KB，NEEDED/UND 符号与 HAR 内一致
+  - CI/default 构建 stripped 产物（`llvm-strip --strip-all`）：`75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d`（由当前来源 `99204080…` strip 而来，确定性可复现）
+  - 重建 HAR `packages/vidall-player/build/default/outputs/default/vidall_player.har`（22.8MB）：内 `package/libs/arm64-v8a/libmpv.so` SHA `75d7240e…`（与独立构建一致）；`libvidall_player_native.so` strip 后 116KB（#58 新增 position 事件观测代码后体积由 176KB 增至此值）
+  - CI HAP `entry/build/ci/outputs/default/app/entry-default.hap`（61MB）：内 `libmpv.so` SHA `75d7240e…`；native 116KB，NEEDED/UND 符号与 HAR 内一致
 - 审计工具：`llvm-readelf`（DevEco NDK `/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/llvm-readelf`）
 
 | 类别 | 记录 | 结论 |
@@ -21,7 +21,7 @@
 | 导出符号 | 38677 个；含 `SMBC_*`×51、`FT_*`×155 → **libsmbclient/FreeType 已静态链入 libmpv.so** | 已审计 |
 | allowlist | 12 个 NEEDED 全部在 allowlist；`neededLibraries == allowedLibraries` | passed |
 | denylist | 禁止 `libsmbclient.so`/`libavplayer.so` 作为动态依赖 → NEEDED 中未出现（`forbiddenNeededLibraries` 为空） | passed |
-| 加载边界 | **重建后 HAR 已含完整播放链路**：`package/libs/arm64-v8a/` = `libmpv.so`(53MB) + `libvidall_player_native.so`(176KB) + `libc++_shared`；native `NEEDED` 含 `libmpv.so`，`UND mpv_*`（create/initialize/render_context_create 等）14 个 → bridge 真实驱动 libmpv | passed |
+| 加载边界 | **重建后 HAR 已含完整播放链路**：`package/libs/arm64-v8a/` = `libmpv.so`(53MB) + `libvidall_player_native.so`(116KB) + `libc++_shared`；native `NEEDED` 含 `libmpv.so`，`UND mpv_*`（create/initialize/render_context_create/observe_property 等，#58 新增 time-pos/duration 观测）15 个 → bridge 真实驱动 libmpv | passed |
 | 材料关联 | SBOM(SPDX-2.3+CycloneDX)、NOTICE、license-audit、来源锁已生成至 `release/`；HAR 与 HAP 内 libmpv.so SHA `75d7240e…` 与独立构建一致 → 材料与交付物对应 | 已审计（NOTICE 待法务复核） |
 | 可复现性 | HAR 内 libmpv.so SHA = CI 独立构建 SHA = `75d7240e…` → `reproducible: true`（`g2-reproducible-build.json`） | passed |
 
