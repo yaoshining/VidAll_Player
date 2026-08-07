@@ -387,8 +387,8 @@ export async function nativePositionEventThrottlesAt100ms(): Promise<void> {
   await player.attachSurface({ componentId: 'surface', generation: 1, width: 1280, height: 720 });
   await player.load({ kind: 'https', uri: 'https://fixture.invalid/media.mp4' });
 
-  // 同一窗口内连发 5 个递增 position 事件（模拟 mpv 高频上报），
-  // 节流后只应放行 1 个；且该事件应携带最大递增值（最后命中）。
+  // 同一 100ms 窗口内连发 5 个递增 position 事件（模拟 mpv 高频上报），
+  // 节流后只应放行首个命中（positionMs=1000），其余在窗口内被抑制。
   let seq = 1;
   for (let i = 0; i < 5; i++) {
     bridge.emit({
@@ -399,11 +399,27 @@ export async function nativePositionEventThrottlesAt100ms(): Promise<void> {
     seq += 1;
   }
 
-  const posEvents = received.filter((event: PlayerEvent) => event.type === 'position');
+  let posEvents = received.filter((event: PlayerEvent) => event.type === 'position');
   assert(posEvents.length === 1,
     `Expected exactly 1 position event within 100ms window, got ${posEvents.length}`);
   assert(posEvents[0].positionMs === 1000,
     `Expected first-accepted positionMs 1000, got ${posEvents[0].positionMs}`);
+
+  // 节流窗口结束后（>100ms），新的 position 事件必须再次放行——否则实现可能在
+  // 首次 emit 后永久抑制后续事件，而上面的断言无法发现该缺陷。
+  await new Promise<void>((resolve) => setTimeout(resolve, 120));
+  bridge.emit({
+    type: 'position',
+    message: '{"positionMs":2000,"durationMs":60000}',
+    eventEpoch: 1, sequence: seq, surfaceGeneration: 1
+  });
+  seq += 1;
+
+  posEvents = received.filter((event: PlayerEvent) => event.type === 'position');
+  assert(posEvents.length === 2,
+    `Expected 2nd position event after throttle window, got ${posEvents.length}`);
+  assert(posEvents[1].positionMs === 2000,
+    `Expected post-window positionMs 2000, got ${posEvents[1].positionMs}`);
 
   await player.release();
 }
