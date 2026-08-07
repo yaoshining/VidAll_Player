@@ -329,3 +329,81 @@ export async function videoParamsPartialExtensionFieldsParsed(): Promise<void> {
 
   await player.release();
 }
+
+// 回归测试：验证原生 mpv "time-pos" / "duration" 属性变化能正确转译为公开
+// 'position' 事件，携带 positionMs / durationMs（毫秒，与 VidAll_TV 的 IPlayer
+// onTimeUpdate 契约对齐），并遵循与其它原生事件一致的 epoch/generation 门控。
+// 这条通道之前缺失，导致 VidAll_TV 进度条与续播逻辑拿不到时间更新。
+export async function nativePositionEventUpdatesPublicPosition(): Promise<void> {
+  const bridge = new RecordingNativeBridge();
+  const player = new PlayerSession(undefined, bridge);
+  const received: PlayerEvent[] = [];
+  player.subscribe((event: PlayerEvent): void => { received.push(event); });
+
+  await player.attachSurface({ componentId: 'surface', generation: 1, width: 1280, height: 720 });
+  await player.load({ kind: 'https', uri: 'https://fixture.invalid/media.mp4' });
+
+  // mpv time-pos / duration 均为秒，C++ 侧 ×1000 转毫秒后以 JSON 编码上报。
+  bridge.emit({
+    type: 'position',
+    message: '{"positionMs":1234,"durationMs":56789}',
+    eventEpoch: 1, sequence: 1, surfaceGeneration: 1
+  });
+  // 陈旧 epoch / generation 的 position 事件必须被丢弃，不得污染公开事件流。
+  bridge.emit({
+    type: 'position',
+    message: '{"positionMs":9999,"durationMs":9999}',
+    eventEpoch: 0, sequence: 2, surfaceGeneration: 1
+  });
+  bridge.emit({
+    type: 'position',
+    message: '{"positionMs":9999,"durationMs":9999}',
+    eventEpoch: 1, sequence: 2, surfaceGeneration: 2
+  });
+  // 非法 JSON / 空 message 不得崩溃，也不得产生公开事件。
+  bridge.emit({ type: 'position', message: '', eventEpoch: 1, sequence: 3, surfaceGeneration: 1 });
+  bridge.emit({ type: 'position', message: 'not-json', eventEpoch: 1, sequence: 4, surfaceGeneration: 1 });
+
+  const posEvents = received.filter((event: PlayerEvent) => event.type === 'position');
+  assert(posEvents.length === 1,
+    `Expected exactly 1 accepted position event, got ${posEvents.length}`);
+  assert(posEvents[0].positionMs === 1234,
+    `Expected positionMs 1234, got ${posEvents[0].positionMs}`);
+  assert(posEvents[0].durationMs === 56789,
+    `Expected durationMs 56789, got ${posEvents[0].durationMs}`);
+
+  await player.release();
+}
+
+// 节流回归测试：mpv time-pos 默认每帧上报，ArkTS 侧必须保证两次公开
+// 'position' emit 间隔 ≥ 100ms（与 VidAll_TV IjkPlayerAdapter 100ms 轮询节奏
+// 对齐），避免事件洪泛冲垮订阅方。同一 100ms 窗口内的连续事件只放行一个。
+export async function nativePositionEventThrottlesAt100ms(): Promise<void> {
+  const bridge = new RecordingNativeBridge();
+  const player = new PlayerSession(undefined, bridge);
+  const received: PlayerEvent[] = [];
+  player.subscribe((event: PlayerEvent): void => { received.push(event); });
+
+  await player.attachSurface({ componentId: 'surface', generation: 1, width: 1280, height: 720 });
+  await player.load({ kind: 'https', uri: 'https://fixture.invalid/media.mp4' });
+
+  // 同一窗口内连发 5 个递增 position 事件（模拟 mpv 高频上报），
+  // 节流后只应放行 1 个；且该事件应携带最大递增值（最后命中）。
+  let seq = 1;
+  for (let i = 0; i < 5; i++) {
+    bridge.emit({
+      type: 'position',
+      message: `{"positionMs":${1000 + i},"durationMs":60000}`,
+      eventEpoch: 1, sequence: seq, surfaceGeneration: 1
+    });
+    seq += 1;
+  }
+
+  const posEvents = received.filter((event: PlayerEvent) => event.type === 'position');
+  assert(posEvents.length === 1,
+    `Expected exactly 1 position event within 100ms window, got ${posEvents.length}`);
+  assert(posEvents[0].positionMs === 1000,
+    `Expected first-accepted positionMs 1000, got ${posEvents[0].positionMs}`);
+
+  await player.release();
+}

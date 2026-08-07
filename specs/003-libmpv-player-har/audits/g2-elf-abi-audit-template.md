@@ -9,7 +9,7 @@
 - 目标 ABI：`arm64-v8a`（TV / 负责人 G1 确认中）
 - 产物路径与 SHA-256：
   - `entry/src/main/cpp/third_party/libmpv/arm64-v8a/libmpv.so`（来源，not stripped，56MB）`99204080…`
-  - CI/default 构建 stripped 产物：`75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d`
+  - CI/default 构建 stripped 产物（`llvm-strip --strip-all`）：`75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d`（由当前来源 `99204080…` strip 而来，确定性可复现）
   - 重建 HAR `packages/vidall-player/build/default/outputs/default/vidall_player.har`（22.8MB）：内 `package/libs/arm64-v8a/libmpv.so` SHA `75d7240e…`（与独立构建一致）；`libvidall_player_native.so` strip 后 176KB
   - CI HAP `entry/build/ci/outputs/default/app/entry-default.hap`（61MB）：内 `libmpv.so` SHA `75d7240e…`；native 176KB，NEEDED/UND 符号与 HAR 内一致
 - 审计工具：`llvm-readelf`（DevEco NDK `/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/llvm-readelf`）

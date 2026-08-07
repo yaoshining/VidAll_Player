@@ -9,7 +9,7 @@ export interface NativeSessionResult {
 }
 
 export interface NativePlayerEvent {
-  type: 'state' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText';
+  type: 'state' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText' | 'position';
   message: string;
   eventEpoch: number;
   sequence: number;

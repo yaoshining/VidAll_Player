@@ -35,6 +35,10 @@ export class PlayerSession implements VidAllPlayer {
   private readonly nativeTrackIdMap: Map<number, number> = new Map();
   private resumeState?: 'playing' | 'paused';
   private leaseEpoch: number = 0;
+  // 上一次公开 emit 'position' 事件的时间戳（Date.now() 毫秒）。mpv time-pos 默认每帧
+  // 上报，这里保证两次公开 position emit 间隔 ≥ 100ms（与 VidAll_TV IjkPlayerAdapter
+  // 100ms 轮询节奏对齐），避免事件洪泛冲垮订阅方。0 表示尚未 emit 过。
+  private lastPositionEmitAtMs: number = 0;
 
   constructor(options?: PlayerOptions, nativeBridge?: NativePlayerBridge) {
     this.nativeBridge = nativeBridge ?? createNativePlayerBridge(options?.subtitleFontsDir, options?.hardwareDecoding);
@@ -106,6 +110,9 @@ export class PlayerSession implements VidAllPlayer {
       // 避免旧连接、旧租约或旧轨道泄漏到新媒体会话。
       this.abortActiveMedia('source-switch');
       this.stateMachine.advanceEventEpoch();
+      // 重置 position 节流窗口，让新媒体的第一个 position 事件能立即下发，而不是
+      // 被上一媒体最后一次 emit 的 100ms 窗口卡住。
+      this.lastPositionEmitAtMs = 0;
       return this.nativeBridge.load(source).then(() => {
         this.source = source;
         this.tracks = this.createExternalAudioTracks(source.externalAudio).concat(
@@ -451,6 +458,35 @@ export class PlayerSession implements VidAllPlayer {
       }
       return;
     }
+    if (event.type === 'position') {
+      // message 为 JSON 字符串 {"positionMs":<number>,"durationMs":<number>}，来自
+      // mpv "time-pos"/"duration" 属性（C++ 侧已 ×1000 转毫秒）。VidAll_TV 的 IPlayer
+      // 契约要求 onTimeUpdate(currentTime) 回调以驱动进度条与续播，之前该通路完全缺失。
+      // 节流：同一 100ms 窗口内的连续事件只放行一个，避免 mpv 高频上报冲垮订阅方。
+      if (event.message.length === 0) {
+        return;
+      }
+      let parsed: Record<string, Object>;
+      try {
+        parsed = JSON.parse(event.message) as Record<string, Object>;
+      } catch (_) {
+        return;
+      }
+      const positionMs = Number(parsed['positionMs']);
+      const durationMs = Number(parsed['durationMs']);
+      if (!Number.isFinite(positionMs) || !Number.isFinite(durationMs)) {
+        return;
+      }
+      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
+        const now = Date.now();
+        if (now - this.lastPositionEmitAtMs >= 100) {
+          this.lastPositionEmitAtMs = now;
+          this.stateMachine.emit({ type: 'position', sequence: event.sequence, positionMs, durationMs });
+        }
+      }
+      return;
+    }
     if (event.type === 'subtitleText') {
       // message 为 mpv "sub-text" 属性上报的当前字幕纯文本（空字符串表示当前无
       // 字幕命中）。独立于软件渲染合成管线是否把字幕像素画进视频帧，供消费方
@@ -499,6 +535,7 @@ export class PlayerSession implements VidAllPlayer {
       this.stateMachine.setSurfaceGeneration(undefined);
       this.source = undefined;
       this.tracks = [];
+      this.lastPositionEmitAtMs = 0;
     });
   }
 

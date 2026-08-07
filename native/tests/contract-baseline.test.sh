@@ -8,9 +8,23 @@ fail() { echo "测试失败：$*" >&2; exit 1; }
 python3 - "$ROOT" <<'PY'
 from pathlib import Path
 import json
+import re
 import sys
+
+# oh-package.json5 / build-profile.json5 等 HarmonyOS 配置使用 JSON5 语法，
+# 允许在文档末尾或行尾附带 // 注释。stdlib json 不识别这些注释，这里按行剔除
+# 以纯文本 // 开头的注释行（不影响字符串字面量内的 //，因为 HarmonyOS 配置
+# 文件的注释均在独立的行上）。
+def load_json5(path: Path):
+    text = path.read_text()
+    stripped = '\n'.join(
+        line for line in text.splitlines()
+        if not re.match(r'\s*//', line)
+    )
+    return json.loads(stripped)
+
 root = Path(sys.argv[1])
-package = json.loads((root / 'packages/vidall-player/oh-package.json5').read_text())
+package = load_json5(root / 'packages/vidall-player/oh-package.json5')
 assert package['name'] == '@vidall/player'
 assert package['version'] == '0.1.0'
 exports = (root / 'packages/vidall-player/Index.ets').read_text()

@@ -14,7 +14,9 @@
         "VIDALL_MPV_AVAILABLE": 1,
         "linkedLibraries": ["mpv", "native_window", "EGL", "GLESv3"],
         "libmpvSource": "entry/src/main/cpp/third_party/libmpv/arm64-v8a/libmpv.so",
-        "libmpvSha256": "75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d"
+        "libmpvSha256": "9920408089b274ad3a7503c1937cee7e30157bf657bfc3e2fba0a5caf4a96594",
+        "libmpvStrippedSha256": "75d7240e2a15377187efd990cd5aa718c7635e3700edbca2927eb0cac6996c0d",
+        "libmpvStrippedNote": "HAR/HAP 内打包的是 `llvm-strip --strip-all` 后的产物；source hash 与 stripped hash 不同，二者确定性可复现（#58 修正：manifest 之前误用 stripped hash 标注 source 字段）。"
       },
       "x86_64": {
         "VIDALL_MPV_AVAILABLE": 0,
@@ -31,11 +33,12 @@
   "arm64Deliverables": {
     "har": {
       "path": "packages/vidall-player/build/default/outputs/default/vidall_player.har",
-      "sizeBytes": 22831640,
+      "buildMode": "release",
+      "sizeBytes": 22800265,
       "contents": {
         "libs/arm64-v8a": [
-          "libmpv.so (53662960 bytes)",
-          "libvidall_player_native.so (176744 bytes, stripped)",
+          "libmpv.so (53662960 bytes, stripped sha256=75d7240e…)",
+          "libvidall_player_native.so (118824 bytes, stripped)",
           "libc++_shared.so (1262504 bytes)"
         ]
       }
@@ -53,7 +56,7 @@
         "libc++_shared.so",
         "libc.so"
       ],
-      "mpvUndSymbols": 14,
+      "mpvUndSymbols": 15,
       "mpvUndSamples": [
         "mpv_create", "mpv_initialize", "mpv_set_option_string",
         "mpv_observe_property", "mpv_wakeup", "mpv_wait_event",
