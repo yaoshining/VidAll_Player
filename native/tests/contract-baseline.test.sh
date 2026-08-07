@@ -12,16 +12,48 @@ import re
 import sys
 
 # oh-package.json5 / build-profile.json5 等 HarmonyOS 配置使用 JSON5 语法，
-# 允许在文档末尾或行尾附带 // 注释。stdlib json 不识别这些注释，这里按行剔除
-# 以纯文本 // 开头的注释行（不影响字符串字面量内的 //，因为 HarmonyOS 配置
-# 文件的注释均在独立的行上）。
+# 允许 // 注释（独立行或行尾）与尾逗号。stdlib json 不识别这些语法，这里用
+# 字符串感知的方式剔除 // 注释（保留字符串字面量内的 //，例如 URL 的
+# https://...），再去掉 } ] 前的尾逗号。不沿用 signing 校验脚本的 //.*$ 正则，
+# 因为它会把 URL 内的 // 截断（oh-package.json5 含 homepage/repository URL）。
+def _strip_json5_comments(text: str) -> str:
+    out = []
+    in_str = False
+    escaped = False
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+        if in_str:
+            out.append(ch)
+            if escaped:
+                escaped = False
+            elif ch == '\\':
+                escaped = True
+            elif ch == '"':
+                in_str = False
+            i += 1
+        elif ch == '"':
+            in_str = True
+            out.append(ch)
+            i += 1
+        elif ch == '/' and i + 1 < n and text[i + 1] == '/':
+            while i < n and text[i] != '\n':
+                i += 1
+        else:
+            out.append(ch)
+            i += 1
+    cleaned = re.sub(r',\s*([}\]])', r'\1', ''.join(out))
+    return cleaned
+
 def load_json5(path: Path):
-    text = path.read_text()
-    stripped = '\n'.join(
-        line for line in text.splitlines()
-        if not re.match(r'\s*//', line)
-    )
-    return json.loads(stripped)
+    return json.loads(_strip_json5_comments(path.read_text(encoding='utf-8')))
+
+# 回归：确认 _strip_json5_comments 覆盖独立注释、行尾注释、尾逗号，
+# 且不破坏字符串字面量内的 //（如 URL）。
+assert json.loads(_strip_json5_comments('// 独立注释\n{"a": 1}')) == {'a': 1}
+assert json.loads(_strip_json5_comments('{"a": 1 // 行尾注释\n}')) == {'a': 1}
+assert json.loads(_strip_json5_comments('{"b": 2,}')) == {'b': 2}
+assert json.loads(_strip_json5_comments('{"url": "https://github.com/x"}')) == {'url': 'https://github.com/x'}
 
 root = Path(sys.argv[1])
 package = load_json5(root / 'packages/vidall-player/oh-package.json5')

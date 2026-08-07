@@ -400,6 +400,9 @@ public:
         ++eventEpoch_;
         eventSequence_ = 0;
         firstFrameSent_ = false;
+        // 抑制旧文件残留 time-pos：在新文件 FILE_LOADED 之前不派发 position，
+        // 避免旧媒体进度携带新 eventEpoch_ 误报到 ArkTS。
+        positionActive_ = false;
         Dispatch("state", "preparing");
         return {true, handle, "OK"};
     }
@@ -610,6 +613,9 @@ private:
         // time-pos < 0（mpv 初始化/无媒体）或 duration <= 0（直播/未知时长）按 0 上报，
         // 让消费方知道"位置未知"而非收到陈旧的旧值。
         auto DispatchPositionIfChanged = [this]() -> void {
+            // 旧文件残留的 time-pos 在新文件 FILE_LOADED 之前不派发，避免携带新
+            // eventEpoch_ 把旧媒体进度误报给 ArkTS（Load() 已置 positionActive_=false）。
+            if (!positionActive_) return;
             const long long posMs = positionSeconds_ > 0 ? static_cast<long long>(positionSeconds_ * 1000.0 + 0.5) : 0;
             const long long durMs = durationSeconds_ > 0 ? static_cast<long long>(durationSeconds_ * 1000.0 + 0.5) : 0;
             if (positionSeconds_ < 0 && durationSeconds_ < 0) return;
@@ -644,6 +650,14 @@ private:
                 durationSeconds_ = -1.0;
                 lastPositionMs_ = -1;
                 lastDurationMs_ = -1;
+                // 抑制旧文件残留 time-pos：END_FILE 后到新文件 FILE_LOADED 之间不派发 position。
+                positionActive_ = false;
+            }
+            if (event->event_id == MPV_EVENT_FILE_LOADED) {
+                // 新文件已加载就绪，激活 position 派发。在此之前 Load() 已把
+                // positionActive_ 置 false，旧文件残留的 time-pos 会被丢弃，
+                // 不会携带新 eventEpoch_ 误报旧媒体进度。
+                positionActive_ = true;
             }
             if (event->event_id == MPV_EVENT_PROPERTY_CHANGE) {
                 const auto* prop = static_cast<mpv_event_property*>(event->data);
@@ -1204,6 +1218,9 @@ private:
     // 上一次已 Dispatch 的 positionMs/durationMs，用于同值去抖（避免 mpv 重复上报相同值）。
     long long lastPositionMs_ = -1;
     long long lastDurationMs_ = -1;
+    // position 派发开关：仅在新文件 FILE_LOADED 后为 true，抑制切源期间旧文件残留
+    // 的 time-pos。Load() 与 END_FILE 置 false，FILE_LOADED 置 true。跨线程读写故用原子。
+    std::atomic<bool> positionActive_{false};
     std::atomic<bool> firstFrameSent_{false};
     OHNativeWindow* window_ = nullptr;
     mpv_render_context* renderer_ = nullptr;
