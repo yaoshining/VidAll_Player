@@ -210,7 +210,7 @@ export class PlayerSession implements VidAllPlayer {
       if (property.length === 0) {
         throw lifecycleFailure('INPUT_INVALID', '属性名不能为空。Property name must not be empty.');
       }
-      this.requireActiveMedia('setPropertyString', property);
+      this.requireActiveSessionState('setPropertyString');
       return this.nativeBridge.setPropertyString(property, value);
     });
   }
