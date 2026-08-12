@@ -45,7 +45,7 @@ on:
         description: '产出 ffmpeg-8.0-ohos-arm64-v8a artifact 的不可变 workflow run ID'
         required: false
         type: string
-        default: ''
+        default: '31619995231'
 
 permissions:
   actions: read
@@ -110,8 +110,11 @@ jobs:
   build-libmpv-external-ffmpeg:
     name: 使用 ohos_ijkplayer FFmpeg 8 shared prefix 构建 libmpv
     needs: [native-contracts, detect-build-changes]
-    if: ${{ (needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build) && inputs.ffmpeg_artifact_run_id != '' }}
+    if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build }}
     runs-on: [self-hosted, macos, deveco]
+    env:
+      FFMPEG_ARTIFACT_REPOSITORY: ${{ inputs.ffmpeg_artifact_repository || 'yaoshining/ohos_ijkplayer' }}
+      FFMPEG_ARTIFACT_RUN_ID: ${{ inputs.ffmpeg_artifact_run_id || '31619995231' }}
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
@@ -120,8 +123,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # 固定 producer workflow run ID，避免从“最新”artifact 引入浮动二进制。
-          gh run download "${{ inputs.ffmpeg_artifact_run_id }}" \
-            --repo "${{ inputs.ffmpeg_artifact_repository }}" \
+          gh run download "$FFMPEG_ARTIFACT_RUN_ID" \
+            --repo "$FFMPEG_ARTIFACT_REPOSITORY" \
             --name ffmpeg-8.0-ohos-arm64-v8a \
             --dir "${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a"
           test -s "${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a/VERSION"

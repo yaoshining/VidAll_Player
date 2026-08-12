@@ -90,8 +90,8 @@ prepare_ffmpeg_shared_prefix() {
     fi
   done
 
-  if find "$source_prefix/lib" -maxdepth 1 -name 'libav*.a' -print -quit | grep -q .; then
-    echo 'FFmpeg shared prefix 不得包含 libav*.a 静态归档。' >&2
+  if find "$source_prefix/lib" -maxdepth 1 \( -name 'libav*.a' -o -name 'libswresample.a' -o -name 'libswscale.a' \) -print -quit | grep -q .; then
+    echo 'FFmpeg shared prefix 不得包含 libav*.a、libswresample.a 或 libswscale.a 静态归档。' >&2
     return 1
   fi
   for required in \
@@ -139,6 +139,12 @@ for pc in pc_dir.glob('*.pc'):
         if line.startswith('prefix='):
             line = f'prefix={dest}'
             found_prefix = True
+        elif line.startswith('exec_prefix='):
+            line = 'exec_prefix=${prefix}'
+        elif line.startswith('libdir='):
+            line = 'libdir=${exec_prefix}/lib'
+        elif line.startswith('includedir='):
+            line = 'includedir=${prefix}/include'
         # Shared consumers must not inherit producer-only static closure paths.
         if line.startswith('Libs.private:'):
             line = re.sub(r'(?<!\S)-L/\S+', '', line)

@@ -74,9 +74,9 @@ main() {
     ln -s "lib$component.so.$soname" "$ffmpeg_prefix/lib/lib$component.so"
     cat > "$ffmpeg_prefix/lib/pkgconfig/lib$component.pc" <<EOF
 prefix=/producer/absolute/path
-exec_prefix=\${prefix}
-libdir=\${exec_prefix}/lib
-includedir=\${prefix}/include
+exec_prefix=/producer/absolute/path
+libdir=/producer/absolute/path/lib
+includedir=/producer/absolute/path/include
 Name: lib$component
 Version: $version
 Libs: -L\${libdir} -l$component
@@ -117,13 +117,20 @@ EOF
   assert_file_content "$ffmpeg_dest/lib/libavcodec.so.62.11.100" 'shared-avcodec'
   [ -L "$ffmpeg_dest/lib/libavcodec.so" ] || fail 'staging 必须保留共享库符号链接'
   grep -Fxq "prefix=$ffmpeg_dest" "$ffmpeg_dest/lib/pkgconfig/libavformat.pc" || fail 'FFmpeg .pc 必须重写 staging prefix'
-  ! rg -q '/producer/absolute/path|/home/runner/' "$ffmpeg_dest/lib/pkgconfig" || fail 'FFmpeg .pc 不得泄露 producer 绝对路径'
+  ! grep -RqE '/producer/absolute/path|/home/runner/' "$ffmpeg_dest/lib/pkgconfig" || fail 'FFmpeg .pc 不得泄露 producer 绝对路径'
+  grep -Fxq 'exec_prefix=${prefix}' "$ffmpeg_dest/lib/pkgconfig/libavformat.pc" || fail 'FFmpeg .pc 必须重写 exec_prefix'
+  grep -Fxq 'libdir=${exec_prefix}/lib' "$ffmpeg_dest/lib/pkgconfig/libavformat.pc" || fail 'FFmpeg .pc 必须重写 libdir'
+  grep -Fxq 'includedir=${prefix}/include' "$ffmpeg_dest/lib/pkgconfig/libavformat.pc" || fail 'FFmpeg .pc 必须重写 includedir'
 
-  cp -R "$ffmpeg_prefix" "$temp_dir/invalid-static"
-  printf 'archive\n' > "$temp_dir/invalid-static/lib/libavcodec.a"
-  if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-static" "$temp_dir/rejected-static"; then
-    fail '包含 FFmpeg 静态归档的 prefix 必须被拒绝'
-  fi
+  local static_library
+  for static_library in libavcodec.a libswresample.a libswscale.a; do
+    rm -rf "$temp_dir/invalid-static"
+    cp -R "$ffmpeg_prefix" "$temp_dir/invalid-static"
+    printf 'archive\n' > "$temp_dir/invalid-static/lib/$static_library"
+    if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-static" "$temp_dir/rejected-static"; then
+      fail "包含 FFmpeg 静态归档 $static_library 的 prefix 必须被拒绝"
+    fi
+  done
   cp -R "$ffmpeg_prefix" "$temp_dir/invalid-features"
   sed -i.bak '/--enable-demuxer=dash/d' "$temp_dir/invalid-features/configure-options.txt"
   if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-features" "$temp_dir/rejected-features"; then
