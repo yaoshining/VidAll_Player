@@ -13,6 +13,7 @@ class RecordingNativeBridge implements NativePlayerBridge {
   load(): Promise<void> { return Promise.resolve(); }
   play(): Promise<void> { return Promise.resolve(); }
   pause(): Promise<void> { return Promise.resolve(); }
+  setPropertyString(): Promise<void> { return Promise.resolve(); }
   stop(): Promise<void> { return Promise.resolve(); }
 
   release(): Promise<void> {
