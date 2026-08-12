@@ -45,7 +45,7 @@ on:
         description: '产出 ffmpeg-8.0-ohos-arm64-v8a artifact 的不可变 workflow run ID'
         required: false
         type: string
-        default: ''
+        default: '31619995231'
 
 permissions:
   actions: read
@@ -90,7 +90,7 @@ jobs:
             echo "build-needed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          FILES="native/scripts/build-libsmbclient-controlled.sh native/config/sources.lock.json .github/workflows/build-libmpv.yml"
+          FILES="native/scripts/build-libmpv-bootstrap.sh native/scripts/audit-libmpv-elf.sh native/patches/libmpv-ohos-build native/config/sources.lock.json .github/workflows/build-libmpv.yml"
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             git fetch origin "${{ github.base_ref }}" 2>/dev/null || true
             BASE="origin/${{ github.base_ref }}"
@@ -110,8 +110,13 @@ jobs:
   build-libmpv-external-ffmpeg:
     name: 使用 ohos_ijkplayer FFmpeg 8 shared prefix 构建 libmpv
     needs: [native-contracts, detect-build-changes]
-    if: ${{ (needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build) && inputs.ffmpeg_artifact_run_id != '' }}
+    if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build }}
     runs-on: [self-hosted, macos, deveco]
+    env:
+      FFMPEG_ARTIFACT_REPOSITORY: ${{ inputs.ffmpeg_artifact_repository || 'yaoshining/ohos_ijkplayer' }}
+      FFMPEG_ARTIFACT_RUN_ID: ${{ inputs.ffmpeg_artifact_run_id || '31619995231' }}
+      RUST_TOOLCHAIN: 1.85.1
+      RUSTUP_VERSION: 1.28.2
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
@@ -120,15 +125,78 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # 固定 producer workflow run ID，避免从“最新”artifact 引入浮动二进制。
-          gh run download "${{ inputs.ffmpeg_artifact_run_id }}" \
-            --repo "${{ inputs.ffmpeg_artifact_repository }}" \
+          gh run download "$FFMPEG_ARTIFACT_RUN_ID" \
+            --repo "$FFMPEG_ARTIFACT_REPOSITORY" \
             --name ffmpeg-8.0-ohos-arm64-v8a \
             --dir "${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a"
           test -s "${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a/VERSION"
       - name: 配置 OpenHarmony NDK
         run: |
-          test -n "${OHOS_NDK:-}" || { echo 'runner 必须预装并通过 OHOS_NDK 提供 OpenHarmony NDK。' >&2; exit 1; }
-          test -x "$OHOS_NDK/native/llvm/bin/llvm-readelf" || test -x "$OHOS_NDK/llvm/bin/llvm-readelf"
+          if [ -z "${OHOS_NDK:-}" ]; then
+            for candidate in \
+              "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
+              "$HOME/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
+              "/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"; do
+              if [ -x "$candidate/native/llvm/bin/clang" ] && [ -x "$candidate/native/llvm/bin/llvm-readelf" ]; then
+                OHOS_NDK="$candidate"
+                break
+              fi
+            done
+          fi
+          test -n "${OHOS_NDK:-}" || { echo '未找到 OpenHarmony NDK，请安装 DevEco Studio SDK 或设置 OHOS_NDK。' >&2; exit 1; }
+          if [ -d "$OHOS_NDK/native/llvm/bin" ]; then
+            toolchain="$OHOS_NDK/native/llvm/bin"
+          else
+            toolchain="$OHOS_NDK/llvm/bin"
+          fi
+          test -x "$toolchain/clang" || { echo "OpenHarmony clang 不可执行：$toolchain/clang" >&2; exit 1; }
+          test -x "$toolchain/llvm-readelf" || { echo "OpenHarmony llvm-readelf 不可执行：$toolchain/llvm-readelf" >&2; exit 1; }
+          echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
+      - name: 准备 libmpv Rust 与下载工具
+        run: |
+          command -v curl >/dev/null 2>&1 || { echo '缺少 curl，无法准备受控 libmpv 构建工具。' >&2; exit 1; }
+          if ! command -v rustup >/dev/null 2>&1; then
+            case "$(uname -m)" in
+              arm64) rustup_target='aarch64-apple-darwin'; rustup_sha='20ef5516c31b1ac2290084199ba77dbbcaa1406c45c1d978ca68558ef5964ef5' ;;
+              x86_64) rustup_target='x86_64-apple-darwin'; rustup_sha='9c331076f62b4d0edeae63d9d1c9442d5fe39b37b05025ec8d41c5ed35486496' ;;
+              *) echo "不支持的 rustup 主机架构：$(uname -m)" >&2; exit 1 ;;
+            esac
+            rustup_init="$RUNNER_TEMP/rustup-init"
+            curl --proto '=https' --tlsv1.2 -fsSL --retry 5 \
+              "https://static.rust-lang.org/rustup/archive/$RUSTUP_VERSION/$rustup_target/rustup-init" \
+              -o "$rustup_init"
+            printf '%s  %s\n' "$rustup_sha" "$rustup_init" | shasum -a 256 -c -
+            chmod +x "$rustup_init"
+            "$rustup_init" -y --profile minimal --default-toolchain "$RUST_TOOLCHAIN"
+          fi
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          rustup default "$RUST_TOOLCHAIN"
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+          # 锁定上游使用 wget -qO；受限 shim 仅允许 HTTPS 下载，避免依赖 runner 的 Homebrew wget。
+          TOOL_DIR="$RUNNER_TEMP/libmpv-tools"
+          mkdir -p "$TOOL_DIR"
+          cat > "$TOOL_DIR/wget" <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          if [ "$#" -ne 3 ] || [ "${1:-}" != '-qO' ]; then
+            echo 'wget shim 仅支持 -qO <输出文件> <https-url>' >&2
+            exit 2
+          fi
+          output="$2"
+          url="$3"
+          case "$url" in
+            https://*) ;;
+            *) echo 'wget shim 只允许 HTTPS URL' >&2; exit 2 ;;
+          esac
+          if [ "$output" = '-' ]; then
+            exec curl -fsSL --retry 5 --retry-all-errors "$url"
+          fi
+          exec curl -fsSL --retry 5 --retry-all-errors "$url" --output "$output"
+          EOF
+          chmod +x "$TOOL_DIR/wget"
+          echo "$TOOL_DIR" >> "$GITHUB_PATH"
       - name: 构建并审计动态 FFmpeg libmpv
         env:
           VIDALL_PLAYER_FFMPEG_PREFIX: ${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a

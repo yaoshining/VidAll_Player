@@ -141,7 +141,7 @@ python3 -c 'print("\n".join(f"00000000 T symbol_{i:07d}" for i in range(300000))
 EOF
   chmod +x "$mock_bin/llvm-nm"
   : > "$temp_dir/mock-libmpv.so"
-  PATH="$mock_bin:$PATH" "$ELF_AUDIT_TOOL" --input "$temp_dir/mock-libmpv.so" --output "$output_dir/elf-audit-large.json" --allow libc++.so
+  OHOS_NDK='' OHOS_NDK_HOME='' PATH="$mock_bin:$PATH" "$ELF_AUDIT_TOOL" --input "$temp_dir/mock-libmpv.so" --output "$output_dir/elf-audit-large.json" --allow libc++.so
   assert_json "$output_dir/elf-audit-large.json"
   python3 - "$output_dir/elf-audit-large.json" <<'PY'
 import json
@@ -149,6 +149,18 @@ import sys
 report = json.load(open(sys.argv[1], encoding='utf-8'))
 assert report['status'] == 'passed'
 assert len(report['exportedDynamicSymbols']) == 300000
+PY
+
+  if OHOS_NDK='' OHOS_NDK_HOME='' PATH="$mock_bin:$PATH" "$ELF_AUDIT_TOOL" --input "$temp_dir/mock-libmpv.so" --output "$output_dir/elf-audit-require-only.json" --require libc++.so; then
+    fail '仅指定 --require 时未允许的动态依赖必须失败'
+  fi
+  python3 - "$output_dir/elf-audit-require-only.json" <<'PY'
+import json
+import sys
+report = json.load(open(sys.argv[1], encoding='utf-8'))
+assert report['requiredLibraries'] == ['libc++.so']
+assert report['missingRequiredLibraries'] == []
+assert report['forbiddenLibraries'] == []
 PY
 
   cat > "$mock_bin/llvm-readelf" <<'EOF'
@@ -164,15 +176,20 @@ EOF
 printf '00000000 T fixture_symbol\n'
 EOF
   chmod +x "$mock_bin/llvm-nm"
-  if PATH="$mock_bin:$PATH" "$ELF_AUDIT_TOOL" --input "$temp_dir/mock-libmpv.so" --output "$output_dir/elf-audit-forbidden.json" --allow libsmbclient.so --forbid libsmbclient.so; then
+  if OHOS_NDK='' OHOS_NDK_HOME='' PATH="$mock_bin:$PATH" "$ELF_AUDIT_TOOL" --input "$temp_dir/mock-libmpv.so" --output "$output_dir/elf-audit-forbidden.json" --allow libsmbclient.so --forbid libsmbclient.so; then
     fail 'ELF 审计必须拒绝动态链接的 libsmbclient.so'
   fi
-  python3 - "$output_dir/elf-audit-forbidden.json" <<'PY'
+  if OHOS_NDK='' OHOS_NDK_HOME='' PATH="$mock_bin:$PATH" "$ELF_AUDIT_TOOL" --input "$temp_dir/mock-libmpv.so" --output "$output_dir/elf-audit-forbid-only.json" --forbid libsmbclient.so; then
+    fail '仅指定 --forbid 时也必须拒绝动态链接的 libsmbclient.so'
+  fi
+  python3 - "$output_dir/elf-audit-forbidden.json" "$output_dir/elf-audit-forbid-only.json" <<'PY'
 import json
 import sys
-report = json.load(open(sys.argv[1], encoding='utf-8'))
-assert report['status'] == 'failed'
-assert report['forbiddenNeededLibraries'] == ['libsmbclient.so']
+for path in sys.argv[1:]:
+    report = json.load(open(path, encoding='utf-8'))
+    assert report['status'] == 'failed'
+    assert report['forbiddenLibraries'] == ['libsmbclient.so']
+    assert report['forbiddenNeededLibraries'] == ['libsmbclient.so']
 PY
 
   grep -Fq 'sbom.cdx.json' "$CONTROLLED_BUILD" || fail '受控构建必须使用统一的 CycloneDX SBOM 文件名'
@@ -210,16 +227,37 @@ assert 'build-libmpv-controlled.sh' in workflow, 'CI 必须调用受控发布门
 assert 'libmpv-cross-build-prerequisites' in workflow, 'CI 必须上传交叉构建前置条件审计制品'
 assert 'inputs.run_cross_build' in workflow, 'CI 必须保留手动受控调度入口'
 assert 'detect-build-changes' in workflow, 'CI 必须检测构建脚本变更以按需触发交叉构建'
+detection_job = workflow.split('  detect-build-changes:', 1)[1].split('  build-libmpv-external-ffmpeg:', 1)[0]
+for build_input in (
+    'native/scripts/build-libmpv-bootstrap.sh',
+    'native/scripts/audit-libmpv-elf.sh',
+    'native/patches/libmpv-ohos-build',
+    'native/config/sources.lock.json',
+):
+    assert build_input in detection_job, f'CI 变更检测必须覆盖动态 libmpv 输入：{build_input}'
+assert 'native/scripts/build-libsmbclient-controlled.sh' not in detection_job, 'CI 变更检测不得继续跟踪旧 libsmbclient 构建脚本'
 assert 'force_build' in workflow, 'CI 必须支持强制重建入口'
 assert 'ffmpeg_artifact_repository:' in workflow, 'CI 必须声明受控 FFmpeg producer 仓库输入'
 assert 'ffmpeg_artifact_run_id:' in workflow, 'CI 必须使用固定 workflow run ID 获取 FFmpeg 制品'
 assert 'build-libmpv-external-ffmpeg:' in workflow, 'CI 必须执行 external FFmpeg libmpv 构建'
 libmpv_job = workflow.split('  build-libmpv-external-ffmpeg:', 1)[1].split('  controlled-release:', 1)[0]
-assert 'gh run download "${{ inputs.ffmpeg_artifact_run_id }}"' in libmpv_job, 'CI 必须按固定 run ID 下载 FFmpeg 制品'
+assert 'FFMPEG_ARTIFACT_RUN_ID:' in libmpv_job and "'31619995231'" in libmpv_job, 'CI 必须为自动事件提供固定 FFmpeg run ID'
+assert 'gh run download "$FFMPEG_ARTIFACT_RUN_ID"' in libmpv_job, 'CI 必须通过环境变量安全传递固定 run ID'
+assert '--repo "$FFMPEG_ARTIFACT_REPOSITORY"' in libmpv_job, 'CI 必须通过环境变量安全传递 producer 仓库'
+assert '${{ inputs.ffmpeg_artifact_run_id }}' not in libmpv_job.split('run: |', 1)[1], 'workflow inputs 不得直接插值进 shell'
 assert '--name ffmpeg-8.0-ohos-arm64-v8a' in libmpv_job, 'CI 必须下载受控 ARM64 FFmpeg 8 制品'
 assert 'VIDALL_PLAYER_FFMPEG_PREFIX:' in libmpv_job, 'CI 必须向 bootstrap 注入 external FFmpeg prefix'
 assert 'build-libmpv-bootstrap.sh' in libmpv_job, 'external FFmpeg job 必须执行受控引导脚本'
 assert 'test -n "${OHOS_NDK:-}"' in libmpv_job, '真实 libmpv 构建必须验证 OpenHarmony NDK'
+assert '/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony' in libmpv_job, 'CI 必须兼容自动发现 DevEco Studio 默认 OpenHarmony NDK'
+assert 'echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"' in libmpv_job, 'CI 必须向后续步骤导出自动发现的 OpenHarmony NDK'
+assert 'llvm-readelf' in libmpv_job and 'clang' in libmpv_job, 'CI 必须验证 OpenHarmony NDK 编译与审计工具'
+assert 'RUST_TOOLCHAIN: 1.85.1' in libmpv_job, 'CI 必须固定 libmpv 构建使用的 Rust 工具链'
+assert 'RUSTUP_VERSION: 1.28.2' in libmpv_job, 'CI 必须固定 rustup 安装器版本'
+assert 'static.rust-lang.org/rustup/archive/$RUSTUP_VERSION' in libmpv_job, 'CI 必须从固定 rustup archive 获取安装器'
+assert 'shasum -a 256 -c' in libmpv_job and 'rustup default "$RUST_TOOLCHAIN"' in libmpv_job, 'CI 必须校验 rustup 安装器并始终选择固定工具链'
+assert 'https://sh.rustup.rs' not in libmpv_job, 'CI 不得执行未固定内容的 rustup 在线安装脚本'
+assert 'cat > "$TOOL_DIR/wget"' in libmpv_job and 'echo "$TOOL_DIR" >> "$GITHUB_PATH"' in libmpv_job, 'CI 必须为上游提供受限 wget 兼容工具'
 assert 'elf-audit.json' in libmpv_job, 'CI 必须验证 ELF 审计报告'
 assert "assert not report['sizeExceeded']" in libmpv_job, 'CI 必须验证 libmpv 体积预算'
 assert 'GPL-3.0-or-later.txt' in libmpv_job, 'CI 必须验证 FFmpeg GPL 许可证材料'

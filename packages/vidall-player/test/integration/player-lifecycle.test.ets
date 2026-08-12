@@ -4,13 +4,32 @@ import { DirectSmbCapability, NativeBridgeEvent, NativePlayerBridge } from '../.
 
 class LifecycleNativeBridge implements NativePlayerBridge {
   private released: boolean = false;
+  private surfaceGeneration?: number;
+  private eventEpoch: number = 0;
+  private listener?: (event: NativeBridgeEvent) => void;
   readonly properties: string[] = [];
 
   getDirectSmbCapability(): Promise<DirectSmbCapability> { return Promise.resolve({ available: false }); }
-  attachSurface(): Promise<void> { return Promise.resolve(); }
-  resizeSurface(): Promise<void> { return Promise.resolve(); }
-  detachSurface(): Promise<void> { return Promise.resolve(); }
-  load(): Promise<void> { return Promise.resolve(); }
+  attachSurface(surface: { generation: number }): Promise<void> {
+    this.surfaceGeneration = surface.generation;
+    return Promise.resolve();
+  }
+  resizeSurface(surface: { generation: number }): Promise<void> {
+    this.surfaceGeneration = surface.generation;
+    return Promise.resolve();
+  }
+  detachSurface(): Promise<void> { this.surfaceGeneration = undefined; return Promise.resolve(); }
+  load(): Promise<void> {
+    this.eventEpoch++;
+    if (this.surfaceGeneration === undefined) {
+      return Promise.reject(this.failure('SURFACE_UNAVAILABLE'));
+    }
+    this.listener?.({
+      type: 'state', message: 'preparing', eventEpoch: this.eventEpoch, sequence: 1,
+      surfaceGeneration: this.surfaceGeneration
+    });
+    return Promise.resolve();
+  }
   play(): Promise<void> { return Promise.resolve(); }
   pause(): Promise<void> { return Promise.reject(this.failure('FEATURE_UNSUPPORTED')); }
   setPropertyString(property: string, value: string): Promise<void> {
@@ -18,8 +37,18 @@ class LifecycleNativeBridge implements NativePlayerBridge {
     return Promise.resolve();
   }
   stop(): Promise<void> { return Promise.resolve(); }
+  seekRelative(): Promise<void> { return Promise.resolve(); }
+  seekPercent(): Promise<void> { return Promise.resolve(); }
+  setRate(): Promise<void> { return Promise.resolve(); }
+  selectTrack(): Promise<void> { return Promise.resolve(); }
+  addExternalAudio(): Promise<void> { return Promise.resolve(); }
+  addExternalSubtitle(): Promise<void> { return Promise.resolve(); }
+  getFrameData(): null { return null; }
   release(): Promise<void> { this.released = true; return Promise.resolve(); }
-  subscribe(_listener: (event: NativeBridgeEvent) => void): () => void { return (): void => {}; }
+  subscribe(listener: (event: NativeBridgeEvent) => void): () => void {
+    this.listener = listener;
+    return (): void => { this.listener = undefined; };
+  }
 
   private failure(code: string): Error & { playerError: PlayerError } {
     const error = new Error(code) as Error & { playerError: PlayerError };

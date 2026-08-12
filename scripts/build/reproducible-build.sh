@@ -68,6 +68,12 @@ for name, source in lock.get('sources', {}).items():
         digest = source.get('archiveSha256', '')
         if not sha.fullmatch(digest) or set(digest) == {'0'} or not source.get('archiveUrl'):
             raise SystemExit(f'错误: {name} 缺少可信 archiveUrl 或 archiveSha256')
+    elif method == 'external-prefix':
+        build = source.get('build', {})
+        if build.get('linkage') != 'shared' or not build.get('provider'):
+            raise SystemExit(f'错误: {name} external-prefix 缺少 provider 或 shared linkage')
+    elif method != 'git-checkout':
+        raise SystemExit(f'错误: {name} 使用未知 fetchMethod: {method}')
     if 'example.invalid' in source.get('repository', ''):
         raise SystemExit(f'错误: {name} 使用占位来源')
 PY
@@ -110,6 +116,9 @@ for name, source in lock.get('sources', {}).items():
         actual = hashlib.sha256(archive.read_bytes()).hexdigest()
         if actual != source['archiveSha256']:
             raise SystemExit(f'错误: {name} 归档 SHA-256 不匹配')
+    elif method == 'external-prefix':
+        # 外部共享前缀由 bootstrap 根据 metadata、ABI、SONAME 和许可证独立校验。
+        continue
     else:
         raise SystemExit(f'错误: {name} 使用未知 fetchMethod: {method}')
 PY

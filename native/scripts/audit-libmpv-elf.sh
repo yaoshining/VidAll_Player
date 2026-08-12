@@ -48,7 +48,7 @@ machine="$($readelf_tool -h "$input" | sed -n 's/^[[:space:]]*Machine:[[:space:]
 "$nm_tool" -D --defined-only "$input" 2>/dev/null | awk '{print $NF}' | sed '/^$/d' | LC_ALL=C sort -u > "$symbols_file"
 "$nm_tool" -D --undefined-only "$input" 2>/dev/null | awk '{print $NF}' | sed '/^$/d' | LC_ALL=C sort -u > "$undefined_symbols_file"
 file_bytes="$(wc -c < "$input" | tr -d ' ')"
-python3 - "$output" "$needed_file" "$symbols_file" "$undefined_symbols_file" "$machine" "$file_bytes" "$max_bytes" "${#allows[@]}" "${#requires[@]}" "${allows[@]-}" "${requires[@]-}" "${forbids[@]-}" <<'PY'
+python3 - "$output" "$needed_file" "$symbols_file" "$undefined_symbols_file" "$machine" "$file_bytes" "$max_bytes" "${#allows[@]}" "${#requires[@]}" ${allows[@]+"${allows[@]}"} ${requires[@]+"${requires[@]}"} ${forbids[@]+"${forbids[@]}"} <<'PY'
 import json
 import pathlib
 import re

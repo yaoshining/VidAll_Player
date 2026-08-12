@@ -62,8 +62,12 @@ for name, src in sources.items():
         archive = src.get('archiveSha256', '')
         if not SHA256_RE.match(archive):
             errors.append(f'{name} archive 方式缺少 64 位 archiveSha256')
+    elif fetch == 'external-prefix':
+        build = src.get('build', {})
+        if build.get('linkage') != 'shared' or not build.get('provider'):
+            errors.append(f'{name} external-prefix 必须声明 provider 和 shared linkage')
     elif fetch != 'git-checkout':
-        errors.append(f'{name} fetchMethod 必须为 git-checkout 或 archive')
+        errors.append(f'{name} fetchMethod 必须为 git-checkout、archive 或 external-prefix')
 
 # 子模块：每个可能含子模块的来源须声明 submodule 列表（可为空数组）
 submodules = lock.get('submodules', {})
