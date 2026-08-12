@@ -167,15 +167,47 @@ line_of_first_match() {
   grep -n -- "$1" "$2" | head -1 | cut -d: -f1
 }
 
+materialize_patch_preimage() {
+  local patch_file="$1" output_root="$2"
+  python3 - "$patch_file" "$output_root" <<'PY'
+import pathlib
+import re
+import sys
+
+patch_path, output_root = map(pathlib.Path, sys.argv[1:])
+files = {}
+current = None
+old_line = 0
+for line in patch_path.read_text(encoding='utf-8').splitlines():
+    if line.startswith('--- a/'):
+        current = line[6:]
+        files.setdefault(current, [])
+    elif current and line.startswith('@@ '):
+        old_line = int(re.match(r'@@ -(\d+)', line).group(1))
+        while len(files[current]) < old_line - 1:
+            files[current].append('')
+    elif current and line.startswith((' ', '-')):
+        files[current].append(line[1:])
+        old_line += 1
+
+for relative, lines in files.items():
+    destination = output_root / relative
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+PY
+}
+
 main() {
   local work_dir build_sh ffmpeg_sh
   temp_dir="$(mktemp -d)"
   trap 'rm -rf "$temp_dir"' EXIT
 
+  # shellcheck disable=SC1090
+  source "$BOOTSTRAP_SCRIPT"
+
   work_dir="$temp_dir/libmpv-ohos-build"
-  mkdir -p "$work_dir/scripts" "$work_dir/libmpv/mpv/video/out/gpu"
-  git -C "$HOME/.cache/vidall-player/libmpv-ohos-build/libmpv/mpv" show HEAD:meson.build > "$work_dir/libmpv/mpv/meson.build"
-  git -C "$HOME/.cache/vidall-player/libmpv-ohos-build/libmpv/mpv" show HEAD:video/out/gpu/hwdec.c > "$work_dir/libmpv/mpv/video/out/gpu/hwdec.c"
+  mkdir -p "$work_dir/scripts"
+  materialize_patch_preimage "$PATCHES_DIR/0006-disable-private-ohcodec-interop.patch" "$work_dir"
   git init -q "$work_dir"
   git -C "$work_dir" config user.email test@test.com
   git -C "$work_dir" config user.name Test
@@ -184,9 +216,6 @@ main() {
   write_original_mpv_sh "$work_dir/scripts/mpv.sh"
   git -C "$work_dir" add -A
   git -C "$work_dir" commit -qm initial
-
-  # shellcheck disable=SC1090
-  source "$BOOTSTRAP_SCRIPT"
 
   apply_build_script_patches "$work_dir" "$PATCHES_DIR"
 
