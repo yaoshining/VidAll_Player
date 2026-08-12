@@ -77,4 +77,11 @@ fi
 "$SBOM_TOOL" --lock "$LOCK_FILE" --format cyclonedx --output "$output_dir/sbom.cdx.json"
 "$LICENSE_TOOL" --lock "$LOCK_FILE" --output "$output_dir/license-audit.json"
 "$NOTICE_TOOL" --lock "$LOCK_FILE" --output "$output_dir/NOTICE"
-"$ELF_AUDIT_TOOL" --input "$output_dir/libmpv.so" --output "$output_dir/elf-audit.json" --allow libc++.so --allow libhilog_ndk.z.so --forbid libsmbclient.so
+"$ELF_AUDIT_TOOL" --input "$output_dir/libmpv.so" --output "$output_dir/elf-audit.json" \
+  --allow libc.so --allow libm.so --allow libdl.so --allow libz.so \
+  --allow libc++.so --allow libhilog_ndk.z.so \
+  --allow libavcodec.so.62 --allow libavformat.so.62 --allow libavutil.so.60 \
+  --allow libavfilter.so.11 --allow libswresample.so.6 --allow libswscale.so.9 \
+  --require libavcodec.so.62 --require libavformat.so.62 --require libavutil.so.60 \
+  --require libavfilter.so.11 --require libswresample.so.6 --require libswscale.so.9 \
+  --forbid libsmbclient.so --max-bytes "${VIDALL_PLAYER_LIBMPV_MAX_BYTES:-25000000}"

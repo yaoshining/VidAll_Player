@@ -127,14 +127,19 @@ PY
   local mock_bin
   mock_bin="$temp_dir/mock-bin"
   mkdir -p "$mock_bin"
-  cat > "$mock_bin/readelf" <<'EOF'
+  cat > "$mock_bin/llvm-readelf" <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
+  -h) printf '  Machine:                           AArch64\n' ;;
   -d) printf ' 0x0000000000000001 (NEEDED)             Shared library: [libc++.so]\n' ;;
-  --dyn-syms) python3 -c 'print("\n".join(f"    1: 00000000     0 FUNC    GLOBAL DEFAULT    1 symbol_{i:07d}" for i in range(300000)))' ;;
 esac
 EOF
-  chmod +x "$mock_bin/readelf"
+  chmod +x "$mock_bin/llvm-readelf"
+  cat > "$mock_bin/llvm-nm" <<'EOF'
+#!/usr/bin/env bash
+python3 -c 'print("\n".join(f"00000000 T symbol_{i:07d}" for i in range(300000)))'
+EOF
+  chmod +x "$mock_bin/llvm-nm"
   : > "$temp_dir/mock-libmpv.so"
   PATH="$mock_bin:$PATH" "$ELF_AUDIT_TOOL" --input "$temp_dir/mock-libmpv.so" --output "$output_dir/elf-audit-large.json" --allow libc++.so
   assert_json "$output_dir/elf-audit-large.json"
@@ -143,17 +148,22 @@ import json
 import sys
 report = json.load(open(sys.argv[1], encoding='utf-8'))
 assert report['status'] == 'passed'
-assert len(report['exportedDynamicSymbols']) == 299997
+assert len(report['exportedDynamicSymbols']) == 300000
 PY
 
-  cat > "$mock_bin/readelf" <<'EOF'
+  cat > "$mock_bin/llvm-readelf" <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
+  -h) printf '  Machine:                           AArch64\n' ;;
   -d) printf ' 0x0000000000000001 (NEEDED)             Shared library: [libsmbclient.so]\n' ;;
-  --dyn-syms) printf '    1: 00000000     0 FUNC    GLOBAL DEFAULT    1 fixture_symbol\n' ;;
 esac
 EOF
-  chmod +x "$mock_bin/readelf"
+  chmod +x "$mock_bin/llvm-readelf"
+  cat > "$mock_bin/llvm-nm" <<'EOF'
+#!/usr/bin/env bash
+printf '00000000 T fixture_symbol\n'
+EOF
+  chmod +x "$mock_bin/llvm-nm"
   if PATH="$mock_bin:$PATH" "$ELF_AUDIT_TOOL" --input "$temp_dir/mock-libmpv.so" --output "$output_dir/elf-audit-forbidden.json" --allow libsmbclient.so --forbid libsmbclient.so; then
     fail 'ELF 审计必须拒绝动态链接的 libsmbclient.so'
   fi
@@ -178,9 +188,9 @@ PY
   grep -Fq '#if defined(HAVE_ETHTOOL) && !defined(__OHOS__)' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'OHOS 交叉构建不得链接不完整的 Linux ethtool API'
   grep -Fq 'export PKG_CONFIG_BIN="$(command -v pkg-config)"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '必须导出宿主 pkg-config 的实际位置给包装器'
   grep -Fq 'exec "$PKG_CONFIG_BIN" --static "$@"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'Samba 必须解析 GnuTLS 静态传递依赖'
-  grep -Fq -- '--enable-gpl' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch" || fail 'FFmpeg 补丁必须启用 GPL'
-  grep -Fq -- '--enable-libsmbclient' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch" || fail 'FFmpeg 补丁必须启用 libsmbclient'
-  grep -Fq -- '--pkg-config-flags=--static' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0003-ffmpeg-enable-libxml2-dash-demuxer.patch" || fail 'FFmpeg 必须静态解析 libsmbclient 传递依赖'
+  grep -Fq -- 'prepare_ffmpeg_shared_prefix' "$PROJECT_ROOT/native/scripts/build-libmpv-bootstrap.sh" || fail 'bootstrap 必须校验 external FFmpeg prefix'
+  grep -Fq -- '--enable-libsmbclient' "$PROJECT_ROOT/native/scripts/build-libmpv-bootstrap.sh" || fail 'external FFmpeg 门禁必须要求 libsmbclient'
+  grep -Fq -- '--enable-shared' "$PROJECT_ROOT/native/scripts/build-libmpv-bootstrap.sh" || fail 'external FFmpeg 门禁必须要求 shared libraries'
   grep -Fq -- '-Dgpl=true' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch" || fail 'mpv 补丁必须启用 GPL'
   grep -Fq -- '-Dopensles=disabled' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch" || fail 'mpv 补丁必须基于锁定上游脚本并保留 OpenSLES 配置'
   grep -Fq -- '-Dmanpage-build=disabled' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch" || fail 'mpv 补丁必须保留锁定上游的构建末尾配置'
@@ -198,43 +208,22 @@ assert 'build-libmpv-controlled.sh' in workflow, 'CI 必须调用受控发布门
 assert 'libmpv-cross-build-prerequisites' in workflow, 'CI 必须上传交叉构建前置条件审计制品'
 assert 'inputs.run_cross_build' in workflow, 'CI 必须保留手动受控调度入口'
 assert 'detect-build-changes' in workflow, 'CI 必须检测构建脚本变更以按需触发交叉构建'
-assert 'cache-hit' in workflow, 'CI 必须对 libsmbclient 交叉构建启用缓存命中跳过'
 assert 'force_build' in workflow, 'CI 必须支持强制重建入口'
-assert 'build-libmpv-with-smb:' in workflow, 'CI 必须在 libsmbclient 成功后执行真实 libmpv 交叉构建'
-assert 'needs: [native-contracts, detect-build-changes, build-libsmbclient]' in workflow, '真实 libmpv 构建必须依赖同次运行的 libsmbclient 制品'
-assert 'name: libsmbclient-ohos-sysroot' in workflow, '真实 libmpv 构建必须下载同次运行的 SMB sysroot 制品'
-assert 'actions: read' in workflow, 'CI 必须授权读取同次构建的 artifact'
-assert '直接下载并解压同次 SMB sysroot' in workflow, '真实 libmpv 构建必须直接下载并解压 SMB artifact'
-libmpv_job = workflow.split('  build-libmpv-with-smb:', 1)[1]
-assert 'actions/runs/${GITHUB_RUN_ID}/artifacts' in libmpv_job, 'SMB artifact 必须从当前 workflow run 查询'
-assert 'GITHUB_TOKEN: ${{ github.token }}' in libmpv_job, 'SMB artifact API 下载必须显式注入 GitHub token'
-assert '--retry 5 --retry-all-errors' in libmpv_job, 'SMB artifact 下载必须重试临时传输中断'
-assert 'unzip -tqq "$SMB_ARTIFACT_ZIP"' in libmpv_job, 'SMB artifact 必须先校验 zip 完整性'
-assert 'unzip -q "$SMB_ARTIFACT_ZIP" -d "$SMB_DOWNLOAD_ROOT"' in libmpv_job, 'SMB artifact 必须完成解压后再读取元数据'
-assert '"/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"' in libmpv_job, '真实 libmpv 构建必须复用带版本的 DevEco NDK 探测路径'
-assert 'VIDALL_PLAYER_SMB_SYSROOT' in workflow, '真实 libmpv 构建必须向引导脚本注入 SMB sysroot'
-assert 'SMB_DOWNLOAD_ROOT/lib/libsmbclient.a' in libmpv_job, '单个 SMB artifact 解压到目标目录时必须直接使用其根目录'
-assert "-name 'libsmbclient.a'" in libmpv_job, 'artifact 保留顶层目录时必须回退定位静态库'
-assert 'dirname "$SMB_ARCHIVE")/.."' in libmpv_job, '回退定位到 lib/libsmbclient.a 后必须向上一级得到 sysroot 根目录'
-assert '未在下载制品中找到 libsmbclient.a' in libmpv_job, 'SMB sysroot 缺失时必须输出明确诊断'
-assert 'SMB artifact root: $SMB_SYSROOT' in libmpv_job, 'SMB sysroot 校验必须输出定位后的根目录'
-assert 'test -d "$SMB_DOWNLOAD_ROOT"' in libmpv_job, 'SMB sysroot 定位前必须校验下载目录'
-assert '2>/dev/null || true' in libmpv_job, 'artifact 目录遍历失败时必须保留后续明确诊断'
-assert 'libsmbclient.a 不可读或为空' in libmpv_job, 'SMB 静态库校验失败时必须输出明确诊断'
-assert 'OHOS_NDK_HOME: ${{ env.OHOS_NDK }}' in workflow, '真实 libmpv 构建必须向上游脚本传递已验证的 OpenHarmony NDK'
-assert '安装 libmpv Rust 与下载工具' in workflow, '真实 libmpv 构建必须预先安装 Rust 和下载工具'
-assert 'curl --proto' in libmpv_job and 'sh -s -- -y --profile minimal --default-toolchain stable' in libmpv_job, '真实 libmpv 构建必须用 curl 安装 Rust，避免依赖可能损坏的 Homebrew formula'
-assert 'wget shim' in libmpv_job and 'curl -fsSL --retry 5 --retry-all-errors "$url"' in libmpv_job, '上游缺少 wget 时必须提供带重试的 curl shim'
-assert 'wget shim 仅支持 -qO <输出文件> <https-url>' in libmpv_job, 'wget shim 必须支持上游依赖归档下载'
-assert 'output="$2"' in libmpv_job and 'url="$3"' in libmpv_job, 'wget shim 必须将输出文件与 URL 传给 curl'
-assert 'curl -fsSL --retry 5 --retry-all-errors "$url" --output "$output"' in libmpv_job, '上游归档下载必须重试临时传输中断'
-assert 'git shim 仅为 clone/fetch 重试瞬态网络故障' in libmpv_job, '上游依赖 git 下载必须重试瞬态网络故障'
-assert 'for attempt in 1 2 3 4 5' in libmpv_job and 'rm -rf -- "$destination"' in libmpv_job, '失败的浅克隆必须清理后重试'
-assert 'brew install wget rustup-init' not in libmpv_job, '真实 libmpv 构建不得依赖 Homebrew 安装 Rust 或 wget'
-assert 'PATH: ${{ env.PATH }}:${{ runner.home }}/.cargo/bin' not in libmpv_job, '真实 libmpv 构建不得用空的 Actions env.PATH 覆盖系统 PATH'
-assert 'build-libmpv-bootstrap.sh' in workflow, '真实 libmpv 构建必须执行受控引导脚本'
-assert 'llvm-readelf' in workflow and "grep -F 'libsmbclient.so'" in workflow, '真实 libmpv 构建必须拒绝动态 libsmbclient.so'
-assert 'libmpv-arm64-with-smb' in workflow, '真实 libmpv 构建必须上传 ARM64 SMB 制品'
+assert 'ffmpeg_artifact_repository:' in workflow, 'CI 必须声明受控 FFmpeg producer 仓库输入'
+assert 'ffmpeg_artifact_run_id:' in workflow, 'CI 必须使用固定 workflow run ID 获取 FFmpeg 制品'
+assert 'build-libmpv-external-ffmpeg:' in workflow, 'CI 必须执行 external FFmpeg libmpv 构建'
+libmpv_job = workflow.split('  build-libmpv-external-ffmpeg:', 1)[1].split('  controlled-release:', 1)[0]
+assert 'gh run download "${{ inputs.ffmpeg_artifact_run_id }}"' in libmpv_job, 'CI 必须按固定 run ID 下载 FFmpeg 制品'
+assert '--name ffmpeg-8.0-ohos-arm64-v8a' in libmpv_job, 'CI 必须下载受控 ARM64 FFmpeg 8 制品'
+assert 'VIDALL_PLAYER_FFMPEG_PREFIX:' in libmpv_job, 'CI 必须向 bootstrap 注入 external FFmpeg prefix'
+assert 'build-libmpv-bootstrap.sh' in libmpv_job, 'external FFmpeg job 必须执行受控引导脚本'
+assert 'test -n "${OHOS_NDK:-}"' in libmpv_job, '真实 libmpv 构建必须验证 OpenHarmony NDK'
+assert 'elf-audit.json' in libmpv_job, 'CI 必须验证 ELF 审计报告'
+assert "assert not report['sizeExceeded']" in libmpv_job, 'CI 必须验证 libmpv 体积预算'
+assert 'GPL-3.0-or-later.txt' in libmpv_job, 'CI 必须验证 FFmpeg GPL 许可证材料'
+assert 'ffmpeg-runtime-arm64' in libmpv_job, 'CI 必须独立上传供最终宿主 HAP 使用的 FFmpeg runtime'
+assert 'VIDALL_PLAYER_SMB_SYSROOT' not in workflow, 'CI 不得继续向 libmpv 注入旧 SMB sysroot'
+assert 'build-libsmbclient:' not in workflow, 'CI 不得在 libmpv 流程中重复构建 libsmbclient'
 assert "printf '%s\\n' -Dgpl=true" in workflow, 'CI 元数据必须声明 GPL 构建选项'
 assert '-Dgpl=false' not in workflow, 'CI 不得再生成禁用 GPL 的 libmpv 元数据'
 assert 'direct SMB 已可播放' not in workflow, 'CI 不得在未完成真机验证时宣称 direct SMB 可播放'

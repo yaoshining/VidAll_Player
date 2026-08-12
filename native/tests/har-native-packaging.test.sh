@@ -30,7 +30,7 @@ require_contains "$SOURCE" 'mpv_initialize'
 require_contains "$SOURCE" 'CreateSession'
 require_contains "$SOURCE" 'ReleaseSession'
 require_contains "$MANIFEST" '"name": "libvidall_player_native.so"'
-require_contains "$TYPES" 'createSession(): NativeSessionResult;'
+require_contains "$TYPES" 'createSession(fontsDir?: string, hwdec?: string): NativeSessionResult;'
 require_contains "$TYPES" 'releaseSession(handle: number): NativeSessionResult;'
 require_contains "$BRIDGE" "from 'libvidall_player_native.so'"
 NATIVE_BRIDGE="$ROOT/packages/vidall-player/src/native/nativeBridge.ets"
@@ -49,5 +49,11 @@ if [ "${1:-}" = "--artifacts" ]; then
   for abi in arm64-v8a x86_64; do
     tar -tzf "$HAR" | rg -q "^package/libs/$abi/libvidall_player_native\\.so$" || fail "HAR 缺少 $abi native 库"
     unzip -Z1 "$HAP" | rg -q "^libs/$abi/libvidall_player_native\\.so$" || fail "consumer HAP 缺少 $abi native 库"
+    if tar -tzf "$HAR" | rg -q "^package/libs/$abi/lib(av(codec|format|util|filter)|sw(resample|scale))\\.so"; then
+      fail "HAR 不得携带 FFmpeg runtime 副本：$abi"
+    fi
+  done
+  for library in libavcodec.so.62 libavformat.so.62 libavutil.so.60 libavfilter.so.11 libswresample.so.6 libswscale.so.9; do
+    unzip -Z1 "$HAP" | rg -q "^libs/arm64-v8a/$library$" || fail "最终宿主 HAP 缺少 FFmpeg runtime：$library"
   done
 fi

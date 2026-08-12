@@ -385,7 +385,7 @@ public:
         if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
         if (uri.empty()) return {false, handle, "INPUT_INVALID"};
         // direct smb:// 走 FFmpeg 的 demuxer-lavf-o/stream-lavf-o username=/password= 选项
-        // 认证（libsmbclient 已静态链接进 libmpv.so），不走 HTTP header；其余来源仍使用
+        // 认证（libsmbclient 已静态进入宿主统一打包的 libavformat.so），不走 HTTP header；其余来源仍使用
         // http-header-fields 转发 WebDAV/HTTP(S) 鉴权头。每次 load 都重设两类选项，避免
         // 上一次加载的凭据残留到下一次无凭据/不同协议的加载。
         const bool isSmb = !smbUsername.empty() || !smbPassword.empty();

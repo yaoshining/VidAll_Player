@@ -1,20 +1,18 @@
 diff --git a/build.sh b/build.sh
-index f714f65..cef100b 100644
+index ffd97a1..65fa873 100644
 --- a/build.sh
 +++ b/build.sh
-@@ -2,13 +2,11 @@
+@@ -2,12 +2,7 @@
  
  set -eu
  
 -# ffmpeg
-+# ffmpeg（libxml2 须先于 ffmpeg 构建：FFmpeg dash demuxer 依赖 libxml2 解析 MPD XML）
- ./scripts/mbedtls.sh build
- ./scripts/dav1d.sh build
+-./scripts/mbedtls.sh build
+-./scripts/dav1d.sh build
 -./scripts/ffmpeg.sh build
 -
 -# fontconfig
++# FFmpeg 由 VIDALL_PLAYER_FFMPEG_PREFIX 提供 shared prefix，不在此处重复构建。
  ./scripts/libxml2.sh build
-+./scripts/ffmpeg.sh build
  
  # libass
- ./scripts/fribidi.sh build

@@ -1,0 +1,15 @@
+diff --git a/scripts/mpv.sh b/scripts/mpv.sh
+--- a/scripts/mpv.sh
++++ b/scripts/mpv.sh
+@@ -6,4 +6,11 @@
+ 
+ . $ROOT_DIR/env.sh
+ 
++if [ -z "${VIDALL_PLAYER_FFMPEG_STAGING:-}" ]; then
++  echo "缺少 external FFmpeg staging prefix。" >&2
++  exit 1
++fi
++export PKG_CONFIG_PATH="$VIDALL_PLAYER_FFMPEG_STAGING/lib/pkgconfig:$DEST/lib/pkgconfig"
++export PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"
++
+ pushd $ROOT_DIR/libmpv/mpv

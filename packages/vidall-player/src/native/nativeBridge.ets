@@ -88,7 +88,7 @@ export interface SmbCredentials {
 }
 
 // direct smb:// 走 FFmpeg 的 demuxer-lavf-o/stream-lavf-o username=/password= 选项完成鉴权
-// （libsmbclient 已静态链接进 libmpv.so），而不是 HTTP header——这与 WebDAV/HTTP(S) 的鉴权
+// （libsmbclient 已静态进入宿主统一打包的 libavformat.so），而不是 HTTP header——这与 WebDAV/HTTP(S) 的鉴权
 // 通道不同。为避免在公开 API 上新增 SMB 专属凭据字段（违反 specs/002-controlled-direct-smb
 // 的公开接口约束），SMB 凭据复用与 WebDAV 相同的 `headers.authorization: "Basic <base64>"`
 // 机制传入，这里解码出用户名/密码后转发给原生层；解码失败或匿名共享时返回空字符串（视为匿名）。

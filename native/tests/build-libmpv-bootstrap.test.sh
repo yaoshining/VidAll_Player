@@ -51,32 +51,88 @@ main() {
   write_sha256 "$hash_input" "$hash_output"
   grep -Eq '^[0-9a-f]{64}[[:space:]]+' "$hash_output" || fail 'libmpv SHA-256 摘要格式无效'
 
-  # 当调用方提供已验证的 SMB sysroot 时，引导脚本必须将其注入 FFmpeg 使用的 DEST。
-  local smb_sysroot="$temp_dir/smb-sysroot"
-  mkdir -p "$smb_sysroot/lib/pkgconfig" "$smb_sysroot/include"
-  printf 'archive\n' > "$smb_sysroot/lib/libsmbclient.a"
-  printf 'transitive archive\n' > "$smb_sysroot/lib/libgnutls.a"
-  cat > "$smb_sysroot/lib/pkgconfig/smbclient.pc" <<'EOF'
-prefix=/stale/smb-sysroot
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include
-Libs: -L${libdir} -lsmbclient
-Libs.private: -lgnutls -ltasn1
-Cflags: -I${includedir}
+  # external prefix 必须携带 FFmpeg 8 shared libraries、pkg-config、许可证及播放能力证明。
+  local ffmpeg_prefix="$temp_dir/ffmpeg-prefix"
+  local ffmpeg_dest="$temp_dir/ffmpeg-dest"
+  mkdir -p "$ffmpeg_prefix/include/libavcodec" "$ffmpeg_prefix/include/libavformat" \
+    "$ffmpeg_prefix/include/libavutil" "$ffmpeg_prefix/include/libavfilter" \
+    "$ffmpeg_prefix/include/libswresample" "$ffmpeg_prefix/include/libswscale" \
+    "$ffmpeg_prefix/lib/pkgconfig" "$ffmpeg_prefix/licenses"
+  local component soname version
+  for component in avcodec avformat avutil avfilter swresample swscale; do
+    case "$component" in
+      avcodec) soname=62; version=62.11.100 ;;
+      avformat) soname=62; version=62.3.100 ;;
+      avutil) soname=60; version=60.8.100 ;;
+      avfilter) soname=11; version=11.4.100 ;;
+      swresample) soname=6; version=6.1.100 ;;
+      swscale) soname=9; version=9.1.100 ;;
+    esac
+    printf 'header\n' > "$ffmpeg_prefix/include/lib$component/$component.h"
+    printf 'shared-%s\n' "$component" > "$ffmpeg_prefix/lib/lib$component.so.$version"
+    ln -s "lib$component.so.$version" "$ffmpeg_prefix/lib/lib$component.so.$soname"
+    ln -s "lib$component.so.$soname" "$ffmpeg_prefix/lib/lib$component.so"
+    cat > "$ffmpeg_prefix/lib/pkgconfig/lib$component.pc" <<EOF
+prefix=/producer/absolute/path
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: lib$component
+Version: $version
+Libs: -L\${libdir} -l$component
+Libs.private: -L/home/runner/work/ohos_ijkplayer/smb-sysroot/lib -lsmbclient
+Cflags: -I\${includedir}
 EOF
-  printf 'header\n' > "$smb_sysroot/include/libsmbclient.h"
-  printf 'transitive header\n' > "$smb_sysroot/include/gnutls.h"
-  VIDALL_PLAYER_SMB_SYSROOT="$smb_sysroot" prepare_smb_sysroot "$work_dir/libmpv/arm64-build"
-  assert_file_content "$work_dir/libmpv/arm64-build/lib/libsmbclient.a" 'archive'
-  assert_file_content "$work_dir/libmpv/arm64-build/lib/libgnutls.a" 'transitive archive'
-  grep -Fxq "prefix=$work_dir/libmpv/arm64-build" "$work_dir/libmpv/arm64-build/lib/pkgconfig/smbclient.pc" || fail 'smbclient.pc 必须使用 FFmpeg DEST 作为 prefix'
-  grep -Fxq 'Libs.private: -lgnutls -ltasn1' "$work_dir/libmpv/arm64-build/lib/pkgconfig/smbclient.pc" || fail 'smbclient.pc 必须保留静态传递依赖'
-  assert_file_content "$work_dir/libmpv/arm64-build/include/libsmbclient.h" 'header'
-  assert_file_content "$work_dir/libmpv/arm64-build/include/gnutls.h" 'transitive header'
+  done
+  printf 'GPL license\n' > "$ffmpeg_prefix/licenses/GPL-3.0-or-later.txt"
+  printf 'FFmpeg license\n' > "$ffmpeg_prefix/licenses/FFmpeg-LGPL-2.1-or-later.txt"
+  cat > "$ffmpeg_prefix/VERSION" <<'EOF'
+ffmpeg_version=8.0
+source_tag=n8.0
+source_commit=140fd653aed8cad774f991ba083e2d01e86420c7
+libsmbclient=enabled
+libsmbclient_linkage=static-closure
+smb_patch=patches/0001-libsmbclient-private-credentials.patch
+target=aarch64-unknown-linux-ohos
+architecture=arm64-v8a
+elf_machine=AArch64
+EOF
+  cat > "$ffmpeg_prefix/configure-options.txt" <<'EOF'
+--disable-static
+--enable-shared
+--enable-gpl
+--enable-version3
+--enable-libsmbclient
+--enable-network
+--enable-libdav1d
+--enable-mbedtls
+--enable-libxml2
+--enable-demuxer=dash
+--enable-ohcodec
+--enable-encoder=png,mjpeg
+EOF
+  printf 'manifest\n' > "$ffmpeg_prefix/MANIFEST.tsv"
+  printf 'elf report\n' > "$ffmpeg_prefix/ELF-REPORT.txt"
+  prepare_ffmpeg_shared_prefix "$ffmpeg_prefix" "$ffmpeg_dest"
+  assert_file_content "$ffmpeg_dest/lib/libavcodec.so.62.11.100" 'shared-avcodec'
+  [ -L "$ffmpeg_dest/lib/libavcodec.so" ] || fail 'staging 必须保留共享库符号链接'
+  grep -Fxq "prefix=$ffmpeg_dest" "$ffmpeg_dest/lib/pkgconfig/libavformat.pc" || fail 'FFmpeg .pc 必须重写 staging prefix'
+  ! rg -q '/producer/absolute/path|/home/runner/' "$ffmpeg_dest/lib/pkgconfig" || fail 'FFmpeg .pc 不得泄露 producer 绝对路径'
 
-  if VIDALL_PLAYER_SMB_SYSROOT="$temp_dir/missing-smb-sysroot" prepare_smb_sysroot "$work_dir/libmpv/arm64-build"; then
-    fail '不完整的 SMB sysroot 必须被拒绝'
+  cp -R "$ffmpeg_prefix" "$temp_dir/invalid-static"
+  printf 'archive\n' > "$temp_dir/invalid-static/lib/libavcodec.a"
+  if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-static" "$temp_dir/rejected-static"; then
+    fail '包含 FFmpeg 静态归档的 prefix 必须被拒绝'
+  fi
+  cp -R "$ffmpeg_prefix" "$temp_dir/invalid-features"
+  sed -i.bak '/--enable-demuxer=dash/d' "$temp_dir/invalid-features/configure-options.txt"
+  if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-features" "$temp_dir/rejected-features"; then
+    fail '缺少历史播放能力的 prefix 必须被拒绝'
+  fi
+  cp -R "$ffmpeg_prefix" "$temp_dir/invalid-license"
+  rm "$temp_dir/invalid-license/licenses/GPL-3.0-or-later.txt"
+  if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-license" "$temp_dir/rejected-license"; then
+    fail '缺少 GPL 许可证的 prefix 必须被拒绝'
   fi
 
   mkdir -p "$work_dir/libmpv/ffmpeg"
