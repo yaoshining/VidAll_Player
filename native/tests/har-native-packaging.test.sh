@@ -54,9 +54,10 @@ if [ "${1:-}" = "--artifacts" ]; then
   require_file "$HAP"
   require_file "$READELF"
   tar -xzf "$HAR" -C "$TMP_DIR"
+  HAP_ENTRIES="$(unzip -Z1 "$HAP")"
   for abi in arm64-v8a x86_64; do
     tar -tzf "$HAR" | rg -q "^package/libs/$abi/libvidall_player_native\\.so$" || fail "HAR 缺少 $abi native 库"
-    unzip -Z1 "$HAP" | rg -q "^libs/$abi/libvidall_player_native\\.so$" || fail "consumer HAP 缺少 $abi native 库"
+    rg -qx "libs/$abi/libvidall_player_native\\.so" <<<"$HAP_ENTRIES" || fail "consumer HAP 缺少 $abi native 库"
     if tar -tzf "$HAR" | rg -q "^package/libs/$abi/lib(av(codec|format|util|filter)|sw(resample|scale))\\.so"; then
       fail "HAR 不得携带 FFmpeg runtime 副本：$abi"
     fi
@@ -66,7 +67,7 @@ if [ "${1:-}" = "--artifacts" ]; then
   rg -q 'Shared library: \[libmpv\.so\]' <<<"$ARM64_DYNAMIC" || fail "ARM64 native 缺少 libmpv.so DT_NEEDED"
   ! rg -q '\((RPATH|RUNPATH)\)' <<<"$ARM64_DYNAMIC" || fail "ARM64 native 不得携带 RPATH/RUNPATH"
   rg -q '"linkLibraries":\["libmpv.so"\]' "$TMP_DIR/package/oh-package.json5" || fail "HAR 未声明 libmpv.so 穿透依赖"
-  for library in libavcodec.so.62 libavformat.so.62 libavutil.so.60 libavfilter.so.11 libswresample.so.6 libswscale.so.9; do
-    unzip -Z1 "$HAP" | rg -q "^libs/arm64-v8a/$library$" || fail "最终宿主 HAP 缺少 FFmpeg runtime：$library"
+  for library in libmpv.so libavcodec.so.62 libavformat.so.62 libavutil.so.60 libavfilter.so.11 libswresample.so.6 libswscale.so.9; do
+    rg -qx "libs/arm64-v8a/$library" <<<"$HAP_ENTRIES" || fail "最终宿主 HAP 缺少 ARM64 runtime：$library"
   done
 fi
