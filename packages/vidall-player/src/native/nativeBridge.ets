@@ -35,6 +35,7 @@ export interface NativePlayerBridge {
   seekRelative(seconds: number): Promise<void>;
   seekPercent(percent: number): Promise<void>;
   setRate(rate: number): Promise<void>;
+  setPropertyString(property: string, value: string): Promise<void>;
   selectTrack(kind: 'audio' | 'subtitle', trackId: number): Promise<void>;
   addExternalAudio(uri: string): Promise<void>;
   addExternalSubtitle(uri: string): Promise<void>;
@@ -192,6 +193,10 @@ class HarNativePlayerBridge implements NativePlayerBridge {
 
   setRate(rate: number): Promise<void> {
     return this.complete(nativeSession.setRate(this.handle, rate));
+  }
+
+  setPropertyString(property: string, value: string): Promise<void> {
+    return this.complete(nativeSession.setPropertyString(this.handle, property, value));
   }
 
   selectTrack(kind: 'audio' | 'subtitle', trackId: number): Promise<void> {

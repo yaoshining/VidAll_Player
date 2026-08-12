@@ -457,6 +457,17 @@ public:
             ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "NATIVE_PLAYBACK_FAILED"};
     }
 
+    // 通用 mpv 字符串属性设置接口，供上层动态控制 sid、sub-visibility 等属性。
+    NativeResult SetPropertyString(const std::string& property, const std::string& value, std::uint64_t handle)
+    {
+        std::lock_guard<std::mutex> lock(lifecycleMutex_);
+        if (released_) return {false, handle, "RELEASED"};
+        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        if (property.empty()) return {false, handle, "INPUT_INVALID"};
+        return mpv_set_property_string(player_.get(), property.c_str(), value.c_str()) >= 0
+            ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "NATIVE_PLAYBACK_FAILED"};
+    }
+
     // kind: "audio" -> mpv "aid"；"subtitle" -> mpv "sid"。trackId < 0 表示取消选择（"no"）。
     NativeResult SelectTrack(const std::string& kind, int64_t trackId, std::uint64_t handle)
     {
@@ -1396,6 +1407,19 @@ napi_value SetRate(napi_env env, napi_callback_info info)
 #endif
 }
 
+napi_value SetPropertyString(napi_env env, napi_callback_info info)
+{
+    napi_value args[3] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; std::string property; std::string value;
+    if (!GetArguments(env, info, 3, args, argc) || argc != 3 || !ReadHandle(env, args[0], handle) ||
+        !ReadString(env, args[1], property) || !ReadString(env, args[2], value)) return nullptr;
+#if VIDALL_MPV_AVAILABLE
+    std::shared_ptr<NativeSession> session = FindSession(handle);
+    return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SetPropertyString(property, value, handle));
+#else
+    return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
+#endif
+}
+
 napi_value SelectTrack(napi_env env, napi_callback_info info)
 {
     napi_value args[3] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0; std::string kind; int64_t trackId = 0;
@@ -1470,6 +1494,7 @@ napi_value Init(napi_env env, napi_value exports)
         {"seekRelative", nullptr, SeekRelative, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"seekPercent", nullptr, SeekPercent, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setRate", nullptr, SetRate, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"setPropertyString", nullptr, SetPropertyString, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"selectTrack", nullptr, SelectTrack, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"addExternalAudio", nullptr, AddExternalAudio, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"addExternalSubtitle", nullptr, AddExternalSubtitle, nullptr, nullptr, nullptr, napi_default, nullptr},
