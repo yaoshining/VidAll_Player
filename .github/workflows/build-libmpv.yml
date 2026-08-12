@@ -130,8 +130,26 @@ jobs:
           test -s "${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a/VERSION"
       - name: 配置 OpenHarmony NDK
         run: |
-          test -n "${OHOS_NDK:-}" || { echo 'runner 必须预装并通过 OHOS_NDK 提供 OpenHarmony NDK。' >&2; exit 1; }
-          test -x "$OHOS_NDK/native/llvm/bin/llvm-readelf" || test -x "$OHOS_NDK/llvm/bin/llvm-readelf"
+          if [ -z "${OHOS_NDK:-}" ]; then
+            for candidate in \
+              "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
+              "$HOME/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
+              "/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"; do
+              if [ -x "$candidate/native/llvm/bin/clang" ] && [ -x "$candidate/native/llvm/bin/llvm-readelf" ]; then
+                OHOS_NDK="$candidate"
+                break
+              fi
+            done
+          fi
+          test -n "${OHOS_NDK:-}" || { echo '未找到 OpenHarmony NDK，请安装 DevEco Studio SDK 或设置 OHOS_NDK。' >&2; exit 1; }
+          if [ -d "$OHOS_NDK/native/llvm/bin" ]; then
+            toolchain="$OHOS_NDK/native/llvm/bin"
+          else
+            toolchain="$OHOS_NDK/llvm/bin"
+          fi
+          test -x "$toolchain/clang" || { echo "OpenHarmony clang 不可执行：$toolchain/clang" >&2; exit 1; }
+          test -x "$toolchain/llvm-readelf" || { echo "OpenHarmony llvm-readelf 不可执行：$toolchain/llvm-readelf" >&2; exit 1; }
+          echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
       - name: 构建并审计动态 FFmpeg libmpv
         env:
           VIDALL_PLAYER_FFMPEG_PREFIX: ${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a
