@@ -183,7 +183,7 @@ jobs:
           #!/usr/bin/env bash
           set -euo pipefail
           if [ "${1:-}" = 'install' ] && [ "${2:-}" = 'cargo-c' ]; then
-            command -v cargo-c >/dev/null 2>&1 || { echo '固定 cargo-c 尚未安装。' >&2; exit 1; }
+            command -v cargo-cbuild >/dev/null 2>&1 || { echo '固定 cargo-c 尚未安装。' >&2; exit 1; }
             exit 0
           fi
           exec "$HOME/.cargo/bin/cargo" "$@"
