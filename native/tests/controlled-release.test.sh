@@ -176,6 +176,8 @@ assert report['forbiddenNeededLibraries'] == ['libsmbclient.so']
 PY
 
   grep -Fq 'sbom.cdx.json' "$CONTROLLED_BUILD" || fail '受控构建必须使用统一的 CycloneDX SBOM 文件名'
+  grep -Fq -- '--allow libEGL.so --allow libvulkan.so --allow libohaudio.so' "$CONTROLLED_BUILD" || fail '受控构建必须允许 MPV 的 OpenHarmony 图形和音频系统依赖'
+  grep -Fq -- '--allow libnative_buffer.so --allow libnative_image.so --allow libnative_window.so' "$CONTROLLED_BUILD" || fail '受控构建必须允许 MPV 的 OpenHarmony native window 系统依赖'
   grep -Fq 'sbom.cdx.json' "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" || fail 'CI 必须使用统一的 CycloneDX SBOM 文件名'
   grep -Fq 'mkdir -p "$SAMBA_DIR/bin"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '复制 host 工具前必须创建交叉树 bin 目录'
   grep -Fq "if not bld.env.CROSS_COMPILE:" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须从 Waf 图中移除 HostCC 子系统'
