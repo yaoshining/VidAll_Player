@@ -1,9 +1,11 @@
 # G2 加载边界：arm64-v8a 绑定 libmpv 原生产物（VIDALL_MPV_AVAILABLE=1），
 # x86_64 仅 NAPI probe（VIDALL_MPV_AVAILABLE=0），不表述为真实播放能力。
-# libmpv.so SHA-256=9920408089b274ad3a7503c1937cee7e30157bf657bfc3e2fba0a5caf4a96594
+# libmpv.so SHA-256=dfa7724b0ba520fed6e4fe3e39c2bb73dc01cd50b69ca09efc93f729e07cd151
 # 详细边界见 release/manifests/candidate-003-libmpv-player-har.json
 cmake_minimum_required(VERSION 3.4.1)
 project(vidall_player_native)
+
+set(CMAKE_SKIP_RPATH TRUE)
 
 add_library(vidall_player_native SHARED napi_init.cpp)
 target_compile_features(vidall_player_native PRIVATE cxx_std_17)

@@ -173,7 +173,9 @@ main() {
   trap 'rm -rf "$temp_dir"' EXIT
 
   work_dir="$temp_dir/libmpv-ohos-build"
-  mkdir -p "$work_dir/scripts"
+  mkdir -p "$work_dir/scripts" "$work_dir/libmpv/mpv/video/out/gpu"
+  git -C "$HOME/.cache/vidall-player/libmpv-ohos-build/libmpv/mpv" show HEAD:meson.build > "$work_dir/libmpv/mpv/meson.build"
+  git -C "$HOME/.cache/vidall-player/libmpv-ohos-build/libmpv/mpv" show HEAD:video/out/gpu/hwdec.c > "$work_dir/libmpv/mpv/video/out/gpu/hwdec.c"
   git init -q "$work_dir"
   git -C "$work_dir" config user.email test@test.com
   git -C "$work_dir" config user.name Test
@@ -219,6 +221,13 @@ main() {
   grep -q -- 'VIDALL_PLAYER_FFMPEG_STAGING/lib/pkgconfig' "$mpv_sh" || fail "mpv.sh 未使用 external FFmpeg pkg-config"
   grep -q -- 'PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"' "$mpv_sh" || fail "mpv.sh 未隔离 pkg-config 搜索路径"
   ! grep -q -- '-Dgpl=false' "$mpv_sh" || fail "mpv.sh 不应禁用 GPL 功能"
+
+  # 宿主 FFmpeg 8 不提供 mpv-ohos 私有零拷贝 ABI，必须禁用对应 surface driver。
+  grep -q -- 'video/out/ohos_common.c' "$work_dir/libmpv/mpv/meson.build" || fail "应保留 OHOS 窗口支持"
+  ! grep -q -- "'video/out/hwdec/hwdec_ohcodec.c'" "$work_dir/libmpv/mpv/meson.build" || fail "不得编译私有 OHCodec hwdec driver"
+  ! grep -q -- "'video/out/hwdec/hwdec_ohcodec_gl.c'" "$work_dir/libmpv/mpv/meson.build" || fail "不得编译私有 OHCodec GL interop"
+  ! grep -q -- "'video/out/hwdec/hwdec_ohcodec_pl.c'" "$work_dir/libmpv/mpv/meson.build" || fail "不得编译私有 OHCodec Vulkan interop"
+  ! grep -q -- 'ra_hwdec_ohcodec' "$work_dir/libmpv/mpv/video/out/gpu/hwdec.c" || fail "不得注册私有 OHCodec surface driver"
 
   # 幂等性：重复应用已应用补丁应跳过而非报错
   apply_build_script_patches "$work_dir" "$PATCHES_DIR" \

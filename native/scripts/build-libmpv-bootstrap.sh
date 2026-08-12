@@ -257,6 +257,18 @@ if [ -z "${VIDALL_PLAYER_FFMPEG_PREFIX:-}" ]; then
   exit 1
 fi
 prepare_ffmpeg_shared_prefix "$VIDALL_PLAYER_FFMPEG_PREFIX" "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared"
+if [ -n "${VIDALL_PLAYER_FFMPEG_RUNTIME_OVERRIDE:-}" ]; then
+  for soname in \
+    libavcodec.so.62 libavfilter.so.11 libavformat.so.62 libavutil.so.60 \
+    libswresample.so.6 libswscale.so.9; do
+    [ -f "$VIDALL_PLAYER_FFMPEG_RUNTIME_OVERRIDE/$soname" ] || {
+      echo "宿主 FFmpeg runtime 缺少：$VIDALL_PLAYER_FFMPEG_RUNTIME_OVERRIDE/$soname" >&2
+      exit 1
+    }
+    cp "$VIDALL_PLAYER_FFMPEG_RUNTIME_OVERRIDE/$soname" \
+      "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib/$soname"
+  done
+fi
 # MPV 及其静态依赖继续使用 DEST；仅 FFmpeg 从隔离 shared prefix 解析，避免误选旧静态 .pc。
 export PKG_CONFIG_PATH="$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib/pkgconfig:$WORK_DIR/libmpv/arm64-build/lib/pkgconfig"
 export PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"
@@ -301,11 +313,11 @@ write_sha256 "$LIBMPV_PATH" "$OUTPUT_DIR/libmpv.so.sha256"
   --forbid libsmbclient.so --max-bytes "${VIDALL_PLAYER_LIBMPV_MAX_BYTES:-25000000}"
 rm -rf -- "$FFMPEG_RUNTIME_DIR"
 mkdir -p "$FFMPEG_RUNTIME_DIR"
-cp -R "$VIDALL_PLAYER_FFMPEG_PREFIX/lib"/libav*.so* \
-  "$VIDALL_PLAYER_FFMPEG_PREFIX/lib"/libswresample.so* \
-  "$VIDALL_PLAYER_FFMPEG_PREFIX/lib"/libswscale.so* "$FFMPEG_RUNTIME_DIR/"
+cp -R "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib"/libav*.so* \
+  "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib"/libswresample.so* \
+  "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib"/libswscale.so* "$FFMPEG_RUNTIME_DIR/"
 cp -R "$VIDALL_PLAYER_FFMPEG_PREFIX/licenses" "$FFMPEG_RUNTIME_DIR/"
 cp "$VIDALL_PLAYER_FFMPEG_PREFIX/VERSION" "$VIDALL_PLAYER_FFMPEG_PREFIX/MANIFEST.tsv" "$FFMPEG_RUNTIME_DIR/"
 cat "$OUTPUT_DIR/libmpv.so.sha256"
 echo "已生成：$LIBMPV_PATH"
-echo "宿主 HAP 运行时输入：$FFMPEG_RUNTIME_DIR（不得复制进 HAR）"
+echo "宿主 HAP 运行时输入：${FFMPEG_RUNTIME_DIR}（不得复制进 HAR）"
