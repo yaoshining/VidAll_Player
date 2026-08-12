@@ -227,6 +227,15 @@ assert 'build-libmpv-controlled.sh' in workflow, 'CI 必须调用受控发布门
 assert 'libmpv-cross-build-prerequisites' in workflow, 'CI 必须上传交叉构建前置条件审计制品'
 assert 'inputs.run_cross_build' in workflow, 'CI 必须保留手动受控调度入口'
 assert 'detect-build-changes' in workflow, 'CI 必须检测构建脚本变更以按需触发交叉构建'
+detection_job = workflow.split('  detect-build-changes:', 1)[1].split('  build-libmpv-external-ffmpeg:', 1)[0]
+for build_input in (
+    'native/scripts/build-libmpv-bootstrap.sh',
+    'native/scripts/audit-libmpv-elf.sh',
+    'native/patches/libmpv-ohos-build',
+    'native/config/sources.lock.json',
+):
+    assert build_input in detection_job, f'CI 变更检测必须覆盖动态 libmpv 输入：{build_input}'
+assert 'native/scripts/build-libsmbclient-controlled.sh' not in detection_job, 'CI 变更检测不得继续跟踪旧 libsmbclient 构建脚本'
 assert 'force_build' in workflow, 'CI 必须支持强制重建入口'
 assert 'ffmpeg_artifact_repository:' in workflow, 'CI 必须声明受控 FFmpeg producer 仓库输入'
 assert 'ffmpeg_artifact_run_id:' in workflow, 'CI 必须使用固定 workflow run ID 获取 FFmpeg 制品'
@@ -243,7 +252,11 @@ assert 'test -n "${OHOS_NDK:-}"' in libmpv_job, '真实 libmpv 构建必须验�
 assert '/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony' in libmpv_job, 'CI 必须兼容自动发现 DevEco Studio 默认 OpenHarmony NDK'
 assert 'echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"' in libmpv_job, 'CI 必须向后续步骤导出自动发现的 OpenHarmony NDK'
 assert 'llvm-readelf' in libmpv_job and 'clang' in libmpv_job, 'CI 必须验证 OpenHarmony NDK 编译与审计工具'
-assert 'command -v rustup' in libmpv_job and 'https://sh.rustup.rs' in libmpv_job, 'CI 必须准备上游下载脚本依赖的 rustup'
+assert 'RUST_TOOLCHAIN: 1.85.1' in libmpv_job, 'CI 必须固定 libmpv 构建使用的 Rust 工具链'
+assert 'RUSTUP_VERSION: 1.28.2' in libmpv_job, 'CI 必须固定 rustup 安装器版本'
+assert 'static.rust-lang.org/rustup/archive/$RUSTUP_VERSION' in libmpv_job, 'CI 必须从固定 rustup archive 获取安装器'
+assert 'shasum -a 256 -c' in libmpv_job and 'rustup default "$RUST_TOOLCHAIN"' in libmpv_job, 'CI 必须校验 rustup 安装器并始终选择固定工具链'
+assert 'https://sh.rustup.rs' not in libmpv_job, 'CI 不得执行未固定内容的 rustup 在线安装脚本'
 assert 'cat > "$TOOL_DIR/wget"' in libmpv_job and 'echo "$TOOL_DIR" >> "$GITHUB_PATH"' in libmpv_job, 'CI 必须为上游提供受限 wget 兼容工具'
 assert 'elf-audit.json' in libmpv_job, 'CI 必须验证 ELF 审计报告'
 assert "assert not report['sizeExceeded']" in libmpv_job, 'CI 必须验证 libmpv 体积预算'
