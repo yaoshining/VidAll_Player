@@ -150,6 +150,38 @@ jobs:
           test -x "$toolchain/clang" || { echo "OpenHarmony clang 不可执行：$toolchain/clang" >&2; exit 1; }
           test -x "$toolchain/llvm-readelf" || { echo "OpenHarmony llvm-readelf 不可执行：$toolchain/llvm-readelf" >&2; exit 1; }
           echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
+      - name: 准备 libmpv Rust 与下载工具
+        run: |
+          command -v curl >/dev/null 2>&1 || { echo '缺少 curl，无法准备受控 libmpv 构建工具。' >&2; exit 1; }
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain stable
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+          # 锁定上游使用 wget -qO；受限 shim 仅允许 HTTPS 下载，避免依赖 runner 的 Homebrew wget。
+          TOOL_DIR="$RUNNER_TEMP/libmpv-tools"
+          mkdir -p "$TOOL_DIR"
+          cat > "$TOOL_DIR/wget" <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          if [ "$#" -ne 3 ] || [ "${1:-}" != '-qO' ]; then
+            echo 'wget shim 仅支持 -qO <输出文件> <https-url>' >&2
+            exit 2
+          fi
+          output="$2"
+          url="$3"
+          case "$url" in
+            https://*) ;;
+            *) echo 'wget shim 只允许 HTTPS URL' >&2; exit 2 ;;
+          esac
+          if [ "$output" = '-' ]; then
+            exec curl -fsSL --retry 5 --retry-all-errors "$url"
+          fi
+          exec curl -fsSL --retry 5 --retry-all-errors "$url" --output "$output"
+          EOF
+          chmod +x "$TOOL_DIR/wget"
+          echo "$TOOL_DIR" >> "$GITHUB_PATH"
       - name: 构建并审计动态 FFmpeg libmpv
         env:
           VIDALL_PLAYER_FFMPEG_PREFIX: ${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a

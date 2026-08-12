@@ -243,6 +243,8 @@ assert 'test -n "${OHOS_NDK:-}"' in libmpv_job, '真实 libmpv 构建必须验�
 assert '/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony' in libmpv_job, 'CI 必须兼容自动发现 DevEco Studio 默认 OpenHarmony NDK'
 assert 'echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"' in libmpv_job, 'CI 必须向后续步骤导出自动发现的 OpenHarmony NDK'
 assert 'llvm-readelf' in libmpv_job and 'clang' in libmpv_job, 'CI 必须验证 OpenHarmony NDK 编译与审计工具'
+assert 'command -v rustup' in libmpv_job and 'https://sh.rustup.rs' in libmpv_job, 'CI 必须准备上游下载脚本依赖的 rustup'
+assert 'cat > "$TOOL_DIR/wget"' in libmpv_job and 'echo "$TOOL_DIR" >> "$GITHUB_PATH"' in libmpv_job, 'CI 必须为上游提供受限 wget 兼容工具'
 assert 'elf-audit.json' in libmpv_job, 'CI 必须验证 ELF 审计报告'
 assert "assert not report['sizeExceeded']" in libmpv_job, 'CI 必须验证 libmpv 体积预算'
 assert 'GPL-3.0-or-later.txt' in libmpv_job, 'CI 必须验证 FFmpeg GPL 许可证材料'
