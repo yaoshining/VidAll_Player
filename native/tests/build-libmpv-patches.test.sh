@@ -167,13 +167,47 @@ line_of_first_match() {
   grep -n -- "$1" "$2" | head -1 | cut -d: -f1
 }
 
+materialize_patch_preimage() {
+  local patch_file="$1" output_root="$2"
+  python3 - "$patch_file" "$output_root" <<'PY'
+import pathlib
+import re
+import sys
+
+patch_path, output_root = map(pathlib.Path, sys.argv[1:])
+files = {}
+current = None
+old_line = 0
+for line in patch_path.read_text(encoding='utf-8').splitlines():
+    if line.startswith('--- a/'):
+        current = line[6:]
+        files.setdefault(current, [])
+    elif current and line.startswith('@@ '):
+        old_line = int(re.match(r'@@ -(\d+)', line).group(1))
+        while len(files[current]) < old_line - 1:
+            files[current].append('')
+    elif current and line.startswith((' ', '-')):
+        files[current].append(line[1:])
+        old_line += 1
+
+for relative, lines in files.items():
+    destination = output_root / relative
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+PY
+}
+
 main() {
   local work_dir build_sh ffmpeg_sh
   temp_dir="$(mktemp -d)"
   trap 'rm -rf "$temp_dir"' EXIT
 
+  # shellcheck disable=SC1090
+  source "$BOOTSTRAP_SCRIPT"
+
   work_dir="$temp_dir/libmpv-ohos-build"
   mkdir -p "$work_dir/scripts"
+  materialize_patch_preimage "$PATCHES_DIR/0006-disable-private-ohcodec-interop.patch" "$work_dir"
   git init -q "$work_dir"
   git -C "$work_dir" config user.email test@test.com
   git -C "$work_dir" config user.name Test
@@ -182,9 +216,6 @@ main() {
   write_original_mpv_sh "$work_dir/scripts/mpv.sh"
   git -C "$work_dir" add -A
   git -C "$work_dir" commit -qm initial
-
-  # shellcheck disable=SC1090
-  source "$BOOTSTRAP_SCRIPT"
 
   apply_build_script_patches "$work_dir" "$PATCHES_DIR"
 
@@ -219,6 +250,13 @@ main() {
   grep -q -- 'VIDALL_PLAYER_FFMPEG_STAGING/lib/pkgconfig' "$mpv_sh" || fail "mpv.sh 未使用 external FFmpeg pkg-config"
   grep -q -- 'PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"' "$mpv_sh" || fail "mpv.sh 未隔离 pkg-config 搜索路径"
   ! grep -q -- '-Dgpl=false' "$mpv_sh" || fail "mpv.sh 不应禁用 GPL 功能"
+
+  # 宿主 FFmpeg 8 不提供 mpv-ohos 私有零拷贝 ABI，必须禁用对应 surface driver。
+  grep -q -- 'video/out/ohos_common.c' "$work_dir/libmpv/mpv/meson.build" || fail "应保留 OHOS 窗口支持"
+  ! grep -q -- "'video/out/hwdec/hwdec_ohcodec.c'" "$work_dir/libmpv/mpv/meson.build" || fail "不得编译私有 OHCodec hwdec driver"
+  ! grep -q -- "'video/out/hwdec/hwdec_ohcodec_gl.c'" "$work_dir/libmpv/mpv/meson.build" || fail "不得编译私有 OHCodec GL interop"
+  ! grep -q -- "'video/out/hwdec/hwdec_ohcodec_pl.c'" "$work_dir/libmpv/mpv/meson.build" || fail "不得编译私有 OHCodec Vulkan interop"
+  ! grep -q -- 'ra_hwdec_ohcodec' "$work_dir/libmpv/mpv/video/out/gpu/hwdec.c" || fail "不得注册私有 OHCodec surface driver"
 
   # 幂等性：重复应用已应用补丁应跳过而非报错
   apply_build_script_patches "$work_dir" "$PATCHES_DIR" \
