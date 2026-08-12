@@ -253,6 +253,7 @@ assert '/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony' in lib
 assert 'echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"' in libmpv_job, 'CI 必须向后续步骤导出自动发现的 OpenHarmony NDK'
 assert 'llvm-readelf' in libmpv_job and 'clang' in libmpv_job, 'CI 必须验证 OpenHarmony NDK 编译与审计工具'
 assert 'RUST_TOOLCHAIN: 1.85.1' in libmpv_job, 'CI 必须固定 libmpv 构建使用的 Rust 工具链'
+assert 'CARGO_C_VERSION: 0.10.13' in libmpv_job, 'CI 必须固定与 Rust 1.85 兼容的 cargo-c 版本'
 assert 'RUSTUP_VERSION: 1.28.2' in libmpv_job, 'CI 必须固定 rustup 安装器版本'
 assert 'static.rust-lang.org/rustup/archive/$RUSTUP_VERSION' in libmpv_job, 'CI 必须从固定 rustup archive 获取安装器'
 assert 'shasum -a 256 -c' in libmpv_job and 'rustup default "$RUST_TOOLCHAIN"' in libmpv_job, 'CI 必须校验 rustup 安装器并始终选择固定工具链'

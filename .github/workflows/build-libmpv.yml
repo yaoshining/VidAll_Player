@@ -116,6 +116,7 @@ jobs:
       FFMPEG_ARTIFACT_REPOSITORY: ${{ inputs.ffmpeg_artifact_repository || 'yaoshining/ohos_ijkplayer' }}
       FFMPEG_ARTIFACT_RUN_ID: ${{ inputs.ffmpeg_artifact_run_id || '31619995231' }}
       RUST_TOOLCHAIN: 1.85.1
+      CARGO_C_VERSION: 0.10.13
       RUSTUP_VERSION: 1.28.2
     steps:
       - name: 检出项目
@@ -172,11 +173,24 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
           rustup default "$RUST_TOOLCHAIN"
+          cargo install cargo-c --version "$CARGO_C_VERSION" --locked --features=vendored-openssl
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-          # 锁定上游使用 wget -qO；受限 shim 仅允许 HTTPS 下载，避免依赖 runner 的 Homebrew wget。
+          # 上游会再次安装 cargo-c；受限 shim 强制复用已固定且兼容 Rust 1.85 的版本。
           TOOL_DIR="$RUNNER_TEMP/libmpv-tools"
           mkdir -p "$TOOL_DIR"
+          cat > "$TOOL_DIR/cargo" <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          if [ "${1:-}" = 'install' ] && [ "${2:-}" = 'cargo-c' ]; then
+            command -v cargo-c >/dev/null 2>&1 || { echo '固定 cargo-c 尚未安装。' >&2; exit 1; }
+            exit 0
+          fi
+          exec "$HOME/.cargo/bin/cargo" "$@"
+          EOF
+          chmod +x "$TOOL_DIR/cargo"
+
+          # 锁定上游使用 wget -qO；受限 shim 仅允许 HTTPS 下载，避免依赖 runner 的 Homebrew wget。
           cat > "$TOOL_DIR/wget" <<'EOF'
           #!/usr/bin/env bash
           set -euo pipefail
