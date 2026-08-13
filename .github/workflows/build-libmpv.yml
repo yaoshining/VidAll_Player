@@ -68,6 +68,7 @@ jobs:
         run: |
           bash native/tests/build-libmpv-bootstrap.test.sh
           bash native/tests/build-libmpv-patches.test.sh
+          bash native/tests/build-libmpv-workflow.test.sh
           bash native/tests/libmpv-packaging.test.sh
 
   detect-build-changes:
@@ -117,6 +118,7 @@ jobs:
       FFMPEG_ARTIFACT_RUN_ID: ${{ inputs.ffmpeg_artifact_run_id || '31637632656' }}
       RUST_TOOLCHAIN: 1.85.1
       CARGO_C_VERSION: 0.10.13
+      CARGO_C_EXPECTED_VERSION: 0.10.13+cargo-0.88.0
       RUSTUP_VERSION: 1.28.2
     steps:
       - name: 检出项目
@@ -173,7 +175,11 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
           rustup default "$RUST_TOOLCHAIN"
-          cargo install cargo-c --version "$CARGO_C_VERSION" --locked --features=vendored-openssl
+          cargo install cargo-c --version "=$CARGO_C_VERSION" --locked --features=vendored-openssl
+          test "$(cargo-cbuild --version)" = "cargo-c $CARGO_C_EXPECTED_VERSION" || {
+            echo "cargo-c 版本不符合受控工具链要求：期望 $CARGO_C_EXPECTED_VERSION。" >&2
+            exit 1
+          }
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
           # 上游会再次安装 cargo-c；受限 shim 强制复用已固定且兼容 Rust 1.85 的版本。

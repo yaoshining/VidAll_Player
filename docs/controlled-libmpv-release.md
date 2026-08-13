@@ -35,6 +35,8 @@ HAR 只能携带 SDK 自身 native bridge，禁止携带上述 FFmpeg 副本，�
 
 ## ELF、ABI 与体积审计
 
+CI 受控工具链固定为 Rust `1.85.1` 与 `cargo-c 0.10.13+cargo-0.88.0`。`cargo install` 使用精确版本要求并在安装后核验完整版本，避免 SemVer 解析漂移到要求更高 Rust 版本的 `cargo-c`。
+
 构建后 bootstrap 使用 `${OHOS_NDK}/llvm/bin/llvm-readelf` 和 `llvm-nm`（兼容 NDK 的 `native/llvm/bin` 布局）生成 `dist/libmpv/arm64-v8a/elf-audit.json`。门禁要求：
 
 - `DT_NEEDED` 完整包含上述 6 个版本化 FFmpeg SONAME。
