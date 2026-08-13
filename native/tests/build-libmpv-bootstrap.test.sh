@@ -142,6 +142,25 @@ EOF
   if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-tls" "$temp_dir/rejected-tls"; then
     fail '缺少 https,tls 协议的 prefix 必须被拒绝'
   fi
+  # VERSION 中新增的 https/tls 能力声明字段，缺失或值错误都必须拒绝 staging（issue #63）。
+  local version_field
+  for version_field in \
+    'https_protocol=enabled' \
+    'tls_protocol=enabled' \
+    'tls_backend=gnutls' \
+    'tls_backend_linkage=static-closure'; do
+    rm -rf "$temp_dir/invalid-version-field"
+    cp -R "$ffmpeg_prefix" "$temp_dir/invalid-version-field"
+    sed -i.bak "/^${version_field%%=*}=/d" "$temp_dir/invalid-version-field/VERSION"
+    if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-version-field" "$temp_dir/rejected-version-field"; then
+      fail "缺少 VERSION 能力声明 $version_field 的 prefix 必须被拒绝"
+    fi
+  done
+  cp -R "$ffmpeg_prefix" "$temp_dir/invalid-version-value"
+  sed -i.bak 's/^tls_backend=gnutls$/tls_backend=openssl/' "$temp_dir/invalid-version-value/VERSION"
+  if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-version-value" "$temp_dir/rejected-version-value"; then
+    fail 'tls_backend 值错误的 prefix 必须被拒绝'
+  fi
   cp -R "$ffmpeg_prefix" "$temp_dir/invalid-license"
   rm "$temp_dir/invalid-license/licenses/GPL-3.0-or-later.txt"
   if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-license" "$temp_dir/rejected-license"; then
