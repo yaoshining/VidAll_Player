@@ -9,6 +9,14 @@
         "arm64-v8a",
         "x86_64"
       ]
+    },
+    "nativeLib": {
+      "librariesInfo": [
+        {
+          "name": "libvidall_player_native.so",
+          "linkLibraries": ["libmpv.so"]
+        }
+      ]
     }
   },
   "targets": [
@@ -20,7 +28,7 @@
 // G2 加载边界固化说明：
 // - arm64-v8a：VIDALL_MPV_AVAILABLE=1，链接 libmpv.so + native_window + EGL + GLESv3，
 //   libmpv.so 来源 entry/src/main/cpp/third_party/libmpv/arm64-v8a/，
-//   SHA-256=9920408089b274ad3a7503c1937cee7e30157bf657bfc3e2fba0a5caf4a96594
+//   SHA-256=594994e42785dbad01c468e6013be56f0fe40a3b5883d301a9cd9e91b3c6c0ac
 // - x86_64：VIDALL_MPV_AVAILABLE=0，仅 NAPI probe，不表述为真实播放能力
 // - 详细边界见 release/manifests/candidate-003-libmpv-player-har.json
 // - GPL-3.0-or-later 材料引用见 release/licenses/NOTICE + release/licenses/license-audit.json

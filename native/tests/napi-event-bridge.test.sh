@@ -10,10 +10,10 @@ readonly CMAKE="$ROOT/packages/vidall-player/src/main/cpp/CMakeLists.txt"
 fail() { echo "测试失败：$*" >&2; exit 1; }
 require_contains() { rg -q --fixed-strings "$2" "$1" || fail "$1 缺少：$2"; }
 
-for name in CreateSession ReleaseSession AttachSurface ResizeSurface DetachSurface Load Play Stop SetEventCallback; do
+for name in CreateSession ReleaseSession AttachSurface ResizeSurface DetachSurface Load Play Stop SetPropertyString SetEventCallback; do
   require_contains "$SOURCE" "$name"
 done
-for name in createSession releaseSession attachSurface resizeSurface detachSurface load play stop setEventCallback; do
+for name in createSession releaseSession attachSurface resizeSurface detachSurface load play stop setPropertyString setEventCallback; do
   require_contains "$TYPES" "$name"
 done
 require_contains "$SOURCE" "std::shared_ptr<NativeSession>"

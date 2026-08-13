@@ -17,12 +17,12 @@ on:
   workflow_dispatch:
     inputs:
       run_cross_build:
-        description: '手动触发 libsmbclient 交叉构建（缓存命中时跳过实际编译）'
+        description: '手动触发基于受控源码目录的兼容性发布构建'
         required: false
         type: boolean
         default: false
       force_build:
-        description: '强制重建 libsmbclient（忽略缓存命中，重新编译）'
+        description: '强制执行受控发布构建（忽略变更检测）'
         required: false
         type: boolean
         default: false
@@ -36,6 +36,16 @@ on:
         required: false
         type: string
         default: ''
+      ffmpeg_artifact_repository:
+        description: '产出 FFmpeg shared prefix artifact 的 owner/repo'
+        required: false
+        type: string
+        default: 'yaoshining/ohos_ijkplayer'
+      ffmpeg_artifact_run_id:
+        description: '产出 ffmpeg-8.0-ohos-arm64-v8a artifact 的不可变 workflow run ID'
+        required: false
+        type: string
+        default: '31637632656'
 
 permissions:
   actions: read
@@ -80,7 +90,7 @@ jobs:
             echo "build-needed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          FILES="native/scripts/build-libsmbclient-controlled.sh native/config/sources.lock.json .github/workflows/build-libmpv.yml"
+          FILES="native/scripts/build-libmpv-bootstrap.sh native/scripts/audit-libmpv-elf.sh native/patches/libmpv-ohos-build native/config/sources.lock.json .github/workflows/build-libmpv.yml"
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             git fetch origin "${{ github.base_ref }}" 2>/dev/null || true
             BASE="origin/${{ github.base_ref }}"
@@ -97,229 +107,90 @@ jobs:
             echo "build-needed=false" >> "$GITHUB_OUTPUT"
           fi
 
-  build-libsmbclient:
-    name: 交叉构建 libsmbclient (OpenHarmony ARM64)
+  build-libmpv-external-ffmpeg:
+    name: 使用 ohos_ijkplayer FFmpeg 8 shared prefix 构建 libmpv
     needs: [native-contracts, detect-build-changes]
-    # 构建脚本或锁文件变更时自动触发，或手动 workflow_dispatch 触发；
-    # 缓存命中时跳过实际编译，仅校验已缓存的 sysroot。
-    if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' }}
+    if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build }}
     runs-on: [self-hosted, macos, deveco]
-    timeout-minutes: 120
+    env:
+      FFMPEG_ARTIFACT_REPOSITORY: ${{ inputs.ffmpeg_artifact_repository || 'yaoshining/ohos_ijkplayer' }}
+      FFMPEG_ARTIFACT_RUN_ID: ${{ inputs.ffmpeg_artifact_run_id || '31637632656' }}
+      RUST_TOOLCHAIN: 1.85.1
+      CARGO_C_VERSION: 0.10.13
+      RUSTUP_VERSION: 1.28.2
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
-      - name: 安装构建前置工具 (Homebrew)
+      - name: 下载受控 FFmpeg prefix artifact
         env:
-          HOMEBREW_NO_AUTO_UPDATE: '1'
+          GH_TOKEN: ${{ github.token }}
         run: |
-          # glibtoolize 来自 libtool (Samba 构建链需要)。
-          # autopoint 来自 gettext, 但 iMac 的 Homebrew (macOS 12) 安装
-          # gettext 时崩溃, 因此 build-libsmbclient-controlled.sh 已改为
-          # autopoint 可选 (popt release tarball 已含预生成 configure)。
-          command -v brew >/dev/null 2>&1 || {
-            echo 'Homebrew 未安装；请在 runner 上安装 https://brew.sh' >&2
-            exit 1
-          }
-          command -v glibtoolize >/dev/null 2>&1 || command -v libtoolize >/dev/null 2>&1 || {
-            echo '安装 libtool...'
-            brew install libtool
-          }
-      - name: 验证 OpenHarmony NDK 与构建前置工具
-        run: |
-          # 优先使用 runner 预配置的 OHOS_NDK 环境变量；
-          # 否则从标准 DevEco Studio 安装路径自动探测。
-          if [ -z "${OHOS_NDK:-}" ]; then
-            for candidate in \
-              "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
-              "$HOME/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
-              "/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"; do
-              if [ -x "$candidate/native/llvm/bin/clang" ]; then
-                export OHOS_NDK="$candidate"
-                break
-              fi
-            done
-          fi
-          test -n "${OHOS_NDK:-}" || {
-            echo '未找到 OpenHarmony NDK；请在 self-hosted macos-deveco 运行器上预装 DevEco Studio 或设置 OHOS_NDK 环境变量。' >&2
-            exit 1
-          }
-          echo "OHOS_NDK=$OHOS_NDK"
-          test -x "$OHOS_NDK/native/llvm/bin/clang"
-          command -v pkg-config
-          command -v python3
-          command -v bison || command -v yacc
-          command -v flex
-          command -v autopoint || echo '警告: autopoint 未安装 (popt release tarball 不需要)'
-          command -v glibtoolize || command -v libtoolize
-          # 将探测结果写入 runner 环境文件, 供后续 step 继承。
-          echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
-      - name: 验证 Samba 依赖闭包已锁定
-        run: |
-          python3 - native/config/sources.lock.json <<'PY'
-          import json, sys
-          samba = json.load(open(sys.argv[1], encoding='utf-8'))['sources']['samba']
-          status = samba['build']['dependencyClosureStatus']
-          if status != 'complete':
-              raise SystemExit('Samba/libsmbclient 传递依赖闭包尚未锁定，拒绝执行真实交叉构建。')
-          PY
-      - name: 缓存依赖源码与 sysroot
-        id: cache-sysroot
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/vidall-player/smb-src
-            ~/.cache/vidall-player/smb-sysroot
-          key: libsmbclient-ohos-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libsmbclient-controlled.sh') }}
-      - name: 交叉构建 libsmbclient 静态闭包（缓存未命中或强制重建时）
-        if: steps.cache-sysroot.outputs.cache-hit != 'true' || github.event.inputs.force_build == true
-        env:
-          OHOS_NDK: ${{ env.OHOS_NDK }}
-        run: |
-          native/scripts/build-libsmbclient-controlled.sh
-      - name: 校验 libsmbclient 仅为 ARM64 ELF 且 smbc_* 可见
-        run: |
-          NM="$OHOS_NDK/native/llvm/bin/llvm-nm"
-          SYSROOT="$HOME/.cache/vidall-player/smb-sysroot"
-          test -s "$SYSROOT/lib/libsmbclient.a"
-          test -f "$SYSROOT/lib/pkgconfig/smbclient.pc"
-          test -f "$SYSROOT/include/libsmbclient.h"
-          AR="$OHOS_NDK/native/llvm/bin/llvm-ar"
-          "$NM" --defined-only "$SYSROOT/lib/libsmbclient.a" \
-            | grep -E ' T smbc_(init|open|read|write|opendir|readdir|stat|close)' >/dev/null
-          # 静态归档内不得混入宿主 Mach-O 目标。
-          ! "$AR" t "$SYSROOT/lib/libsmbclient.a" | head -1 | grep -q '\.dylib'
-      - name: 上传 libsmbclient sysroot 制品
-        uses: actions/upload-artifact@v4
-        with:
-          name: libsmbclient-ohos-sysroot
-          path: ~/.cache/vidall-player/smb-sysroot
-          if-no-files-found: error
-
-  build-libmpv-with-smb:
-    name: 交叉构建 libmpv（静态 SMB，OpenHarmony ARM64）
-    needs: [native-contracts, detect-build-changes, build-libsmbclient]
-    if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' && needs.build-libsmbclient.result == 'success' }}
-    runs-on: [self-hosted, macos, deveco]
-    timeout-minutes: 180
-    steps:
-      - name: 检出项目
-        uses: actions/checkout@v4
-      - name: 直接下载并解压同次 SMB sysroot
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SMB_DOWNLOAD_ROOT: ${{ runner.temp }}/smb-sysroot
-        run: |
-          set -euo pipefail
-          command -v curl >/dev/null 2>&1 || {
-            echo '缺少 curl，无法下载同次 SMB artifact。' >&2
-            exit 1
-          }
-          command -v unzip >/dev/null 2>&1 || {
-            echo '缺少 unzip，无法解压同次 SMB artifact。' >&2
-            exit 1
-          }
-
-          rm -rf "$SMB_DOWNLOAD_ROOT"
-          mkdir -p "$SMB_DOWNLOAD_ROOT"
-          SMB_ARTIFACT_ID="$(curl --fail --silent --show-error --location \
-            --header "Authorization: Bearer $GITHUB_TOKEN" \
-            --header 'X-GitHub-Api-Version: 2022-11-28' \
-            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
-            | python3 -c 'import json, sys; artifacts = json.load(sys.stdin).get("artifacts", []); matches = [str(item["id"]) for item in artifacts if item.get("name") == "libsmbclient-ohos-sysroot"]; print(matches[0] if len(matches) == 1 else "")')"
-          test -n "$SMB_ARTIFACT_ID" || {
-            echo '当前 workflow run 未找到唯一的 libsmbclient-ohos-sysroot artifact。' >&2
-            exit 1
-          }
-          SMB_ARTIFACT_ZIP="$RUNNER_TEMP/libsmbclient-ohos-sysroot-${SMB_ARTIFACT_ID}.zip"
-          rm -f "$SMB_ARTIFACT_ZIP"
-          curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
-            --header "Authorization: Bearer $GITHUB_TOKEN" \
-            --header 'X-GitHub-Api-Version: 2022-11-28' \
-            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/artifacts/${SMB_ARTIFACT_ID}/zip" \
-            --output "$SMB_ARTIFACT_ZIP"
-          unzip -tqq "$SMB_ARTIFACT_ZIP"
-          unzip -q "$SMB_ARTIFACT_ZIP" -d "$SMB_DOWNLOAD_ROOT"
-          rm -f "$SMB_ARTIFACT_ZIP"
-      - name: 验证 OpenHarmony NDK 与 SMB sysroot
-        env:
-          SMB_DOWNLOAD_ROOT: ${{ runner.temp }}/smb-sysroot
+          # 固定 producer workflow run ID，避免从“最新”artifact 引入浮动二进制。
+          gh run download "$FFMPEG_ARTIFACT_RUN_ID" \
+            --repo "$FFMPEG_ARTIFACT_REPOSITORY" \
+            --name ffmpeg-8.0-ohos-arm64-v8a \
+            --dir "${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a"
+          test -s "${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a/VERSION"
+      - name: 配置 OpenHarmony NDK
         run: |
           if [ -z "${OHOS_NDK:-}" ]; then
             for candidate in \
               "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
               "$HOME/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony" \
               "/Applications/DevEco-Studio.app/Contents/sdk/${HOS_SDK_VERSION:-10}/openharmony"; do
-              if [ -x "$candidate/native/llvm/bin/clang" ]; then
-                export OHOS_NDK="$candidate"
+              if [ -x "$candidate/native/llvm/bin/clang" ] && [ -x "$candidate/native/llvm/bin/llvm-readelf" ]; then
+                OHOS_NDK="$candidate"
                 break
               fi
             done
           fi
-          test -n "${OHOS_NDK:-}" || {
-            echo '未找到 OpenHarmony NDK。' >&2
-            exit 1
-          }
-          test -x "$OHOS_NDK/native/llvm/bin/clang" || {
-            echo "OpenHarmony clang 不可执行：$OHOS_NDK/native/llvm/bin/clang" >&2
-            exit 1
-          }
-
-          # upload-artifact/download-artifact 会随 action 版本改变是否保留顶层目录；
-          # 以唯一的静态归档标记定位实际 sysroot，而不是猜测其解压层级。
-          test -d "$SMB_DOWNLOAD_ROOT" || {
-            echo "缺少 SMB artifact 下载目录：$SMB_DOWNLOAD_ROOT" >&2
-            exit 1
-          }
-          if test -s "$SMB_DOWNLOAD_ROOT/lib/libsmbclient.a"; then
-            # download-artifact 下载单个 artifact 时通常直接将其内容解压到目标目录。
-            SMB_SYSROOT="$SMB_DOWNLOAD_ROOT"
+          test -n "${OHOS_NDK:-}" || { echo '未找到 OpenHarmony NDK，请安装 DevEco Studio SDK 或设置 OHOS_NDK。' >&2; exit 1; }
+          if [ -d "$OHOS_NDK/native/llvm/bin" ]; then
+            toolchain="$OHOS_NDK/native/llvm/bin"
           else
-            # 保留顶层目录的 action 版本仍可由归档名称回退定位。
-            SMB_ARCHIVE="$(find "$SMB_DOWNLOAD_ROOT" -type f -name 'libsmbclient.a' -print -quit 2>/dev/null || true)"
-            test -n "$SMB_ARCHIVE" || {
-              echo '未在下载制品中找到 libsmbclient.a。' >&2
-              find "$SMB_DOWNLOAD_ROOT" -maxdepth 3 -type d -print >&2
-              exit 1
-            }
-            SMB_SYSROOT="$(cd "$(dirname "$SMB_ARCHIVE")/.." && pwd)"
+            toolchain="$OHOS_NDK/llvm/bin"
           fi
-          echo "SMB artifact root: $SMB_SYSROOT"
-          test -s "$SMB_SYSROOT/lib/libsmbclient.a" || {
-            echo 'libsmbclient.a 不可读或为空。' >&2
-            exit 1
-          }
-          test -f "$SMB_SYSROOT/lib/pkgconfig/smbclient.pc" || {
-            echo '缺少 smbclient.pc。' >&2
-            exit 1
-          }
-          test -f "$SMB_SYSROOT/include/libsmbclient.h" || {
-            echo '缺少 libsmbclient.h。' >&2
-            exit 1
-          }
+          test -x "$toolchain/clang" || { echo "OpenHarmony clang 不可执行：$toolchain/clang" >&2; exit 1; }
+          test -x "$toolchain/llvm-readelf" || { echo "OpenHarmony llvm-readelf 不可执行：$toolchain/llvm-readelf" >&2; exit 1; }
           echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
-          echo "SMB_SYSROOT=$SMB_SYSROOT" >> "$GITHUB_ENV"
-          echo "SMB_SYSROOT=$SMB_SYSROOT"
-      - name: 缓存锁定的 libmpv 构建源码
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/vidall-player/libmpv-ohos-build
-          key: libmpv-ohos-build-${{ hashFiles('native/config/sources.lock.json', 'native/scripts/build-libmpv-bootstrap.sh', 'native/patches/libmpv-ohos-build/*.patch') }}
-      - name: 安装 libmpv Rust 与下载工具
+      - name: 准备 libmpv Rust 与下载工具
         run: |
-          command -v curl >/dev/null 2>&1 || {
-            echo '缺少 curl，无法准备受控 libmpv 构建工具。' >&2
-            exit 1
-          }
+          command -v curl >/dev/null 2>&1 || { echo '缺少 curl，无法准备受控 libmpv 构建工具。' >&2; exit 1; }
           if ! command -v rustup >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-              | sh -s -- -y --profile minimal --default-toolchain stable
+            case "$(uname -m)" in
+              arm64) rustup_target='aarch64-apple-darwin'; rustup_sha='20ef5516c31b1ac2290084199ba77dbbcaa1406c45c1d978ca68558ef5964ef5' ;;
+              x86_64) rustup_target='x86_64-apple-darwin'; rustup_sha='9c331076f62b4d0edeae63d9d1c9442d5fe39b37b05025ec8d41c5ed35486496' ;;
+              *) echo "不支持的 rustup 主机架构：$(uname -m)" >&2; exit 1 ;;
+            esac
+            rustup_init="$RUNNER_TEMP/rustup-init"
+            curl --proto '=https' --tlsv1.2 -fsSL --retry 5 \
+              "https://static.rust-lang.org/rustup/archive/$RUSTUP_VERSION/$rustup_target/rustup-init" \
+              -o "$rustup_init"
+            printf '%s  %s\n' "$rustup_sha" "$rustup_init" | shasum -a 256 -c -
+            chmod +x "$rustup_init"
+            "$rustup_init" -y --profile minimal --default-toolchain "$RUST_TOOLCHAIN"
           fi
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          rustup default "$RUST_TOOLCHAIN"
+          cargo install cargo-c --version "$CARGO_C_VERSION" --locked --features=vendored-openssl
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-          # 上游下载脚本以 `wget -qO <输出文件> <url>` 拉取 rustup 和依赖归档；
-          # 用受限 shim 避开 self-hosted macOS 上损坏的 Homebrew openssl@3 依赖。
+          # 上游会再次安装 cargo-c；受限 shim 强制复用已固定且兼容 Rust 1.85 的版本。
           TOOL_DIR="$RUNNER_TEMP/libmpv-tools"
           mkdir -p "$TOOL_DIR"
+          cat > "$TOOL_DIR/cargo" <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          if [ "${1:-}" = 'install' ] && [ "${2:-}" = 'cargo-c' ]; then
+            command -v cargo-cbuild >/dev/null 2>&1 || { echo '固定 cargo-c 尚未安装。' >&2; exit 1; }
+            exit 0
+          fi
+          exec "$HOME/.cargo/bin/cargo" "$@"
+          EOF
+          chmod +x "$TOOL_DIR/cargo"
+
+          # 锁定上游使用 wget -qO；受限 shim 仅允许 HTTPS 下载，避免依赖 runner 的 Homebrew wget。
           cat > "$TOOL_DIR/wget" <<'EOF'
           #!/usr/bin/env bash
           set -euo pipefail
@@ -331,10 +202,7 @@ jobs:
           url="$3"
           case "$url" in
             https://*) ;;
-            *)
-              echo 'wget shim 只允许 HTTPS URL' >&2
-              exit 2
-              ;;
+            *) echo 'wget shim 只允许 HTTPS URL' >&2; exit 2 ;;
           esac
           if [ "$output" = '-' ]; then
             exec curl -fsSL --retry 5 --retry-all-errors "$url"
@@ -342,58 +210,36 @@ jobs:
           exec curl -fsSL --retry 5 --retry-all-errors "$url" --output "$output"
           EOF
           chmod +x "$TOOL_DIR/wget"
-          cat > "$TOOL_DIR/git" <<'EOF'
-          #!/usr/bin/env bash
-          # git shim 仅为 clone/fetch 重试瞬态网络故障。
-          set -euo pipefail
-          if [ "${1:-}" = '-c' ]; then
-            shift 2
-          fi
-          if [ "${1:-}" != 'clone' ] && [ "${1:-}" != 'fetch' ]; then
-            exec /usr/bin/git "$@"
-          fi
-          if [ "${1:-}" = 'fetch' ]; then
-            for attempt in 1 2 3 4 5; do
-              /usr/bin/git "$@" && exit 0
-              [ "$attempt" -eq 5 ] || sleep "$attempt"
-            done
-            exit 1
-          fi
-          destination="${!#}"
-          for attempt in 1 2 3 4 5; do
-            /usr/bin/git "$@" && exit 0
-            rm -rf -- "$destination"
-            [ "$attempt" -eq 5 ] || sleep "$attempt"
-          done
-          exit 1
-          EOF
-          chmod +x "$TOOL_DIR/git"
           echo "$TOOL_DIR" >> "$GITHUB_PATH"
-      - name: 构建静态包含 SMB 的 libmpv
+      - name: 构建并审计动态 FFmpeg libmpv
         env:
-          OHOS_NDK_HOME: ${{ env.OHOS_NDK }}
-          VIDALL_PLAYER_SMB_SYSROOT: ${{ env.SMB_SYSROOT }}
+          VIDALL_PLAYER_FFMPEG_PREFIX: ${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a
         run: native/scripts/build-libmpv-bootstrap.sh
-      - name: 审计 ARM64 libmpv 未动态依赖 libsmbclient
-        env:
-          LIBMPV: dist/libmpv/arm64-v8a/libmpv.so
+      - name: 验证审计、许可证与体积
         run: |
-          test -s "$LIBMPV"
-          READELF="$OHOS_NDK/native/llvm/bin/llvm-readelf"
-          "$READELF" -h "$LIBMPV" | grep -F 'Machine:' | grep -E 'AArch64|aarch64'
-          if "$READELF" -d "$LIBMPV" | grep -F 'libsmbclient.so'; then
-            echo 'libmpv 不得动态链接 libsmbclient.so。' >&2
-            exit 1
-          fi
-          "$OHOS_NDK/native/llvm/bin/llvm-nm" --defined-only "$LIBMPV" \
-            | grep -E ' smbc_(open|read|init_context|opendir|readdir|stat|close)$' >/dev/null
-      - name: 上传静态 SMB libmpv 制品
+          python3 - <<'PY'
+          import json
+          report = json.load(open('dist/libmpv/arm64-v8a/elf-audit.json', encoding='utf-8'))
+          assert report['status'] == 'passed', report
+          assert not report['embeddedFfmpegSymbols'], report
+          assert not report['sizeExceeded'], report
+          PY
+          test -s dist/ffmpeg-runtime/arm64-v8a/licenses/GPL-3.0-or-later.txt
+          test -s dist/ffmpeg-runtime/arm64-v8a/MANIFEST.tsv
+      - name: 上传 libmpv 制品
         uses: actions/upload-artifact@v4
         with:
-          name: libmpv-arm64-with-smb
+          name: libmpv-arm64-dynamic-ffmpeg8
           path: |
             dist/libmpv/arm64-v8a/libmpv.so
             dist/libmpv/arm64-v8a/libmpv.so.sha256
+            dist/libmpv/arm64-v8a/elf-audit.json
+          if-no-files-found: error
+      - name: 独立上传最终宿主 HAP 的 FFmpeg runtime 输入
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-runtime-arm64
+          path: dist/ffmpeg-runtime/arm64-v8a
           if-no-files-found: error
 
   cross-build-prerequisites:

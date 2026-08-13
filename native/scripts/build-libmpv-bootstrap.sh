@@ -5,14 +5,15 @@ readonly ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly LOCK_FILE="$ROOT_DIR/native/config/sources.lock.json"
 readonly BUILD_REPOSITORY='https://github.com/mpv-ohos/libmpv-ohos-build.git'
 readonly BUILD_COMMIT='1bab837e662ffa47ce51efd0720d3ed7c4988944'
-readonly DEPENDENCY_CACHE_SCHEMA='5'
+readonly DEPENDENCY_CACHE_SCHEMA='6'
 readonly MESON_VERSION='1.7.0'
 readonly CACHE_ROOT="${VIDALL_PLAYER_CACHE_DIR:-${HOME:-$ROOT_DIR}/.cache/vidall-player}"
 readonly WORK_DIR="$CACHE_ROOT/libmpv-ohos-build"
 readonly OUTPUT_DIR="$ROOT_DIR/dist/libmpv/arm64-v8a"
+readonly FFMPEG_RUNTIME_DIR="$ROOT_DIR/dist/ffmpeg-runtime/arm64-v8a"
+readonly ELF_AUDIT_SCRIPT="$ROOT_DIR/native/scripts/audit-libmpv-elf.sh"
 readonly MESON_MARKER="$WORK_DIR/.vidall-player-meson-version"
 readonly PATCHES_DIR="$ROOT_DIR/native/patches/libmpv-ohos-build"
-readonly FFMPEG_PATCHES_DIR="$ROOT_DIR/native/patches/ffmpeg"
 
 # 计算构建脚本补丁集合摘要并拼入缓存 marker：补丁内容变更即触发依赖缓存失效，
 # 避免每次改补丁都要手动 bump DEPENDENCY_CACHE_SCHEMA。
@@ -63,43 +64,105 @@ write_sha256() {
   fi
 }
 
-# 将经 CI 校验的静态 SMB sysroot 注入 FFmpeg 和 mpv 共用的 DEST。
-# 未设置变量时保留不含 SMB 的历史引导路径，以便基础构建仍可复用。
-prepare_smb_sysroot() {
-  local dest="$1"
-  local smb_sysroot="${VIDALL_PLAYER_SMB_SYSROOT:-}"
-
-  if [ -z "$smb_sysroot" ]; then
-    return 0
-  fi
-
+# 校验并 staging ohos_ijkplayer 交付的 FFmpeg 8 shared prefix。
+# 该 prefix 是 MPV 构建输入；运行时 .so 的最终打包责任属于宿主 HAP。
+prepare_ffmpeg_shared_prefix() {
+  local source_prefix="$1"
+  local dest="$2"
+  local metadata="$source_prefix/VERSION"
+  local configure_options="$source_prefix/configure-options.txt"
   local required
+
   for required in \
-    'lib/libsmbclient.a' \
-    'lib/pkgconfig/smbclient.pc' \
-    'include/libsmbclient.h'; do
-    if [ ! -f "$smb_sysroot/$required" ]; then
-      echo "SMB sysroot 缺少必需文件：$smb_sysroot/$required" >&2
+    VERSION configure-options.txt MANIFEST.tsv ELF-REPORT.txt \
+    licenses/GPL-3.0-or-later.txt licenses/FFmpeg-LGPL-2.1-or-later.txt \
+    include/libavcodec/avcodec.h include/libavformat/avformat.h \
+    include/libavutil/avutil.h include/libavfilter/avfilter.h \
+    include/libswresample/swresample.h include/libswscale/swscale.h \
+    lib/pkgconfig/libavcodec.pc lib/pkgconfig/libavformat.pc \
+    lib/pkgconfig/libavutil.pc lib/pkgconfig/libavfilter.pc \
+    lib/pkgconfig/libswresample.pc lib/pkgconfig/libswscale.pc \
+    lib/libavcodec.so.62 lib/libavformat.so.62 lib/libavutil.so.60 \
+    lib/libavfilter.so.11 lib/libswresample.so.6 lib/libswscale.so.9; do
+    if [ ! -e "$source_prefix/$required" ]; then
+      echo "FFmpeg shared prefix 缺少必需文件：$source_prefix/$required" >&2
       return 1
     fi
   done
 
-  mkdir -p "$dest/lib/pkgconfig" "$dest/include"
-  cp "$smb_sysroot/lib/"*.a "$dest/lib/"
-  # artifact 的 .pc 记录了构建时缓存路径；注入 DEST 后必须重写 prefix，
-  # 让 FFmpeg 的 pkg-config 检测使用同一份头文件和静态归档。
-  python3 - "$smb_sysroot/lib/pkgconfig/smbclient.pc" "$dest/lib/pkgconfig/smbclient.pc" "$dest" <<'PY'
+  if find "$source_prefix/lib" -maxdepth 1 \( -name 'libav*.a' -o -name 'libswresample.a' -o -name 'libswscale.a' \) -print -quit | grep -q .; then
+    echo 'FFmpeg shared prefix 不得包含 libav*.a、libswresample.a 或 libswscale.a 静态归档。' >&2
+    return 1
+  fi
+  for required in \
+    'ffmpeg_version=8.0' 'libsmbclient=enabled' \
+    'libsmbclient_linkage=static-closure' 'architecture=arm64-v8a' \
+    'target=aarch64-unknown-linux-ohos' 'elf_machine=AArch64' \
+    'https_protocol=enabled' 'tls_protocol=enabled' \
+    'tls_backend=gnutls' 'tls_backend_linkage=static-closure'; do
+    grep -Fxq -- "$required" "$metadata" || {
+      echo "FFmpeg VERSION 缺少受控声明：$required" >&2
+      return 1
+    }
+  done
+  grep -Eq '^source_commit=[0-9a-f]{40}$' "$metadata" || {
+    echo 'FFmpeg VERSION 缺少 40 位 source_commit。' >&2
+    return 1
+  }
+  grep -Eq '^smb_patch=.+\.patch$' "$metadata" || {
+    echo 'FFmpeg VERSION 缺少 SMB 凭据补丁来源。' >&2
+    return 1
+  }
+  # 电视端实际发运「精简 FFmpeg 8 基线」（GnuTLS 静态闭包 + SMB + https/tls），
+  # 不含 dav1d/mbedtls/libxml2/dash/ohcodec/png,mjpeg 等完整能力；门禁须与此一致，
+  # 避免误拒与宿主 HAP 完全同构的精简六库。
+  for required in \
+    '--disable-static' '--enable-shared' '--enable-gpl' '--enable-version3' \
+    '--enable-libsmbclient' '--enable-network' '--enable-gnutls' \
+    '--disable-nonfree'; do
+    grep -Fq -- "$required" "$configure_options" || {
+      echo "FFmpeg 配置缺少保持播放行为所需选项：$required" >&2
+      return 1
+    }
+  done
+  # WebDAV HTTPS 播放依赖 https,tls 网络协议白名单（issue #63）。
+  grep -Eq '^--enable-protocol=.*https.*tls' "$configure_options" || {
+    echo 'FFmpeg 网络协议白名单必须包含 https,tls。' >&2
+    return 1
+  }
+
+  rm -rf -- "$dest"
+  mkdir -p "$dest"
+  cp -R "$source_prefix"/. "$dest"/
+  python3 - "$dest/lib/pkgconfig" "$dest" <<'PY'
 from pathlib import Path
+import re
 import sys
 
-source, output, dest = map(Path, sys.argv[1:])
-lines = source.read_text(encoding='utf-8').splitlines()
-rewritten = [f'prefix={dest}' if line.startswith('prefix=') else line for line in lines]
-if rewritten == lines:
-    raise SystemExit(f'smbclient.pc 缺少 prefix：{source}')
-output.write_text('\n'.join(rewritten) + '\n', encoding='utf-8')
+pc_dir, dest = map(Path, sys.argv[1:])
+for pc in pc_dir.glob('*.pc'):
+    lines = pc.read_text(encoding='utf-8').splitlines()
+    rewritten = []
+    found_prefix = False
+    for line in lines:
+        if line.startswith('prefix='):
+            line = f'prefix={dest}'
+            found_prefix = True
+        elif line.startswith('exec_prefix='):
+            line = 'exec_prefix=${prefix}'
+        elif line.startswith('libdir='):
+            line = 'libdir=${exec_prefix}/lib'
+        elif line.startswith('includedir='):
+            line = 'includedir=${prefix}/include'
+        # Shared consumers must not inherit producer-only static closure paths.
+        if line.startswith('Libs.private:'):
+            line = re.sub(r'(?<!\S)-L/\S+', '', line)
+            line = re.sub(r'[ \t]+', ' ', line).rstrip()
+        rewritten.append(line)
+    if not found_prefix:
+        raise SystemExit(f'{pc} 缺少 prefix')
+    pc.write_text('\n'.join(rewritten) + '\n', encoding='utf-8')
 PY
-  cp "$smb_sysroot/include/"*.h "$dest/include/"
 }
 
 # 还原依赖源码到下载时的干净状态，确保补丁可以幂等应用。
@@ -156,36 +219,6 @@ apply_build_script_patches() {
   done
 }
 
-# 将 direct SMB 的会话凭据作为 FFmpeg libsmbclient 的协议选项提供。
-# 凭据不进入 smb:// URI、HTTP header、持久化配置或日志。
-apply_ffmpeg_source_patches() {
-  local work_dir="$1"
-  local patches_dir="$2"
-  local ffmpeg_dir="$work_dir/libmpv/ffmpeg"
-
-  if [ ! -d "$patches_dir" ]; then
-    return 0
-  fi
-  if [ ! -d "$ffmpeg_dir" ]; then
-    echo "FFmpeg 源码目录不存在：$ffmpeg_dir" >&2
-    return 1
-  fi
-
-  local patch
-  for patch in "$patches_dir"/*.patch; do
-    [ -f "$patch" ] || continue
-    if git -C "$work_dir" apply --unidiff-zero --directory=libmpv/ffmpeg --reverse --check "$patch" 2>/dev/null; then
-      echo "FFmpeg SMB 补丁已应用，跳过：$(basename "$patch")"
-      continue
-    fi
-    echo "应用 FFmpeg SMB 补丁：$(basename "$patch")"
-    git -C "$work_dir" apply --unidiff-zero --directory=libmpv/ffmpeg "$patch" || {
-      echo "FFmpeg SMB 补丁应用失败：$patch" >&2
-      return 1
-    }
-  done
-}
-
 # 供 shell 测试导入缓存失效逻辑，避免触发原生构建。
 if [ "${BASH_SOURCE[0]}" != "$0" ]; then
   return 0
@@ -230,8 +263,33 @@ chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 reset_dependency_sources "$WORK_DIR"
 ./patch.sh
 apply_build_script_patches "$WORK_DIR" "$PATCHES_DIR"
-apply_ffmpeg_source_patches "$WORK_DIR" "$FFMPEG_PATCHES_DIR"
-prepare_smb_sysroot "$WORK_DIR/libmpv/arm64-build"
+# 清除旧构建遗留的静态 FFmpeg headers、archives 和 .pc，防止 Meson 误解析缓存。
+rm -f "$WORK_DIR/libmpv/arm64-build/lib/"libav*.a   "$WORK_DIR/libmpv/arm64-build/lib/"libswresample.a   "$WORK_DIR/libmpv/arm64-build/lib/"libswscale.a
+rm -f "$WORK_DIR/libmpv/arm64-build/lib/pkgconfig/"libav*.pc   "$WORK_DIR/libmpv/arm64-build/lib/pkgconfig/"libswresample.pc   "$WORK_DIR/libmpv/arm64-build/lib/pkgconfig/"libswscale.pc
+rm -rf "$WORK_DIR/libmpv/arm64-build/include/"libav*   "$WORK_DIR/libmpv/arm64-build/include/libswresample"   "$WORK_DIR/libmpv/arm64-build/include/libswscale"
+if [ -z "${VIDALL_PLAYER_FFMPEG_PREFIX:-}" ]; then
+  echo '必须设置 VIDALL_PLAYER_FFMPEG_PREFIX，指向受控 FFmpeg 8 ARM64 shared prefix。' >&2
+  exit 1
+fi
+prepare_ffmpeg_shared_prefix "$VIDALL_PLAYER_FFMPEG_PREFIX" "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared"
+if [ -n "${VIDALL_PLAYER_FFMPEG_RUNTIME_OVERRIDE:-}" ]; then
+  for soname in \
+    libavcodec.so.62 libavfilter.so.11 libavformat.so.62 libavutil.so.60 \
+    libswresample.so.6 libswscale.so.9; do
+    [ -f "$VIDALL_PLAYER_FFMPEG_RUNTIME_OVERRIDE/$soname" ] || {
+      echo "宿主 FFmpeg runtime 缺少：$VIDALL_PLAYER_FFMPEG_RUNTIME_OVERRIDE/$soname" >&2
+      exit 1
+    }
+    cp "$VIDALL_PLAYER_FFMPEG_RUNTIME_OVERRIDE/$soname" \
+      "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib/$soname"
+  done
+fi
+# MPV 及其静态依赖继续使用 DEST；仅 FFmpeg 从隔离 shared prefix 解析，避免误选旧静态 .pc。
+export PKG_CONFIG_PATH="$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib/pkgconfig:$WORK_DIR/libmpv/arm64-build/lib/pkgconfig"
+export PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"
+export VIDALL_PLAYER_FFMPEG_STAGING="$WORK_DIR/libmpv/arm64-build/ffmpeg-shared"
+export OHOS_NDK_HOME="${OHOS_NDK:-${OHOS_NDK_HOME:-}}"
+[ -n "$OHOS_NDK_HOME" ] || { echo '必须通过 OHOS_NDK 提供 OpenHarmony NDK。' >&2; exit 1; }
 mark_dependency_cache_prepared "$WORK_DIR" "$BUILD_COMMIT:$DEPENDENCY_CACHE_SCHEMA:$PATCHSET_DIGEST"
 ./build.sh
 (
@@ -258,5 +316,23 @@ if [ -z "$LIBMPV_PATH" ]; then
   exit 1
 fi
 write_sha256 "$LIBMPV_PATH" "$OUTPUT_DIR/libmpv.so.sha256"
+"$ELF_AUDIT_SCRIPT" --input "$LIBMPV_PATH" --output "$OUTPUT_DIR/elf-audit.json" \
+  --allow libc.so --allow libm.so --allow libdl.so --allow libz.so \
+  --allow libc++.so --allow libc++_shared.so --allow libhilog_ndk.z.so \
+  --allow libEGL.so --allow libvulkan.so --allow libohaudio.so \
+  --allow libnative_buffer.so --allow libnative_image.so --allow libnative_window.so \
+  --allow libavcodec.so.62 --allow libavformat.so.62 --allow libavutil.so.60 \
+  --allow libavfilter.so.11 --allow libswresample.so.6 --allow libswscale.so.9 \
+  --require libavcodec.so.62 --require libavformat.so.62 --require libavutil.so.60 \
+  --require libavfilter.so.11 --require libswresample.so.6 --require libswscale.so.9 \
+  --forbid libsmbclient.so --max-bytes "${VIDALL_PLAYER_LIBMPV_MAX_BYTES:-25000000}"
+rm -rf -- "$FFMPEG_RUNTIME_DIR"
+mkdir -p "$FFMPEG_RUNTIME_DIR"
+cp -R "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib"/libav*.so* \
+  "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib"/libswresample.so* \
+  "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib"/libswscale.so* "$FFMPEG_RUNTIME_DIR/"
+cp -R "$VIDALL_PLAYER_FFMPEG_PREFIX/licenses" "$FFMPEG_RUNTIME_DIR/"
+cp "$VIDALL_PLAYER_FFMPEG_PREFIX/VERSION" "$VIDALL_PLAYER_FFMPEG_PREFIX/MANIFEST.tsv" "$FFMPEG_RUNTIME_DIR/"
 cat "$OUTPUT_DIR/libmpv.so.sha256"
 echo "已生成：$LIBMPV_PATH"
+echo "宿主 HAP 运行时输入：${FFMPEG_RUNTIME_DIR}（不得复制进 HAR）"

@@ -1,8 +1,8 @@
 diff --git a/build.sh b/build.sh
-index cef100b..f3fb1ff 100644
+index 65fa873..274a037 100644
 --- a/build.sh
 +++ b/build.sh
-@@ -10,8 +10,8 @@ set -eu
+@@ -7,7 +7,7 @@ set -eu
  
  # libass
  ./scripts/fribidi.sh build
@@ -11,4 +11,3 @@ index cef100b..f3fb1ff 100644
 +./scripts/freetype.sh build
  ./scripts/fontconfig.sh build
  ./scripts/libass.sh build
- 

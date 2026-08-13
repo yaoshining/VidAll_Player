@@ -205,6 +205,16 @@ export class PlayerSession implements VidAllPlayer {
     });
   }
 
+  setPropertyString(property: string, value: string): Promise<void> {
+    return this.enqueue('setPropertyString', () => {
+      if (property.length === 0) {
+        throw lifecycleFailure('INPUT_INVALID', '属性名不能为空。Property name must not be empty.');
+      }
+      this.requireActiveSessionState('setPropertyString');
+      return this.nativeBridge.setPropertyString(property, value);
+    });
+  }
+
   setVolume(volume: number): Promise<void> {
     return this.enqueue('setVolume', () => {
       if (!Number.isFinite(volume) || volume < 0 || volume > 100) {

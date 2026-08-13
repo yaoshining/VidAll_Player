@@ -1,46 +1,49 @@
 # libmpv 受控发布流程
 
-## 发布输入
+## External FFmpeg staging
 
-- `native/config/sources.lock.json` 是唯一允许的上游来源清单。所有来源必须固定为 40 位 Git commit，禁止使用分支、浮动 tag、预编译 release 或未审计的外部构建脚本。
-- 在隔离的 OpenHarmony SDK 容器中检出锁定的来源，并保留 FFmpeg configure 选项、MPV Meson 选项及组件列表。
-- 设置 `SOURCE_DATE_EPOCH` 为发布提交时间，并在相同源码、工具链和配置下完成两次独立构建。
-
-## 生成与审计
-
-将已构建的 `libmpv.so` 及构建元数据置于受控来源目录后运行：
+`native/scripts/build-libmpv-bootstrap.sh` 不再构建或静态链接 FFmpeg。构建前必须设置：
 
 ```bash
-native/scripts/build-libmpv-controlled.sh \
-  --source <受控源码目录> \
-  --output dist/libmpv/arm64-v8a \
-  --skip-compile
+export OHOS_NDK=<OpenHarmony NDK 根目录>
+export VIDALL_PLAYER_FFMPEG_PREFIX=<ohos_ijkplayer FFmpeg 8 ARM64 shared prefix>
+native/scripts/build-libmpv-bootstrap.sh
 ```
 
-该命令生成 `libmpv.so.sha256`、feature manifest、SPDX/CycloneDX SBOM、`NOTICE`、许可证审计和 ELF 审计报告。ELF 审计只允许 `libc++.so` 与 `libhilog_ndk.z.so`；新动态依赖必须先完成安全与兼容性审查。
+prefix 约定如下：
 
-候选发布前还必须校验 `release/capabilities/arm64-tv-capability-evidence.json`：
+- `include/libav*`：FFmpeg 8 public headers。
+- `lib/libav*.so*`、`lib/libsw*.so*`：包含 unversioned linker name、SONAME link 和完整版本文件。
+- `lib/pkgconfig/*.pc`：`libavcodec`、`libavformat`、`libavutil`、`libavfilter`、`libswresample`、`libswscale`；bootstrap staging 时重写 `prefix=`。
+- `VERSION`、`configure-options.txt`、`MANIFEST.tsv`、`ELF-REPORT.txt`：不可变来源、ABI、配置和 ELF 证明。
+- `licenses/GPL-3.0-or-later.txt`、`licenses/FFmpeg-LGPL-2.1-or-later.txt`：发布许可证文本。
 
-```bash
-native/scripts/validate-capability-evidence.sh \
-  --input release/capabilities/arm64-tv-capability-evidence.json
-```
+输入必须是 FFmpeg 8.0、ARM64、`--disable-static --enable-shared`，并保持既有播放能力：`libsmbclient` 及私有凭据补丁、network、dav1d、mbedTLS、libxml2/DASH、ohcodec、PNG/MJPEG encoder。任何 `libav*.a` 都会被拒绝。producer 的 Samba/GnuTLS 闭包静态进入 `libavformat.so.62`；不得动态依赖 `libsmbclient.so`。
 
-校验器只接受"已通过真机样本"、"已构建待验证"和"不支持或暂缓"。真机通过项必须提供匿名 ARM64 TV、匿名样本、执行时间、指标和证据文件；未验证项禁止填充这些字段，也禁止在 README 或发布说明中宣称已支持。
+## 运行时所有权
 
-随后验证两次独立制品：
+bootstrap 将运行时输入输出到 `dist/ffmpeg-runtime/arm64-v8a`，但不把它复制到 HAR。最终宿主 HAP 必须在同一 ABI 目录统一打包：
 
-```bash
-native/scripts/verify-reproducible-artifacts.sh \
-  --first <第一次/libmpv.so> \
-  --second <第二次/libmpv.so> \
-  --output dist/libmpv/arm64-v8a/reproducibility.json
-```
+- `libavcodec.so.62`
+- `libavformat.so.62`
+- `libavutil.so.60`
+- `libavfilter.so.11`
+- `libswresample.so.6`
+- `libswscale.so.9`
 
-## 许可证门禁
+HAR 只能携带 SDK 自身 native bridge，禁止携带上述 FFmpeg 副本，避免多个 HAR 重复打包或加载不同实现。
 
-MPV 为 GPL-2.0-or-later；受控 SMB 路径静态链接 Samba `libsmbclient`（GPL-3.0-or-later），并要求 FFmpeg 使用 `--enable-gpl --enable-libsmbclient`、mpv 使用 `-Dgpl=true`。因此，包含该 SMB 路径的最终 `libmpv.so` 和随附制品按 GPLv3 发布，不能以 LGPL 或无 SMB 支持的制品描述替代。
+## ELF、ABI 与体积审计
 
-`license-audit.json` 的 `review-required` 是发布阻断条件：必须确认静态链接方式、完整 Samba 传递依赖闭包、启用的 FFmpeg 编解码器、完整许可证文本、NOTICE，以及与对应精确源码和构建脚本一同提供的源码获取方式后，才能签出 release tag。ELF 审计必须禁止动态 `libsmbclient.so`；SMB 代码只能通过受审计的静态闭包进入最终制品。
+构建后 bootstrap 使用 `${OHOS_NDK}/llvm/bin/llvm-readelf` 和 `llvm-nm`（兼容 NDK 的 `native/llvm/bin` 布局）生成 `dist/libmpv/arm64-v8a/elf-audit.json`。门禁要求：
 
-发布 tag 必须附带 changelog、已知限制、上述全部审计制品、可重复构建报告和 GPLv3 源码提供说明。当前受控脚本不包含完整交叉工具链适配层，不能将其“跳过编译”模式解释为生产构建已经完成。
+- `DT_NEEDED` 完整包含上述 6 个版本化 FFmpeg SONAME。
+- 不出现 `libsmbclient.so`，不导出或内嵌完整 `avcodec`/`avformat` 实现符号。
+- 默认 `libmpv.so` 上限 25 MB，可通过 `VIDALL_PLAYER_LIBMPV_MAX_BYTES` 收紧；FFmpeg runtime 单独记录体积。
+- ARM64、MPV/NAPI/ArkTS public API 与宿主播放回归必须保持不变。
+
+## 许可证与发布
+
+MPV 为 GPL-2.0-or-later；启用 Samba `libsmbclient` 后 external FFmpeg runtime 按 GPLv3 审核。最终 HAP 发布必须同时提供 MPV、FFmpeg、Samba 及静态传递闭包的许可证、NOTICE、精确源码、producer 构建脚本和源码提供说明。`VERSION` 中的凭据 patch 必须能由 `MANIFEST.tsv` 追溯；缺少来源证明时不得发布。
+
+受控制品仍通过 `native/scripts/build-libmpv-controlled.sh` 生成 SHA-256、feature manifest、SPDX/CycloneDX SBOM、NOTICE、许可证与 ELF 报告；候选版本还需通过 ARM64 TV 能力证据和双构建可重复性验证。
