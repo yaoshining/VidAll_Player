@@ -69,6 +69,8 @@ export function compilePublicApiContract(): void {
   const lease: ProxyLeaseStatus = { leaseId: 'fixture', state: 'released', epoch: 1, retryable: false };
   void player.setRate(1);
   void player.setPropertyString('sub-visibility', 'yes');
+  void player.setAudioFilter('pan=stereo|c0=FL+0.7*FC|c1=FR+0.7*FC');
+  void player.setVolume(50);
   void player.mute(false);
   void player.addExternalAudio(audio);
   void [adapter, source, surface, state, eventType, track, subtitle, error, log, lease, hwdecAuto, hwdecDisabled];
