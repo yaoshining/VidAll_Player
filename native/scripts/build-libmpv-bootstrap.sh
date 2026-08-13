@@ -97,7 +97,9 @@ prepare_ffmpeg_shared_prefix() {
   for required in \
     'ffmpeg_version=8.0' 'libsmbclient=enabled' \
     'libsmbclient_linkage=static-closure' 'architecture=arm64-v8a' \
-    'target=aarch64-unknown-linux-ohos' 'elf_machine=AArch64'; do
+    'target=aarch64-unknown-linux-ohos' 'elf_machine=AArch64' \
+    'https_protocol=enabled' 'tls_protocol=enabled' \
+    'tls_backend=gnutls' 'tls_backend_linkage=static-closure'; do
     grep -Fxq -- "$required" "$metadata" || {
       echo "FFmpeg VERSION 缺少受控声明：$required" >&2
       return 1
@@ -111,16 +113,23 @@ prepare_ffmpeg_shared_prefix() {
     echo 'FFmpeg VERSION 缺少 SMB 凭据补丁来源。' >&2
     return 1
   }
+  # 电视端实际发运「精简 FFmpeg 8 基线」（GnuTLS 静态闭包 + SMB + https/tls），
+  # 不含 dav1d/mbedtls/libxml2/dash/ohcodec/png,mjpeg 等完整能力；门禁须与此一致，
+  # 避免误拒与宿主 HAP 完全同构的精简六库。
   for required in \
     '--disable-static' '--enable-shared' '--enable-gpl' '--enable-version3' \
-    '--enable-libsmbclient' '--enable-network' '--enable-libdav1d' \
-    '--enable-mbedtls' '--enable-libxml2' '--enable-demuxer=dash' \
-    '--enable-ohcodec' '--enable-encoder=png,mjpeg'; do
+    '--enable-libsmbclient' '--enable-network' '--enable-gnutls' \
+    '--disable-nonfree'; do
     grep -Fq -- "$required" "$configure_options" || {
       echo "FFmpeg 配置缺少保持播放行为所需选项：$required" >&2
       return 1
     }
   done
+  # WebDAV HTTPS 播放依赖 https,tls 网络协议白名单（issue #63）。
+  grep -Eq '^--enable-protocol=.*https.*tls' "$configure_options" || {
+    echo 'FFmpeg 网络协议白名单必须包含 https,tls。' >&2
+    return 1
+  }
 
   rm -rf -- "$dest"
   mkdir -p "$dest"

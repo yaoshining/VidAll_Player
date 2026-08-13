@@ -241,7 +241,7 @@ assert 'ffmpeg_artifact_repository:' in workflow, 'CI 必须声明受控 FFmpeg 
 assert 'ffmpeg_artifact_run_id:' in workflow, 'CI 必须使用固定 workflow run ID 获取 FFmpeg 制品'
 assert 'build-libmpv-external-ffmpeg:' in workflow, 'CI 必须执行 external FFmpeg libmpv 构建'
 libmpv_job = workflow.split('  build-libmpv-external-ffmpeg:', 1)[1].split('  controlled-release:', 1)[0]
-assert 'FFMPEG_ARTIFACT_RUN_ID:' in libmpv_job and "'31619995231'" in libmpv_job, 'CI 必须为自动事件提供固定 FFmpeg run ID'
+assert 'FFMPEG_ARTIFACT_RUN_ID:' in libmpv_job and "'31637632656'" in libmpv_job, 'CI 必须为自动事件提供固定 FFmpeg run ID'
 assert 'gh run download "$FFMPEG_ARTIFACT_RUN_ID"' in libmpv_job, 'CI 必须通过环境变量安全传递固定 run ID'
 assert '--repo "$FFMPEG_ARTIFACT_REPOSITORY"' in libmpv_job, 'CI 必须通过环境变量安全传递 producer 仓库'
 assert '${{ inputs.ffmpeg_artifact_run_id }}' not in libmpv_job.split('run: |', 1)[1], 'workflow inputs 不得直接插值进 shell'

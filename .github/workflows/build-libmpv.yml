@@ -45,7 +45,7 @@ on:
         description: '产出 ffmpeg-8.0-ohos-arm64-v8a artifact 的不可变 workflow run ID'
         required: false
         type: string
-        default: '31619995231'
+        default: '31637632656'
 
 permissions:
   actions: read
@@ -114,7 +114,7 @@ jobs:
     runs-on: [self-hosted, macos, deveco]
     env:
       FFMPEG_ARTIFACT_REPOSITORY: ${{ inputs.ffmpeg_artifact_repository || 'yaoshining/ohos_ijkplayer' }}
-      FFMPEG_ARTIFACT_RUN_ID: ${{ inputs.ffmpeg_artifact_run_id || '31619995231' }}
+      FFMPEG_ARTIFACT_RUN_ID: ${{ inputs.ffmpeg_artifact_run_id || '31637632656' }}
       RUST_TOOLCHAIN: 1.85.1
       CARGO_C_VERSION: 0.10.13
       RUSTUP_VERSION: 1.28.2

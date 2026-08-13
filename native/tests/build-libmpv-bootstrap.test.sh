@@ -96,6 +96,10 @@ smb_patch=patches/0001-libsmbclient-private-credentials.patch
 target=aarch64-unknown-linux-ohos
 architecture=arm64-v8a
 elf_machine=AArch64
+tls_backend=gnutls
+tls_backend_linkage=static-closure
+https_protocol=enabled
+tls_protocol=enabled
 EOF
   cat > "$ffmpeg_prefix/configure-options.txt" <<'EOF'
 --disable-static
@@ -104,12 +108,9 @@ EOF
 --enable-version3
 --enable-libsmbclient
 --enable-network
---enable-libdav1d
---enable-mbedtls
---enable-libxml2
---enable-demuxer=dash
---enable-ohcodec
---enable-encoder=png,mjpeg
+--enable-gnutls
+--disable-nonfree
+--enable-protocol=file,http,https,tls,tcp,httpproxy,rtmp,rtp,udp,crypto,data,pipe,concat,subfile,cache,async,smb
 EOF
   printf 'manifest\n' > "$ffmpeg_prefix/MANIFEST.tsv"
   printf 'elf report\n' > "$ffmpeg_prefix/ELF-REPORT.txt"
@@ -132,9 +133,14 @@ EOF
     fi
   done
   cp -R "$ffmpeg_prefix" "$temp_dir/invalid-features"
-  sed -i.bak '/--enable-demuxer=dash/d' "$temp_dir/invalid-features/configure-options.txt"
+  sed -i.bak '/--enable-gnutls/d' "$temp_dir/invalid-features/configure-options.txt"
   if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-features" "$temp_dir/rejected-features"; then
-    fail '缺少历史播放能力的 prefix 必须被拒绝'
+    fail '缺少 https/tls 能力的 prefix 必须被拒绝'
+  fi
+  cp -R "$ffmpeg_prefix" "$temp_dir/invalid-tls"
+  sed -i.bak 's/https,tls,//' "$temp_dir/invalid-tls/configure-options.txt"
+  if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-tls" "$temp_dir/rejected-tls"; then
+    fail '缺少 https,tls 协议的 prefix 必须被拒绝'
   fi
   cp -R "$ffmpeg_prefix" "$temp_dir/invalid-license"
   rm "$temp_dir/invalid-license/licenses/GPL-3.0-or-later.txt"
