@@ -17,5 +17,5 @@ grep -Fq 'cargo install cargo-c --version "=$CARGO_C_VERSION"' "$WORKFLOW" || \
 grep -Fq 'CARGO_C_EXPECTED_VERSION: 0.10.13+cargo-0.88.0' "$WORKFLOW" || \
   fail '必须记录与 Rust 1.85.1 兼容的完整 cargo-c 版本'
 
-grep -Fq 'test "$(cargo-cbuild --version)" = "cargo-cbuild $CARGO_C_EXPECTED_VERSION"' "$WORKFLOW" || \
+grep -Fq 'test "$(cargo-cbuild --version)" = "cargo-c $CARGO_C_EXPECTED_VERSION"' "$WORKFLOW" || \
   fail '安装后必须验证 cargo-c 的完整版本'

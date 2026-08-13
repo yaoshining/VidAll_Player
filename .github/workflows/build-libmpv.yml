@@ -176,7 +176,7 @@ jobs:
           rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
           rustup default "$RUST_TOOLCHAIN"
           cargo install cargo-c --version "=$CARGO_C_VERSION" --locked --features=vendored-openssl
-          test "$(cargo-cbuild --version)" = "cargo-cbuild $CARGO_C_EXPECTED_VERSION" || {
+          test "$(cargo-cbuild --version)" = "cargo-c $CARGO_C_EXPECTED_VERSION" || {
             echo "cargo-c 版本不符合受控工具链要求：期望 $CARGO_C_EXPECTED_VERSION。" >&2
             exit 1
           }
