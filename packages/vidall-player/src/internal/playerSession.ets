@@ -215,11 +215,20 @@ export class PlayerSession implements VidAllPlayer {
     });
   }
 
+  setAudioFilter(filter: string): Promise<void> {
+    return this.enqueue('setAudioFilter', () => {
+      this.requireActiveSessionState('setAudioFilter');
+      return this.nativeBridge.setAudioFilter(filter);
+    });
+  }
+
   setVolume(volume: number): Promise<void> {
     return this.enqueue('setVolume', () => {
       if (!Number.isFinite(volume) || volume < 0 || volume > 100) {
         throw lifecycleFailure('INVALID_VOLUME', '音量必须是 0 到 100 之间的有限值。Volume must be a finite value between 0 and 100.');
       }
+      this.requireActiveSessionState('setVolume');
+      return this.nativeBridge.setVolume(volume);
     });
   }
 

@@ -8,6 +8,8 @@ class LifecycleNativeBridge implements NativePlayerBridge {
   private eventEpoch: number = 0;
   private listener?: (event: NativeBridgeEvent) => void;
   readonly properties: string[] = [];
+  readonly volumes: number[] = [];
+  readonly audioFilters: string[] = [];
 
   getDirectSmbCapability(): Promise<DirectSmbCapability> { return Promise.resolve({ available: false }); }
   attachSurface(surface: { generation: number }): Promise<void> {
@@ -34,6 +36,14 @@ class LifecycleNativeBridge implements NativePlayerBridge {
   pause(): Promise<void> { return Promise.reject(this.failure('FEATURE_UNSUPPORTED')); }
   setPropertyString(property: string, value: string): Promise<void> {
     this.properties.push(`${property}=${value}`);
+    return Promise.resolve();
+  }
+  setAudioFilter(filter: string): Promise<void> {
+    this.audioFilters.push(filter);
+    return Promise.resolve();
+  }
+  setVolume(volume: number): Promise<void> {
+    this.volumes.push(volume);
     return Promise.resolve();
   }
   stop(): Promise<void> { return Promise.resolve(); }
@@ -87,7 +97,19 @@ export async function playerLifecycleMaintainsTypedFailuresAndNewSessionRecovery
   await player.setPropertyString('sub-visibility', 'yes');
   assert(nativeBridge.properties.join(',') === 'sid=2,sub-visibility=yes',
     'String properties must be forwarded through the serialized native bridge.');
+  await player.setAudioFilter('pan=stereo|c0=FL+0.7*FC|c1=FR+0.7*FC');
+  await player.setAudioFilter('');
+  assert(nativeBridge.audioFilters.join(',') === 'pan=stereo|c0=FL+0.7*FC|c1=FR+0.7*FC,',
+    'Audio filters and the empty value used to clear them must be forwarded to libmpv.');
+  await player.setVolume(0);
+  await player.setVolume(50.5);
+  await player.setVolume(100);
+  assert(nativeBridge.volumes.join(',') === '0,50.5,100',
+    'Volume boundaries and fractional values must be forwarded to libmpv.');
   await expectFailure(() => player.setPropertyString('', 'yes'), 'INPUT_INVALID');
+  await expectFailure(() => player.setVolume(-1), 'INVALID_VOLUME');
+  await expectFailure(() => player.setVolume(101), 'INVALID_VOLUME');
+  await expectFailure(() => player.setVolume(Number.NaN), 'INVALID_VOLUME');
   await player.stop();
   await player.stop();
   await player.release();
@@ -95,6 +117,8 @@ export async function playerLifecycleMaintainsTypedFailuresAndNewSessionRecovery
   await expectFailure(() => player.load(source), 'RELEASED');
   await expectFailure(() => player.play(), 'RELEASED');
   await expectFailure(() => player.setPropertyString('sid', 'no'), 'RELEASED');
+  await expectFailure(() => player.setAudioFilter('lavfi=[volume=2]'), 'RELEASED');
+  await expectFailure(() => player.setVolume(50), 'RELEASED');
 
   const recovered: VidAllPlayer = new PlayerSession(undefined, new LifecycleNativeBridge());
   await recovered.attachSurface({ componentId: 'recovered', generation: 1, width: 1920, height: 1080 });

@@ -36,6 +36,8 @@ export interface NativeSessionModule {
   seekPercent(handle: number, percent: number): NativeSessionResult;
   setRate(handle: number, rate: number): NativeSessionResult;
   setPropertyString(handle: number, property: string, value: string): NativeSessionResult;
+  setAudioFilter(handle: number, filter: string): NativeSessionResult;
+  setVolume(handle: number, volume: number): NativeSessionResult;
   selectTrack(handle: number, kind: string, trackId: number): NativeSessionResult;
   addExternalAudio(handle: number, uri: string): NativeSessionResult;
   addExternalSubtitle(handle: number, uri: string): NativeSessionResult;

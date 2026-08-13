@@ -20,7 +20,7 @@ fixture 只能从 `@vidall/player` 根入口导入；不要导入 `src/internal`
 
 ## 开发期接口
 
-`createPlayer()`、`attachSurface()`、`resizeSurface()`、`detachSurface()`、`load()`、`play()`、`stop()` 和 `release()` 是候选接口。调用成功、生命周期事件或模拟器日志只证明受控桥接路径执行，不构成媒体播放或首帧结论。页面销毁时仍应调用 `release()`；释放后的实例不可复用，应重新调用 `createPlayer()`。
+`createPlayer()`、`attachSurface()`、`resizeSurface()`、`detachSurface()`、`load()`、`play()`、`setAudioFilter()`、`setVolume()`、`stop()` 和 `release()` 是候选接口。`setAudioFilter(filter)` 将字符串写入 libmpv `af` 属性，传入空字符串可清空滤镜链；`setVolume(volume)` 接受 0 到 100（含边界）的有限数值。调用成功、生命周期事件或模拟器日志只证明受控桥接路径执行，不构成媒体播放或首帧结论。页面销毁时仍应调用 `release()`；释放后的实例不可复用，应重新调用 `createPlayer()`。
 
 未批准的能力会返回类型化错误。例如，`requestCache()` 返回 `FEATURE_UNSUPPORTED`；无有效 Surface 的 `load()` 返回 `SURFACE_UNAVAILABLE`；释放后控制调用返回 `RELEASED`。公开错误经过脱敏，不能依赖其包含完整 URI、原生句柄或加载路径。
 

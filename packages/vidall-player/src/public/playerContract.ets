@@ -11,6 +11,7 @@ export interface VidAllPlayer {
   seekPercent(percent: number): Promise<void>;
   setRate(rate: number): Promise<void>;
   setPropertyString(property: string, value: string): Promise<void>;
+  setAudioFilter(filter: string): Promise<void>;
   setVolume(volume: number): Promise<void>;
   mute(muted: boolean): Promise<void>;
   selectTrack(kind: PlayerTrackKind, id: number | null): Promise<void>;

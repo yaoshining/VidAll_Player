@@ -14,6 +14,8 @@ class RecordingNativeBridge implements NativePlayerBridge {
   play(): Promise<void> { return Promise.resolve(); }
   pause(): Promise<void> { return Promise.resolve(); }
   setPropertyString(): Promise<void> { return Promise.resolve(); }
+  setAudioFilter(): Promise<void> { return Promise.resolve(); }
+  setVolume(): Promise<void> { return Promise.resolve(); }
   stop(): Promise<void> { return Promise.resolve(); }
 
   release(): Promise<void> {
