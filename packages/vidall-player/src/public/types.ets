@@ -25,6 +25,16 @@ export interface PlayerOptions {
   // - 'disabled'：强制纯软件解码（兼容性最高，但高分辨率/高码率可能卡顿）。
   // 省略时按 'auto' 处理。硬件解码是否真正生效由 VideoParams.hardwareDecoding 上报。
   hardwareDecoding?: 'auto' | 'disabled';
+  // HDR tone mapping 曲线（issue #66）：libmpv 渲染 API 后端（vo_gpu）支持的一组曲线，
+  // 决定 HDR10(PQ)/HLG/BT.2020 内容 tone map 到目标显示时的亮度压缩方式。
+  // 缺省为 'bt.2390'（ITU-R BT.2390，mpv "auto" 对 HDR 也最终解析到该曲线，显式缺省
+  // 保证 HDR 兜底路径不依赖平台 auto 猜测）。可选 'auto'/'mobius'/'reinhard'/'hable'/
+  // 'gamma'/'linear'/'clip'。映射到 mpv "tone-mapping" 选项。
+  hdrToneMapping?: 'auto' | 'bt.2390' | 'mobius' | 'reinhard' | 'hable' | 'gamma' | 'linear' | 'clip';
+  // HDR 峰值亮度检测（issue #66）：是否让 mpv 从视频信号峰值（sig-peak）动态计算
+  // tone mapping 的输入峰值。'enabled' → mpv "hdr-compute-peak=yes"；'disabled' → "no"；
+  // 缺省为 'auto'（mpv 在支持 compute 时启用，否则优雅降级）。映射到 mpv "hdr-compute-peak" 选项。
+  hdrComputePeak?: 'auto' | 'enabled' | 'disabled';
 }
 
 export interface MediaSource {

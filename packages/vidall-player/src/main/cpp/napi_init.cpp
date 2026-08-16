@@ -268,12 +268,20 @@ public:
 
     ~NativeSession() { Release(); }
 
-    bool Initialize(const std::string& fontsDir, const std::string& hwdec)
+    bool Initialize(const std::string& fontsDir, const std::string& hwdec,
+                    const std::string& toneMapping, const std::string& hdrComputePeak)
     {
         if (!player_) return false;
         mpv_set_option_string(player_.get(), "terminal", "no");
         mpv_set_option_string(player_.get(), "config", "no");
         mpv_set_option_string(player_.get(), "vo", "libmpv");
+        // HDR tone mapping（issue #66）：渲染 API 后端是 vo_gpu（render_backend_gpu），
+        // 其色彩管理支持 tone-mapping/hdr-compute-peak。显式下发缺省 bt.2390 + auto，
+        // 让 HDR10(PQ)/HLG/BT.2020 内容在目标电视上确定性 tone map 到 SDR，
+        // 而不是依赖 mpv 平台默认猜测导致黑屏或过曝。ArkTS 侧已把非法/缺省值归一化，
+        // 这里空串再兜底一次，双保险保证兜底路径可用。
+        mpv_set_option_string(player_.get(), "tone-mapping", toneMapping.empty() ? "bt.2390" : toneMapping.c_str());
+        mpv_set_option_string(player_.get(), "hdr-compute-peak", hdrComputePeak.empty() ? "auto" : hdrComputePeak.c_str());
         // 硬件解码：libmpv 编译时 --enable-ohcodec，链接 libnative_media_vdec.so。
         // hwdec 为空时保留 mpv 默认（软件解码）；"auto-safe" 自动选择 ohcodec 硬解后端，
         // 失败时回退软件解码；"no" 强制软件解码。
@@ -293,6 +301,15 @@ public:
         // 输出当前 hwdec 设置，便于真机日志确认硬件解码策略已下发到 mpv。
         const char* hwdecValue = mpv_get_property_string(player_.get(), "hwdec");
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "hwdec configured: %{public}s", hwdecValue != nullptr ? hwdecValue : "(null)");
+        // 输出生效的 HDR tone mapping 设置，便于真机日志确认 HDR 兜底配置已下发到 mpv。
+        char* toneMappingValue = mpv_get_property_string(player_.get(), "tone-mapping");
+        char* hdrComputePeakValue = mpv_get_property_string(player_.get(), "hdr-compute-peak");
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+            "hdr tone-mapping configured: tone-mapping=%{public}s hdr-compute-peak=%{public}s",
+            toneMappingValue != nullptr ? toneMappingValue : "(null)",
+            hdrComputePeakValue != nullptr ? hdrComputePeakValue : "(null)");
+        if (toneMappingValue != nullptr) mpv_free(toneMappingValue);
+        if (hdrComputePeakValue != nullptr) mpv_free(hdrComputePeakValue);
         // 观察 hwdec-current：mpv 在文件加载并选定解码器后会设置此属性，
         // 用于真机日志确认 ohcodec 硬件解码后端是否真正激活（空串=软解）。
         mpv_observe_property(player_.get(), 0, "hwdec-current", MPV_FORMAT_STRING);
@@ -1281,15 +1298,17 @@ std::shared_ptr<NativeSession> FindSession(std::uint64_t handle)
 
 napi_value CreateSession(napi_env env, napi_callback_info info)
 {
-    napi_value args[2] = {nullptr}; size_t argc = 2;
-    std::string fontsDir, hwdec;
+    napi_value args[4] = {nullptr}; size_t argc = 4;
+    std::string fontsDir, hwdec, toneMapping, hdrComputePeak;
     if (napi_get_cb_info(env, info, &argc, args, nullptr, nullptr) == napi_ok) {
         if (argc >= 1) ReadString(env, args[0], fontsDir);
         if (argc >= 2) ReadString(env, args[1], hwdec);
+        if (argc >= 3) ReadString(env, args[2], toneMapping);
+        if (argc >= 4) ReadString(env, args[3], hdrComputePeak);
     }
 #if VIDALL_MPV_AVAILABLE
     auto session = std::make_shared<NativeSession>();
-    if (!session->Initialize(fontsDir, hwdec)) return CreateResult(env, {false, 0, "NATIVE_PLAYBACK_FAILED"});
+    if (!session->Initialize(fontsDir, hwdec, toneMapping, hdrComputePeak)) return CreateResult(env, {false, 0, "NATIVE_PLAYBACK_FAILED"});
     std::lock_guard<std::mutex> lock(gSessionsMutex);
     const std::uint64_t handle = gNextSessionId++;
     gSessions.emplace(handle, std::move(session));

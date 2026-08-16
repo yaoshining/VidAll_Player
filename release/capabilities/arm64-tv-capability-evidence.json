@@ -32,7 +32,7 @@
     ],
     "hdrColor": [
       {"feature": "SDR 基线", "status": "已构建待验证", "knownLimitations": "待以目标显示设备和受控样本验证色彩正确性。"},
-      {"feature": "HDR10/HLG/Dolby Vision", "status": "已构建待验证", "knownLimitations": "未完成 ARM64 TV 显示链路验证，不作 HDR 支持承诺。"}
+      {"feature": "HDR10/HLG/Dolby Vision", "status": "已构建待验证", "knownLimitations": "libmpv 桥接已显式配置 tone-mapping=bt.2390 + hdr-compute-peak（issue #66），HDR10(PQ)/HLG/BT.2020 默认 tone map 到 SDR；待 EDIS-790A 真机用「御赐小仵作第二季/01.mp4」（HDR 黑屏样本）与 SDR 样本对比验证后再升级为已支持；Dolby Vision 仍不作支持承诺。"}
     ],
     "ijkCompatibility": [
       {"feature": "媒体浏览、WebDAV、SMB 代理、音轨字幕、音频路由、硬解回退、播放控制和生命周期", "status": "已构建待验证", "knownLimitations": "按 compatibility-matrix.md 的每个场景采集独立证据前，集成方必须保留 IJK 回退。"}

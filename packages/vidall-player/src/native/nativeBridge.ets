@@ -289,6 +289,34 @@ function resolveHardwareDecoding(mode: 'auto' | 'disabled' | undefined): string 
   return 'auto';
 }
 
-export function createNativePlayerBridge(subtitleFontsDir?: string, hardwareDecoding?: 'auto' | 'disabled'): NativePlayerBridge {
-  return new HarNativePlayerBridge(nativeSession.createSession(subtitleFontsDir ?? '', resolveHardwareDecoding(hardwareDecoding)));
+// PlayerOptions.hdrToneMapping → mpv "tone-mapping" 选项值映射（issue #66）。
+// 缺省与非法值均回退 'bt.2390'：渲染 API 后端（vo_gpu）确定性支持、且 mpv "auto"
+// 对 HDR 也最终解析到 bt.2390，显式缺省保证兜底路径不依赖平台 auto 猜测。
+export function resolveHdrToneMapping(mode: string | undefined): string {
+  if (mode === 'auto' || mode === 'mobius' || mode === 'reinhard' || mode === 'hable' ||
+    mode === 'gamma' || mode === 'linear' || mode === 'clip') {
+    return mode;
+  }
+  // 'bt.2390' 与缺省/非法值均落到默认曲线。
+  return 'bt.2390';
+}
+
+// PlayerOptions.hdrComputePeak → mpv "hdr-compute-peak" 选项值映射（issue #66）。
+// enabled→yes、disabled→no、缺省与非法值→auto（mpv 在支持 compute 时启用，否则优雅降级）。
+export function resolveHdrComputePeak(mode: string | undefined): string {
+  if (mode === 'enabled') {
+    return 'yes';
+  }
+  if (mode === 'disabled') {
+    return 'no';
+  }
+  return 'auto';
+}
+
+export function createNativePlayerBridge(subtitleFontsDir?: string, hardwareDecoding?: 'auto' | 'disabled',
+  hdrToneMapping?: 'auto' | 'bt.2390' | 'mobius' | 'reinhard' | 'hable' | 'gamma' | 'linear' | 'clip',
+  hdrComputePeak?: 'auto' | 'enabled' | 'disabled'): NativePlayerBridge {
+  return new HarNativePlayerBridge(nativeSession.createSession(
+    subtitleFontsDir ?? '', resolveHardwareDecoding(hardwareDecoding),
+    resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak)));
 }

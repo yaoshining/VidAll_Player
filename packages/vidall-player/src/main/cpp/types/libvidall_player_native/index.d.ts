@@ -23,7 +23,7 @@ export interface NativeFrameData {
 }
 
 export interface NativeSessionModule {
-  createSession(fontsDir?: string, hwdec?: string): NativeSessionResult;
+  createSession(fontsDir?: string, hwdec?: string, toneMapping?: string, hdrComputePeak?: string): NativeSessionResult;
   releaseSession(handle: number): NativeSessionResult;
   attachSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
   resizeSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
