@@ -50,6 +50,10 @@ export function compilePublicApiContract(): void {
   // 硬件解码开关：'auto'（默认，优先 OHOS ohcodec 硬解、失败回退软解）或 'disabled'（纯软解）
   const hwdecAuto: VidAllPlayer = createPlayer({ hardwareDecoding: 'auto' });
   const hwdecDisabled: VidAllPlayer = createPlayer({ hardwareDecoding: 'disabled' });
+  // HDR tone mapping 开关（issue #66）：缺省 bt.2390 tone map 到 SDR，可从 auto/mobius 等覆盖。
+  const hdrBt2390: VidAllPlayer = createPlayer({ hdrToneMapping: 'bt.2390' });
+  const hdrMobius: VidAllPlayer = createPlayer({ hdrToneMapping: 'mobius', hdrComputePeak: 'enabled' });
+  const hdrComputePeakDisabled: VidAllPlayer = createPlayer({ hdrComputePeak: 'disabled' });
   const adapter: XComponentSurfaceAdapter = new XComponentSurfaceAdapter(new VidAllPlayerSurfaceTarget(player));
   const source: MediaSource = {
     kind: 'https',
@@ -73,5 +77,6 @@ export function compilePublicApiContract(): void {
   void player.setVolume(50);
   void player.mute(false);
   void player.addExternalAudio(audio);
-  void [adapter, source, surface, state, eventType, track, subtitle, error, log, lease, hwdecAuto, hwdecDisabled];
+  void [adapter, source, surface, state, eventType, track, subtitle, error, log, lease,
+    hwdecAuto, hwdecDisabled, hdrBt2390, hdrMobius, hdrComputePeakDisabled];
 }

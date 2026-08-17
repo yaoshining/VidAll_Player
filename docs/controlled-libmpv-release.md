@@ -33,6 +33,17 @@ bootstrap 将运行时输入输出到 `dist/ffmpeg-runtime/arm64-v8a`，但不�
 
 HAR 只能携带 SDK 自身 native bridge，禁止携带上述 FFmpeg 副本，避免多个 HAR 重复打包或加载不同实现。
 
+## HDR tone mapping 配置（issue #66）
+
+`@vidall/player` 的 libmpv 桥接在 `mpv_initialize` 之前显式下发两个 HDR 选项，使 HDR10(PQ)/HLG/BT.2020 内容在目标电视上确定性 tone map 到 SDR，作为 VidAll_TV「AVPlayer 原生 HDR 渲染不可用」时的兜底路径：
+
+- `tone-mapping`：缺省 `bt.2390`（渲染 API 后端 `vo_gpu` 确定性支持，mpv `auto` 对 HDR 也解析到该曲线）。
+- `hdr-compute-peak`：缺省 `auto`（从 `sig-peak` 动态计算输入峰值，设备不支持 compute 时优雅降级）。
+
+消费方通过 `PlayerOptions.hdrToneMapping`（`auto`/`bt.2390`/`mobius`/`reinhard`/`hable`/`gamma`/`linear`/`clip`）与 `PlayerOptions.hdrComputePeak`（`auto`/`enabled`/`disabled`）覆盖缺省值。注意：`target-colorspace-hint` 是 `vo_gpu_next` 专属选项，本渲染路径（`vo_gpu`）不使用；软件渲染（SW/模拟器）路径无 GL shader，不提供 tone mapping，HDR 表现仅承诺于真机 GL 路径。
+
+HDR 能力在 `release/capabilities/arm64-tv-capability-evidence.json` 中仍为「已构建待验证」；须以 EDIS-790A 真机样本（`御赐小仵作第二季/01.mp4` HDR 黑屏样本 vs SDR 样本）验证后再升级为「已支持」。
+
 ## ELF、ABI 与体积审计
 
 CI 受控工具链固定为 Rust `1.85.1` 与 `cargo-c 0.10.13+cargo-0.88.0`。`cargo install` 使用精确版本要求并在安装后核验完整版本，避免 SemVer 解析漂移到要求更高 Rust 版本的 `cargo-c`。
