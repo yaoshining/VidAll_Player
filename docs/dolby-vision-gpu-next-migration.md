@@ -33,6 +33,10 @@
 
 即 fork **支持 `vo_gpu_next` 的 OHOS Vulkan/EGL 窗口上下文**——(a) 方案（真实 `vo_gpu_next` VO + OHOS 窗口）具备可行性，无需先扩展 fork。
 
+**补充考证（gpu_next 与 OHOS 窗口的接线）**：`vo_gpu_next` 与 `vo_gpu` **共用同一 gpu-context 框架**。`video/out/gpu_next/context.c` 的 `gpu_ctx_create` 在 `HAVE_VULKAN` 下引入 `video/out/vulkan/context.h`；`video/out/vulkan/context.c` 在 `HAVE_OHOS` 下启用 `VK_OHOS_NATIVE_BUFFER`/`VK_OHOS_EXTERNAL_MEMORY`（OHOS 原生缓冲/外部内存互操作）。OHOS 窗口支持在 `video/out/ohos_common.c`。因此 OHOS Vulkan 支持由共享的 vulkan context（`context_ohos.c`）交付，理论上 `vo_gpu_next` 可用 `--gpu-api=vulkan` + OHOS 窗口。
+
+**仍待 spike 确认**：已推源码中未见「`vo_gpu_next` + `ohos` 窗口」的**显式**注册名（`gpu_next/context.c` 的驱动数组未直接列出 `ohos` 字符串；OHOS 支持经共享 vulkan context 传递）。建议在真机做最小 spike：`--vo=gpu-next --gpu-api=vulkan` 绑定应用窗口，确认能否初始化并出画面——通过则 (a) 落地；失败则转 (b)。
+
 > ⚠️ 供应链一致性提醒：`sources.lock.json` 记录的 mpv 上游 commit（v0.40.0）与 fork 实际构建的 ErBWs/mpv `feat-ohos-0.41.0` **不一致**。这影响「锁定的源码 == 实际构建源码」的可复现声明；建议在实现 (a) 前先在锁中校正 mpv 来源/commit 或明确 fork 版本策略。
 
 ## 4. 候选方案
