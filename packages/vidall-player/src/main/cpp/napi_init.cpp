@@ -821,17 +821,32 @@ private:
                                 if (vpInterlaced_ != il) { vpInterlaced_ = il; changed = true; }
                             }
                         }
-                        // 诊断：DV/HDR 色彩还原。记录 mpv 解码后上报的色彩元数据，
-                        // 用于在真机定位 Dolby Vision Profile 5 是否真正被应用。
-                        // 若 gamma(transfer)=smpte2084/pq、primaries=bt2020、sig-peak 推断为 HDR，
-                        // 而画面仍发灰，说明 dovi 映射被 vo_gpu 的 restore_dovi_mapping 剥离、
-                        // 未做 RPU→显示 reshape（需 vo_gpu_next）。仅日志，不改逻辑。
-                        char diagBuf[320];
-                        snprintf(diagBuf, sizeof(diagBuf),
-                            "video-params diag: pixfmt=%s bd=%d primaries=%s transfer=%s matrix=%s levels=%s range=%s hwpf=%s",
-                            vpPixfmt_.c_str(), vpBitDepth_, vpPrimaries_.c_str(), vpTransfer_.c_str(),
-                            vpMatrix_.c_str(), vpColorLevels_.c_str(), vpVideoRange_.c_str(), vpHwPixfmt_.c_str());
-                        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "%{public}s", diagBuf);
+                        // 诊断：全量 dump mpv video-params。其中 colormatrix 即色彩系统
+                        // (repr.sys)：Dolby Vision 未被剥离时应为 "dolbyvision"；被 vo_gpu 的
+                        // restore_dovi_mapping 剥离后为基础系统（如 bt2020nc）。结合 primaries/
+                        // gamma/max-luma/light 可定位 DV Profile 5 是否被应用。仅日志，不改逻辑。
+                        std::string diag;
+                        diag.reserve(256);
+                        for (int j = 0; j < map->num; ++j) {
+                            if (map->keys[j] == nullptr) continue;
+                            diag += map->keys[j];
+                            diag += "=";
+                            const mpv_node& v = map->values[j];
+                            if (v.format == MPV_FORMAT_STRING && v.u.string) {
+                                diag += v.u.string;
+                            } else if (v.format == MPV_FORMAT_INT64) {
+                                diag += std::to_string(v.u.int64);
+                            } else if (v.format == MPV_FORMAT_DOUBLE) {
+                                char db[32]; snprintf(db, sizeof(db), "%.3f", v.u.double_); diag += db;
+                            } else if (v.format == MPV_FORMAT_FLAG) {
+                                diag += v.u.flag ? "1" : "0";
+                            } else {
+                                continue;
+                            }
+                            diag += " ";
+                        }
+                        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                            "video-params diag: %{public}s", diag.c_str());
                         if (changed && videoWidth_ > 0 && videoHeight_ > 0) {
                             Dispatch("videoParams", BuildVideoParamsMessage());
                         }
@@ -999,6 +1014,11 @@ private:
         if (!eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_)) { eglDestroySurface(eglDisplay_, eglSurface_); eglSurface_ = EGL_NO_SURFACE; eglDestroyContext(eglDisplay_, eglContext_); eglContext_ = EGL_NO_CONTEXT; eglTerminate(eglDisplay_); eglDisplay_ = EGL_NO_DISPLAY; return false; }
         mpv_opengl_init_params glInit{ &MpvGlGetProcAddress, nullptr };
         const char* api = MPV_RENDER_API_TYPE_OPENGL;
+        // 诊断：确认渲染后端。render API 只有 OPENGL/SW 两种，OPENGL=vo_gpu，无 gpu-next。
+        // Dolby Vision Profile 5 的 dovi RPU→显示 reshape 需 vo_gpu_next，本 render API 不可达。
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+            "render context api=%{public}s vo=libmpv(vo_gpu): DV dovi reshape 需 vo_gpu_next（render API 不可达）",
+            api);
         mpv_render_param params[] = {
             {MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(api)},
             {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &glInit},
