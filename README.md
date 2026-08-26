@@ -28,6 +28,8 @@ HarmonyOS TV `libmpv` 播放 SDK 的受控构建项目与最小应用示例。
 | 缓冲状态事件（paused-for-cache） | 已构建待验证 | `getBufferingState` + `buffering` 事件；SDK 事件顺序已覆盖 |
 | 网络中断恢复 | 已构建待验证 | 失败分类（可重试/不可恢复）+ 重新 `load()` 恢复；清理事件顺序已覆盖 |
 | RTSP / UDP / SRT / RTMP | 不支持或暂缓（可选未验证） | 输入校验以 `PROTOCOL_NOT_VERIFIED` 拒绝；完成单独真机验证前不宣称支持 |
+| Dolby Vision Profile 5（IPTPQc2）色彩还原 | 已构建待验证 | libmpv 构建已开启 libplacebo `dovi`+`libdovi`（#69），具备 DV RPU→RGB 色彩还原能力；Profile 5（`dvBlSignalCompatibilityId=0`，无 HDR10/SDR 兼容基层）待 EDIS-790A 用 DoVi Profile 5 真机样本验证后升级 |
+| Dolby Vision Profile 8 色彩还原 | 已构建待验证 | libmpv 构建已开启 `dovi`+`libdovi`（#69），具备 DV RPU→RGB 还原能力；Profile 8 需独立 DoVi Profile 8 真机样本验收（Profile 5 样本不可作为 Profile 8 依据） |
 
 完整的性能、容器/视频、音频、字幕、网络、HDR/色彩和 IJK 兼容性矩阵位于 `release/capabilities/arm64-tv-capability-evidence.json`。该文件是发布门禁输入：只有标为"已通过真机样本"的条目才会携带匿名 ARM64 TV、样本、执行时间、指标和证据文件；其余条目不得将构建结果表述为支持。
 

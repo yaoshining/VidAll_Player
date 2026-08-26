@@ -821,6 +821,32 @@ private:
                                 if (vpInterlaced_ != il) { vpInterlaced_ = il; changed = true; }
                             }
                         }
+                        // 诊断：全量 dump mpv video-params。其中 colormatrix 即色彩系统
+                        // (repr.sys)：Dolby Vision 未被剥离时应为 "dolbyvision"；被 vo_gpu 的
+                        // restore_dovi_mapping 剥离后为基础系统（如 bt2020nc）。结合 primaries/
+                        // gamma/max-luma/light 可定位 DV Profile 5 是否被应用。仅日志，不改逻辑。
+                        std::string diag;
+                        diag.reserve(256);
+                        for (int j = 0; j < map->num; ++j) {
+                            if (map->keys[j] == nullptr) continue;
+                            diag += map->keys[j];
+                            diag += "=";
+                            const mpv_node& v = map->values[j];
+                            if (v.format == MPV_FORMAT_STRING && v.u.string) {
+                                diag += v.u.string;
+                            } else if (v.format == MPV_FORMAT_INT64) {
+                                diag += std::to_string(v.u.int64);
+                            } else if (v.format == MPV_FORMAT_DOUBLE) {
+                                char db[32]; snprintf(db, sizeof(db), "%.3f", v.u.double_); diag += db;
+                            } else if (v.format == MPV_FORMAT_FLAG) {
+                                diag += v.u.flag ? "1" : "0";
+                            } else {
+                                continue;
+                            }
+                            diag += " ";
+                        }
+                        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                            "video-params diag: %{public}s", diag.c_str());
                         if (changed && videoWidth_ > 0 && videoHeight_ > 0) {
                             Dispatch("videoParams", BuildVideoParamsMessage());
                         }
@@ -988,6 +1014,11 @@ private:
         if (!eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_)) { eglDestroySurface(eglDisplay_, eglSurface_); eglSurface_ = EGL_NO_SURFACE; eglDestroyContext(eglDisplay_, eglContext_); eglContext_ = EGL_NO_CONTEXT; eglTerminate(eglDisplay_); eglDisplay_ = EGL_NO_DISPLAY; return false; }
         mpv_opengl_init_params glInit{ &MpvGlGetProcAddress, nullptr };
         const char* api = MPV_RENDER_API_TYPE_OPENGL;
+        // 诊断：确认渲染后端。render API 只有 OPENGL/SW 两种，OPENGL=vo_gpu，无 gpu-next。
+        // Dolby Vision Profile 5 的 dovi RPU→显示 reshape 需 vo_gpu_next，本 render API 不可达。
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+            "render context api=%{public}s vo=libmpv(vo_gpu): DV dovi reshape 需 vo_gpu_next（render API 不可达）",
+            api);
         mpv_render_param params[] = {
             {MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(api)},
             {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &glInit},

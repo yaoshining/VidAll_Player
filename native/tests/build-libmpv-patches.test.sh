@@ -164,6 +164,51 @@ popd
 ORIGINAL_MPV_SH
 }
 
+# 来自 libmpv-ohos-build commit 1bab837e 的原始 libplacebo.sh。
+# Dolby Vision RPU（Profile 5 IPTPQc2）处理需要 libplacebo 开启 libdovi：
+#   -Ddovi=enabled（FFmpeg dovi side data 映射）与 -Dlibdovi=enabled。
+# pl_hdr_metadata_from_dovi_rpu（DV RPU→HDR 元数据，Profile 5 必需）由 PL_HAVE_LIBDOVI 门控，
+# 补丁 0007 在 meson setup 显式补上 -Dlibdovi=enabled，使 libdovi 依赖成为确定性必选。
+write_original_libplacebo_sh() {
+cat > "$1" <<'ORIGINAL_LIBPLACEBO_SH'
+#!/bin/bash
+
+set -eu
+
+ROOT_DIR=$(cd $(dirname "$0")/..; pwd)
+
+. $ROOT_DIR/env.sh
+
+pushd $ROOT_DIR/libmpv/libplacebo
+
+if [ "$1" == "build" ]; then
+	echo -e "\nBuilding libplacebo..."
+elif [ "$1" == "clean" ]; then
+	rm -rf .build
+	exit 0
+else
+	exit 1
+fi
+
+mkdir -p .build
+cd .build
+
+meson setup .. \
+  --cross-file $ROOT_DIR/libmpv/arm64-crossfile.ini \
+  --prefix=$DEST \
+  -Ddovi=enabled \
+  -Dlcms=enabled \
+  -Dshaderc=enabled \
+  -Dvulkan=enabled \
+  -Dopengl=enabled \
+  -Ddemos=false
+ninja -j$CORES
+ninja install
+
+popd
+ORIGINAL_LIBPLACEBO_SH
+}
+
 line_of_first_match() {
   grep -n -- "$1" "$2" | head -1 | cut -d: -f1
 }
@@ -191,6 +236,7 @@ main() {
   write_original_build_sh "$work_dir/build.sh"
   write_original_ffmpeg_sh "$work_dir/scripts/ffmpeg.sh"
   write_original_mpv_sh "$work_dir/scripts/mpv.sh"
+  write_original_libplacebo_sh "$work_dir/scripts/libplacebo.sh"
   git -C "$work_dir" add -A
   git -C "$work_dir" commit -qm initial
 
@@ -227,6 +273,15 @@ main() {
   grep -q -- 'VIDALL_PLAYER_FFMPEG_STAGING/lib/pkgconfig' "$mpv_sh" || fail "mpv.sh 未使用 external FFmpeg pkg-config"
   grep -q -- 'PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"' "$mpv_sh" || fail "mpv.sh 未隔离 pkg-config 搜索路径"
   ! grep -q -- '-Dgpl=false' "$mpv_sh" || fail "mpv.sh 不应禁用 GPL 功能"
+
+  # issue #69：Dolby Vision Profile 5（IPTPQc2，dvBlSignalCompatibilityId=0）的 RPU 处理。
+  # pl_hdr_metadata_from_dovi_rpu（Profile 5 必需的 DV RPU→HDR 元数据转换）由 PL_HAVE_LIBDOVI
+  # 门控，缺 libdovi 则 DV Profile 5 的 RPU→RGB 还原不生效，会发灰/掉饱和。
+  local libplacebo_sh="$work_dir/scripts/libplacebo.sh"
+  grep -q -- '-Ddovi=enabled' "$libplacebo_sh" || fail "libplacebo.sh 缺少 -Ddovi=enabled"
+  grep -q -- '-Dlibdovi=enabled' "$libplacebo_sh" || fail "libplacebo.sh 缺少 -Dlibdovi=enabled（Dolby Vision Profile 5 依赖）"
+  ! grep -q -- '-Dlibdovi=disabled' "$libplacebo_sh" || fail "libplacebo.sh 不应禁用 libdovi"
+  ! grep -q -- '-Dlibdovi=auto' "$libplacebo_sh" || fail "libplacebo.sh 不应将 libdovi 设为 auto（需确定性开启）"
 
   # 宿主 FFmpeg 8 不提供 mpv-ohos 私有零拷贝 ABI，必须禁用对应 surface driver。
   grep -q -- 'video/out/ohos_common.c' "$work_dir/libmpv/mpv/meson.build" || fail "应保留 OHOS 窗口支持"

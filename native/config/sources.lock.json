@@ -3,14 +3,14 @@
   "description": "libmpv OpenHarmony 受控构建的不可变来源锁。Git 来源固定为 40 位 commit；归档来源固定为官方 archiveUrl 和 SHA-256，tag 仅供人工识别，构建不得解析浮动分支或 tag。",
   "sources": {
     "mpv": {
-      "repository": "https://github.com/mpv-player/mpv.git",
-      "tag": "v0.40.0",
-      "commit": "287d7cdb78975ae350d7c2a287eae3c2072c93f7",
+      "repository": "https://github.com/ErBWs/mpv.git",
+      "tag": "feat-ohos-0.41.0",
+      "commit": "6edeee00a07b9b76f197aa71eee3d029fb090de4",
       "license": "GPL-2.0-or-later",
       "purpose": "libmpv 播放器核心",
       "fetchMethod": "archive",
-      "archiveSha256": "4acc6177c2cbde566c16b1b44b83e89c159baffbde2f6afcd56da08f6b1b376f",
-      "archiveUrl": "https://github.com/mpv-player/mpv/archive/287d7cdb78975ae350d7c2a287eae3c2072c93f7.tar.gz"
+      "archiveSha256": "d18bcd60fa61c40bf935930c00bb90e6fb69bf32c653db6b8744846778cee1cc",
+      "archiveUrl": "https://github.com/ErBWs/mpv/archive/6edeee00a07b9b76f197aa71eee3d029fb090de4.tar.gz"
     },
     "ffmpeg": {
       "repository": "https://github.com/FFmpeg/FFmpeg.git",
@@ -288,6 +288,11 @@
     {
       "path": "native/patches/libmpv-ohos-build/0005-mpv-use-external-ffmpeg-pkgconfig.patch",
       "sha256": "bb76785639bbb706de8be3964c7706a1be37b3f46d79076814d1b5e0711600f5",
+      "appliesTo": "mpv"
+    },
+    {
+      "path": "native/patches/libmpv-ohos-build/0007-libplacebo-enable-libdovi.patch",
+      "sha256": "20fd8f6c6ecf25a6917bbe4285297793cfbe94a1159bdc263488cc8c1fe2ae29",
       "appliesTo": "mpv"
     }
   ],
