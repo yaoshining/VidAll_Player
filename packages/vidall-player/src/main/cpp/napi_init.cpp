@@ -678,6 +678,14 @@ private:
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
+            // issue #71（vo_gpu_next 路径）：旧 vo_gpu 在 GlRenderLoop/SwRenderLoop 里首帧派发
+            // "playing"；改为 vo_gpu_next 后这些循环被跳过，这里在视频输出重建（VO 出帧）时
+            // 派发一次首帧 "playing"，保证消费方 _isPlaying 正确。firstFrameSent_ 只发一次。
+            if (event->event_id == MPV_EVENT_VIDEO_RECONFIG) {
+                if (!firstFrameSent_.exchange(true)) {
+                    Dispatch("state", "playing");
+                }
+            }
             // 诊断（issue #71）：转发 mpv 日志消息到 hilog，便于真机定位 vo_gpu_next/ohosvk/Vulkan 初始化。
             if (event->event_id == MPV_EVENT_LOG_MESSAGE) {
                 const auto* log = static_cast<mpv_event_log_message*>(event->data);
