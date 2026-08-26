@@ -53,7 +53,7 @@ Dolby Vision **Profile 5（IPTPQc2）** 片源（如 `xxx.2160p.WEB-DL.DoVi.H.26
 
 本仓库在锁定构建补丁 `native/patches/libmpv-ohos-build/0007-libplacebo-enable-libdovi.patch` 中显式补上 `-Dlibdovi=enabled`，使 `libdovi` 依赖成为确定性必选（`dovi_tools` 即 `libdovi-3.3.0` 已在 `native/config/sources.lock.json` 锁定）。注意 mpv 自身并无 `libdovi` meson 选项，Dolby Vision 还原仅经由 libplacebo 生效；`-Ddovi=enabled` 会通过 `.require(dovi.allowed())` 将 libdovi 视为必选，但显式 `-Dlibdovi=enabled` 让该承诺不被上游缺省值意外拖回 `auto`。
 
-Dolby Vision 能力在 `release/capabilities/arm64-tv-capability-evidence.json` 中为「已构建待验证」；须以 DoVi Profile 5 真机样本（`dvBlSignalCompatibilityId=0`）对比 SDR 参考画面验证后再升级为「已支持」。AVPlayer 原生路径无法处理 IPTPQc2，故该能力仅经 libmpv 软解/渲染路径承诺。
+Dolby Vision 能力在 `release/capabilities/arm64-tv-capability-evidence.json` 中为「已构建待验证」。Profile 5（IPTPQc2，`dvBlSignalCompatibilityId=0`）须以 DoVi Profile 5 真机样本（对比 SDR 参考画面）验证后升级为「已支持」；Profile 8 须用独立 DoVi Profile 8 样本验收，Profile 5 样本只证明 Profile 5，不得作为 Profile 8 依据。AVPlayer 原生路径无法处理 IPTPQc2，故该能力仅经 libmpv 软解/渲染路径承诺。
 
 ## ELF、ABI 与体积审计
 

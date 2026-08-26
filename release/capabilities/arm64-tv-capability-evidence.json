@@ -33,7 +33,8 @@
     "hdrColor": [
       {"feature": "SDR 基线", "status": "已构建待验证", "knownLimitations": "待以目标显示设备和受控样本验证色彩正确性。"},
       {"feature": "HDR10/HLG/BT.2020", "status": "已构建待验证", "knownLimitations": "libmpv 桥接已显式配置 tone-mapping=bt.2390 + hdr-compute-peak（issue #66），HDR10(PQ)/HLG/BT.2020 默认 tone map 到 SDR；待 EDIS-790A 真机用「御赐小仵作第二季/01.mp4」（HDR 黑屏样本）与 SDR 样本对比验证后再升级为已支持。"},
-      {"feature": "Dolby Vision Profile 5 / 8（libdovi）", "status": "已构建待验证", "knownLimitations": "libmpv 构建已显式开启 libplacebo 的 dovi+libdovi（issue #69），具备 DV RPU（IPTPQc2）→RGB 色彩还原能力；Profile 5（dvBlSignalCompatibilityId=0，无 HDR10/SDR 兼容基层）与 Profile 8 仍待 EDIS-790A 用 DoVi Profile 5 真机样本验证后再升级为已支持。"}
+      {"feature": "Dolby Vision Profile 5（IPTPQc2，dvBlSignalCompatibilityId=0）", "status": "已构建待验证", "knownLimitations": "libmpv 构建已显式开启 libplacebo 的 dovi+libdovi（issue #69），具备 DV RPU（IPTPQc2）→RGB 色彩还原能力；Profile 5（无 HDR10/SDR 兼容基层）须以 EDIS-790A 用 DoVi Profile 5 真机样本（对比 SDR 参考画面）验证后再升级为已支持。"},
+      {"feature": "Dolby Vision Profile 8（libdovi）", "status": "已构建待验证", "knownLimitations": "libmpv 构建已显式开启 dovi+libdovi（issue #69），具备 DV RPU→RGB 还原能力；Profile 8 须以独立 DoVi Profile 8 真机样本验收（Profile 5 样本仅证明 Profile 5，不得作为 Profile 8 依据），完成前维持已构建待验证。"}
     ],
     "ijkCompatibility": [
       {"feature": "媒体浏览、WebDAV、SMB 代理、音轨字幕、音频路由、硬解回退、播放控制和生命周期", "status": "已构建待验证", "knownLimitations": "按 compatibility-matrix.md 的每个场景采集独立证据前，集成方必须保留 IJK 回退。"}
