@@ -61,6 +61,22 @@
 2. **在真机迭代**：改造含 Vulkan/EGL 互操作，需在 EDIS-790A 真机逐步验证（软解、窗口、dovi 色彩）。
 3. **验收**：DV Profile 5 片源真机色彩正确（不再发灰/掉饱和），与 SDR/HDR10 参考对比通过。
 
+## 5.1 (a) 迁移实现提纲（待 spike 后落码）
+
+> 说明：`napi_init.cpp` 是 HarmonyOS 原生代码，本仓库 CI 不编译验证，需在 DevEco/真机校验。以下为**精确改动点**，先 spike 确认 fork 的 OHOS 窗口传递 API 后再落码。
+
+**核心改动：从「libmpv render API + 应用自建 EGL surface」迁移到「真实 `vo_gpu_next` VO + 应用注入窗口」**
+
+1. **去除 render API**：删/绕过 `mpv_render_context_create`（`MPV_RENDER_API_TYPE_OPENGL` 与 `_SW` 两处）、`mpv_render_context_render`、`mpv_render_context_set_update_callback`（`napi_init.cpp` 约 926/990/1011/1026-1086 行），以及应用侧 `eglDisplay_/eglContext_/eglSurface_` 的手动创建（`TryUpgradeToGlRenderer` 等）。
+2. **窗口注入**：把 XComponent 的 `OH_NativeWindow`（`window_`）交给 mpv 的 `vo_gpu_next`。确认 fork 的 OHOS 窗口传递 API（`ohos_common.c` 是否提供 `--window`/`vo` 窗口句柄注入，或需 mpv 侧扩展 `video/out/ohos_common.c` 提供 setter）。
+3. **渲染配置**：mpv 初始化改为 `vo=gpu-next`（或默认 gpu-next）+ `--gpu-api=vulkan`（fork 的 `vulkan/context_ohos.c` 绑定 OH_NativeWindow）。
+4. **渲染循环/回调**：由 mpv 驱动（`vo_gpu_next` 内部自行按窗口渲染），移除 `mpv_render_context_render` 的逐帧调用；保留 `mpv_wait_event` 事件循环。
+5. **软解/硬解**：保持现有 `hwdec-current` 观察与视频参数上报；确认 HW 解码与 dovi 互操作。
+
+**待 spike 确认的 API**（决定能否直接落码）：
+- fork 的 `vo_gpu_next` 如何接收 `OH_NativeWindow`（`--gpu-context=ohos`？`--window-`？还是需在 `ohos_common.c` 加窗口 setter？）。
+- `--gpu-api=vulkan` 的目标电视 Vulkan 兼容性 + 表面绑定。
+
 ## 6. 诊断打点（已就位，用于真机确认）
 
 - `video-params diag`（全量 dump）：查看 `colormatrix`（=色彩系统 repr.sys）。`colormatrix=dolbyvision`→dovi 未剥离；`colormatrix=bt2020nc`+`gamma=pq`+发灰→dovi 被 vo_gpu 剥离。
