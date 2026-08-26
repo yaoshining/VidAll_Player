@@ -301,7 +301,20 @@ public:
             mpv_set_option_string(player_.get(), "sub-fonts-dir", fontsDir.c_str());
             mpv_set_option_string(player_.get(), "osd-fonts-dir", fontsDir.c_str());
         }
-        if (mpv_initialize(player_.get()) < 0) return false;
+        // issue #73：mpv_initialize 推迟到首次 Attach() 时调用（见 Attach()），此处只建
+        // handle 并设置 vo/gpu-api/tone-mapping 等"初始化前"选项，不调用 mpv_initialize。
+        // vo_gpu_next 的 VO 在创建时读 --wid，而 wid 来自 XComponent surfaceId——它只在
+        // Attach() 时才就绪。若在 Initialize() 就 mpv_initialize，会落在 VO 创建前无法
+        // 提前注入 wid 的困境；改为首次 Attach 先把 surfaceId 以 wid 选项注入，再 init，
+        // 使 VO 创建即拿到最新窗口（对会话复用「跳过冗余重建」场景更稳）。
+        return true;
+    }
+
+    // issue #73：在首次 Attach() 里 mpv_initialize 成功后被调用一次，完成诊断日志、
+    // 属性观察与事件线程的启动（原 Initialize() 的 post-init 块）。此时 wid 已作为
+    // 选项在 mpv_initialize 前注入，VO 创建时即可读取到最新窗口。
+    void FinalizeMpvInitialization()
+    {
         // 诊断（issue #71）：请求 mpv 详细日志，经 MPV_EVENT_LOG_MESSAGE 转发到 hilog，
         // 便于真机查看 vo_gpu_next/ohosvk/Vulkan surface 初始化的真实结果或报错。
         mpv_request_log_messages(player_.get(), "v");
@@ -356,7 +369,6 @@ public:
         mpv_observe_property(player_.get(), 0, "time-pos", MPV_FORMAT_DOUBLE);
         mpv_observe_property(player_.get(), 0, "duration", MPV_FORMAT_DOUBLE);
         eventThread_ = std::thread(&NativeSession::EventLoop, this, player_.get());
-        return true;
     }
 
     NativeResult Attach(const std::string& surfaceId, std::uint64_t generation, int width, int height, std::uint64_t handle)
@@ -372,6 +384,19 @@ public:
         rendererReady_ = false;
         rendererFailed_ = false;
         stopRenderer_ = false;
+        // issue #73：mpv_initialize 推迟到首次 Attach，且必须在 init 前把 XComponent
+        // surfaceId 以 wid 选项注入——vo_gpu_next 的 VO（vo_ohos_init）创建时读 --wid 建
+        // OHNativeWindow + Vulkan surface。若等 RenderLoop 运行时 mpv_set_property，会话
+        // 复用「跳过冗余重建」时 VO 可能早已按旧窗口创建（或注入晚于 VO 创建），导致
+        // vo_gpu_next 拿不到最新窗口。由此 native 内闭环，不依赖 ArkTS 提前重排 surfaceId。
+        // 首次 init 后（mpvInitialized_），复用场景的后续 Attach 仍由 RenderLoop 的运行时
+        // wid 兜底。
+        if (!mpvInitialized_) {
+            mpv_set_option_string(player_.get(), "wid", surfaceId.c_str());
+            if (mpv_initialize(player_.get()) < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
+            FinalizeMpvInitialization();
+            mpvInitialized_ = true;
+        }
         renderThread_ = std::thread(&NativeSession::RenderLoop, this);
         std::unique_lock<std::mutex> readyLock(rendererMutex_);
         rendererReadyCv_.wait_for(readyLock, std::chrono::seconds(3), [this] { return rendererReady_ || rendererFailed_; });
@@ -531,6 +556,10 @@ public:
     {
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         if (released_) return {false, handle, "RELEASED"};
+        // issue #73：mpv_initialize 已推迟到首次 Attach；未 Attach（mpv 尚未初始化）时
+        // 调用 mpv_command_async 会返回 MPV_ERROR_UNINITIALIZED，这里与其余播放命令一致，
+        // 用 rendererReady_ 门闩避免对未初始化 handle 下达 mpv 命令。
+        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
         const char* command[] = {"stop", nullptr};
         return mpv_command_async(player_.get(), 0, command) >= 0 ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "NATIVE_PLAYBACK_FAILED"};
     }
@@ -968,12 +997,11 @@ private:
         }
         window_ = window;
 
-        // issue #71（DV Profile 5 渲染层迁移，草稿）：vo_gpu_next 由 mpv 自行渲染到 OHOS surface，
-        // 无需 libmpv render API。此处把 OHOS Surface id 以运行时属性注入 mpv --wid（WinID），
-        // vo_ohos_init 读它建 OHNativeWindow 并绑定 Vulkan surface。随后返回，不再创建
-        // mpv_render_context、不再手动 render（下方 SW/GL render 分支为旧 vo_gpu 路径，可删）。
-        // 注：wid 需在 VO 创建前（Load/播放前）设置；若 RenderLoop 已晚于 VO 创建，应提前到
-        // Attach（surfaceId_ 就绪时）。mpv_set_property 支持运行时。
+        // issue #71/#73：vo_gpu_next 由 mpv 自行渲染到 OHOS surface，无需 libmpv render API。
+        // 首次 Attach 的 mpv_initialize 已把 surfaceId 以 wid 选项提前注入（见 Attach()），
+        // 此处是会话复用场景（mpv 已初始化）的运行时兜底：再次以 mpv_set_property 重设 wid，
+        // 让 vo_ohos_init 在 VO 重建时绑定最新 surface。随后返回，不再创建 mpv_render_context、
+        // 不再手动 render（下方 SW/GL render 分支为旧 vo_gpu 路径，可删）。
         int64_t wid = static_cast<int64_t>(id);
         int widRc = mpv_set_property(player_.get(), "wid", MPV_FORMAT_INT64, &wid);
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
@@ -1300,6 +1328,9 @@ private:
     bool stopRenderer_ = false;
     bool renderRequested_ = false;
     std::atomic<bool> geometryDirty_{false};
+    // issue #73：mpv_initialize 是否已在首次 Attach 完成（wid 提前注入后）。只在
+    // lifecycleMutex_ 内读写，故用普通 bool 即可。
+    bool mpvInitialized_ = false;
     std::atomic<bool> rendererReady_{false};
     std::atomic<bool> rendererFailed_{false};
     std::atomic<bool> released_{false};
