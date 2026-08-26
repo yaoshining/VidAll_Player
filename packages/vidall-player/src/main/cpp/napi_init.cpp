@@ -269,7 +269,8 @@ public:
     ~NativeSession() { Release(); }
 
     bool Initialize(const std::string& fontsDir, const std::string& hwdec,
-                    const std::string& toneMapping, const std::string& hdrComputePeak)
+                    const std::string& toneMapping, const std::string& hdrComputePeak,
+                    const std::string& surfaceId)
     {
         if (!player_) return false;
         mpv_set_option_string(player_.get(), "terminal", "no");
@@ -300,6 +301,13 @@ public:
             mpv_set_option_string(player_.get(), "sub-font-provider", "none");
             mpv_set_option_string(player_.get(), "sub-fonts-dir", fontsDir.c_str());
             mpv_set_option_string(player_.get(), "osd-fonts-dir", fontsDir.c_str());
+        }
+        // issue #71：wid 必须在 mpv_initialize 前设置，VO（vo_gpu_next）创建时读它
+        // （vo_ohos_init 读 WinID → OH_NativeWindow_CreateNativeWindowFromSurfaceId）。
+        // 若 ArkTS 侧在 createSession 时已能拿到 XComponent surfaceId 则直接传，否则仅
+        // 靠 RenderLoop 的运行时 set 兜底（复用会话时较晚）。空串跳过。
+        if (!surfaceId.empty()) {
+            mpv_set_option_string(player_.get(), "wid", surfaceId.c_str());
         }
         if (mpv_initialize(player_.get()) < 0) return false;
         // 诊断（issue #71）：请求 mpv 详细日志，经 MPV_EVENT_LOG_MESSAGE 转发到 hilog，
@@ -1372,17 +1380,18 @@ std::shared_ptr<NativeSession> FindSession(std::uint64_t handle)
 
 napi_value CreateSession(napi_env env, napi_callback_info info)
 {
-    napi_value args[4] = {nullptr}; size_t argc = 4;
-    std::string fontsDir, hwdec, toneMapping, hdrComputePeak;
+    napi_value args[5] = {nullptr}; size_t argc = 5;
+    std::string fontsDir, hwdec, toneMapping, hdrComputePeak, surfaceId;
     if (napi_get_cb_info(env, info, &argc, args, nullptr, nullptr) == napi_ok) {
         if (argc >= 1) ReadString(env, args[0], fontsDir);
         if (argc >= 2) ReadString(env, args[1], hwdec);
         if (argc >= 3) ReadString(env, args[2], toneMapping);
         if (argc >= 4) ReadString(env, args[3], hdrComputePeak);
+        if (argc >= 5) ReadString(env, args[4], surfaceId);
     }
 #if VIDALL_MPV_AVAILABLE
     auto session = std::make_shared<NativeSession>();
-    if (!session->Initialize(fontsDir, hwdec, toneMapping, hdrComputePeak)) return CreateResult(env, {false, 0, "NATIVE_PLAYBACK_FAILED"});
+    if (!session->Initialize(fontsDir, hwdec, toneMapping, hdrComputePeak, surfaceId)) return CreateResult(env, {false, 0, "NATIVE_PLAYBACK_FAILED"});
     std::lock_guard<std::mutex> lock(gSessionsMutex);
     const std::uint64_t handle = gNextSessionId++;
     gSessions.emplace(handle, std::move(session));
