@@ -960,6 +960,19 @@ private:
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
             "vo_gpu_next(ohosvk) window bind: wid=%{public}lld rc=%{public}d (legacy render API skipped)",
             static_cast<long long>(wid), widRc);
+        // vo_gpu_next 由 mpv 自行渲染到 OHOS surface：wid rc=0 表示 surface id 已绑定到 mpv
+        // --wid（WinID），vo_ohos_init 会在 VO 创建(播放)时据此建 OHNativeWindow + Vulkan surface。
+        // 窗口绑定即视为 surface 附着成功，置 rendererReady_ 让 Attach 的 wait_for resolve，
+        // 播放时 mpv 才会真正创建 VO 并出帧。rc<0 则标记失败并通知 Attach 返回 SURFACE_UNAVAILABLE。
+        {
+            std::lock_guard<std::mutex> lock(rendererMutex_);
+            if (widRc == 0) {
+                rendererReady_ = true;
+            } else {
+                rendererFailed_ = true;
+            }
+            rendererReadyCv_.notify_one();
+        }
         // vo_gpu_next 自行渲染到 OHOS surface，不再走 libmpv render API。
         // 下方 SW/GL render 分支为旧 vo_gpu 路径，草稿阶段先整体跳过，待真机验证后删除
         // (TryUpgradeToGlRenderer / GlRenderLoop / SwRenderLoop / RenderLoop 内 render context 相关)。
