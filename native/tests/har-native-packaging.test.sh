@@ -11,7 +11,7 @@ CMAKE="$ROOT/packages/vidall-player/src/main/cpp/CMakeLists.txt"
 SOURCE="$ROOT/packages/vidall-player/src/main/cpp/napi_init.cpp"
 TYPES="$ROOT/packages/vidall-player/src/main/cpp/types/libvidall_player_native/index.d.ts"
 MANIFEST="$ROOT/packages/vidall-player/src/main/cpp/types/libvidall_player_native/oh-package.json5"
-BRIDGE="$ROOT/packages/vidall-player/src/native/harNativePackagingProbe.ets"
+BRIDGE="$ROOT/packages/vidall-player/src/main/ets/native/harNativePackagingProbe.ets"
 ENTRY="$ROOT/packages/vidall-player/Index.ets"
 BUILD_PROFILE="$ROOT/packages/vidall-player/build-profile.json5"
 
@@ -36,7 +36,7 @@ require_contains "$MANIFEST" '"name": "libvidall_player_native.so"'
 require_contains "$TYPES" 'createSession(fontsDir?: string, hwdec?: string, toneMapping?: string, hdrComputePeak?: string): NativeSessionResult;'
 require_contains "$TYPES" 'releaseSession(handle: number): NativeSessionResult;'
 require_contains "$BRIDGE" "from 'libvidall_player_native.so'"
-NATIVE_BRIDGE="$ROOT/packages/vidall-player/src/native/nativeBridge.ets"
+NATIVE_BRIDGE="$ROOT/packages/vidall-player/src/main/ets/native/nativeBridge.ets"
 require_contains "$NATIVE_BRIDGE" 'createNativePlayerBridge'
 require_contains "$NATIVE_BRIDGE" 'NativePlayerBridge'
 require_contains "$NATIVE_BRIDGE" 'release(): Promise<void>'

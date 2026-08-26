@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@ohos/hypium';
 import { PlayerEvent } from '@vidall/player';
-import { PlayerSession } from '@vidall/player/src/internal/playerSession';
-import { ProxyLeaseRegistry } from '@vidall/player/src/internal/proxyLeaseRegistry';
-import { classifyNetworkFailure } from '@vidall/player/src/internal/networkRecovery';
-import { canForwardAuthorization, authorizationHeadersForRedirect, validateMediaSource } from '@vidall/player/src/internal/inputValidator';
-import { redactText, redactContext, redactError } from '@vidall/player/src/internal/redaction';
-import { runHarNativePackagingProbe } from '@vidall/player/src/native/harNativePackagingProbe';
+import { PlayerSession } from '@vidall/player/src/main/ets/internal/playerSession';
+import { ProxyLeaseRegistry } from '@vidall/player/src/main/ets/internal/proxyLeaseRegistry';
+import { classifyNetworkFailure } from '@vidall/player/src/main/ets/internal/networkRecovery';
+import { canForwardAuthorization, authorizationHeadersForRedirect, validateMediaSource } from '@vidall/player/src/main/ets/internal/inputValidator';
+import { redactText, redactContext, redactError } from '@vidall/player/src/main/ets/internal/redaction';
+import { runHarNativePackagingProbe } from '@vidall/player/src/main/ets/native/harNativePackagingProbe';
 
 export default function streamingInternalsTest() {
   describe('StreamingInternalsTest', () => {

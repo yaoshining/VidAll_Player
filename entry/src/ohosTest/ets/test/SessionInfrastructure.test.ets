@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@ohos/hypium';
 import { createPlayer, PlayerEvent } from '@vidall/player';
-import { ApiLevelProvider, CapabilityProbe } from '@vidall/player/src/internal/capabilities';
-import { CommandQueue } from '@vidall/player/src/internal/commandQueue';
-import { SessionStateMachine } from '@vidall/player/src/internal/stateMachine';
-import { PlayerSession } from '@vidall/player/src/internal/playerSession';
-import { XComponentSurfaceAdapter, PlayerSurfaceTarget } from '@vidall/player/src/xcomponent/surfaceAdapter';
+import { ApiLevelProvider, CapabilityProbe } from '@vidall/player/src/main/ets/internal/capabilities';
+import { CommandQueue } from '@vidall/player/src/main/ets/internal/commandQueue';
+import { SessionStateMachine } from '@vidall/player/src/main/ets/internal/stateMachine';
+import { PlayerSession } from '@vidall/player/src/main/ets/internal/playerSession';
+import { XComponentSurfaceAdapter, PlayerSurfaceTarget } from '@vidall/player/src/main/ets/xcomponent/surfaceAdapter';
 
 class TestSurfaceTarget extends PlayerSurfaceTarget {
   attached: number = 0;

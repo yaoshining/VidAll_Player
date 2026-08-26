@@ -1,6 +1,6 @@
 import { PlayerEvent } from '@vidall/player';
-import { PlayerSession } from '../../src/internal/playerSession';
-import { DirectSmbCapability, NativeBridgeEvent, NativePlayerBridge } from '../../src/native/nativeBridge';
+import { PlayerSession } from '../../src/main/ets/internal/playerSession';
+import { DirectSmbCapability, NativeBridgeEvent, NativePlayerBridge } from '../../src/main/ets/native/nativeBridge';
 
 class RecordingNativeBridge implements NativePlayerBridge {
   private readonly listeners: Array<(event: NativeBridgeEvent) => void> = [];

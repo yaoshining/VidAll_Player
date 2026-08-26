@@ -1,6 +1,6 @@
 import { MediaSource, PlayerError, VidAllPlayer } from '@vidall/player';
-import { PlayerSession } from '../../src/internal/playerSession';
-import { DirectSmbCapability, NativeBridgeEvent, NativePlayerBridge } from '../../src/native/nativeBridge';
+import { PlayerSession } from '../../src/main/ets/internal/playerSession';
+import { DirectSmbCapability, NativeBridgeEvent, NativePlayerBridge } from '../../src/main/ets/native/nativeBridge';
 
 class LifecycleNativeBridge implements NativePlayerBridge {
   private released: boolean = false;

@@ -9,7 +9,7 @@
 
 import { util } from '@kit.ArkTS';
 import { MediaSource } from '@vidall/player';
-import { extractSmbCredentials, SmbCredentials } from '../../src/native/nativeBridge';
+import { extractSmbCredentials, SmbCredentials } from '../../src/main/ets/native/nativeBridge';
 
 function basicAuthorization(username: string, password: string): string {
   const bytes = new util.TextEncoder('utf-8').encode(`${username}:${password}`);

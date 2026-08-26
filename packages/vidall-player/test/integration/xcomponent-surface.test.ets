@@ -1,5 +1,5 @@
 import { PlayerSurface } from '@vidall/player';
-import { PlayerSurfaceTarget, XComponentSurfaceAdapter } from '../../src/xcomponent/surfaceAdapter';
+import { PlayerSurfaceTarget, XComponentSurfaceAdapter } from '../../src/main/ets/xcomponent/surfaceAdapter';
 
 interface Call {
   kind: 'attach' | 'resize' | 'detach';

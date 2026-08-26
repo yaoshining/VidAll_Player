@@ -15,7 +15,7 @@ import {
   canForwardAuthorization,
   authorizationHeadersForRedirect,
   validateMediaSource
-} from '@vidall/player/src/internal/inputValidator';
+} from '@vidall/player/src/main/ets/internal/inputValidator';
 import {
   buildSmbMediaUri,
   sanitizeSmbConfig,
