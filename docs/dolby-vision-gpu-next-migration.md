@@ -63,3 +63,24 @@
 - `render context api=... vo=libmpv(vo_gpu)`：确认渲染后端为 OPENGL=vo_gpu。
 
 > 注：`video-params diag` 补丁因 native 增量缓存可能未进上一版 HAR，干净构建（`devecocli build --clean` 或删除 `packages/vidall-player/build`）后生效。
+
+## 7. 真机实证（证据链闭环，EDIS-790A，DV Profile 5）
+
+native 日志关键行：
+
+```
+render context api=opengl vo=libmpv(vo_gpu): DV dovi reshape 需 vo_gpu_next（render API 不可达）
+Upgraded to GL renderer
+video-params diag: pixelformat=yuv420p10 average-bpp=24 w=3840 h=1606 dw=3840 dh=1606
+  colormatrix=dolbyvision colorlevels=full primaries=bt.2020 gamma=pq sig-peak=4.929 light=display
+  max-luma=1000.607 min-luma=0.000  (PQ 高光 1000nit 信号，但被渲染成发灰)
+  max-pq-y=0.672 avg-pq-y=0.300
+```
+
+解读：
+1. `colormatrix=dolbyvision` → mpv 确实识别到 Dolby Vision（非普通 HDR）。
+2. `primaries=bt.2020 gamma=pq` → mpv 把 dovi 当**基础 BT.2020/PQ** 处理，**无 ICtCp/IPTPQc2 reshape 标记**（dovi RPU 未应用）。
+3. `render context api=opengl vo=libmpv(vo_gpu)` → 一句话 root cause：当前 `vo=libmpv`+OpenGL 无法做 dovi reshape，必须 `vo_gpu_next`。
+4. `colormatrix=dolbyvision` 但画面发灰（平均饱和度 0.277）+ `max-pq-y=0.672` → dovi 被识别但被 `restore_dovi_mapping` 剥离/未 reshape，被当 BT.2020/PQ 渲染 → 发灰。
+
+> 与第 1 节源码级结论（vo_gpu `restore_dovi_mapping` 剥离 dovi）完全一致。Root Cause 已 100% 实锤：libdovi 已就位、dovi 能被识别，但 `vo=libmpv`(OpenGL) 无法到达 gpu_next 的 `pl_renderer`。
