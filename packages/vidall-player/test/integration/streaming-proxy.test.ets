@@ -12,10 +12,10 @@ import {
   PlayerEvent,
   VidAllPlayer
 } from '@vidall/player';
-import { classifyNetworkFailure } from '../../src/internal/networkRecovery';
-import { PlayerFailure } from '../../src/internal/playerFailure';
-import { PlayerSession } from '../../src/internal/playerSession';
-import { PlayerError } from '../../src/public/types';
+import { classifyNetworkFailure } from '../../src/main/ets/internal/networkRecovery';
+import { PlayerFailure } from '../../src/main/ets/internal/playerFailure';
+import { PlayerSession } from '../../src/main/ets/internal/playerSession';
+import { PlayerError } from '../../src/main/ets/public/types';
 
 // ── 辅助：等待满足条件的事件 ──────────────────────────────────────────
 function waitForEvent(player: VidAllPlayer, filter: (e: PlayerEvent) => boolean): Promise<PlayerEvent> {

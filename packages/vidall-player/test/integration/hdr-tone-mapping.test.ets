@@ -1,4 +1,4 @@
-import { resolveHdrComputePeak, resolveHdrToneMapping } from '../../src/native/nativeBridge';
+import { resolveHdrComputePeak, resolveHdrToneMapping } from '../../src/main/ets/native/nativeBridge';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {

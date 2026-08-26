@@ -10,7 +10,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly ROOT
 readonly SOURCE="$ROOT/packages/vidall-player/src/main/cpp/napi_init.cpp"
 readonly TYPES="$ROOT/packages/vidall-player/src/main/cpp/types/libvidall_player_native/index.d.ts"
-readonly BRIDGE="$ROOT/packages/vidall-player/src/native/nativeBridge.ets"
+readonly BRIDGE="$ROOT/packages/vidall-player/src/main/ets/native/nativeBridge.ets"
 
 fail() { echo "测试失败：$*" >&2; exit 1; }
 require_contains() { rg -q --fixed-strings "$2" "$1" || fail "$1 缺少：$2"; }

@@ -274,12 +274,16 @@ public:
         if (!player_) return false;
         mpv_set_option_string(player_.get(), "terminal", "no");
         mpv_set_option_string(player_.get(), "config", "no");
-        mpv_set_option_string(player_.get(), "vo", "libmpv");
-        // HDR tone mapping（issue #66）：渲染 API 后端是 vo_gpu（render_backend_gpu），
-        // 其色彩管理支持 tone-mapping/hdr-compute-peak。显式下发缺省 bt.2390 + auto，
-        // 让 HDR10(PQ)/HLG/BT.2020 内容在目标电视上确定性 tone map 到 SDR，
-        // 而不是依赖 mpv 平台默认猜测导致黑屏或过曝。ArkTS 侧已把非法/缺省值归一化，
-        // 这里空串再兜底一次，双保险保证兜底路径可用。
+        // issue #71（DV Profile 5 渲染层迁移）：由 vo=libmpv(vo_gpu) 改为 vo_gpu_next，
+        // 后者经 libplacebo pl_renderer 做 dovi RPU→显示 reshape。fork 复用 mpv --wid 传
+        // XComponent Surface id（vo_ohos_init 读 WinID → OH_NativeWindow_CreateNativeWindowFromSurfaceId），
+        // 并经 gpu-api=vulkan + ra_ctx_vulkan_ohos 建 Vulkan surface。需在 mpv_initialize 前设置。
+        mpv_set_option_string(player_.get(), "vo", "gpu-next");
+        mpv_set_option_string(player_.get(), "gpu-api", "vulkan");
+        // 显式指定 ohos 上下文（可选：fork 在 OHOS 上可能按 gpu-api 自动选 ra_ctx_vulkan_ohos）。
+        mpv_set_option_string(player_.get(), "gpu-context", "ohosvk");
+        // HDR tone mapping（issue #66）：vo_gpu_next 也支持 tone-mapping/hdr-compute-peak。
+        // 显式下发缺省 bt.2390 + auto，让 HDR10(PQ)/HLG/BT.2020/DV 内容确定性 tone map 到 SDR。
         mpv_set_option_string(player_.get(), "tone-mapping", toneMapping.empty() ? "bt.2390" : toneMapping.c_str());
         mpv_set_option_string(player_.get(), "hdr-compute-peak", hdrComputePeak.empty() ? "auto" : hdrComputePeak.c_str());
         // 硬件解码：libmpv 编译时 --enable-ohcodec，链接 libnative_media_vdec.so。
@@ -298,6 +302,9 @@ public:
             mpv_set_option_string(player_.get(), "osd-fonts-dir", fontsDir.c_str());
         }
         if (mpv_initialize(player_.get()) < 0) return false;
+        // 诊断（issue #71）：请求 mpv 详细日志，经 MPV_EVENT_LOG_MESSAGE 转发到 hilog，
+        // 便于真机查看 vo_gpu_next/ohosvk/Vulkan surface 初始化的真实结果或报错。
+        mpv_request_log_messages(player_.get(), "v");
         // 输出当前 hwdec 设置，便于真机日志确认硬件解码策略已下发到 mpv。
         const char* hwdecValue = mpv_get_property_string(player_.get(), "hwdec");
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "hwdec configured: %{public}s", hwdecValue != nullptr ? hwdecValue : "(null)");
@@ -671,6 +678,22 @@ private:
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
+            // issue #71（vo_gpu_next 路径）：旧 vo_gpu 在 GlRenderLoop/SwRenderLoop 里首帧派发
+            // "playing"；改为 vo_gpu_next 后这些循环被跳过，这里在视频输出重建（VO 出帧）时
+            // 派发一次首帧 "playing"，保证消费方 _isPlaying 正确。firstFrameSent_ 只发一次。
+            if (event->event_id == MPV_EVENT_VIDEO_RECONFIG) {
+                if (!firstFrameSent_.exchange(true)) {
+                    Dispatch("state", "playing");
+                }
+            }
+            // 诊断（issue #71）：转发 mpv 日志消息到 hilog，便于真机定位 vo_gpu_next/ohosvk/Vulkan 初始化。
+            if (event->event_id == MPV_EVENT_LOG_MESSAGE) {
+                const auto* log = static_cast<mpv_event_log_message*>(event->data);
+                if (log != nullptr && log->text != nullptr) {
+                    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                        "mpv[%{public}s]: %{public}s", log->prefix != nullptr ? log->prefix : "", log->text);
+                }
+            }
             if (event->event_id == MPV_EVENT_END_FILE) {
                 const auto* end = static_cast<mpv_event_end_file*>(event->data);
                 if (end != nullptr && end->reason == MPV_END_FILE_REASON_ERROR) Dispatch("error", "libmpv playback failed");
@@ -945,6 +968,34 @@ private:
         }
         window_ = window;
 
+        // issue #71（DV Profile 5 渲染层迁移，草稿）：vo_gpu_next 由 mpv 自行渲染到 OHOS surface，
+        // 无需 libmpv render API。此处把 OHOS Surface id 以运行时属性注入 mpv --wid（WinID），
+        // vo_ohos_init 读它建 OHNativeWindow 并绑定 Vulkan surface。随后返回，不再创建
+        // mpv_render_context、不再手动 render（下方 SW/GL render 分支为旧 vo_gpu 路径，可删）。
+        // 注：wid 需在 VO 创建前（Load/播放前）设置；若 RenderLoop 已晚于 VO 创建，应提前到
+        // Attach（surfaceId_ 就绪时）。mpv_set_property 支持运行时。
+        int64_t wid = static_cast<int64_t>(id);
+        int widRc = mpv_set_property(player_.get(), "wid", MPV_FORMAT_INT64, &wid);
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+            "vo_gpu_next(ohosvk) window bind: wid=%{public}lld rc=%{public}d (legacy render API skipped)",
+            static_cast<long long>(wid), widRc);
+        // vo_gpu_next 由 mpv 自行渲染到 OHOS surface：wid rc=0 表示 surface id 已绑定到 mpv
+        // --wid（WinID），vo_ohos_init 会在 VO 创建(播放)时据此建 OHNativeWindow + Vulkan surface。
+        // 窗口绑定即视为 surface 附着成功，置 rendererReady_ 让 Attach 的 wait_for resolve，
+        // 播放时 mpv 才会真正创建 VO 并出帧。rc<0 则标记失败并通知 Attach 返回 SURFACE_UNAVAILABLE。
+        {
+            std::lock_guard<std::mutex> lock(rendererMutex_);
+            if (widRc == 0) {
+                rendererReady_ = true;
+            } else {
+                rendererFailed_ = true;
+            }
+            rendererReadyCv_.notify_one();
+        }
+        // vo_gpu_next 自行渲染到 OHOS surface，不再走 libmpv render API。
+        // 下方 SW/GL render 分支为旧 vo_gpu 路径，草稿阶段先整体跳过，待真机验证后删除
+        // (TryUpgradeToGlRenderer / GlRenderLoop / SwRenderLoop / RenderLoop 内 render context 相关)。
+        return;
         // 策略：先创建 SW render context（永远安全），再尝试升级 GL。
         // GL 在模拟器上可能 SIGSEGV，需要安全检测。
         // 第一步：SW context（保证播放能力）

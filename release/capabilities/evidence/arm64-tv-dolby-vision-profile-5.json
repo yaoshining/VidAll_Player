@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "capability": "Dolby Vision Profile 5 (IPTPQc2, dvBlSignalCompatibilityId=0) 色彩还原",
+  "status": "passed",
+  "device": "ARM64-TV-EDIS-790A",
+  "sampleId": "ARM64-TV-SAMPLE-DVP5-GOLDEN-01",
+  "executedAt": "2026-08-26T16:00:00+08:00",
+  "renderPath": "vo_gpu_next + OHOS Vulkan (ohosvk) + libdovi (issue #71 (a) 方案)",
+  "sampleNote": "DoVi Profile 5 单层（无 HDR10/SDR 兼容基层）剧集《金色》",
+  "runtime": {
+    "backend": "mpv",
+    "hwdec": "no (软解)",
+    "vo": "gpu-next",
+    "gpuApi": "vulkan",
+    "gpuContext": "ohosvk"
+  },
+  "nativeLogEvidence": {
+    "windowBind": "vo_gpu_next(ohosvk) window bind: wid=5235565143183 rc=0 (legacy render API skipped)",
+    "videoParamsDiag": "colormatrix=dolbyvision colorlevels=full primaries=bt.2020 gamma=pq sig-peak=4.929",
+    "maxPqY": "0.672 -> 0.603 -> 0.653 -> 0.644 (持续出帧，dovi reshape 生效)",
+    "interpretation": "colormatrix=dolbyvision 保留说明 vo_gpu_next 的 libplacebo pl_renderer 应用了 dovi RPU→显示 reshape（修复前 vo_gpu 会把它剥离显示为 bt2020nc）。"
+  },
+  "metrics": {
+    "avgSaturationBefore": 0.277,
+    "avgSaturationAfter": 0.612,
+    "avgRgbBefore": [116, 107, 106],
+    "avgRgbAfter": [119, 81, 53],
+    "pixelsSatAbove_0_3_before": 0.24,
+    "pixelsSatAbove_0_3_after": 0.938,
+    "interpretation": "发灰/掉饱和(0.277) -> 正常饱和(0.612)；avgRGB 由灰调(116,107,106)变为暖金(119,81,53)，符合《金色》剧集预期。"
+  },
+  "referenceBaseline": "修复前 vo_gpu (vo=libmpv + OpenGL) 因 restore_dovi_mapping 剥离 dovi 映射、未做 RPU reshape 导致发灰；切换 vo_gpu_next + OHOS Vulkan 后 libplacebo pl_renderer 应用 dovi reshape，色彩正确。"
+}

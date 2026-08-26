@@ -11,7 +11,7 @@ import {
   PlayerTrack,
   VidAllPlayer
 } from '@vidall/player';
-import { PlayerFailure } from '../../src/internal/playerFailure';
+import { PlayerFailure } from '../../src/main/ets/internal/playerFailure';
 
 // ── 辅助：等待 N 个事件 ──────────────────────────────────────────
 function waitForEvents(player: VidAllPlayer, count: number, filter: (e: PlayerEvent) => boolean): Promise<PlayerEvent[]> {

@@ -33,7 +33,7 @@
     "hdrColor": [
       {"feature": "SDR 基线", "status": "已构建待验证", "knownLimitations": "待以目标显示设备和受控样本验证色彩正确性。"},
       {"feature": "HDR10/HLG/BT.2020", "status": "已构建待验证", "knownLimitations": "libmpv 桥接已显式配置 tone-mapping=bt.2390 + hdr-compute-peak（issue #66），HDR10(PQ)/HLG/BT.2020 默认 tone map 到 SDR；待 EDIS-790A 真机用「御赐小仵作第二季/01.mp4」（HDR 黑屏样本）与 SDR 样本对比验证后再升级为已支持。"},
-      {"feature": "Dolby Vision Profile 5（IPTPQc2，dvBlSignalCompatibilityId=0）", "status": "已构建待验证", "knownLimitations": "libmpv 构建已显式开启 libplacebo 的 dovi+libdovi（issue #69），具备 DV RPU（IPTPQc2）→RGB 色彩还原能力；Profile 5（无 HDR10/SDR 兼容基层）须以 EDIS-790A 用 DoVi Profile 5 真机样本（对比 SDR 参考画面）验证后再升级为已支持。"},
+      {"feature": "Dolby Vision Profile 5（IPTPQc2，dvBlSignalCompatibilityId=0）", "status": "已通过真机样本", "knownLimitations": "libmpv 已开启 libplacebo dovi+libdovi（issue #69）并切换 vo_gpu_next + OHOS Vulkan 渲染（issue #71），dovi RPU→显示 reshape 生效；真机 EDIS-790A 用 DoVi Profile 5 单层样本（《金色》）验证通过，画面发灰 0.277 → 正常饱和 0.612。Profile 5 仅经 libmpv 渲染路径承诺（AVPlayer 原生无法处理 IPTPQc2）。", "device": "ARM64-TV-EDIS-790A", "sampleId": "ARM64-TV-SAMPLE-DVP5-GOLDEN-01", "executedAt": "2026-08-26T16:00:00+08:00", "evidenceFile": "release/capabilities/evidence/arm64-tv-dolby-vision-profile-5.json", "metrics": "avgSaturation 0.277→0.612；avgRGB(116,107,106)→(119,81,53)；sat>0.3 24%→93.8%；colormatrix=dolbyvision（dovi reshape 生效）。详见 evidenceFile。"},
       {"feature": "Dolby Vision Profile 8（libdovi）", "status": "已构建待验证", "knownLimitations": "libmpv 构建已显式开启 dovi+libdovi（issue #69），具备 DV RPU→RGB 还原能力；Profile 8 须以独立 DoVi Profile 8 真机样本验收（Profile 5 样本仅证明 Profile 5，不得作为 Profile 8 依据），完成前维持已构建待验证。"}
     ],
     "ijkCompatibility": [
