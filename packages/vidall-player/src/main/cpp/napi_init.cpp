@@ -302,6 +302,9 @@ public:
             mpv_set_option_string(player_.get(), "osd-fonts-dir", fontsDir.c_str());
         }
         if (mpv_initialize(player_.get()) < 0) return false;
+        // 诊断（issue #71）：请求 mpv 详细日志，经 MPV_EVENT_LOG_MESSAGE 转发到 hilog，
+        // 便于真机查看 vo_gpu_next/ohosvk/Vulkan surface 初始化的真实结果或报错。
+        mpv_request_log_messages(player_.get(), "v");
         // 输出当前 hwdec 设置，便于真机日志确认硬件解码策略已下发到 mpv。
         const char* hwdecValue = mpv_get_property_string(player_.get(), "hwdec");
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "hwdec configured: %{public}s", hwdecValue != nullptr ? hwdecValue : "(null)");
@@ -675,6 +678,14 @@ private:
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
+            // 诊断（issue #71）：转发 mpv 日志消息到 hilog，便于真机定位 vo_gpu_next/ohosvk/Vulkan 初始化。
+            if (event->event_id == MPV_EVENT_LOG_MESSAGE) {
+                const auto* log = static_cast<mpv_event_log_message*>(event->data);
+                if (log != nullptr && log->text != nullptr) {
+                    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                        "mpv[%{public}s]: %{public}s", log->prefix != nullptr ? log->prefix : "", log->text);
+                }
+            }
             if (event->event_id == MPV_EVENT_END_FILE) {
                 const auto* end = static_cast<mpv_event_end_file*>(event->data);
                 if (end != nullptr && end->reason == MPV_END_FILE_REASON_ERROR) Dispatch("error", "libmpv playback failed");
