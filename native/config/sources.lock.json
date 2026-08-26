@@ -289,6 +289,11 @@
       "path": "native/patches/libmpv-ohos-build/0005-mpv-use-external-ffmpeg-pkgconfig.patch",
       "sha256": "bb76785639bbb706de8be3964c7706a1be37b3f46d79076814d1b5e0711600f5",
       "appliesTo": "mpv"
+    },
+    {
+      "path": "native/patches/libmpv-ohos-build/0007-libplacebo-enable-libdovi.patch",
+      "sha256": "20fd8f6c6ecf25a6917bbe4285297793cfbe94a1159bdc263488cc8c1fe2ae29",
+      "appliesTo": "mpv"
     }
   ],
   "buildSwitches": {

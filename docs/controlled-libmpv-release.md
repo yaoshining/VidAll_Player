@@ -44,6 +44,17 @@ HAR 只能携带 SDK 自身 native bridge，禁止携带上述 FFmpeg 副本，�
 
 HDR 能力在 `release/capabilities/arm64-tv-capability-evidence.json` 中仍为「已构建待验证」；须以 EDIS-790A 真机样本（`御赐小仵作第二季/01.mp4` HDR 黑屏样本 vs SDR 样本）验证后再升级为「已支持」。
 
+## Dolby Vision Profile 5 色彩还原（issue #69）
+
+Dolby Vision **Profile 5（IPTPQc2）** 片源（如 `xxx.2160p.WEB-DL.DoVi.H.265.mp4`，其 `dvBlSignalCompatibilityId=0`，无 HDR10/SDR 兼容基层）依赖 **libdovi** 才能在 libmpv 中正确还原色彩。libmpv 的 Dolby Vision RPU→RGB 处理由 **libplacebo** 承担，而 libplacebo 需同时开启两个 meson feature：
+
+- `-Ddovi=enabled`：FFmpeg `AVDOVIData` side data 到 libplacebo 的映射（`pl_map_avdovi_metadata`）。
+- `-Dlibdovi=enabled`：`libdovi` 的 RPU→HDR 元数据转换。该转换由 `pl_hdr_metadata_from_dovi_rpu` 实现，并被 `PL_HAVE_LIBDOVI` 门控——Profile 5 必须定义此宏才能把 ICtCp 正确重建为可显示色彩。
+
+本仓库在锁定构建补丁 `native/patches/libmpv-ohos-build/0007-libplacebo-enable-libdovi.patch` 中显式补上 `-Dlibdovi=enabled`，使 `libdovi` 依赖成为确定性必选（`dovi_tools` 即 `libdovi-3.3.0` 已在 `native/config/sources.lock.json` 锁定）。注意 mpv 自身并无 `libdovi` meson 选项，Dolby Vision 还原仅经由 libplacebo 生效；`-Ddovi=enabled` 会通过 `.require(dovi.allowed())` 将 libdovi 视为必选，但显式 `-Dlibdovi=enabled` 让该承诺不被上游缺省值意外拖回 `auto`。
+
+Dolby Vision 能力在 `release/capabilities/arm64-tv-capability-evidence.json` 中为「已构建待验证」；须以 DoVi Profile 5 真机样本（`dvBlSignalCompatibilityId=0`）对比 SDR 参考画面验证后再升级为「已支持」。AVPlayer 原生路径无法处理 IPTPQc2，故该能力仅经 libmpv 软解/渲染路径承诺。
+
 ## ELF、ABI 与体积审计
 
 CI 受控工具链固定为 Rust `1.85.1` 与 `cargo-c 0.10.13+cargo-0.88.0`。`cargo install` 使用精确版本要求并在安装后核验完整版本，避免 SemVer 解析漂移到要求更高 Rust 版本的 `cargo-c`。
