@@ -20,13 +20,20 @@
 
 **libmpv render API 只能输出 OpenGL 或 Software。** 要启用 gpu-next 的完整色彩管理，必须让 mpv 以**真实 VO** 渲染到本地窗口，或由应用侧用 libplacebo 直接渲染。二者都需脱离 `mpv_render_context`。
 
-## 3. 可行性门槛（必须先确认）
+## 3. 可行性门槛（**已确认通过**）
 
-- mpv v0.40 **上游** `video/out/` 无任何 OHOS 引用；OHOS 支持（如 `ohos_common.c`/`context_ohos.c`）由 libmpv-ohos-build fork 在 CI 构建期加入，**不在上游 git**。
-- 因此需确认 fork 的 mpv 是否提供 **`vo_gpu_next` 的 OHOS 窗口/上下文后端**（Vulkan 或 EGL 绑定 `OH_NativeWindow`）。确认方法：
-  - 检查 fork 构建产物（库、VO 列表）是否含 gpu-next + OHOS context；
-  - 或检查 fork 应用到 mpv 源码上的 OHOS/gpu-next 补丁。
-- 若 fork **不支持** OHOS gpu-next 窗口 → 需要先扩展 fork（新增 Vulkan surface 绑定 `OH_NativeWindow` 的 gpu-next context），工作量和风险显著上升。
+**重要澄清**：libmpv-ohos-build fork 实际拉取的 mpv 是 **`ErBWs/mpv` 分支 `feat-ohos-0.41.0`**（OHOS 改造 fork），**不是** `native/config/sources.lock.json` 中标注的上游 mpv v0.40.0（commit `287d7cdb`）。该 branch 源码树（已核实）含：
+
+- `video/out/ohos_common.c` / `ohos_common.h`（OHOS 窗口支持）
+- `video/out/opengl/context_ohos.c`（OHOS OpenGL 上下文）
+- `video/out/vulkan/context_ohos.c`（**OHOS Vulkan 上下文**）
+- `video/out/gpu_next/context.c` / `context.h`（gpu_next 上下文框架）
+- `video/out/vo_gpu_next.c`（`vo_gpu_next` 渲染器）
+- `video/out/hwdec/hwdec_vulkan.c`、`video/filter/vf_gpu_vulkan.c`
+
+即 fork **支持 `vo_gpu_next` 的 OHOS Vulkan/EGL 窗口上下文**——(a) 方案（真实 `vo_gpu_next` VO + OHOS 窗口）具备可行性，无需先扩展 fork。
+
+> ⚠️ 供应链一致性提醒：`sources.lock.json` 记录的 mpv 上游 commit（v0.40.0）与 fork 实际构建的 ErBWs/mpv `feat-ohos-0.41.0` **不一致**。这影响「锁定的源码 == 实际构建源码」的可复现声明；建议在实现 (a) 前先在锁中校正 mpv 来源/commit 或明确 fork 版本策略。
 
 ## 4. 候选方案
 
@@ -46,9 +53,7 @@
 
 ## 5. 建议路径
 
-1. **先做可行性门槛**：确认 fork 是否支持 OHOS `vo_gpu_next` 窗口/上下文。
-   - 支持 → 走方案 (a)，SDK 渲染层从 render API 迁移到窗口 VO。
-   - 不支持 → 评估扩展 fork 的成本；成本过高时再权衡 (b)。
+1. **可行性门槛已通过**（见第 3 节）：fork 支持 OHOS `vo_gpu_next` 窗口/上下文 → 走方案 (a)，SDK 渲染层从 render API 迁移到窗口 VO。需在真机（EDIS-790A）逐步验证 Vulkan/EGL 互操作。
 2. **在真机迭代**：改造含 Vulkan/EGL 互操作，需在 EDIS-790A 真机逐步验证（软解、窗口、dovi 色彩）。
 3. **验收**：DV Profile 5 片源真机色彩正确（不再发灰/掉饱和），与 SDR/HDR10 参考对比通过。
 
