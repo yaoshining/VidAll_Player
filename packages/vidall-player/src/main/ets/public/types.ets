@@ -156,6 +156,10 @@ export interface PlayerEvent {
   streamingConfig?: StreamingConfig;
   log?: PlayerLog;
   error?: PlayerError;
+  // 原生状态字符串。首次播放为 "playing"（SDK 转 playing 并触发 firstFrame）；
+  // 恢复播放为 "resumed"（SDK 转 playing 但不重复 firstFrame）。消费方若直接处理
+  // message，须同时处理 "playing" 与 "resumed"，否则恢复播放后播放态可能不更新
+  // （如 _isPlaying 卡 false 导致无法暂停）。
   message?: string;
   // 当前播放位置对应的字幕纯文本（已去除 ASS/SRT 标记），来自 mpv "sub-text"
   // 属性；空字符串表示当前无字幕命中。与视频帧内是否真正合成字幕像素无关，
