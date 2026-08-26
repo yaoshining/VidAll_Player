@@ -821,6 +821,17 @@ private:
                                 if (vpInterlaced_ != il) { vpInterlaced_ = il; changed = true; }
                             }
                         }
+                        // 诊断：DV/HDR 色彩还原。记录 mpv 解码后上报的色彩元数据，
+                        // 用于在真机定位 Dolby Vision Profile 5 是否真正被应用。
+                        // 若 gamma(transfer)=smpte2084/pq、primaries=bt2020、sig-peak 推断为 HDR，
+                        // 而画面仍发灰，说明 dovi 映射被 vo_gpu 的 restore_dovi_mapping 剥离、
+                        // 未做 RPU→显示 reshape（需 vo_gpu_next）。仅日志，不改逻辑。
+                        char diagBuf[320];
+                        snprintf(diagBuf, sizeof(diagBuf),
+                            "video-params diag: pixfmt=%s bd=%d primaries=%s transfer=%s matrix=%s levels=%s range=%s hwpf=%s",
+                            vpPixfmt_.c_str(), vpBitDepth_, vpPrimaries_.c_str(), vpTransfer_.c_str(),
+                            vpMatrix_.c_str(), vpColorLevels_.c_str(), vpVideoRange_.c_str(), vpHwPixfmt_.c_str());
+                        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "%{public}s", diagBuf);
                         if (changed && videoWidth_ > 0 && videoHeight_ > 0) {
                             Dispatch("videoParams", BuildVideoParamsMessage());
                         }
