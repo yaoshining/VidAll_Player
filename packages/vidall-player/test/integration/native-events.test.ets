@@ -369,6 +369,7 @@ export async function videoParamsRenderBackendAppendedAsLastField(): Promise<voi
   assert(params.videoBitrate === 8000000, `Expected videoBitrate 8000000, got ${params.videoBitrate}`);
   assert(params.colorLevels === 'full', `Expected colorLevels "full", got ${params.colorLevels}`);
   assert(params.hardwareDecoding === 'active', `Expected hardwareDecoding "active", got ${params.hardwareDecoding}`);
+  assert(params.renderBackend === 'vulkan', `Expected renderBackend "vulkan", got ${params.renderBackend}`);
 
   // 3) 渲染后端非硬编码：bitrate 为空(0) 时末位仍输出 software，空 bitrate 段保持不变。
   bridge.emit({
@@ -381,6 +382,10 @@ export async function videoParamsRenderBackendAppendedAsLastField(): Promise<voi
   const parts2 = rawVp2[1].message.split('|');
   assert(parts2[parts2.length - 1] === 'software', `Expected last field "software", got ${parts2[parts2.length - 1]}`);
   assert(parts2[parts2.length - 2] === '', `Expected empty bitrate at penultimate, got ${parts2[parts2.length - 2]}`);
+  // 公开 VideoParams 亦应暴露 renderBackend（非仅原始 message）。
+  const vpEvents2 = received.filter((event: PlayerEvent) => event.type === 'videoParams');
+  const params2 = vpEvents2[vpEvents2.length - 1].params as Record<string, Object>;
+  assert(params2.renderBackend === 'software', `Expected renderBackend "software", got ${params2.renderBackend}`);
 
   unsubscribe();
   await player.release();

@@ -110,6 +110,9 @@ export interface VideoParams {
   isInterlaced?: boolean;
   colorLevels?: string;
   videoBitrate?: number; // 实时视频码率（bps，来自 mpv video-bitrate）
+  // 渲染后端（issue #77，来自原生 renderBackend_，即 SelectRenderBackend() 的实际选择）：
+  // vulkan=vo_gpu_next 可正常 DV reshape；opengles/software=render API 不可 reshape。
+  renderBackend?: string; // 'vulkan' | 'opengles' | 'software' | 'unavailable'
 }
 
 export interface AudioParams {

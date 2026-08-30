@@ -369,8 +369,8 @@ export class PlayerSession implements VidAllPlayer {
       // hwdec 段可选：来自 mpv "hwdec-current" 属性，在原生层合并进 videoParams 事件。
       // 映射：ohcodec → active；空串/软件解码器 → fallback；no → unavailable。
       // issue #77：原生层已在末尾追加 renderBackend（vulkan/opengles/software/unavailable，
-      // 供 App 端做 DV 渲染能力提示）。SDK 的公开 VideoParams 暂不暴露该字段，索引 14 在此被忽略，
-      // 消费方若需可自行读取原生事件的原始 message（或由 vidall-tv 直接解析）。
+      // 供 App 端做 DV 渲染能力提示）。SDK 公开的 VideoParams 已暴露该字段（索引 14），
+      // 消费方可直接从 params.renderBackend 读取，无需再解析原始 message。
       if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
         const pipeParts = event.message.split('|');
@@ -440,6 +440,10 @@ export class PlayerSession implements VidAllPlayer {
               if (Number.isFinite(vb) && vb > 0) {
                 params.videoBitrate = vb;
               }
+            }
+            // 渲染后端（索引14，issue #77）：反映原生 SelectRenderBackend() 的实际选择。
+            if (pipeParts.length > 14 && pipeParts[14].length > 0) {
+              params.renderBackend = pipeParts[14];
             }
             this.stateMachine.emit({ type: 'videoParams', sequence: event.sequence, params });
           }
