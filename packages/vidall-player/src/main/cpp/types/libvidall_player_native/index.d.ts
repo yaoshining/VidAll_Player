@@ -10,6 +10,16 @@ export interface NativeSessionResult {
 
 export interface NativePlayerEvent {
   type: 'state' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText' | 'position';
+  /**
+   * 事件载荷，type 不同则格式不同：
+   * - videoParams：管道分隔字符串，渐进扩展（末尾新增 renderBackend，不影响既有字段顺序）：
+   *   `width|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced|colorLevels|bitrate|renderBackend`
+   *   - `renderBackend`（最后一位，纯值）映射原生 `RenderBackend` 枚举，反映
+   *     `Initialize()` 中 `SelectRenderBackend()` 的实际选择：`vulkan` | `opengles` | `software` | `unavailable`。
+   *   - 消费方解析：Dolby Vision 由 `matrix==dolbyvision`（index 6）/`pixfmt`（index 2）识别，
+   *     渲染后端取最后一位（`vulkan`=vo_gpu_next 可正常 DV reshape；`opengles`/`software`=render API 不可 reshape）。
+   * - audioParams：`samplerate|channels|channelCount|format|bitrate`
+   */
   message: string;
   eventEpoch: number;
   sequence: number;

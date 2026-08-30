@@ -365,9 +365,12 @@ export class PlayerSession implements VidAllPlayer {
     if (event.type === 'videoParams') {
       // message 编码格式（渐进扩展）：
       // 旧格式："宽x高" 或 "宽x高|hwdec值"
-      // 新格式："宽x高|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced|colorLevels|videoBitrate"
+      // 新格式："宽x高|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced|colorLevels|bitrate|renderBackend"
       // hwdec 段可选：来自 mpv "hwdec-current" 属性，在原生层合并进 videoParams 事件。
       // 映射：ohcodec → active；空串/软件解码器 → fallback；no → unavailable。
+      // issue #77：原生层已在末尾追加 renderBackend（vulkan/opengles/software/unavailable，
+      // 供 App 端做 DV 渲染能力提示）。SDK 的公开 VideoParams 暂不暴露该字段，索引 14 在此被忽略，
+      // 消费方若需可自行读取原生事件的原始 message（或由 vidall-tv 直接解析）。
       if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
         const pipeParts = event.message.split('|');
