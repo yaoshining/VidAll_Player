@@ -95,7 +95,7 @@
 - **方案 B（JSON 编码）**：message 改为 JSON 字符串。优点：结构清晰、扩展性强；缺点：native 层需引入 JSON 序列化，消息体积增大。
 - **方案 C（新增事件类型）**：将轨道详情和视频参数分别拆为独立事件类型（如 `trackDetail`、`colorParams`）。优点：职责分离；缺点：增加事件类型，消费方需处理多事件时序。
 
-视频参数元数据编码可复用 videoParams message 的 `|` 扩展模式：`"宽x高|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced"`。
+视频参数元数据编码可复用 videoParams message 的 `|` 扩展模式：`"宽x高|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced|colorLevels|bitrate|renderBackend"`。其中 `renderBackend`（issue #77，最后一位，纯值）为渲染后端的字符串映射（`vulkan`/`opengles`/`software`/`unavailable`），反映**实际渲染路径**（`vulkan`=vo_gpu_next 可 reshape；`opengles`/`software`=render API 不可 reshape，其中 `software` 表示实际以 SW 渲染）；Dolby Vision 由 `matrix==dolbyvision`/`pixfmt` 识别，渲染后端供 App 端做 DV 渲染能力提示。
 
 ### 状态转换（暂定/待证实）
 

@@ -10,6 +10,18 @@ export interface NativeSessionResult {
 
 export interface NativePlayerEvent {
   type: 'state' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText' | 'position';
+  /**
+   * 事件载荷，type 不同则格式不同：
+   * - videoParams：管道分隔字符串，渐进扩展（末尾新增 renderBackend，不影响既有字段顺序）：
+   *   `width|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced|colorLevels|bitrate|renderBackend`
+   *   - `renderBackend`（最后一位，纯值）反映**实际渲染路径**：`vulkan` | `opengles` | `software` | `unavailable`。
+   *     - `vulkan`=vo_gpu_next 可正常 DV reshape；
+   *     - `opengles`/`software`=render API（vo_gpu），DV 不可 reshape；其中 `software` 表示实际以 SW 渲染
+   *       （OpenGles 无法升级 GL 或硬解未请求时降级为 SW）。
+   *   - 消费方解析：Dolby Vision 由 `matrix==dolbyvision`（index 6）/`pixfmt`（index 2）识别，
+   *     渲染后端取最后一位（`vulkan` 可 reshape；`opengles`/`software` 不可）。
+   * - audioParams：`samplerate|channels|channelCount|format|bitrate`
+   */
   message: string;
   eventEpoch: number;
   sequence: number;

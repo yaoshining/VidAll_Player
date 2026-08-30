@@ -110,6 +110,9 @@ export interface VideoParams {
   isInterlaced?: boolean;
   colorLevels?: string;
   videoBitrate?: number; // 实时视频码率（bps，来自 mpv video-bitrate）
+  // 渲染后端（issue #77，反映实际渲染路径）：vulkan=vo_gpu_next 可正常 DV reshape；
+  // opengles/software=render API 不可 reshape（OpenGles 无法升级 GL 时实际为 software）。
+  renderBackend?: 'vulkan' | 'opengles' | 'software' | 'unavailable';
 }
 
 export interface AudioParams {

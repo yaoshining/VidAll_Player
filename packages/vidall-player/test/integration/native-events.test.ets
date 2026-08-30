@@ -333,6 +333,66 @@ export async function videoParamsPartialExtensionFieldsParsed(): Promise<void> {
   await player.release();
 }
 
+// issue #77 SDK 解析契约测试：通过 RecordingNativeBridge 注入一条「末尾含 renderBackend」的
+// videoParams fixture，验证 SDK（playerSession）能把该字段解析进公开 VideoParams.renderBackend，
+// 且既有字段顺序不被破坏。注意：此测试只覆盖 SDK 解析层，不验证 native 编码（RenderBackendName /
+// BuildVideoParamsMessage 的字符串输出由原生 C++ 路径负责，需设备侧测试）；fixture 里的消息序列
+// 与原生层实际产出保持一致。
+export async function videoParamsRenderBackendAppendedAsLastField(): Promise<void> {
+  const bridge = new RecordingNativeBridge();
+  const player = new PlayerSession(undefined, bridge);
+  const received: PlayerEvent[] = [];
+  player.subscribe((event: PlayerEvent): void => { received.push(event); });
+  const nativeEvents: NativeBridgeEvent[] = [];
+  const unsubscribe = bridge.subscribe((event: NativeBridgeEvent): void => { nativeEvents.push(event); });
+
+  await player.attachSurface({ componentId: 'surface', generation: 1, width: 1280, height: 720 });
+  await player.load({ kind: 'https', uri: 'https://fixture.invalid/media.mp4' });
+
+  // 新格式：宽x高|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced|colorLevels|bitrate|renderBackend
+  bridge.emit({
+    type: 'videoParams',
+    message: '1920x1080|ohcodec|yuv420p|8|bt709|bt709|bt709|SDR|30|0|16:9|0|full|8000000|vulkan',
+    eventEpoch: 1, sequence: 1, surfaceGeneration: 1
+  });
+
+  // 1) 原始事件消息：末位字段 = renderBackend（纯值），bitrate 在其前一位置。
+  const rawVp = nativeEvents.filter((event: NativeBridgeEvent) => event.type === 'videoParams');
+  assert(rawVp.length === 1, `Expected exactly 1 raw videoParams event, got ${rawVp.length}`);
+  const parts = rawVp[0].message.split('|');
+  assert(parts[0] === '1920x1080', `Expected index 0 "1920x1080", got ${parts[0]}`);
+  assert(parts[parts.length - 1] === 'vulkan', `Expected last field "vulkan", got ${parts[parts.length - 1]}`);
+  assert(parts[parts.length - 2] === '8000000', `Expected bitrate at penultimate, got ${parts[parts.length - 2]}`);
+
+  // 2) 既有字段顺序不受影响：playerSession 仍能正确解析 colorLevels / videoBitrate / hwdec。
+  const vpEvents = received.filter((event: PlayerEvent) => event.type === 'videoParams');
+  const params = vpEvents[vpEvents.length - 1].params as Record<string, Object>;
+  assert(params !== undefined, 'Expected params in videoParams event');
+  assert(params.videoBitrate === 8000000, `Expected videoBitrate 8000000, got ${params.videoBitrate}`);
+  assert(params.colorLevels === 'full', `Expected colorLevels "full", got ${params.colorLevels}`);
+  assert(params.hardwareDecoding === 'active', `Expected hardwareDecoding "active", got ${params.hardwareDecoding}`);
+  assert(params.renderBackend === 'vulkan', `Expected renderBackend "vulkan", got ${params.renderBackend}`);
+
+  // 3) 渲染后端非硬编码：bitrate 为空(0) 时末位仍输出 software，空 bitrate 段保持不变。
+  bridge.emit({
+    type: 'videoParams',
+    message: '1280x720|no|yuv420p|8|bt709|bt709|bt709|SDR|30|0|16:9|0|full||software',
+    eventEpoch: 1, sequence: 2, surfaceGeneration: 1
+  });
+  const rawVp2 = nativeEvents.filter((event: NativeBridgeEvent) => event.type === 'videoParams');
+  assert(rawVp2.length === 2, `Expected 2 raw videoParams events, got ${rawVp2.length}`);
+  const parts2 = rawVp2[1].message.split('|');
+  assert(parts2[parts2.length - 1] === 'software', `Expected last field "software", got ${parts2[parts2.length - 1]}`);
+  assert(parts2[parts2.length - 2] === '', `Expected empty bitrate at penultimate, got ${parts2[parts2.length - 2]}`);
+  // 公开 VideoParams 亦应暴露 renderBackend（非仅原始 message）。
+  const vpEvents2 = received.filter((event: PlayerEvent) => event.type === 'videoParams');
+  const params2 = vpEvents2[vpEvents2.length - 1].params as Record<string, Object>;
+  assert(params2.renderBackend === 'software', `Expected renderBackend "software", got ${params2.renderBackend}`);
+
+  unsubscribe();
+  await player.release();
+}
+
 // 回归测试：验证原生 mpv "time-pos" / "duration" 属性变化能正确转译为公开
 // 'position' 事件，携带 positionMs / durationMs（毫秒，与 VidAll_TV 的 IPlayer
 // onTimeUpdate 契约对齐），并遵循与其它原生事件一致的 epoch/generation 门控。
