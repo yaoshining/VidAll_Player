@@ -277,6 +277,13 @@ public:
         mpv_set_option_string(player_.get(), "config", "no");
         // Vulkan 必须由不进入驱动初始化路径的证据门禁。目标真机的 vendor GPU 栈提供
         // libEGL_impl.so，而 API 24 Local Emulator 缺少它；后者不得进入 pl_vulkan_create。
+        // 该 vendor 驱动包（/vendor/lib64/chipsetsdk/）在 HarmonyOS 上是一个整体交付的
+        // 单体包：同时提供 EGL、GLES、Vulkan 与音频栈（见受控构建对 libEGL.so/libvulkan.so/
+        // libohaudio.so 的联合放行）。因此其存在性是判定「vendor GPU 栈完整、适合硬件渲染」
+        // 的单一非侵入式证据：存在 => Vulkan 与 GLES 均视为可用（Vulkan 优先）；不存在 =>
+        // 模拟器无任何 vendor 栈 => 走软件渲染。现实中不存在「有 EGL 但 Vulkan 损坏」的
+        // 中间态，故此处用同一证据同时门禁 vulkanSafe 与 openGlesAvailable 是刻意的。
+        // 若未来出现独立、非侵入式的 Vulkan 专用证据，再分开建模以让 GLES 成为可选中后端。
         const bool vendorGpuStackAvailable =
             access("/vendor/lib64/chipsetsdk/libEGL_impl.so", R_OK) == 0;
         renderBackend_ = vidall::render::SelectRenderBackend(
