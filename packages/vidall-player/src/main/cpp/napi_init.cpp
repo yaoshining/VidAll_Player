@@ -27,6 +27,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
+#include "render_backend_policy.h"
 #endif
 
 #undef LOG_TAG
@@ -274,14 +275,27 @@ public:
         if (!player_) return false;
         mpv_set_option_string(player_.get(), "terminal", "no");
         mpv_set_option_string(player_.get(), "config", "no");
-        // issue #71（DV Profile 5 渲染层迁移）：由 vo=libmpv(vo_gpu) 改为 vo_gpu_next，
-        // 后者经 libplacebo pl_renderer 做 dovi RPU→显示 reshape。fork 复用 mpv --wid 传
-        // XComponent Surface id（vo_ohos_init 读 WinID → OH_NativeWindow_CreateNativeWindowFromSurfaceId），
-        // 并经 gpu-api=vulkan + ra_ctx_vulkan_ohos 建 Vulkan surface。需在 mpv_initialize 前设置。
-        mpv_set_option_string(player_.get(), "vo", "gpu-next");
-        mpv_set_option_string(player_.get(), "gpu-api", "vulkan");
-        // 显式指定 ohos 上下文（可选：fork 在 OHOS 上可能按 gpu-api 自动选 ra_ctx_vulkan_ohos）。
-        mpv_set_option_string(player_.get(), "gpu-context", "ohosvk");
+        // Vulkan 必须由不进入驱动初始化路径的证据门禁。目标真机的 vendor GPU 栈提供
+        // libEGL_impl.so，而 API 24 Local Emulator 缺少它；后者不得进入 pl_vulkan_create。
+        // 该 vendor 驱动包（/vendor/lib64/chipsetsdk/）在 HarmonyOS 上是一个整体交付的
+        // 单体包：同时提供 EGL、GLES、Vulkan 与音频栈（见受控构建对 libEGL.so/libvulkan.so/
+        // libohaudio.so 的联合放行）。因此其存在性是判定「vendor GPU 栈完整、适合硬件渲染」
+        // 的单一非侵入式证据：存在 => Vulkan 与 GLES 均视为可用（Vulkan 优先）；不存在 =>
+        // 模拟器无任何 vendor 栈 => 走软件渲染。现实中不存在「有 EGL 但 Vulkan 损坏」的
+        // 中间态，故此处用同一证据同时门禁 vulkanSafe 与 openGlesAvailable 是刻意的。
+        // 若未来出现独立、非侵入式的 Vulkan 专用证据，再分开建模以让 GLES 成为可选中后端。
+        const bool vendorGpuStackAvailable =
+            access("/vendor/lib64/chipsetsdk/libEGL_impl.so", R_OK) == 0;
+        renderBackend_ = vidall::render::SelectRenderBackend(
+            {vendorGpuStackAvailable, vendorGpuStackAvailable, true});
+        if (renderBackend_ == vidall::render::RenderBackend::Vulkan) {
+            mpv_set_option_string(player_.get(), "vo", "gpu-next");
+            mpv_set_option_string(player_.get(), "gpu-api", "vulkan");
+            mpv_set_option_string(player_.get(), "gpu-context", "ohosvk");
+        } else {
+            // 安全降级使用 libmpv render API；该路径先创建 SW context，再在 GLES 可用时升级。
+            mpv_set_option_string(player_.get(), "vo", "libmpv");
+        }
         // HDR tone mapping（issue #66）：vo_gpu_next 也支持 tone-mapping/hdr-compute-peak。
         // 显式下发缺省 bt.2390 + auto，让 HDR10(PQ)/HLG/BT.2020/DV 内容确定性 tone map 到 SDR。
         mpv_set_option_string(player_.get(), "tone-mapping", toneMapping.empty() ? "bt.2390" : toneMapping.c_str());
@@ -383,6 +397,7 @@ public:
         height_ = height;
         rendererReady_ = false;
         rendererFailed_ = false;
+        rendererFailureCode_ = "SURFACE_UNAVAILABLE";
         stopRenderer_ = false;
         // issue #73：mpv_initialize 推迟到首次 Attach，且必须在 init 前把 XComponent
         // surfaceId 以 wid 选项注入——vo_gpu_next 的 VO（vo_ohos_init）创建时读 --wid 建
@@ -400,7 +415,7 @@ public:
         renderThread_ = std::thread(&NativeSession::RenderLoop, this);
         std::unique_lock<std::mutex> readyLock(rendererMutex_);
         rendererReadyCv_.wait_for(readyLock, std::chrono::seconds(3), [this] { return rendererReady_ || rendererFailed_; });
-        return rendererReady_ ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "SURFACE_UNAVAILABLE"};
+        return rendererReady_ ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, rendererFailureCode_};
     }
 
     NativeResult Resize(std::uint64_t generation, int width, int height, std::uint64_t handle)
@@ -997,33 +1012,23 @@ private:
         }
         window_ = window;
 
-        // issue #71/#73：vo_gpu_next 由 mpv 自行渲染到 OHOS surface，无需 libmpv render API。
-        // 首次 Attach 的 mpv_initialize 已把 surfaceId 以 wid 选项提前注入（见 Attach()），
-        // 此处是会话复用场景（mpv 已初始化）的运行时兜底：再次以 mpv_set_property 重设 wid，
-        // 让 vo_ohos_init 在 VO 重建时绑定最新 surface。随后返回，不再创建 mpv_render_context、
-        // 不再手动 render（下方 SW/GL render 分支为旧 vo_gpu 路径，可删）。
-        int64_t wid = static_cast<int64_t>(id);
-        int widRc = mpv_set_property(player_.get(), "wid", MPV_FORMAT_INT64, &wid);
-        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
-            "vo_gpu_next(ohosvk) window bind: wid=%{public}lld rc=%{public}d (legacy render API skipped)",
-            static_cast<long long>(wid), widRc);
-        // vo_gpu_next 由 mpv 自行渲染到 OHOS surface：wid rc=0 表示 surface id 已绑定到 mpv
-        // --wid（WinID），vo_ohos_init 会在 VO 创建(播放)时据此建 OHNativeWindow + Vulkan surface。
-        // 窗口绑定即视为 surface 附着成功，置 rendererReady_ 让 Attach 的 wait_for resolve，
-        // 播放时 mpv 才会真正创建 VO 并出帧。rc<0 则标记失败并通知 Attach 返回 SURFACE_UNAVAILABLE。
-        {
-            std::lock_guard<std::mutex> lock(rendererMutex_);
-            if (widRc == 0) {
-                rendererReady_ = true;
-            } else {
-                rendererFailed_ = true;
+        if (renderBackend_ == vidall::render::RenderBackend::Vulkan) {
+            int64_t wid = static_cast<int64_t>(id);
+            int widRc = mpv_set_property(player_.get(), "wid", MPV_FORMAT_INT64, &wid);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                "vo_gpu_next(ohosvk) window bind: wid=%{public}lld rc=%{public}d",
+                static_cast<long long>(wid), widRc);
+            {
+                std::lock_guard<std::mutex> lock(rendererMutex_);
+                rendererReady_ = widRc == 0;
+                rendererFailed_ = widRc < 0;
+                rendererReadyCv_.notify_one();
             }
-            rendererReadyCv_.notify_one();
+            return;
         }
-        // vo_gpu_next 自行渲染到 OHOS surface，不再走 libmpv render API。
-        // 下方 SW/GL render 分支为旧 vo_gpu 路径，草稿阶段先整体跳过，待真机验证后删除
-        // (TryUpgradeToGlRenderer / GlRenderLoop / SwRenderLoop / RenderLoop 内 render context 相关)。
-        return;
+
+        // 安全降级策略：先创建 SW render context，再在 GLES 能力已确认时升级。
+        // 此分支不会设置 Vulkan 选项，也不会进入 pl_vulkan_create。
         // 策略：先创建 SW render context（永远安全），再尝试升级 GL。
         // GL 在模拟器上可能 SIGSEGV，需要安全检测。
         // 第一步：SW context（保证播放能力）
@@ -1036,26 +1041,16 @@ private:
             int swRc = mpv_render_context_create(&renderer_, player_.get(), swParams);
             if (swRc < 0) {
                 OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "mpv_render_context_create(SW) failed rc=%{public}d", swRc);
-                MarkRendererFailed(); return;
+                MarkRendererFailed("RENDER_BACKEND_UNAVAILABLE"); return;
             }
         }
         isSwRenderer_ = true;
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "SW renderer created as baseline");
 
-        // 第二步：如果硬件解码已启用，检测 GL 可用性后尝试升级
-        // 安全检测：检查 libEGL_impl.so 是否存在（模拟器上不存在 → GL 不可用）
-        // 不使用 fork 方案，因为 HarmonyOS EGL 内部使用 binder IPC，
-        // fork 后子进程继承的 binder 连接状态不一致会导致主进程崩溃。
-        if (hardwareDecodingRequested_.load()) {
-            bool glAvailable = false;
-            FILE* eglImpl = fopen("/vendor/lib64/chipsetsdk/libEGL_impl.so", "r");
-            if (eglImpl != nullptr) {
-                fclose(eglImpl);
-                glAvailable = true;
-            } else {
-                OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "GL impl not found, skipping GL upgrade (emulator?)");
-            }
-            if (glAvailable && TryUpgradeToGlRenderer()) {
+        // 第二步：仅在预初始化能力策略已确认 GLES 可用时尝试升级。
+        if (hardwareDecodingRequested_.load() &&
+            renderBackend_ == vidall::render::RenderBackend::OpenGles) {
+            if (TryUpgradeToGlRenderer()) {
                 OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "Upgraded to GL renderer");
                 GlRenderLoop();
                 return;
@@ -1285,9 +1280,10 @@ private:
         return result;
     }
 
-    void MarkRendererFailed()
+    void MarkRendererFailed(const char* code = "SURFACE_UNAVAILABLE")
     {
         std::lock_guard<std::mutex> lock(rendererMutex_);
+        rendererFailureCode_ = code;
         rendererFailed_ = true;
         rendererReadyCv_.notify_one();
     }
@@ -1331,8 +1327,10 @@ private:
     // issue #73：mpv_initialize 是否已在首次 Attach 完成（wid 提前注入后）。只在
     // lifecycleMutex_ 内读写，故用普通 bool 即可。
     bool mpvInitialized_ = false;
+    vidall::render::RenderBackend renderBackend_ = vidall::render::RenderBackend::Unavailable;
     std::atomic<bool> rendererReady_{false};
     std::atomic<bool> rendererFailed_{false};
+    const char* rendererFailureCode_ = "SURFACE_UNAVAILABLE";
     std::atomic<bool> released_{false};
     std::string surfaceId_;
     std::atomic<std::uint64_t> generation_{0};
