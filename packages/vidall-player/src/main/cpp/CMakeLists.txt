@@ -7,7 +7,11 @@ project(vidall_player_native)
 
 set(CMAKE_SKIP_RPATH TRUE)
 
-add_library(vidall_player_native SHARED napi_init.cpp)
+add_library(vidall_player_native SHARED
+  napi_init.cpp
+  ../../../../../native/render/render_backend_policy.cpp
+)
+target_include_directories(vidall_player_native PRIVATE ../../../../../native/render)
 target_compile_features(vidall_player_native PRIVATE cxx_std_17)
 target_link_libraries(vidall_player_native PUBLIC libace_napi.z.so libace_ndk.z.so libhilog_ndk.z.so)
 

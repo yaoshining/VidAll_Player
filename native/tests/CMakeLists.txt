@@ -45,6 +45,10 @@ add_executable(media_parameters_test media_parameters_test.cpp ../media/MediaPar
 target_include_directories(media_parameters_test PRIVATE ../media)
 target_compile_features(media_parameters_test PRIVATE cxx_std_17)
 
+add_executable(render_backend_policy_test render_backend_policy_test.cpp ../render/render_backend_policy.cpp)
+target_include_directories(render_backend_policy_test PRIVATE ../render)
+target_compile_features(render_backend_policy_test PRIVATE cxx_std_17)
+
 enable_testing()
 add_test(NAME session_lifecycle_test COMMAND session_lifecycle_test)
 add_test(NAME localhost_proxy_lease_test COMMAND localhost_proxy_lease_test)
@@ -57,3 +61,4 @@ add_test(NAME subtitle_rendering_test COMMAND subtitle_rendering_test)
 add_test(NAME adaptive_streaming_test COMMAND adaptive_streaming_test)
 add_test(NAME capability_report_test COMMAND capability_report_test)
 add_test(NAME media_parameters_test COMMAND media_parameters_test)
+add_test(NAME render_backend_policy_test COMMAND render_backend_policy_test)

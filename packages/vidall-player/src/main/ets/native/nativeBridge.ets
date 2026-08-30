@@ -47,15 +47,17 @@ export interface NativePlayerBridge {
 }
 
 function nativeFailure(result: NativeSessionResult): PlayerFailure {
-  const renderFailure = result.code === 'SURFACE_UNAVAILABLE';
+  const backendUnavailable = result.code === 'RENDER_BACKEND_UNAVAILABLE';
+  const renderFailure = result.code === 'SURFACE_UNAVAILABLE' || backendUnavailable;
   const inputFailure = result.code === 'INPUT_INVALID';
   const released = result.code === 'RELEASED';
   return new PlayerFailure({
     domain: renderFailure ? 'render' : (inputFailure ? 'input' : (released ? 'lifecycle' : 'native')),
     code: result.code,
-    message: renderFailure ? '当前没有可用的 XComponent 画面。' :
+    message: backendUnavailable ? '当前设备没有可用的 MPV 渲染后端。' :
+      (renderFailure ? '当前没有可用的 XComponent 画面。' :
       (inputFailure ? '原生播放器参数无效。' :
-        (released ? '播放器会话已释放。' : 'libmpv 原生操作失败。')),
+        (released ? '播放器会话已释放。' : 'libmpv 原生操作失败。'))),
     retryable: false,
     context: {}
   });
