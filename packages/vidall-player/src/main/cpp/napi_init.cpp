@@ -677,8 +677,9 @@ private:
         std::string lastDispatchedSubtitleText;
         std::string lastDispatchedHwdec;
         // 构建完整的 videoParams 消息：宽x高|hwdec|pixfmt|bitDepth|primaries|transfer|matrix|videoRange|fps|rotation|aspectRatio|interlaced|colorLevels|bitrate|renderBackend
-        // renderBackend 为最后一个管道分隔字段（issue #77），取值来自 RenderBackendName(renderBackend_)：
-        // vulkan/opengles/software/unavailable，供 App 端做 DV 渲染能力提示（Vulkan=vo_gpu_next 可 reshape，SW/GL 不可）。
+        // renderBackend 为最后一个管道分隔字段（issue #77），反映**实际渲染路径**：
+        // vulkan=vo_gpu_next 可 DV reshape；opengles=render API(vo_gpu)；software=render API 实际为 SW
+        // （OpenGles 无法升级 GL 或硬解未请求时降级为 SW）。供 App 端做 DV 渲染能力提示。
         auto BuildVideoParamsMessage = [this, &lastDispatchedHwdec]() -> std::string {
             // pixelformat 在硬解时可能返回硬件名（如 "ohcodec"），此时用 hw-pixelformat
             // 作为 fallback（后者通常是标准格式如 "yuv420p"）。
@@ -707,7 +708,13 @@ private:
             msg += "|" + std::string(vpInterlaced_ ? "1" : "0");
             msg += "|" + vpColorLevels_;
             msg += "|" + (vpBitrate_ > 0 ? std::to_string(static_cast<int64_t>(vpBitrate_)) : std::string());
-            msg += "|" + RenderBackendName(renderBackend_);
+            // 实际渲染路径可能从 renderBackend_ 降级（OpenGles 无法升级 GL 时实际走 SW）。
+            // 事件线程读取 isSwRenderer_（atomic）以上报真实路径，避免把 SW 误报为 opengles。
+            std::string effectiveBackend = RenderBackendName(renderBackend_);
+            if (renderBackend_ != vidall::render::RenderBackend::Vulkan && isSwRenderer_.load()) {
+                effectiveBackend = "software";
+            }
+            msg += "|" + effectiveBackend;
             return msg;
         };
         // 构建完整的 audioParams 消息：samplerate|channels|channelCount|format
@@ -1066,7 +1073,7 @@ private:
                 MarkRendererFailed("RENDER_BACKEND_UNAVAILABLE"); return;
             }
         }
-        isSwRenderer_ = true;
+        isSwRenderer_.store(true);
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG, "SW renderer created as baseline");
 
         // 第二步：仅在预初始化能力策略已确认 GLES 可用时尝试升级。
@@ -1129,7 +1136,7 @@ private:
             eglTerminate(eglDisplay_); eglDisplay_ = EGL_NO_DISPLAY;
             return false;
         }
-        isSwRenderer_ = false;
+        isSwRenderer_.store(false);
         return true;
     }
 
@@ -1396,7 +1403,7 @@ private:
     std::atomic<bool> firstFrameSent_{false};
     OHNativeWindow* window_ = nullptr;
     mpv_render_context* renderer_ = nullptr;
-    bool isSwRenderer_ = false; // true = SW 软件渲染（模拟器/无GL环境），false = GL 渲染（真机）
+    std::atomic<bool> isSwRenderer_{false}; // true = SW 软件渲染（模拟器/无GL/升级失败），false = GL 渲染（真机）；事件线程读取需原子
     std::atomic<bool> hardwareDecodingRequested_{false}; // ArkTS 层是否请求了硬件解码
     // PixelMap fallback（模拟器 SW 渲染路径，NativeWindow 不可用时将帧数据暴露给 ArkTS）
     std::mutex frameMutex_;

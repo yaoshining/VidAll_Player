@@ -441,9 +441,12 @@ export class PlayerSession implements VidAllPlayer {
                 params.videoBitrate = vb;
               }
             }
-            // 渲染后端（索引14，issue #77）：反映原生 SelectRenderBackend() 的实际选择。
+            // 渲染后端（索引14，issue #77）：反映实际渲染路径。仅接受契约允许的取值。
             if (pipeParts.length > 14 && pipeParts[14].length > 0) {
-              params.renderBackend = pipeParts[14];
+              const backend = pipeParts[14];
+              if (backend === 'vulkan' || backend === 'opengles' || backend === 'software' || backend === 'unavailable') {
+                params.renderBackend = backend;
+              }
             }
             this.stateMachine.emit({ type: 'videoParams', sequence: event.sequence, params });
           }

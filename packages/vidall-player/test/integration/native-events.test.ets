@@ -333,9 +333,11 @@ export async function videoParamsPartialExtensionFieldsParsed(): Promise<void> {
   await player.release();
 }
 
-// issue #77 契约测试：原生侧把渲染后端 append 为 videoParams 消息的最后一个管道分隔字段
-// （纯值，紧跟 bitrate 之后），供 App 端解析 DV（index 0 宽x高）与渲染后端（末位）做 DV 能力提示。
-// 通过 RecordingNativeBridge 订阅原始原生事件，验证末位字段与既有字段顺序均不被破坏。
+// issue #77 SDK 解析契约测试：通过 RecordingNativeBridge 注入一条「末尾含 renderBackend」的
+// videoParams fixture，验证 SDK（playerSession）能把该字段解析进公开 VideoParams.renderBackend，
+// 且既有字段顺序不被破坏。注意：此测试只覆盖 SDK 解析层，不验证 native 编码（RenderBackendName /
+// BuildVideoParamsMessage 的字符串输出由原生 C++ 路径负责，需设备侧测试）；fixture 里的消息序列
+// 与原生层实际产出保持一致。
 export async function videoParamsRenderBackendAppendedAsLastField(): Promise<void> {
   const bridge = new RecordingNativeBridge();
   const player = new PlayerSession(undefined, bridge);
