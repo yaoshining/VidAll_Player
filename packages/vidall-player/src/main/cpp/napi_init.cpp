@@ -626,20 +626,29 @@ public:
             std::chrono::system_clock::now().time_since_epoch()).count();
         const auto epoch = eventEpoch_.load();
         const auto generation = generation_.load();
-        auto read = [this](const Spec& spec) {
+        const bool active = positionActive_.load() && !diagnosticsStopped_;
+        struct NodeGuard { mpv_node* p; ~NodeGuard() { mpv_free_node_contents(p); } };
+        mpv_node cacheNode{};
+        NodeGuard cacheGuard{&cacheNode};
+        const int cacheResult = active ? mpv_get_property(player_.get(), "demuxer-cache-state", MPV_FORMAT_NODE, &cacheNode)
+                                       : MPV_ERROR_PROPERTY_UNAVAILABLE;
+        auto read = [this, &cacheNode, cacheResult](const Spec& spec) {
+            const std::string source(spec.property);
+            const std::string cachePrefix = "demuxer-cache-state/";
+            if (source.compare(0, cachePrefix.size(), cachePrefix) == 0)
+                return ConvertMapMember(spec, cacheResult, cacheNode, source.substr(cachePrefix.size()));
             if (spec.kind == Kind::Unsupported) return Field{"unsupported", "", "absent-in-locked-version"};
             if (spec.kind == Kind::Redacted) return Field{"unavailable", "", "redacted"};
             mpv_node node{};
             const int result = mpv_get_property(player_.get(), spec.property, MPV_FORMAT_NODE, &node);
             // mpv 节点所有权仅在当前调用内，任何转换分支（包括异常）都释放。
-            struct NodeGuard { mpv_node* p; ~NodeGuard() { mpv_free_node_contents(p); } } guard{&node};
+            NodeGuard guard{&node};
             return Convert(spec, result, node);
         };
         const Spec version{"mpvVersion", "mpv-version", Kind::Text, "text", 1, false};
         const auto versionField = read(version);
         std::string fields = "{";
         bool first = true;
-        const bool active = positionActive_.load() && !diagnosticsStopped_;
         for (const auto& spec : properties) {
             if (!first) fields += ",";
             first = false;

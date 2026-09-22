@@ -59,6 +59,17 @@ inline Field Convert(const Spec& spec, int error, const mpv_node& node) {
     }
     return {"error", "", "type-mismatch"};
 }
+inline Field ConvertMapMember(const Spec& spec, int error, const mpv_node& map, const std::string& key) {
+    if (error < 0) return Convert(spec, error, map);
+    if (map.format != MPV_FORMAT_NODE_MAP || !map.u.list) return {"error", "", "type-mismatch"};
+    const auto* list = map.u.list;
+    if (list->num < 0 || (list->num > 0 && (!list->keys || !list->values))) return {"error", "", "type-mismatch"};
+    for (int i = 0; i < list->num; ++i) {
+        if (list->keys[i] && key == list->keys[i]) return Convert(spec, 0, list->values[i]);
+    }
+    // 磁盘缓存未启用等场景，缺少成员不是读取失败。
+    return {"unavailable", "", "not-present"};
+}
 inline std::string Json(const Spec& spec, const Field& field) {
     std::string out = "{\"status\":" + Quote(field.status) + ",\"unit\":" + Quote(spec.unit) +
         ",\"source\":" + Quote(spec.property) + ",\"estimated\":" + (spec.estimated ? "true" : "false");
