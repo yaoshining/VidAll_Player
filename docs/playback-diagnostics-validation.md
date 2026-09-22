@@ -1,32 +1,61 @@
-# Issue #79 验证记录
+# Issue #79 真机与自动化验证记录
 
-验证日期：2026-09-23。版本：0.1.0 未发布候选，schemaVersion=1。
+验证日期：2026-09-23。设备：华为智慧屏 MateTV Pro，HarmonyOS API 24 Release。SDK 0.1.0 未发布候选，schemaVersion=1。
 
-- TDD：先运行新增 C++ 用例，缺少 diagnostics.h 失败；新增 ETS 主机会话用例先因 getDiagnostics 不存在失败；实现后通过。
-- `bash native/tests/contract-baseline.test.sh`：通过，含 13 项 CTest 及既有契约/材料检查。
-- `node native/tests/diagnostics-session.test.cjs`：通过，覆盖无调用不采样、并发合并、切源/表面/停止/释放过期、反复读取后停止及错误隔离。执行真实会话 ETS，NAPI 使用替身，不能代表设备表现。
-- 新增原生转换测试：有效 0/false、单位转换、int64 最大值、负字节值、类型不符、NaN/Infinity、缺失、读取失败、不支持、隐去敏感字段通过。
-- `devecocli build --modules vidall_player@default`：成功，包含 arm64-v8a 和 x86_64 原生库及诊断公开声明；后者仍是无播放能力的 probe。
-- CodeLinter：SDK ETS 范围 17 个文件、0 defects、无检查错误。使用实际安装 SDK 24 / HarmonyOS 6.1.1（与构建工具使用的 bundled SDK 相同）；没有修改项目 target/compatible 配置。最初按项目目标版本调用 linter 找不到对应 SDK，改为实际 SDK 参数后检查完整成功。
-- `git diff --check`：通过。
+## 结论
 
-HAR：`packages/vidall-player/build/default/outputs/default/vidall_player.har`。
+最终版本 **19/19 检查通过**，9 次原生首帧事件，0 个播放器错误事件。使用 SDK demo 的独立诊断页，未安装、改写或清理 VidAll_TV 包与配置。
 
-SHA-256：`2b0a9d774be2647c7886603c2c18b9c5239ca26596c9669241b0943d268b2852`。
+- 本地 H.264 640×360、25 fps、AAC 48 kHz 双音轨的参数与 ffprobe 一致。
+- 区分输入 floatp 与音频 API 输出 float，立体声切换到第二条单声道轨道后 channels 更新。
+- 暂停位置稳定、恢复、seek 至 20%、HTTP 网络、关闭缓存、stop 在途请求拒绝及停止后旧值不可用通过。
+- 无音轨、无视频轨、无长度 MPEG-TS 流、连续重开、surface generation 1→2、release 后拒绝读取通过。
+- 原版运行库快照为 `hardwareDecoder=no`、`renderBackend=vulkan`，准确反映软件解码 + Vulkan 输出。
+- 独立 OHCodec 对照使用 `76d3bd5c84a3431a7873daeb3fcba940942804c6` 的 libmpv 与六个 FFmpeg runtime：真实快照为 `hardwareDecoder=ohcodec`，与 [原生日志](evidence/diagnostics79/ohcodec-native.txt) 一致；暂停、seek、切轨、切源等也通过。此轮直播断言发现下述估算标记问题，不能称为该轮全部通过。修复后由最终原版运行库 19/19 复验覆盖。临时替换的七个库已按原始 SHA-256 逐一还原，没有合入独立 OHCodec 变更。
 
-CodeLinter 复现命令（macOS DevEco 默认安装位置；将 PROJECT 替换为当前仓库绝对路径）：
+## 真机发现并修复
 
-```sh
-/Applications/DevEco-Studio.app/Contents/tools/node/bin/node \
-  /Applications/DevEco-Studio.app/Contents/plugins/codelinter/index.js \
-  --dir '["PROJECT/packages/vidall-player/src/main/ets"]' \
-  --project PROJECT --config PROJECT/code-linter.json5 \
-  --workdir /Applications/DevEco-Studio.app/Contents/plugins/codelinter \
-  --sdkPath /Applications/DevEco-Studio.app/Contents/sdk \
-  --sdkNumberVersion 24 --sdkStringVersion 6.1.1 --inIde true \
-  --logPath /tmp/vidall-diagnostics-lint.log --language zh_CN
-```
+1. 三项缓存字节原先以斜杠属性读取，全为 error/read-failed。锁定版本只支持整张 `demuxer-cache-state` NODE_MAP；改为一次读取再提取成员，保留 int64 精度。未开启磁盘缓存时缺少成员，返回 unavailable/not-present。修复先加入失败的 map 成员回归测试，再实现通过。
+2. 无长度直播流实际返回动态估算 duration，旧快照误标 `estimated=false`。对照锁定版本文档，duration 和 percent-pos 都可能估算，现均标为 true；不伪造 unavailable，也不把它解释为已知总时长。回归测试先因旧标记失败，再实现通过。
 
-## 未完成的验收
+初次素材放错 app base/cache 导致探针 timeout，随后改为 entry 模块缓存；切源时出现预期的 DIAGNOSTICS_STALE，探针按契约重试。这两项属于验收工具修正，不计为播放器缺陷。
 
-TV 正由关联消费端任务占用，已协调不安装、不操作设备、不重启 hdc。本次没有生成或宣称真实设备快照。需在独占设备窗口验证本地/网络媒体、无音/视频、直播、缓存关闭、音轨切换、暂停恢复、seek、切源/退出、采样开关开销、硬解/Vulkan/DV/可用降级路径。PR 保留草稿，Issue #79 不关闭。
+## 性能样本
+
+受控 640×360 H.264 素材，三个窗口各 15 秒，开启时约 1 Hz。每个窗口边界各读取一次快照以测量位置/丢帧，因此关闭窗口表示“无周期采样”，并非完全零调用。
+
+| 窗口 | 周期采样次数 | App CPU 均值 | PSS（KiB）范围 | 调用耗时中位数 / P95（ms） | 输出丢帧 |
+|---|---:|---:|---:|---:|---|
+| sampling-off-before | 0 | 1.154% | 93807–94375 | 0 / 0 | 0 → 0 |
+| sampling-on | 15 | 1.018% | 94341–95312 | 2 / 3 | 0 → 0 |
+| sampling-off-after | 0 | 1.029% | 95658–95926 | 0 / 0 | 0 → 0 |
+
+原生采集耗时中位数 1 ms、P95 2 ms。CPU 使用 HiDebug getCpuUsage 原始比值乘 100；PSS 来自 getAppNativeMemInfo。内存数据同时包含探针保留的快照/报告，三个短窗口不能证明长期无泄漏，低负载结果也不能外推到 4K/DV。没有观测到该样本上的输出丢帧增长。
+
+## 可复核材料
+
+- [最终真实快照及逐项断言](evidence/diagnostics79/final.json)
+- [修复前缓存失败快照](evidence/diagnostics79/before-fix.json)
+- [OHCodec 对照及直播估算发现](evidence/diagnostics79/ohcodec-before-duration-fix.json)
+- [ffprobe 源参数和素材 SHA-256](evidence/diagnostics79/fixtures.json)
+- [原版运行库指纹](evidence/diagnostics79/original-runtime.json)、[OHCodec 对照运行库指纹](evidence/diagnostics79/ohcodec-runtime.json)
+- [TV 实际播放截图](evidence/diagnostics79/playback.jpeg)
+- [探针与复现流程](../scripts/test/diagnostics79/README.md)
+
+网络为本机 HTTP 服务经 HDC reverse TCP，仅提供合成素材，不含私有媒体、来源 URL 或认证信息。它验证 HTTP 播放/缓存路径，不代表 SMB、WebDAV、公网或真实 Wi-Fi 带宽测试。所有报告保留固定技术字段，文件名和标题为 unavailable/redacted。结束后已停止 SDK demo 和本次两个本机媒体服务，移除两条 reverse TCP 规则与六份测试缓存，fport ls 确认 Empty；未重启全局 hdc。
+
+## 自动化与产物
+
+- CTest 13/13 通过；含新增缓存 map 成员缺失/类型错误/有效零值及估算标记回归。
+- 主机会话测试与探针断言测试通过；主机 NAPI 使用替身，与上面的实际 TV 报告分开。
+- CodeLinter 使用实际 SDK 24 / 6.1.1 检查 20 个文件，0 defects，无检查错误；未改动项目 target/compatible 配置。
+- `devecocli build --modules entry@default vidall_player@default` 成功，最终 HAR 单独重打包成功。
+- `git diff --check` 通过。
+
+最终 HAR：`packages/vidall-player/build/default/outputs/default/vidall_player.har`。
+
+SHA-256：`3dc5f8b4641b2ec93d62869858fc3b0b673e34069042a8debea62735ca9fe698`。
+
+## 保留边界
+
+未验证 Dolby Vision/HDR 素材、4K 长时压力；该电视策略固定选择 Vulkan，没有通过改动后端策略强制测试 OpenGLES/SW 渲染路径。硬解对照依赖独立 OHCodec 修复，不将原版 HAR 宣称为已具备该修复。PR 保留草稿、不自动合并；上述边界应在消费端/渲染发布验收时补充。

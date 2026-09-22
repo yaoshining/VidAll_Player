@@ -1,0 +1,34 @@
+{
+  "sourceCommit": "aa6da0a",
+  "diagnosticsFixCommit": "eddc051",
+  "files": [
+    {
+      "name": "libmpv.so",
+      "sha256": "594994e42785dbad01c468e6013be56f0fe40a3b5883d301a9cd9e91b3c6c0ac"
+    },
+    {
+      "name": "libavfilter.so.11",
+      "sha256": "7410a2eb946d3d184c1aec3633358e75dc4470008b25761197733839b17ac582"
+    },
+    {
+      "name": "libavformat.so.62",
+      "sha256": "0bb56a97273fb37f83a2e4bd28b4f92d2ecda86c0d7fb59328d0c0bec106b450"
+    },
+    {
+      "name": "libavcodec.so.62",
+      "sha256": "ee1759da43e013c36ea44658edb30a806e08f9fe88817cd2ffb76de2f2e60484"
+    },
+    {
+      "name": "libavutil.so.60",
+      "sha256": "b73989775299ff903e8c9eaddfe1979a9b06e0cd59d3497c1b66c65c4a8eff0a"
+    },
+    {
+      "name": "libswscale.so.9",
+      "sha256": "aa523e0d581895ae9ebfde9038f52542f0126a81b60e58291553558a1d1bfd41"
+    },
+    {
+      "name": "libswresample.so.6",
+      "sha256": "591990a3cb3bd005d3a8d7344888f36082cada5a3f8a9328df81e3c98582bddb"
+    }
+  ]
+}

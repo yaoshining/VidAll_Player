@@ -1,0 +1,34 @@
+{
+  "sourceCommit": "76d3bd5c84a3431a7873daeb3fcba940942804c6",
+  "diagnostics": "PR80 working tree cache NODE_MAP fix",
+  "files": [
+    {
+      "name": "libmpv.so",
+      "sha256": "3ae9969ac13a58aaa5827520a44e56461f566aff66b9bdd7fe4b78f0da31b076"
+    },
+    {
+      "name": "libavfilter.so.11",
+      "sha256": "5af961a8d8efeb595472001135ae99f2cb1146699f5a8e9ad791f2f7e8357d6c"
+    },
+    {
+      "name": "libavformat.so.62",
+      "sha256": "7753a4d775ff73a2f64f7b85504c24e7f86622dea5a7936d2481cd881f2efaba"
+    },
+    {
+      "name": "libavcodec.so.62",
+      "sha256": "e21b5fe368dba45d61de883c9c35818d0d63251e16dfdbc18d1a8b0ef19be967"
+    },
+    {
+      "name": "libavutil.so.60",
+      "sha256": "c0b7313115c01406b31f9ecd06fda9aa21d2862fb61e261d1932d6cfe30e181c"
+    },
+    {
+      "name": "libswscale.so.9",
+      "sha256": "5163cf910fa4491134545af2404c7504dd83f13a051200a4e8db345fde4bbbc1"
+    },
+    {
+      "name": "libswresample.so.6",
+      "sha256": "a79f7ae29231666965ed67ea458183caad783bfe11fbed7d463129c476f49086"
+    }
+  ]
+}

@@ -124,4 +124,4 @@ devecocli build --modules vidall_player@default
 
 主机 ETS 测试使用 DevEco 自带 TypeScript 编译器，其他环境可通过 TYPESCRIPT_PATH 指定模块位置。
 
-当前 TV 正由消费端界面任务占用，**尚未完成**本地/网络资源的真实快照、轨道切换、暂停恢复、seek、快速切源退出、采样开关性能、硬解/Vulkan/DV/降级路径验收。不得把单元测试或 HAR 构建当作这些项目通过的证据。产物用于后续集成验收，PR 保持草稿，Issue 保持打开。
+2026-09-23 已完成 MateTV Pro 的受控素材真机验收，并据此修复缓存 NODE_MAP 读取与时长/进度估算标记。真实快照、运行库指纹、源参数、采样窗口和截图见 [真机验证记录](playback-diagnostics-validation.md)。硬解对照使用独立 OHCodec 修复运行库；未混入本 PR。DV/HDR 素材、4K 长时压力与该设备不可达的 OpenGLES/SW 渲染后端仍未验证，不把这些项目记为通过。

@@ -1,0 +1,12 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const ts = require(process.env.TYPESCRIPT_PATH || '/Applications/DevEco-Studio.app/Contents/plugins/codelinter/node_modules/typescript');
+require.extensions['.ets'] = (m,f) => m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,f);
+const { validateProbeSnapshot, summarizeTimings } = require('../../entry/src/main/ets/player/DiagnosticsProbeChecks.ets');
+assert.deepEqual(summarizeTimings([]), {count:0,medianMs:0,p95Ms:0,maxMs:0});
+assert.deepEqual(summarizeTimings([1,3,2,10]), {count:4,medianMs:2,p95Ms:10,maxMs:10});
+assert.equal(validateProbeSnapshot({schemaVersion:1,fields:{}},640,360).length > 0,true);
+const s={schemaVersion:1,fields:{videoInputWidth:{status:'available',value:640},videoInputHeight:{status:'available',value:360},filename:{status:'unavailable'},mediaTitle:{status:'unavailable'}}};
+assert.deepEqual(validateProbeSnapshot(s,640,360),[]);
+s.fields.videoInputWidth.value=1920;assert.equal(validateProbeSnapshot(s,640,360).length,1);
+console.log('真机探针断言测试通过');
