@@ -113,13 +113,11 @@ prepare_ffmpeg_shared_prefix() {
     echo 'FFmpeg VERSION 缺少 SMB 凭据补丁来源。' >&2
     return 1
   }
-  # 电视端实际发运「精简 FFmpeg 8 基线」（GnuTLS 静态闭包 + SMB + https/tls），
-  # 不含 dav1d/mbedtls/libxml2/dash/ohcodec/png,mjpeg 等完整能力；门禁须与此一致，
-  # 避免误拒与宿主 HAP 完全同构的精简六库。
+  # 保留 SMB/TLS 基线，并要求宿主同时交付 OHCodec 扩展 ABI，不能裁掉硬解。
   for required in \
     '--disable-static' '--enable-shared' '--enable-gpl' '--enable-version3' \
     '--enable-libsmbclient' '--enable-network' '--enable-gnutls' \
-    '--disable-nonfree'; do
+    '--disable-nonfree' '--enable-ohcodec'; do
     grep -Fq -- "$required" "$configure_options" || {
       echo "FFmpeg 配置缺少保持播放行为所需选项：$required" >&2
       return 1
@@ -316,7 +314,7 @@ if [ -z "$LIBMPV_PATH" ]; then
   exit 1
 fi
 write_sha256 "$LIBMPV_PATH" "$OUTPUT_DIR/libmpv.so.sha256"
-"$ELF_AUDIT_SCRIPT" --input "$LIBMPV_PATH" --output "$OUTPUT_DIR/elf-audit.json" \
+"$ELF_AUDIT_SCRIPT" --runtime-dir "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib" --input "$LIBMPV_PATH" --output "$OUTPUT_DIR/elf-audit.json" \
   --allow libc.so --allow libm.so --allow libdl.so --allow libz.so \
   --allow libc++.so --allow libc++_shared.so --allow libhilog_ndk.z.so \
   --allow libEGL.so --allow libvulkan.so --allow libohaudio.so \
@@ -335,4 +333,7 @@ cp -R "$VIDALL_PLAYER_FFMPEG_PREFIX/licenses" "$FFMPEG_RUNTIME_DIR/"
 cp "$VIDALL_PLAYER_FFMPEG_PREFIX/VERSION" "$VIDALL_PLAYER_FFMPEG_PREFIX/MANIFEST.tsv" "$FFMPEG_RUNTIME_DIR/"
 cat "$OUTPUT_DIR/libmpv.so.sha256"
 echo "已生成：$LIBMPV_PATH"
+python3 "$ROOT_DIR/native/scripts/check-ohcodec-runtime.py" \
+  --codec "$FFMPEG_RUNTIME_DIR/libavcodec.so.62" --util "$FFMPEG_RUNTIME_DIR/libavutil.so.60" \
+  --mpv "$LIBMPV_PATH" --nm "${OHOS_NDK_HOME%/native}/native/llvm/bin/llvm-nm"
 echo "宿主 HAP 运行时输入：${FFMPEG_RUNTIME_DIR}（不得复制进 HAR）"

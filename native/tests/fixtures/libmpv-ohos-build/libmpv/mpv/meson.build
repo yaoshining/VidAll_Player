@@ -487,7 +487,8 @@ if features['ohos']
                      cc.find_library('native_image'),
                      cc.find_library('native_window')]
     sources += files('audio/out/ao_ohaudio.c',
-                     'video/out/ohos_common.c')
+                     'video/out/ohos_common.c',
+                     'video/out/hwdec/hwdec_ohcodec.c')
 endif
 
 uwp_opt = get_option('uwp').require(
@@ -1257,7 +1258,8 @@ features += {'egl-ohos': egl_ohos.found()}
 if features['egl-ohos']
     dependencies += egl_ohos
     features += {'gl': true}
-    sources += files('video/out/opengl/context_ohos.c')
+    sources += files('video/out/opengl/context_ohos.c',
+                     'video/out/hwdec/hwdec_ohcodec_gl.c')
 endif
 
 egl_drm = get_option('egl-drm').require(
@@ -1356,7 +1358,8 @@ if features['vulkan'] and features['x11']
 endif
 
 if features['vulkan'] and features['ohos']
-     sources += files('video/out/vulkan/context_ohos.c')
+     sources += files('video/out/vulkan/context_ohos.c',
+                      'video/out/hwdec/hwdec_ohcodec_pl.c')
 endif
 
 features += {'vk-khr-display': vulkan.type_name() == 'internal' or

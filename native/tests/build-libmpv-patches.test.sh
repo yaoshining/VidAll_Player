@@ -283,12 +283,12 @@ main() {
   ! grep -q -- '-Dlibdovi=disabled' "$libplacebo_sh" || fail "libplacebo.sh 不应禁用 libdovi"
   ! grep -q -- '-Dlibdovi=auto' "$libplacebo_sh" || fail "libplacebo.sh 不应将 libdovi 设为 auto（需确定性开启）"
 
-  # 宿主 FFmpeg 8 不提供 mpv-ohos 私有零拷贝 ABI，必须禁用对应 surface driver。
+  # 硬解回归：配套 FFmpeg 提供 OHCodec ABI，必须保留 Surface driver。
   grep -q -- 'video/out/ohos_common.c' "$work_dir/libmpv/mpv/meson.build" || fail "应保留 OHOS 窗口支持"
-  ! grep -q -- "'video/out/hwdec/hwdec_ohcodec.c'" "$work_dir/libmpv/mpv/meson.build" || fail "不得编译私有 OHCodec hwdec driver"
-  ! grep -q -- "'video/out/hwdec/hwdec_ohcodec_gl.c'" "$work_dir/libmpv/mpv/meson.build" || fail "不得编译私有 OHCodec GL interop"
-  ! grep -q -- "'video/out/hwdec/hwdec_ohcodec_pl.c'" "$work_dir/libmpv/mpv/meson.build" || fail "不得编译私有 OHCodec Vulkan interop"
-  ! grep -q -- 'ra_hwdec_ohcodec' "$work_dir/libmpv/mpv/video/out/gpu/hwdec.c" || fail "不得注册私有 OHCodec surface driver"
+  grep -q -- "'video/out/hwdec/hwdec_ohcodec.c'" "$work_dir/libmpv/mpv/meson.build" || fail "缺少 OHCodec hwdec driver"
+  grep -q -- "'video/out/hwdec/hwdec_ohcodec_gl.c'" "$work_dir/libmpv/mpv/meson.build" || fail "缺少 OHCodec GL interop"
+  grep -q -- "'video/out/hwdec/hwdec_ohcodec_pl.c'" "$work_dir/libmpv/mpv/meson.build" || fail "缺少 OHCodec Vulkan interop"
+  grep -q -- 'ra_hwdec_ohcodec' "$work_dir/libmpv/mpv/video/out/gpu/hwdec.c" || fail "缺少 OHCodec surface driver"
 
   # 幂等性：重复应用已应用补丁应跳过而非报错
   apply_build_script_patches "$work_dir" "$PATCHES_DIR" \
