@@ -1,3 +1,4 @@
+import { PlayerDiagnosticsSnapshot } from './diagnostics';
 import { ExternalAudio, ExternalSubtitle, FrameData, MediaSource, PlayerEvent, PlayerSurface, PlayerTrackKind } from './types';
 
 export interface VidAllPlayer {
@@ -20,6 +21,7 @@ export interface VidAllPlayer {
   setSubtitleDelay(delayMs: number): Promise<void>;
   requestCache(uri: string): Promise<void>;
   subscribe(listener: (event: PlayerEvent) => void): () => void;
+  getDiagnostics(): Promise<PlayerDiagnosticsSnapshot>;
   getFrameData(): FrameData | null;
   stop(): Promise<void>;
   release(): Promise<void>;

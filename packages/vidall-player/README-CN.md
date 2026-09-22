@@ -39,3 +39,7 @@ ARM64 TV 模拟器仅用于构建、安装、根入口导入、NAPI 加载和生
 ## 许可
 
 候选 libmpv 分发物包含 GPL 组件，SMB 路径涉及 Samba。任何后续受控分发必须依照 [GNU General Public License v3.0 or later](LICENSE) 并完成 `docs/controlled-libmpv-release.md` 规定的材料和审批；当前状态不构成分发授权。
+
+## 按需播放诊断
+
+调用 `await player.getDiagnostics()` 获取强类型快照，类型从 `@vidall/player` 导入。字段含可用状态、来源和单位；关闭面板后消费端停止轮询。完整能力矩阵、使用示例、脱敏及真机验收边界见 [诊断文档](../../docs/playback-diagnostics.md)。

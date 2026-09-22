@@ -8,6 +8,8 @@ on:
       - 'entry/oh-package.json5'
       - 'entry/oh-package-lock.json5'
       - 'packages/vidall-player/**'
+      - 'native/diagnostics/**'
+      - 'native/tests/**'
       - 'build-profile.json5'
       - 'oh-package.json5'
       - 'oh-package-lock.json5'
@@ -22,6 +24,8 @@ on:
       - 'entry/oh-package.json5'
       - 'entry/oh-package-lock.json5'
       - 'packages/vidall-player/**'
+      - 'native/diagnostics/**'
+      - 'native/tests/**'
       - 'build-profile.json5'
       - 'oh-package.json5'
       - 'oh-package-lock.json5'
@@ -90,6 +94,13 @@ jobs:
             echo "警告：未找到 CI 签名材料，跳过测试 HAP 签名构建"
             echo "HAR 编译将继续执行；如需构建测试 HAP，请在 runner 的 $CONFIG_DIR 放置签名材料"
           fi
+
+      - name: 验证诊断转换和会话生命周期
+        run: |
+          cmake -S native/tests -B /tmp/vidall-native-tests
+          cmake --build /tmp/vidall-native-tests -j 4
+          ctest --test-dir /tmp/vidall-native-tests --output-on-failure
+          node native/tests/diagnostics-session.test.cjs
 
       - name: 还原 ohpm 依赖并编译 HAR
         run: devecocli build --modules vidall_player@default

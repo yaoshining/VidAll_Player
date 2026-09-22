@@ -54,6 +54,7 @@ export interface NativeSessionModule {
   addExternalAudio(handle: number, uri: string): NativeSessionResult;
   addExternalSubtitle(handle: number, uri: string): NativeSessionResult;
   setEventCallback(handle: number, callback: (event: NativePlayerEvent) => void): NativeSessionResult;
+  getDiagnostics(handle: number): Promise<string>;
   getFrameData(handle: number): NativeFrameData | null;
 }
 

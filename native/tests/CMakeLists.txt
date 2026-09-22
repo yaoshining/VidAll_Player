@@ -62,3 +62,8 @@ add_test(NAME adaptive_streaming_test COMMAND adaptive_streaming_test)
 add_test(NAME capability_report_test COMMAND capability_report_test)
 add_test(NAME media_parameters_test COMMAND media_parameters_test)
 add_test(NAME render_backend_policy_test COMMAND render_backend_policy_test)
+
+add_executable(diagnostics_test diagnostics_test.cpp)
+target_include_directories(diagnostics_test PRIVATE ../diagnostics ../../entry/src/main/cpp/third_party/libmpv/arm64-v8a/include)
+target_compile_features(diagnostics_test PRIVATE cxx_std_17)
+add_test(NAME diagnostics_test COMMAND diagnostics_test)

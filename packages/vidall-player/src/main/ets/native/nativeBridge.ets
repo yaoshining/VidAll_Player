@@ -1,3 +1,4 @@
+import { PlayerDiagnosticsSnapshot } from '../public/diagnostics';
 import { util } from '@kit.ArkTS';
 import nativeSession, { NativeFrameData, NativePlayerEvent, NativeSessionResult } from 'libvidall_player_native.so';
 import { MediaSource, PlayerSurface } from '../public/types';
@@ -43,6 +44,7 @@ export interface NativePlayerBridge {
   addExternalSubtitle(uri: string): Promise<void>;
   release(): Promise<void>;
   subscribe(listener: (event: NativeBridgeEvent) => void): () => void;
+  getDiagnostics(): Promise<PlayerDiagnosticsSnapshot>;
   getFrameData(): FrameData | null;
 }
 
@@ -244,6 +246,12 @@ class HarNativePlayerBridge implements NativePlayerBridge {
         this.listeners.splice(index, 1);
       }
     };
+  }
+
+  async getDiagnostics(): Promise<PlayerDiagnosticsSnapshot> {
+    if (this.released) throw new Error('DIAGNOSTICS_RELEASED');
+    const encoded: string = await nativeSession.getDiagnostics(this.handle);
+    return JSON.parse(encoded) as PlayerDiagnosticsSnapshot;
   }
 
   getFrameData(): FrameData | null {
