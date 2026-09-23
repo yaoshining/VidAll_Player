@@ -20,6 +20,10 @@
 #   - 交叉回答 (cross-answers) 覆盖所有运行期探测；以 rsplit 解析含冒号的回答。
 set -euo pipefail
 
+# 不继承调用仓库的定位信息；保留 CI 的 GIT_CONFIG_* 镜像映射。
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE \
+  GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_NAMESPACE GIT_PREFIX
+
 # 依赖构建会切换 cwd，必须在入口处固定脚本目录。
 readonly SMB_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -126,8 +130,8 @@ ensure_samba_source() {
   if [ -d "$destination/.git" ] && git -C "$destination" cat-file -e "$SAMBA_COMMIT^{commit}" 2>/dev/null; then
     return 0
   fi
-  mkdir -p "$(dirname "$destination")"
-  staging="$(mktemp -d "${destination}.fetch.XXXXXX")"
+  mkdir -p "$(dirname "$destination")" || return 1
+  staging="$(mktemp -d "${destination}.fetch.XXXXXX")" || return 1
   # 先在同一文件系统完整获取；下载失败时原缓存保持不变。
   if ! python3 "$SMB_SCRIPT_DIR/fetch-locked-source.py" \
       --repository https://gitlab.com/samba-team/samba.git \
@@ -136,7 +140,7 @@ ensure_samba_source() {
     return 1
   fi
   if [ -e "$destination" ] || [ -L "$destination" ]; then
-    mv "$destination" "$staging/previous" || return 1
+    mv "$destination" "$staging/previous" || { rm -rf "$staging"; return 1; }
   fi
   if ! mv "$staging/source" "$destination"; then
     # 发布失败时恢复旧树；若恢复也失败，保留暂存目录供恢复。
