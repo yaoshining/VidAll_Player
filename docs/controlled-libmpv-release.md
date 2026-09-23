@@ -75,3 +75,7 @@ CI 受控工具链固定为 Rust `1.85.1` 与 `cargo-c 0.10.13+cargo-0.88.0`。`
 MPV 为 GPL-2.0-or-later；启用 Samba `libsmbclient` 后 external FFmpeg runtime 按 GPLv3 审核。最终 HAP 发布必须同时提供 MPV、FFmpeg、Samba 及静态传递闭包的许可证、NOTICE、精确源码、producer 构建脚本和源码提供说明。`VERSION` 中的凭据 patch 必须能由 `MANIFEST.tsv` 追溯；缺少来源证明时不得发布。
 
 受控制品仍通过 `native/scripts/build-libmpv-controlled.sh` 生成 SHA-256、feature manifest、SPDX/CycloneDX SBOM、NOTICE、许可证与 ELF 报告；候选版本还需通过 ARM64 TV 能力证据和双构建可重复性验证。
+
+### iMac CI 的局域网源码镜像
+
+原生交叉构建作业通过 `GIT_CONFIG_COUNT` / `url.*.insteadOf` 将 Samba、FFmpeg（含 `code.ffmpeg.org` 入口）、`libmpv-ohos-build` 和 `ErBWs/mpv` 映射到 `http://192.168.3.59:27134/yao/` 下的同名 Gitea 仓库。映射仅对子作业进程生效，不写入 runner 的全局 Git 配置。来源锁继续保留上游地址与固定提交；镜像必须包含对应提交。其他仓库和发布压缩包下载保持现有来源。此作业要求 runner 可以访问该局域网地址。

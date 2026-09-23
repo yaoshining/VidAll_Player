@@ -59,6 +59,7 @@ jobs:
           bash native/tests/build-libmpv-bootstrap.test.sh
           bash native/tests/build-libmpv-patches.test.sh
           bash native/tests/build-libmpv-workflow.test.sh
+          python3 native/tests/git-mirrors.test.py
           python3 native/tests/fetch-locked-source.test.py
           python3 native/tests/finalize-ohcodec-prefix.test.py
           python3 native/tests/check-ohcodec-runtime.test.py
@@ -107,6 +108,18 @@ jobs:
     if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build }}
     runs-on: [self-hosted, macos, deveco]
     env:
+      # 仅此作业使用局域网镜像；保留上游来源锁，不修改 runner 全局 Git 配置。
+      GIT_CONFIG_COUNT: "5"
+      GIT_CONFIG_KEY_0: url.http://192.168.3.59:27134/yao/samba.git.insteadOf
+      GIT_CONFIG_VALUE_0: https://gitlab.com/samba-team/samba.git
+      GIT_CONFIG_KEY_1: url.http://192.168.3.59:27134/yao/FFmpeg.git.insteadOf
+      GIT_CONFIG_VALUE_1: https://github.com/FFmpeg/FFmpeg.git
+      GIT_CONFIG_KEY_2: url.http://192.168.3.59:27134/yao/FFmpeg.git.insteadOf
+      GIT_CONFIG_VALUE_2: https://code.ffmpeg.org/FFmpeg/FFmpeg.git
+      GIT_CONFIG_KEY_3: url.http://192.168.3.59:27134/yao/libmpv-ohos-build.git.insteadOf
+      GIT_CONFIG_VALUE_3: https://github.com/mpv-ohos/libmpv-ohos-build.git
+      GIT_CONFIG_KEY_4: url.http://192.168.3.59:27134/yao/mpv.git.insteadOf
+      GIT_CONFIG_VALUE_4: https://github.com/ErBWs/mpv.git
       RUST_TOOLCHAIN: 1.85.1
       CARGO_C_VERSION: 0.10.13
       CARGO_C_EXPECTED_VERSION: 0.10.13+cargo-0.88.0
