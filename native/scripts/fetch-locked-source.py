@@ -7,6 +7,7 @@ import re
 import signal
 import subprocess
 import time
+import tempfile
 
 
 def run(command, timeout):
@@ -27,23 +28,30 @@ def fetch(repository, commit, destination, timeout=300, attempts=3):
         raise ValueError('源码必须固定为 40 位 commit，不能使用分支或 tag')
     if timeout <= 0 or attempts < 1:
         raise ValueError('超时和尝试次数必须为正数')
-    destination.mkdir(parents=True, exist_ok=True)
-    run(['git', 'init', str(destination)], timeout=30)
-    git = ['git', '-C', str(destination)]
+    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())):
+        raise ValueError('目标目录非空，拒绝覆盖已有源码')
+    destination.parent.mkdir(parents=True, exist_ok=True)
     for attempt in range(1, attempts + 1):
         print(f'浅获取锁定源码 {commit}：{attempt}/{attempts}，单次限时 {timeout}s', flush=True)
         try:
-            run(git + ['-c', 'http.lowSpeedLimit=1024', '-c', 'http.lowSpeedTime=30',
-                       'fetch', '--progress', '--no-tags', '--depth=1', repository, commit], timeout=timeout)
-            break
+            # SIGKILL 后 Git 可能留下 shallow.lock；每次尝试只使用本次创建的隔离目录。
+            # 校验并检出成功后才发布到目标，失败不污染目标或下一次尝试。
+            with tempfile.TemporaryDirectory(prefix=f'.{destination.name}-fetch-', dir=destination.parent) as temp:
+                run(['git', 'init', temp], timeout=30)
+                git = ['git', '-C', temp]
+                run(git + ['-c', 'http.lowSpeedLimit=1024', '-c', 'http.lowSpeedTime=30',
+                           'fetch', '--progress', '--no-tags', '--depth=1', repository, commit], timeout=timeout)
+                actual = run(git + ['rev-parse', 'FETCH_HEAD'], timeout=30)
+                if actual != commit:
+                    raise ValueError(f'源码提交不匹配：期望 {commit}，实际 {actual}')
+                run(git + ['checkout', '--detach', commit], timeout=30)
+                os.rename(temp, destination)
+            return
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
             if attempt == attempts:
                 raise
             time.sleep(5 * attempt)
-    actual = run(git + ['rev-parse', 'FETCH_HEAD'], timeout=30)
-    if actual != commit:
-        raise ValueError(f'源码提交不匹配：期望 {commit}，实际 {actual}')
-    run(git + ['checkout', '--detach', commit], timeout=30)
+
 
 
 if __name__ == '__main__':

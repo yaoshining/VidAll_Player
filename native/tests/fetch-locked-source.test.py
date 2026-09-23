@@ -51,6 +51,39 @@ class FetchTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 fetch.fetch('https://example.invalid/source.git','a'*40,Path(temp)/'dest',timeout=1,attempts=1)
 
+    def test_retry_does_not_reuse_timed_out_repository(self):
+        with tempfile.TemporaryDirectory() as temp, patch.object(fetch.time, 'sleep'):
+            destination = Path(temp) / 'dest'
+            repositories = []
+            def run(command, **kwargs):
+                if command[1] == 'init':
+                    (Path(command[2]) / '.git').mkdir(exist_ok=True)
+                if 'fetch' in command:
+                    repo = Path(command[2])
+                    repositories.append(repo)
+                    self.assertFalse((repo / '.git/shallow.lock').exists())
+                    if len(repositories) == 1:
+                        (repo / '.git/shallow.lock').write_text('interrupted fetch')
+                        raise subprocess.TimeoutExpired(command, 1)
+                    (repo / 'file').write_text('complete')
+                return 'a' * 40 if 'rev-parse' in command else ''
+            with patch.object(fetch, 'run', side_effect=run):
+                fetch.fetch('https://example.invalid/source.git', 'a' * 40, destination, attempts=2)
+            self.assertEqual(len(set(repositories)), 2)
+            self.assertEqual((destination / 'file').read_text(), 'complete')
+            self.assertFalse((destination / '.git/shallow.lock').exists())
+            self.assertEqual(list(Path(temp).iterdir()), [destination])
+
+    def test_existing_destination_is_preserved(self):
+        with tempfile.TemporaryDirectory() as temp, patch.object(fetch, 'run') as run:
+            destination = Path(temp) / 'dest'
+            destination.mkdir()
+            (destination / 'valuable').write_text('keep')
+            with self.assertRaises(ValueError):
+                fetch.fetch('https://example.invalid/source.git', 'a' * 40, destination)
+            self.assertEqual((destination / 'valuable').read_text(), 'keep')
+            run.assert_not_called()
+
     def test_floating_ref_rejected(self):
         with self.assertRaises(ValueError):
             fetch.fetch('https://example.invalid/source.git','main',Path('/unused'),timeout=1,attempts=1)
