@@ -121,12 +121,36 @@ EOF
 
 # ---------------- 源码检出 ----------------
 # 只获取锁定提交，禁止完整克隆 Samba 历史；每次获取限时 15 分钟，最多 3 次。
-fetch_samba() {
-  if [ ! -d "$SAMBA_DIR/.git" ] || ! git -C "$SAMBA_DIR" cat-file -e "$SAMBA_COMMIT^{commit}" 2>/dev/null; then
-    python3 "$SMB_SCRIPT_DIR/fetch-locked-source.py" \
-      --repository https://gitlab.com/samba-team/samba.git \
-      --commit "$SAMBA_COMMIT" --destination "$SAMBA_DIR" --timeout 900
+ensure_samba_source() {
+  local destination="$1" staging
+  if [ -d "$destination/.git" ] && git -C "$destination" cat-file -e "$SAMBA_COMMIT^{commit}" 2>/dev/null; then
+    return 0
   fi
+  mkdir -p "$(dirname "$destination")"
+  staging="$(mktemp -d "${destination}.fetch.XXXXXX")"
+  # 先在同一文件系统完整获取；下载失败时原缓存保持不变。
+  if ! python3 "$SMB_SCRIPT_DIR/fetch-locked-source.py" \
+      --repository https://gitlab.com/samba-team/samba.git \
+      --commit "$SAMBA_COMMIT" --destination "$staging/source" --timeout 900; then
+    rm -rf "$staging"
+    return 1
+  fi
+  if [ -e "$destination" ] || [ -L "$destination" ]; then
+    mv "$destination" "$staging/previous" || return 1
+  fi
+  if ! mv "$staging/source" "$destination"; then
+    # 发布失败时恢复旧树；若恢复也失败，保留暂存目录供恢复。
+    if [ -e "$staging/previous" ] || [ -L "$staging/previous" ]; then
+      mv "$staging/previous" "$destination" || return 1
+    fi
+    rm -rf "$staging"
+    return 1
+  fi
+  rm -rf "$staging"
+}
+
+fetch_samba() {
+  ensure_samba_source "$SAMBA_DIR" || return 1
   ( cd "$SAMBA_DIR" && git checkout "$SAMBA_COMMIT" && git reset --hard "$SAMBA_COMMIT" && git clean -fd )
 }
 
@@ -461,11 +485,7 @@ EOF
 # ---------------- 原生 host 工具预编译 ----------------
 build_host_tools() {
   log "原生预编译 host 工具 (compile_et / asn1_compile)"
-  if [ ! -d "$SAMBA_HOST_DIR/.git" ]; then
-    python3 "$SMB_SCRIPT_DIR/fetch-locked-source.py" \
-      --repository https://gitlab.com/samba-team/samba.git \
-      --commit "$SAMBA_COMMIT" --destination "$SAMBA_HOST_DIR" --timeout 900
-  fi
+  ensure_samba_source "$SAMBA_HOST_DIR" || return 1
   ( cd "$SAMBA_HOST_DIR" && git checkout "$SAMBA_COMMIT" && git reset --hard "$SAMBA_COMMIT" && git clean -fd )
   # 复用交叉树的 buildtools/bin/waf（rsync 已排除 bin）。
   [ -f "$SAMBA_HOST_DIR/buildtools/bin/waf" ] || rsync -a "$SAMBA_DIR/buildtools/bin/" "$SAMBA_HOST_DIR/buildtools/bin/"

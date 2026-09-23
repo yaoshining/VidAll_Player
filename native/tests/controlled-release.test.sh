@@ -197,9 +197,10 @@ PY
   grep -Fq -- '--allow libnative_buffer.so --allow libnative_image.so --allow libnative_window.so' "$CONTROLLED_BUILD" || fail '受控构建必须允许 MPV 的 OpenHarmony native window 系统依赖'
   grep -Fq 'sbom.cdx.json' "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" || fail 'CI 必须使用统一的 CycloneDX SBOM 文件名'
   python3 "$PROJECT_ROOT/native/tests/smb-host-source-path.test.py"
+  python3 "$PROJECT_ROOT/native/tests/smb-source-cache.test.py"
   # 回归：host 工具源码路径也必须迁移，不能调用已移除的下载函数。
   ! grep -q 'git_clone_retry' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'host 工具仍调用不存在的 git_clone_retry'
-  grep -Fq -- '--commit "$SAMBA_COMMIT" --destination "$SAMBA_HOST_DIR" --timeout 900' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'host 源码必须使用有界的锁定提交获取'
+  grep -Fq -- 'ensure_samba_source "$SAMBA_HOST_DIR"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'host 源码必须使用有界的锁定提交获取'
   grep -Fq 'mkdir -p "$SAMBA_DIR/bin"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '复制 host 工具前必须创建交叉树 bin 目录'
   grep -Fq "if not bld.env.CROSS_COMPILE:" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须从 Waf 图中移除 HostCC 子系统'
   grep -Fq "not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE')" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须复用预编译的 asn1_compile'

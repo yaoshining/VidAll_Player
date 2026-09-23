@@ -18,9 +18,12 @@ class HostSourcePathTest(unittest.TestCase):
             (scripts / 'fetch-locked-source.py').write_text('')
             (root / 'dependency-build').mkdir()
             # 只替代下载器；路径解析、目录切换和 host 入口使用真实 shell。
-            probe = startup + '\nlog() { :; }\n' + 'build_host_tools() {' + host + '}\n'
+            helper = source.split('ensure_samba_source() {', 1)[1].split('fetch_samba() {', 1)[0]
+            probe = startup + '\nensure_samba_source() {' + helper + '\nlog() { :; }\n' + 'build_host_tools() {' + host + '}\n'
             probe += '''python3() {
-  test "$1" = "$EXPECTED_HELPER" && test -f "$1"
+  test "$1" = "$EXPECTED_HELPER" && test -f "$1" || return 1
+  while [ "$1" != --destination ]; do shift; done
+  mkdir -p "$2"
 }
 SAMBA_HOST_DIR="$PWD/host"
 SAMBA_COMMIT=3984b04d7085c428ab3126ef4cfac2a396b5b29e
