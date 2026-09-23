@@ -20,6 +20,9 @@
 #   - 交叉回答 (cross-answers) 覆盖所有运行期探测；以 rsplit 解析含冒号的回答。
 set -euo pipefail
 
+# 依赖构建会切换 cwd，必须在入口处固定脚本目录。
+readonly SMB_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # ---------------- 可配置入口 ----------------
 : "${OHOS_NDK:=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony}"
 : "${WORK_DIR:=$HOME/.cache/vidall-player/smb-src}"
@@ -119,10 +122,8 @@ EOF
 # ---------------- 源码检出 ----------------
 # 只获取锁定提交，禁止完整克隆 Samba 历史；每次获取限时 15 分钟，最多 3 次。
 fetch_samba() {
-  local script_dir
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if [ ! -d "$SAMBA_DIR/.git" ] || ! git -C "$SAMBA_DIR" cat-file -e "$SAMBA_COMMIT^{commit}" 2>/dev/null; then
-    python3 "$script_dir/fetch-locked-source.py" \
+    python3 "$SMB_SCRIPT_DIR/fetch-locked-source.py" \
       --repository https://gitlab.com/samba-team/samba.git \
       --commit "$SAMBA_COMMIT" --destination "$SAMBA_DIR" --timeout 900
   fi
@@ -460,10 +461,8 @@ EOF
 # ---------------- 原生 host 工具预编译 ----------------
 build_host_tools() {
   log "原生预编译 host 工具 (compile_et / asn1_compile)"
-  local script_dir
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if [ ! -d "$SAMBA_HOST_DIR/.git" ]; then
-    python3 "$script_dir/fetch-locked-source.py" \
+    python3 "$SMB_SCRIPT_DIR/fetch-locked-source.py" \
       --repository https://gitlab.com/samba-team/samba.git \
       --commit "$SAMBA_COMMIT" --destination "$SAMBA_HOST_DIR" --timeout 900
   fi
