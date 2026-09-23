@@ -460,8 +460,12 @@ EOF
 # ---------------- 原生 host 工具预编译 ----------------
 build_host_tools() {
   log "原生预编译 host 工具 (compile_et / asn1_compile)"
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if [ ! -d "$SAMBA_HOST_DIR/.git" ]; then
-    git_clone_retry https://gitlab.com/samba-team/samba.git "$SAMBA_HOST_DIR"
+    python3 "$script_dir/fetch-locked-source.py" \
+      --repository https://gitlab.com/samba-team/samba.git \
+      --commit "$SAMBA_COMMIT" --destination "$SAMBA_HOST_DIR" --timeout 900
   fi
   ( cd "$SAMBA_HOST_DIR" && git checkout "$SAMBA_COMMIT" && git reset --hard "$SAMBA_COMMIT" && git clean -fd )
   # 复用交叉树的 buildtools/bin/waf（rsync 已排除 bin）。
