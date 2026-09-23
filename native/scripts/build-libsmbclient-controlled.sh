@@ -117,14 +117,14 @@ EOF
 }
 
 # ---------------- 源码检出 ----------------
-# 只获取锁定提交，禁止完整克隆 Samba 历史；每次获取限时 5 分钟，最多 3 次。
+# 只获取锁定提交，禁止完整克隆 Samba 历史；每次获取限时 15 分钟，最多 3 次。
 fetch_samba() {
   local script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if [ ! -d "$SAMBA_DIR/.git" ] || ! git -C "$SAMBA_DIR" cat-file -e "$SAMBA_COMMIT^{commit}" 2>/dev/null; then
     python3 "$script_dir/fetch-locked-source.py" \
       --repository https://gitlab.com/samba-team/samba.git \
-      --commit "$SAMBA_COMMIT" --destination "$SAMBA_DIR"
+      --commit "$SAMBA_COMMIT" --destination "$SAMBA_DIR" --timeout 900
   fi
   ( cd "$SAMBA_DIR" && git checkout "$SAMBA_COMMIT" && git reset --hard "$SAMBA_COMMIT" && git clean -fd )
 }

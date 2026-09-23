@@ -10,7 +10,7 @@ export VIDALL_PLAYER_FFMPEG_PREFIX=<含 OHCodec 的 FFmpeg 8 ARM64 shared prefix
 native/scripts/build-libmpv-bootstrap.sh
 ```
 
-CI 默认从固定提交构建 FFmpeg 与 OHCodec 补丁，并调用仓库已有 SMB/GnuTLS 静态闭包脚本；不再下载已过期的 `31637632656` Actions artifact。每次 workflow attempt 使用独立临时目录，源码获取后校验完整 commit。Samba、FFmpeg 和补丁仓库均通过 `fetch-locked-source.py` 浅获取固定提交（不拉取完整历史或 tag）：单次 300 秒、最多 3 次，连续 30 秒低于 1 KiB/s 会失败；超时终止该次 Git 子进程组。源码准备步骤另设 60 分钟总上限，避免下载异常长期占用 runner。
+CI 默认从固定提交构建 FFmpeg 与 OHCodec 补丁，并调用仓库已有 SMB/GnuTLS 静态闭包脚本；不再下载已过期的 `31637632656` Actions artifact。每次 workflow attempt 使用独立临时目录，源码获取后校验完整 commit。Samba、FFmpeg 和补丁仓库均通过 `fetch-locked-source.py` 浅获取固定提交（不拉取完整历史或 tag）：Samba 单次 900 秒，其他仓库单次 300 秒，最多 3 次，连续 30 秒低于 1 KiB/s 会失败；超时终止该次 Git 子进程组。每次下载尝试使用独立临时目录，失败后丢弃锁文件与不完整 pack；完整提交通过 SHA 校验后才写入目标目录。源码准备步骤另设 60 分钟总上限，避免下载异常长期占用 runner。
 
 `build-ohcodec-ffmpeg.sh` 构建后调用 `finalize-ohcodec-prefix.py`，从实际 configure 输出与 ELF 生成下述元数据，并验证 HTTPS/TLS/SMB/OHCodec 开关及 AArch64 架构；动态 SMB/TLS 依赖会导致失败。FFmpeg 来源和补丁仍锁定为 `140fd653aed8cad774f991ba083e2d01e86420c7`、`1bab837e662ffa47ce51efd0720d3ed7c4988944`。SMB 及其依赖沿用仓库既有构建脚本，未把本次修改视为全依赖供应链审计。
 
