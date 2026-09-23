@@ -117,27 +117,14 @@ EOF
 }
 
 # ---------------- 源码检出 ----------------
-# GitLab 偶发 503, 重试最多 5 次, 每次间隔递增。
-git_clone_retry() {
-  local url="$1" dest="$2" attempt=0 max=5
-  while [ "$attempt" -lt "$max" ]; do
-    attempt=$((attempt + 1))
-    log "git clone 尝试 $attempt/$max: $url"
-    if git clone "$url" "$dest"; then
-      return 0
-    fi
-    rm -rf "$dest"
-    [ "$attempt" -lt "$max" ] || { log "git clone 在 $max 次尝试后仍失败: $url"; return 1; }
-    local wait=$((attempt * 15))
-    log "等待 ${wait}s 后重试..."
-    sleep "$wait"
-  done
-}
-
+# 只获取锁定提交，禁止完整克隆 Samba 历史；每次获取限时 5 分钟，最多 3 次。
 fetch_samba() {
-  if [ ! -d "$SAMBA_DIR/.git" ]; then
-    log "克隆 Samba $SAMBA_TAG ..."
-    git_clone_retry https://gitlab.com/samba-team/samba.git "$SAMBA_DIR"
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ ! -d "$SAMBA_DIR/.git" ] || ! git -C "$SAMBA_DIR" cat-file -e "$SAMBA_COMMIT^{commit}" 2>/dev/null; then
+    python3 "$script_dir/fetch-locked-source.py" \
+      --repository https://gitlab.com/samba-team/samba.git \
+      --commit "$SAMBA_COMMIT" --destination "$SAMBA_DIR"
   fi
   ( cd "$SAMBA_DIR" && git checkout "$SAMBA_COMMIT" && git reset --hard "$SAMBA_COMMIT" && git clean -fd )
 }

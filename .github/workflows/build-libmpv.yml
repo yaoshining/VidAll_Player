@@ -59,6 +59,7 @@ jobs:
           bash native/tests/build-libmpv-bootstrap.test.sh
           bash native/tests/build-libmpv-patches.test.sh
           bash native/tests/build-libmpv-workflow.test.sh
+          python3 native/tests/fetch-locked-source.test.py
           python3 native/tests/finalize-ohcodec-prefix.test.py
           python3 native/tests/check-ohcodec-runtime.test.py
           bash native/tests/libmpv-packaging.test.sh
@@ -83,7 +84,7 @@ jobs:
             echo "build-needed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          FILES="native/scripts/build-libmpv-bootstrap.sh native/scripts/audit-libmpv-elf.sh native/scripts/build-ohcodec-ffmpeg.sh native/scripts/finalize-ohcodec-prefix.py native/scripts/build-libsmbclient-controlled.sh native/scripts/check-ohcodec-runtime.py native/patches/ffmpeg-runtime native/patches/libmpv-ohos-build native/config/sources.lock.json .github/workflows/build-libmpv.yml"
+          FILES="native/scripts/build-libmpv-bootstrap.sh native/scripts/audit-libmpv-elf.sh native/scripts/build-ohcodec-ffmpeg.sh native/scripts/fetch-locked-source.py native/scripts/finalize-ohcodec-prefix.py native/scripts/build-libsmbclient-controlled.sh native/scripts/check-ohcodec-runtime.py native/patches/ffmpeg-runtime native/patches/libmpv-ohos-build native/config/sources.lock.json .github/workflows/build-libmpv.yml"
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             git fetch origin "${{ github.base_ref }}" 2>/dev/null || true
             BASE="origin/${{ github.base_ref }}"
@@ -136,6 +137,7 @@ jobs:
           test -x "$toolchain/llvm-readelf" || { echo "OpenHarmony llvm-readelf 不可执行：$toolchain/llvm-readelf" >&2; exit 1; }
           echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
       - name: 从锁定源码准备 OHCodec FFmpeg prefix
+        timeout-minutes: 60
         run: |
           set -euo pipefail
           # 每次尝试隔离输出，避免 self-hosted runner 的旧 prefix 污染本轮构建。
@@ -145,10 +147,7 @@ jobs:
           OHOS_NDK="${ndk_native%/native}" WORK_DIR="$build_root/smb-source" \
             PREFIX="$build_root/smb-prefix" bash native/scripts/build-libsmbclient-controlled.sh
           fetch_source() {
-            git init "$1"
-            git -C "$1" fetch --depth 1 "$2" "$3"
-            git -C "$1" checkout --detach FETCH_HEAD
-            test "$(git -C "$1" rev-parse HEAD)" = "$3"
+            python3 native/scripts/fetch-locked-source.py --destination "$1" --repository "$2" --commit "$3"
           }
           fetch_source "$build_root/ffmpeg" https://github.com/FFmpeg/FFmpeg.git 140fd653aed8cad774f991ba083e2d01e86420c7
           fetch_source "$build_root/builder" https://github.com/mpv-ohos/libmpv-ohos-build.git 1bab837e662ffa47ce51efd0720d3ed7c4988944

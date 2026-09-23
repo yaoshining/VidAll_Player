@@ -232,6 +232,7 @@ for build_input in (
     'native/scripts/build-libmpv-bootstrap.sh',
     'native/scripts/audit-libmpv-elf.sh',
     'native/scripts/build-ohcodec-ffmpeg.sh',
+    'native/scripts/fetch-locked-source.py',
     'native/scripts/finalize-ohcodec-prefix.py',
     'native/scripts/build-libsmbclient-controlled.sh',
     'native/patches/ffmpeg-runtime',
