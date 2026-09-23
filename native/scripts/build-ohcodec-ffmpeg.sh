@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # 输入为锁定版本源码仓库与静态 SMB/GnuTLS sysroot；输出目录必须全新。
-# 仅构建 runtime；不是可直接输入 bootstrap 的发布 prefix（还需发行元数据及许可文件）。
+# 构建 runtime 并生成可供 bootstrap 使用的配置、ELF、许可和来源元数据。
 root=$(cd "$(dirname "$0")/../.." && pwd)
 : "${OHOS_NDK:?请指定 OpenHarmony native NDK}"
 : "${FFMPEG_SOURCE_REPO:?请指定含 FFmpeg 8 锁定提交的源码仓库}"
@@ -28,7 +28,7 @@ cd "$OUTPUT_ROOT/build"
  --ar="$ndk/llvm/bin/llvm-ar" --nm="$ndk/llvm/bin/llvm-nm" --ranlib="$ndk/llvm/bin/llvm-ranlib" --strip="$ndk/llvm/bin/llvm-strip" \
  --sysroot="$ndk/sysroot" --extra-cflags="-fPIC -I$smb/include" --extra-ldflags="-L$smb/lib" \
  --pkg-config-flags=--static --disable-static --enable-shared --enable-pic --disable-programs --disable-doc --disable-avdevice \
- --disable-autodetect --disable-xlib --disable-sdl2 --enable-network --enable-gnutls --enable-libsmbclient --enable-gpl --enable-version3 --disable-nonfree --enable-ohcodec
+ --disable-autodetect --disable-xlib --disable-sdl2 --enable-network --enable-protocol=https,tls --enable-gnutls --enable-libsmbclient --enable-gpl --enable-version3 --disable-nonfree --enable-ohcodec
 make -j"${JOBS:-8}"
 make install
 
@@ -42,3 +42,5 @@ for name in ['libavcodec.so.62','libavformat.so.62','libavutil.so.60','libavfilt
     rows.append(hashlib.sha256((root/name).read_bytes()).hexdigest()+'  '+name)
 (root.parent/'SHA256SUMS').write_text('\n'.join(rows)+'\n')
 PYMETA
+
+python3 "$root/native/scripts/finalize-ohcodec-prefix.py" --root "$OUTPUT_ROOT" --ndk "$ndk"

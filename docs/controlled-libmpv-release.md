@@ -6,9 +6,13 @@
 
 ```bash
 export OHOS_NDK=<OpenHarmony NDK 根目录>
-export VIDALL_PLAYER_FFMPEG_PREFIX=<ohos_ijkplayer FFmpeg 8 ARM64 shared prefix>
+export VIDALL_PLAYER_FFMPEG_PREFIX=<含 OHCodec 的 FFmpeg 8 ARM64 shared prefix>
 native/scripts/build-libmpv-bootstrap.sh
 ```
+
+CI 默认从固定提交构建 FFmpeg 与 OHCodec 补丁，并调用仓库已有 SMB/GnuTLS 静态闭包脚本；不再下载已过期的 `31637632656` Actions artifact。每次 workflow attempt 使用独立临时目录，源码获取后校验完整 commit。
+
+`build-ohcodec-ffmpeg.sh` 构建后调用 `finalize-ohcodec-prefix.py`，从实际 configure 输出与 ELF 生成下述元数据，并验证 HTTPS/TLS/SMB/OHCodec 开关及 AArch64 架构；动态 SMB/TLS 依赖会导致失败。FFmpeg 来源和补丁仍锁定为 `140fd653aed8cad774f991ba083e2d01e86420c7`、`1bab837e662ffa47ce51efd0720d3ed7c4988944`。SMB 及其依赖沿用仓库既有构建脚本，未把本次修改视为全依赖供应链审计。
 
 prefix 约定如下：
 
@@ -18,7 +22,7 @@ prefix 约定如下：
 - `VERSION`、`configure-options.txt`、`MANIFEST.tsv`、`ELF-REPORT.txt`：不可变来源、ABI、配置和 ELF 证明。
 - `licenses/GPL-3.0-or-later.txt`、`licenses/FFmpeg-LGPL-2.1-or-later.txt`：发布许可证文本。
 
-输入必须是 FFmpeg 8.0、ARM64、`--disable-static --enable-shared`，并保持既有播放能力：`libsmbclient` 及私有凭据补丁、network、dav1d、mbedTLS、libxml2/DASH、ohcodec、PNG/MJPEG encoder。任何 `libav*.a` 都会被拒绝。producer 的 Samba/GnuTLS 闭包静态进入 `libavformat.so.62`；不得动态依赖 `libsmbclient.so`。
+输入必须是 FFmpeg 8.0、ARM64、`--disable-static --enable-shared`，保留 `libsmbclient` 及私有凭据补丁、network、GnuTLS HTTPS/TLS 和 OHCodec。不得将本构建未启用的外部 dav1d、mbedTLS、libxml2/DASH 声称为已具备能力。任何 `libav*.a` 都会被拒绝。producer 的 Samba/GnuTLS 闭包静态进入 `libavformat.so.62`；不得动态依赖 `libsmbclient.so`。
 
 ## 运行时所有权
 

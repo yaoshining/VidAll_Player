@@ -36,16 +36,6 @@ on:
         required: false
         type: string
         default: ''
-      ffmpeg_artifact_repository:
-        description: '产出 FFmpeg shared prefix artifact 的 owner/repo'
-        required: false
-        type: string
-        default: 'yaoshining/ohos_ijkplayer'
-      ffmpeg_artifact_run_id:
-        description: '产出 ffmpeg-8.0-ohos-arm64-v8a artifact 的不可变 workflow run ID'
-        required: false
-        type: string
-        default: '31637632656'
 
 permissions:
   actions: read
@@ -69,10 +59,12 @@ jobs:
           bash native/tests/build-libmpv-bootstrap.test.sh
           bash native/tests/build-libmpv-patches.test.sh
           bash native/tests/build-libmpv-workflow.test.sh
+          python3 native/tests/finalize-ohcodec-prefix.test.py
+          python3 native/tests/check-ohcodec-runtime.test.py
           bash native/tests/libmpv-packaging.test.sh
 
   detect-build-changes:
-    name: 检测 libsmbclient 构建变更
+    name: 检测原生构建输入变更
     needs: native-contracts
     runs-on: ubuntu-22.04
     outputs:
@@ -91,7 +83,7 @@ jobs:
             echo "build-needed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          FILES="native/scripts/build-libmpv-bootstrap.sh native/scripts/audit-libmpv-elf.sh native/patches/libmpv-ohos-build native/config/sources.lock.json .github/workflows/build-libmpv.yml"
+          FILES="native/scripts/build-libmpv-bootstrap.sh native/scripts/audit-libmpv-elf.sh native/scripts/build-ohcodec-ffmpeg.sh native/scripts/finalize-ohcodec-prefix.py native/scripts/build-libsmbclient-controlled.sh native/scripts/check-ohcodec-runtime.py native/patches/ffmpeg-runtime native/patches/libmpv-ohos-build native/config/sources.lock.json .github/workflows/build-libmpv.yml"
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             git fetch origin "${{ github.base_ref }}" 2>/dev/null || true
             BASE="origin/${{ github.base_ref }}"
@@ -109,13 +101,11 @@ jobs:
           fi
 
   build-libmpv-external-ffmpeg:
-    name: 使用 ohos_ijkplayer FFmpeg 8 shared prefix 构建 libmpv
+    name: 从锁定源码构建 OHCodec FFmpeg 8 与 libmpv
     needs: [native-contracts, detect-build-changes]
     if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build }}
     runs-on: [self-hosted, macos, deveco]
     env:
-      FFMPEG_ARTIFACT_REPOSITORY: ${{ inputs.ffmpeg_artifact_repository || 'yaoshining/ohos_ijkplayer' }}
-      FFMPEG_ARTIFACT_RUN_ID: ${{ inputs.ffmpeg_artifact_run_id || '31637632656' }}
       RUST_TOOLCHAIN: 1.85.1
       CARGO_C_VERSION: 0.10.13
       CARGO_C_EXPECTED_VERSION: 0.10.13+cargo-0.88.0
@@ -123,16 +113,6 @@ jobs:
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
-      - name: 下载受控 FFmpeg prefix artifact
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # 固定 producer workflow run ID，避免从“最新”artifact 引入浮动二进制。
-          gh run download "$FFMPEG_ARTIFACT_RUN_ID" \
-            --repo "$FFMPEG_ARTIFACT_REPOSITORY" \
-            --name ffmpeg-8.0-ohos-arm64-v8a \
-            --dir "${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a"
-          test -s "${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a/VERSION"
       - name: 配置 OpenHarmony NDK
         run: |
           if [ -z "${OHOS_NDK:-}" ]; then
@@ -155,6 +135,27 @@ jobs:
           test -x "$toolchain/clang" || { echo "OpenHarmony clang 不可执行：$toolchain/clang" >&2; exit 1; }
           test -x "$toolchain/llvm-readelf" || { echo "OpenHarmony llvm-readelf 不可执行：$toolchain/llvm-readelf" >&2; exit 1; }
           echo "OHOS_NDK=$OHOS_NDK" >> "$GITHUB_ENV"
+      - name: 从锁定源码准备 OHCodec FFmpeg prefix
+        run: |
+          set -euo pipefail
+          # 每次尝试隔离输出，避免 self-hosted runner 的旧 prefix 污染本轮构建。
+          build_root="$RUNNER_TEMP/ohcodec-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir "$build_root"
+          ndk_native="${OHOS_NDK%/native}/native"
+          OHOS_NDK="${ndk_native%/native}" WORK_DIR="$build_root/smb-source" \
+            PREFIX="$build_root/smb-prefix" bash native/scripts/build-libsmbclient-controlled.sh
+          fetch_source() {
+            git init "$1"
+            git -C "$1" fetch --depth 1 "$2" "$3"
+            git -C "$1" checkout --detach FETCH_HEAD
+            test "$(git -C "$1" rev-parse HEAD)" = "$3"
+          }
+          fetch_source "$build_root/ffmpeg" https://github.com/FFmpeg/FFmpeg.git 140fd653aed8cad774f991ba083e2d01e86420c7
+          fetch_source "$build_root/builder" https://github.com/mpv-ohos/libmpv-ohos-build.git 1bab837e662ffa47ce51efd0720d3ed7c4988944
+          OHOS_NDK="$ndk_native" FFMPEG_SOURCE_REPO="$build_root/ffmpeg" \
+            LIBMPV_BUILD_REPO="$build_root/builder" SMB_PREFIX="$build_root/smb-prefix" \
+            OUTPUT_ROOT="$build_root/ffmpeg-output" bash native/scripts/build-ohcodec-ffmpeg.sh
+          echo "VIDALL_PLAYER_FFMPEG_PREFIX=$build_root/ffmpeg-output/prefix" >> "$GITHUB_ENV"
       - name: 准备 libmpv Rust 与下载工具
         run: |
           command -v curl >/dev/null 2>&1 || { echo '缺少 curl，无法准备受控 libmpv 构建工具。' >&2; exit 1; }
@@ -218,8 +219,6 @@ jobs:
           chmod +x "$TOOL_DIR/wget"
           echo "$TOOL_DIR" >> "$GITHUB_PATH"
       - name: 构建并审计动态 FFmpeg libmpv
-        env:
-          VIDALL_PLAYER_FFMPEG_PREFIX: ${{ runner.temp }}/ffmpeg-8.0-ohos-arm64-v8a
         run: native/scripts/build-libmpv-bootstrap.sh
       - name: 验证审计、许可证与体积
         run: |
