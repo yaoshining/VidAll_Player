@@ -3,6 +3,9 @@
 #include <limits>
 using namespace vidall::diagnostics;
 int main() {
+    for (const auto& spec : properties) {
+        if (std::string(spec.key) == "durationMs" || std::string(spec.key) == "progressPercent") assert(spec.estimated);
+    }
     Spec seconds{"positionMs", "time-pos", Kind::Number, "ms", 1000, false};
     mpv_node n{}; n.format = MPV_FORMAT_DOUBLE; n.u.double_ = 0;
     assert(Convert(seconds, 0, n).value == "0");
@@ -28,6 +31,17 @@ int main() {
     n.format = MPV_FORMAT_NONE;
     assert(Convert(seconds, 0, n).status == "unavailable");
     assert(Json(seconds, Convert(seconds, 0, n)).find("\"value\"") == std::string::npos);
+    // 真机回归：demuxer-cache-state 只支持整张 NODE_MAP 读取，不支持斜杠子属性。
+    Spec cache{"cacheForwardBytes", "demuxer-cache-state/fw-bytes", Kind::IntegerString, "byte", 1, true};
+    mpv_node child{}; child.format = MPV_FORMAT_INT64; child.u.int64 = 0;
+    char* keys[] = {const_cast<char*>("fw-bytes")};
+    mpv_node_list list{1, &child, keys};
+    mpv_node map{}; map.format = MPV_FORMAT_NODE_MAP; map.u.list = &list;
+    assert(ConvertMapMember(cache, 0, map, "fw-bytes").value == "\"0\"");
+    assert(ConvertMapMember(cache, 0, map, "file-cache-bytes").status == "unavailable");
+    assert(ConvertMapMember(cache, MPV_ERROR_PROPERTY_UNAVAILABLE, map, "fw-bytes").status == "unavailable");
+    map.format = MPV_FORMAT_STRING;
+    assert(ConvertMapMember(cache, 0, map, "fw-bytes").status == "error");
     Spec flag{"paused", "pause", Kind::Flag, "boolean", 1, false};
     n.format = MPV_FORMAT_FLAG; n.u.flag = 0;
     assert(Convert(flag, 0, n).value == "false");

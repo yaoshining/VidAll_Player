@@ -32,6 +32,8 @@ async function readDiagnostics(player: VidAllPlayer): Promise<string> {
 - `mediaFps` 是容器声明帧率估算，不是实际呈现帧率。音视频 bitrate 是两关键帧间包级估算，不是文件平均码率，也不是网络速度。
 - `hardwareDecoder` 是 hwdec-current 实际报告（no 表示软件解码），不是 hwdec 配置意图。`renderBackend` 复用 #77 的实际后端选择和 SW 降级判定。
 - `avSyncMs` 是瞬时音画偏差；`totalAvSyncCorrectionMs` 是累计同步修正量，不叫“实时漂移”。两种丢帧计数分别保留，未启用相应策略时 0 不代表策略能力已经验证。
+- 时长和百分比进度均为 mpv 估算。无长度直播流也可能返回动态增长的 duration；不能据 available 就推断已知总时长。真正缺失时保持 unavailable。
+- 缓存状态在原生层一次读取整张 `demuxer-cache-state` NODE_MAP，再提取成员；不能直接查询斜杠子属性，缺少磁盘缓存成员为 unavailable/not-present。
 - `cacheForwardBytes` 是前向包缓存估算；`cacheTotalBytes` 为全包队列含可 seek 范围及开销的估算；`cacheDiskBytes` 包含磁盘缓存开销及可能未使用数据。不可相加当总内存。关闭缓存、直播、无音/视频轨道或文件未知大小/时长时保留属性返回的不可用状态。
 - `surfaceWidth/Height` 来自当前表面状态，单位 px，来源 `session.surface`；无表面即不可用。与媒体分辨率无关。
 - `filename/mediaTitle` 固定隐去为 unavailable/redacted（有媒体时）；任意字符串可能含嵌入的私有 URL、令牌或认证信息，SDK 不承诺自动识别所有秘密。App 可另行附加已脱敏展示名称与原始协议。SDK 不读取路径、鉴权头或来源 URL，不会把代理 HTTP 当原始协议。
@@ -90,10 +92,10 @@ async function readDiagnostics(player: VidAllPlayer): Promise<string> {
 | `decoderDroppedFrames` | `decoder-frame-drop-count` | IntegerString | frame | 否 |
 | `outputDroppedFrames` | `frame-drop-count` | IntegerString | frame | 否 |
 | `positionMs` | `time-pos` | Number | ms | 否 |
-| `durationMs` | `duration` | Number | ms | 否 |
+| `durationMs` | `duration` | Number | ms | 是 |
 | `avSyncMs` | `avsync` | Number | ms | 否 |
 | `totalAvSyncCorrectionMs` | `total-avsync-change` | Number | ms | 否 |
-| `progressPercent` | `percent-pos` | Number | percent | 否 |
+| `progressPercent` | `percent-pos` | Number | percent | 是 |
 | `paused` | `pause` | Flag | boolean | 否 |
 | `buffering` | `paused-for-cache` | Flag | boolean | 否 |
 | `rate` | `speed` | Number | ratio | 否 |
