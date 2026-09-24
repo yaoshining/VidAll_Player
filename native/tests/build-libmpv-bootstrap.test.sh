@@ -110,6 +110,7 @@ EOF
 --enable-network
 --enable-gnutls
 --disable-nonfree
+--enable-ohcodec
 --enable-protocol=file,http,https,tls,tcp,httpproxy,rtmp,rtp,udp,crypto,data,pipe,concat,subfile,cache,async,smb
 EOF
   printf 'manifest\n' > "$ffmpeg_prefix/MANIFEST.tsv"
@@ -136,6 +137,11 @@ EOF
   sed -i.bak '/--enable-gnutls/d' "$temp_dir/invalid-features/configure-options.txt"
   if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-features" "$temp_dir/rejected-features"; then
     fail '缺少 https/tls 能力的 prefix 必须被拒绝'
+  fi
+  cp -R "$ffmpeg_prefix" "$temp_dir/invalid-ohcodec"
+  sed -i.bak '/--enable-ohcodec/d' "$temp_dir/invalid-ohcodec/configure-options.txt"
+  if prepare_ffmpeg_shared_prefix "$temp_dir/invalid-ohcodec" "$temp_dir/rejected-ohcodec"; then
+    fail '缺少 OHCodec 的 FFmpeg prefix 必须被拒绝，不能静默裁掉硬解'
   fi
   cp -R "$ffmpeg_prefix" "$temp_dir/invalid-tls"
   sed -i.bak 's/https,tls,//' "$temp_dir/invalid-tls/configure-options.txt"

@@ -20,6 +20,13 @@
 #   - 交叉回答 (cross-answers) 覆盖所有运行期探测；以 rsplit 解析含冒号的回答。
 set -euo pipefail
 
+# 不继承调用仓库的定位信息；保留 CI 的 GIT_CONFIG_* 镜像映射。
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE \
+  GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_NAMESPACE GIT_PREFIX
+
+# 依赖构建会切换 cwd，必须在入口处固定脚本目录。
+readonly SMB_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # ---------------- 可配置入口 ----------------
 : "${OHOS_NDK:=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony}"
 : "${WORK_DIR:=$HOME/.cache/vidall-player/smb-src}"
@@ -117,28 +124,37 @@ EOF
 }
 
 # ---------------- 源码检出 ----------------
-# GitLab 偶发 503, 重试最多 5 次, 每次间隔递增。
-git_clone_retry() {
-  local url="$1" dest="$2" attempt=0 max=5
-  while [ "$attempt" -lt "$max" ]; do
-    attempt=$((attempt + 1))
-    log "git clone 尝试 $attempt/$max: $url"
-    if git clone "$url" "$dest"; then
-      return 0
+# 只获取锁定提交，禁止完整克隆 Samba 历史；每次获取限时 15 分钟，最多 3 次。
+ensure_samba_source() {
+  local destination="$1" staging
+  if [ -d "$destination/.git" ] && git -C "$destination" cat-file -e "$SAMBA_COMMIT^{commit}" 2>/dev/null; then
+    return 0
+  fi
+  mkdir -p "$(dirname "$destination")" || return 1
+  staging="$(mktemp -d "${destination}.fetch.XXXXXX")" || return 1
+  # 先在同一文件系统完整获取；下载失败时原缓存保持不变。
+  if ! python3 "$SMB_SCRIPT_DIR/fetch-locked-source.py" \
+      --repository https://gitlab.com/samba-team/samba.git \
+      --commit "$SAMBA_COMMIT" --destination "$staging/source" --timeout 900; then
+    rm -rf "$staging"
+    return 1
+  fi
+  if [ -e "$destination" ] || [ -L "$destination" ]; then
+    mv "$destination" "$staging/previous" || { rm -rf "$staging"; return 1; }
+  fi
+  if ! mv "$staging/source" "$destination"; then
+    # 发布失败时恢复旧树；若恢复也失败，保留暂存目录供恢复。
+    if [ -e "$staging/previous" ] || [ -L "$staging/previous" ]; then
+      mv "$staging/previous" "$destination" || return 1
     fi
-    rm -rf "$dest"
-    [ "$attempt" -lt "$max" ] || { log "git clone 在 $max 次尝试后仍失败: $url"; return 1; }
-    local wait=$((attempt * 15))
-    log "等待 ${wait}s 后重试..."
-    sleep "$wait"
-  done
+    rm -rf "$staging"
+    return 1
+  fi
+  rm -rf "$staging"
 }
 
 fetch_samba() {
-  if [ ! -d "$SAMBA_DIR/.git" ]; then
-    log "克隆 Samba $SAMBA_TAG ..."
-    git_clone_retry https://gitlab.com/samba-team/samba.git "$SAMBA_DIR"
-  fi
+  ensure_samba_source "$SAMBA_DIR" || return 1
   ( cd "$SAMBA_DIR" && git checkout "$SAMBA_COMMIT" && git reset --hard "$SAMBA_COMMIT" && git clean -fd )
 }
 
@@ -473,9 +489,7 @@ EOF
 # ---------------- 原生 host 工具预编译 ----------------
 build_host_tools() {
   log "原生预编译 host 工具 (compile_et / asn1_compile)"
-  if [ ! -d "$SAMBA_HOST_DIR/.git" ]; then
-    git_clone_retry https://gitlab.com/samba-team/samba.git "$SAMBA_HOST_DIR"
-  fi
+  ensure_samba_source "$SAMBA_HOST_DIR" || return 1
   ( cd "$SAMBA_HOST_DIR" && git checkout "$SAMBA_COMMIT" && git reset --hard "$SAMBA_COMMIT" && git clean -fd )
   # 复用交叉树的 buildtools/bin/waf（rsync 已排除 bin）。
   [ -f "$SAMBA_HOST_DIR/buildtools/bin/waf" ] || rsync -a "$SAMBA_DIR/buildtools/bin/" "$SAMBA_HOST_DIR/buildtools/bin/"

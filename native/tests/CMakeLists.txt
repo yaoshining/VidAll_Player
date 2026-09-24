@@ -50,6 +50,8 @@ target_include_directories(render_backend_policy_test PRIVATE ../render)
 target_compile_features(render_backend_policy_test PRIVATE cxx_std_17)
 
 enable_testing()
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_test(NAME ohcodec_runtime_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check-ohcodec-runtime.test.py)
 add_test(NAME session_lifecycle_test COMMAND session_lifecycle_test)
 add_test(NAME localhost_proxy_lease_test COMMAND localhost_proxy_lease_test)
 add_test(NAME player_session_test COMMAND player_session_test)

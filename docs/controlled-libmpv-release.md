@@ -6,9 +6,13 @@
 
 ```bash
 export OHOS_NDK=<OpenHarmony NDK 根目录>
-export VIDALL_PLAYER_FFMPEG_PREFIX=<ohos_ijkplayer FFmpeg 8 ARM64 shared prefix>
+export VIDALL_PLAYER_FFMPEG_PREFIX=<含 OHCodec 的 FFmpeg 8 ARM64 shared prefix>
 native/scripts/build-libmpv-bootstrap.sh
 ```
+
+CI 默认从固定提交构建 FFmpeg 与 OHCodec 补丁，并调用仓库已有 SMB/GnuTLS 静态闭包脚本；不再下载已过期的 `31637632656` Actions artifact。每次 workflow attempt 使用独立临时目录，源码获取后校验完整 commit。Samba、FFmpeg 和补丁仓库均通过 `fetch-locked-source.py` 浅获取固定提交（不拉取完整历史或 tag）：Samba 单次 900 秒，其他仓库单次 300 秒，最多 3 次，连续 30 秒低于 1 KiB/s 会失败；超时终止该次 Git 子进程组。每次下载尝试使用独立临时目录，失败后丢弃锁文件与不完整 pack；完整提交通过 SHA 校验后才写入目标目录。源码准备步骤另设 60 分钟总上限，避免下载异常长期占用 runner。
+
+`build-ohcodec-ffmpeg.sh` 构建后调用 `finalize-ohcodec-prefix.py`，从实际 configure 输出与 ELF 生成下述元数据，并验证 HTTPS/TLS/SMB/OHCodec 开关及 AArch64 架构；动态 SMB/TLS 依赖会导致失败。FFmpeg 来源和补丁仍锁定为 `140fd653aed8cad774f991ba083e2d01e86420c7`、`1bab837e662ffa47ce51efd0720d3ed7c4988944`。SMB 及其依赖沿用仓库既有构建脚本，未把本次修改视为全依赖供应链审计。
 
 prefix 约定如下：
 
@@ -18,7 +22,7 @@ prefix 约定如下：
 - `VERSION`、`configure-options.txt`、`MANIFEST.tsv`、`ELF-REPORT.txt`：不可变来源、ABI、配置和 ELF 证明。
 - `licenses/GPL-3.0-or-later.txt`、`licenses/FFmpeg-LGPL-2.1-or-later.txt`：发布许可证文本。
 
-输入必须是 FFmpeg 8.0、ARM64、`--disable-static --enable-shared`，并保持既有播放能力：`libsmbclient` 及私有凭据补丁、network、dav1d、mbedTLS、libxml2/DASH、ohcodec、PNG/MJPEG encoder。任何 `libav*.a` 都会被拒绝。producer 的 Samba/GnuTLS 闭包静态进入 `libavformat.so.62`；不得动态依赖 `libsmbclient.so`。
+输入必须是 FFmpeg 8.0、ARM64、`--disable-static --enable-shared`，保留 `libsmbclient` 及私有凭据补丁、network、GnuTLS HTTPS/TLS 和 OHCodec。不得将本构建未启用的外部 dav1d、mbedTLS、libxml2/DASH 声称为已具备能力。任何 `libav*.a` 都会被拒绝。producer 的 Samba/GnuTLS 闭包静态进入 `libavformat.so.62`；不得动态依赖 `libsmbclient.so`。
 
 ## 运行时所有权
 
@@ -71,3 +75,7 @@ CI 受控工具链固定为 Rust `1.85.1` 与 `cargo-c 0.10.13+cargo-0.88.0`。`
 MPV 为 GPL-2.0-or-later；启用 Samba `libsmbclient` 后 external FFmpeg runtime 按 GPLv3 审核。最终 HAP 发布必须同时提供 MPV、FFmpeg、Samba 及静态传递闭包的许可证、NOTICE、精确源码、producer 构建脚本和源码提供说明。`VERSION` 中的凭据 patch 必须能由 `MANIFEST.tsv` 追溯；缺少来源证明时不得发布。
 
 受控制品仍通过 `native/scripts/build-libmpv-controlled.sh` 生成 SHA-256、feature manifest、SPDX/CycloneDX SBOM、NOTICE、许可证与 ELF 报告；候选版本还需通过 ARM64 TV 能力证据和双构建可重复性验证。
+
+### iMac CI 的局域网源码镜像
+
+原生交叉构建作业通过 `GIT_CONFIG_COUNT` / `url.*.insteadOf` 将 Samba、FFmpeg（含 `code.ffmpeg.org` 入口）、`libmpv-ohos-build` 和 `ErBWs/mpv` 映射到 `http://192.168.3.59:27134/yao/` 下的同名 Gitea 仓库。映射仅对子作业进程生效，不写入 runner 的全局 Git 配置。来源锁继续保留上游地址与固定提交；镜像必须包含对应提交。其他仓库和发布压缩包下载保持现有来源。此作业要求 runner 可以访问该局域网地址。

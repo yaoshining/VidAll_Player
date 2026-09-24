@@ -57,7 +57,7 @@ async function readDiagnostics(player: VidAllPlayer): Promise<string> {
 | `videoInputWidth` | `video-dec-params/w` | Number | px | 否 |
 | `videoInputHeight` | `video-dec-params/h` | Number | px | 否 |
 | `videoInputPixelFormat` | `video-dec-params/pixelformat` | Text | text | 否 |
-| `videoInputBitDepth` | `video-dec-params/plane-depth` | Number | bit | 否 |
+| `videoInputBitDepth` | `video-dec-params/plane-depth` | Unsupported | bit | 否 |
 | `videoInputColorMatrix` | `video-dec-params/colormatrix` | Text | text | 否 |
 | `videoInputColorPrimaries` | `video-dec-params/primaries` | Text | text | 否 |
 | `videoInputColorTransfer` | `video-dec-params/gamma` | Text | text | 否 |
@@ -65,7 +65,7 @@ async function readDiagnostics(player: VidAllPlayer): Promise<string> {
 | `videoWidth` | `video-params/w` | Number | px | 否 |
 | `videoHeight` | `video-params/h` | Number | px | 否 |
 | `videoPixelFormat` | `video-params/pixelformat` | Text | text | 否 |
-| `videoBitDepth` | `video-params/plane-depth` | Number | bit | 否 |
+| `videoBitDepth` | `video-params/plane-depth` | Unsupported | bit | 否 |
 | `videoColorMatrix` | `video-params/colormatrix` | Text | text | 否 |
 | `videoColorPrimaries` | `video-params/primaries` | Text | text | 否 |
 | `videoColorTransfer` | `video-params/gamma` | Text | text | 否 |
@@ -73,7 +73,7 @@ async function readDiagnostics(player: VidAllPlayer): Promise<string> {
 | `videoOutputWidth` | `video-out-params/w` | Number | px | 否 |
 | `videoOutputHeight` | `video-out-params/h` | Number | px | 否 |
 | `videoOutputPixelFormat` | `video-out-params/pixelformat` | Text | text | 否 |
-| `videoOutputBitDepth` | `video-out-params/plane-depth` | Number | bit | 否 |
+| `videoOutputBitDepth` | `video-out-params/plane-depth` | Unsupported | bit | 否 |
 | `videoOutputColorMatrix` | `video-out-params/colormatrix` | Text | text | 否 |
 | `videoOutputColorPrimaries` | `video-out-params/primaries` | Text | text | 否 |
 | `videoOutputColorTransfer` | `video-out-params/gamma` | Text | text | 否 |
