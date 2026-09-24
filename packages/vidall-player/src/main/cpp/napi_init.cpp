@@ -12,6 +12,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <stdexcept>
 #include <thread>
 #include <unordered_map>
 #include <utility>
@@ -20,6 +21,7 @@
 #if VIDALL_MPV_AVAILABLE
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <mpv/client.h>
+#include "../../../../../native/diagnostics/diagnostics.h"
 #include <mpv/render.h>
 #include <mpv/render_gl.h>
 #include <native_window/external_window.h>
@@ -480,6 +482,7 @@ public:
         mpv_set_option_string(player_.get(), "stream-lavf-o", smbOptions.c_str());
         const char* command[] = {"loadfile", uri.c_str(), "replace", nullptr};
         if (mpv_command_async(player_.get(), 0, command) < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
+        diagnosticsStopped_ = false;
         ++eventEpoch_;
         eventSequence_ = 0;
         firstFrameSent_ = false;
@@ -595,7 +598,9 @@ public:
         // 用 rendererReady_ 门闩避免对未初始化 handle 下达 mpv 命令。
         if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
         const char* command[] = {"stop", nullptr};
-        return mpv_command_async(player_.get(), 0, command) >= 0 ? NativeResult{true, handle, "OK"} : NativeResult{false, handle, "NATIVE_PLAYBACK_FAILED"};
+        if (mpv_command_async(player_.get(), 0, command) < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
+        diagnosticsStopped_ = true;
+        return {true, handle, "OK"};
     }
 
     NativeResult SetEventCallback(napi_env env, napi_value callback, std::uint64_t handle)
@@ -609,6 +614,66 @@ public:
             return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         }
         return {true, handle, "OK"};
+    }
+
+    std::string Diagnostics(std::uint64_t handle)
+    {
+        using namespace vidall::diagnostics;
+        std::lock_guard<std::mutex> lock(lifecycleMutex_);
+        if (released_) throw std::runtime_error("DIAGNOSTICS_RELEASED");
+        const auto started = std::chrono::steady_clock::now();
+        const auto sampled = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        const auto epoch = eventEpoch_.load();
+        const auto generation = generation_.load();
+        const bool active = positionActive_.load() && !diagnosticsStopped_;
+        struct NodeGuard { mpv_node* p; ~NodeGuard() { mpv_free_node_contents(p); } };
+        mpv_node cacheNode{};
+        NodeGuard cacheGuard{&cacheNode};
+        const int cacheResult = active ? mpv_get_property(player_.get(), "demuxer-cache-state", MPV_FORMAT_NODE, &cacheNode)
+                                       : MPV_ERROR_PROPERTY_UNAVAILABLE;
+        auto read = [this, &cacheNode, cacheResult](const Spec& spec) {
+            const std::string source(spec.property);
+            const std::string cachePrefix = "demuxer-cache-state/";
+            if (source.compare(0, cachePrefix.size(), cachePrefix) == 0)
+                return ConvertMapMember(spec, cacheResult, cacheNode, source.substr(cachePrefix.size()));
+            if (spec.kind == Kind::Unsupported) return Field{"unsupported", "", "absent-in-locked-version"};
+            if (spec.kind == Kind::Redacted) return Field{"unavailable", "", "redacted"};
+            mpv_node node{};
+            const int result = mpv_get_property(player_.get(), spec.property, MPV_FORMAT_NODE, &node);
+            // mpv 节点所有权仅在当前调用内，任何转换分支（包括异常）都释放。
+            NodeGuard guard{&node};
+            return Convert(spec, result, node);
+        };
+        const Spec version{"mpvVersion", "mpv-version", Kind::Text, "text", 1, false};
+        const auto versionField = read(version);
+        std::string fields = "{";
+        bool first = true;
+        for (const auto& spec : properties) {
+            if (!first) fields += ",";
+            first = false;
+            auto field = active ? read(spec) : Field{"unavailable", "", "media-not-ready"};
+            fields += Quote(spec.key) + ":" + Json(spec, field);
+        }
+        const Spec backend{"renderBackend", "session.actual-render-backend", Kind::Text, "text", 1, false};
+        std::string effective = RenderBackendName(renderBackend_);
+        if (renderBackend_ != vidall::render::RenderBackend::Vulkan && isSwRenderer_.load()) effective = "software";
+        fields += ",\"renderBackend\":" + Json(backend, generation > 0
+            ? Field{"available", Quote(effective), ""} : Field{"unavailable", "", "no-surface"});
+        for (const auto& dimension : {std::make_pair("surfaceWidth", width_.load()), std::make_pair("surfaceHeight", height_.load())}) {
+            const Spec spec{dimension.first, "session.surface", Kind::Number, "px", 1, false};
+            fields += "," + Quote(spec.key) + ":" + Json(spec, generation > 0
+                ? Field{"available", std::to_string(dimension.second), ""} : Field{"unavailable", "", "no-surface"});
+        }
+        fields += "}";
+        // 属性逐个读取而非同一媒体帧原子快照；结束/加载状态变化时拒绝混合结果。
+        if (epoch != eventEpoch_.load() || active != (positionActive_.load() && !diagnosticsStopped_)) throw std::runtime_error("DIAGNOSTICS_STALE");
+        const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
+        return "{\"schemaVersion\":1,\"sampledAtMs\":" + std::to_string(sampled) +
+            ",\"collectionDurationMs\":" + std::to_string(duration) +
+            ",\"sessionId\":" + Quote(std::to_string(handle)) + ",\"mediaGeneration\":" + std::to_string(epoch) +
+            ",\"surfaceGeneration\":" + std::to_string(generation) + ",\"sdkVersion\":\"0.1.0\",\"mpvVersion\":" +
+            Json(version, versionField) + ",\"fields\":" + fields + "}";
     }
 
     void Release()
@@ -1343,6 +1408,7 @@ private:
     }
 
     std::unique_ptr<mpv_handle, decltype(&mpv_terminate_destroy)> player_{nullptr, mpv_terminate_destroy};
+    bool diagnosticsStopped_ = true; // lifecycleMutex_ 保护，stop 返回后立即屏蔽残留属性。
     std::mutex lifecycleMutex_;
     std::mutex rendererMutex_;
     std::condition_variable rendererReadyCv_;
@@ -1655,6 +1721,65 @@ napi_value SetEventCallback(napi_env env, napi_callback_info info)
 #endif
 }
 
+// 工作线程只操作 C++ / mpv；NAPI 对象仅在完成回调中创建。
+struct DiagnosticsWork {
+    napi_async_work work = nullptr;
+    napi_deferred deferred = nullptr;
+    std::string json;
+    std::string error;
+    std::uint64_t handle = 0;
+#if VIDALL_MPV_AVAILABLE
+    std::shared_ptr<NativeSession> session;
+#endif
+};
+napi_value GetDiagnostics(napi_env env, napi_callback_info info)
+{
+    napi_value args[1] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
+    if (!GetArguments(env, info, 1, args, argc) || argc != 1 || !ReadHandle(env, args[0], handle)) return nullptr;
+    auto data = std::make_unique<DiagnosticsWork>();
+    data->handle = handle;
+#if VIDALL_MPV_AVAILABLE
+    data->session = FindSession(handle);
+#endif
+    napi_value promise = nullptr;
+    if (!Check(env, napi_create_promise(env, &data->deferred, &promise), "Diagnostics promise failed")) return nullptr;
+    auto execute = [](napi_env, void* opaque) {
+        auto* d = static_cast<DiagnosticsWork*>(opaque);
+        try {
+#if VIDALL_MPV_AVAILABLE
+            if (!d->session) d->error = "DIAGNOSTICS_RELEASED";
+            else d->json = d->session->Diagnostics(d->handle);
+#else
+            d->error = "DIAGNOSTICS_UNSUPPORTED";
+#endif
+        } catch (const std::exception& error) {
+            // 只跨桥传递固定错误码，避免把底层异常中的媒体地址带出。
+            const std::string code = error.what();
+            d->error = (code == "DIAGNOSTICS_STALE" || code == "DIAGNOSTICS_RELEASED")
+                ? code : "DIAGNOSTICS_READ_FAILED";
+        }
+        catch (...) { d->error = "DIAGNOSTICS_READ_FAILED"; }
+    };
+    auto complete = [](napi_env env, napi_status status, void* opaque) {
+        std::unique_ptr<DiagnosticsWork> d(static_cast<DiagnosticsWork*>(opaque));
+        if (status != napi_ok || !d->error.empty()) {
+            napi_value error = nullptr;
+            napi_create_error(env, nullptr, CreateString(env, d->error.empty() ? "DIAGNOSTICS_CANCELLED" : d->error), &error);
+            napi_reject_deferred(env, d->deferred, error);
+        } else napi_resolve_deferred(env, d->deferred, CreateString(env, d->json));
+        napi_delete_async_work(env, d->work);
+    };
+    napi_status status = napi_create_async_work(env, nullptr, CreateString(env, "VidAllDiagnostics"), execute, complete, data.get(), &data->work);
+    if (status == napi_ok) status = napi_queue_async_work(env, data->work);
+    if (status != napi_ok) {
+        if (data->work) napi_delete_async_work(env, data->work);
+        napi_value error = nullptr;
+        napi_create_error(env, nullptr, CreateString(env, "DIAGNOSTICS_QUEUE_FAILED"), &error);
+        napi_reject_deferred(env, data->deferred, error);
+    } else data.release();
+    return promise;
+}
+
 napi_value GetFrameData(napi_env env, napi_callback_info info)
 {
     napi_value args[1] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
@@ -1697,6 +1822,7 @@ napi_value Init(napi_env env, napi_value exports)
         {"addExternalAudio", nullptr, AddExternalAudio, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"addExternalSubtitle", nullptr, AddExternalSubtitle, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setEventCallback", nullptr, SetEventCallback, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getDiagnostics", nullptr, GetDiagnostics, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getFrameData", nullptr, GetFrameData, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     if (!Check(env, napi_define_properties(env, exports, sizeof(descriptors) / sizeof(descriptors[0]), descriptors), "Failed to define native bridge exports.") ||

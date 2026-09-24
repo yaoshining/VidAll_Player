@@ -1,3 +1,4 @@
+import { PlayerDiagnosticsSnapshot } from '@vidall/player';
 import { MediaSource, PlayerError, VidAllPlayer } from '@vidall/player';
 import { PlayerSession } from '../../src/main/ets/internal/playerSession';
 import { DirectSmbCapability, NativeBridgeEvent, NativePlayerBridge } from '../../src/main/ets/native/nativeBridge';
@@ -53,6 +54,7 @@ class LifecycleNativeBridge implements NativePlayerBridge {
   selectTrack(): Promise<void> { return Promise.resolve(); }
   addExternalAudio(): Promise<void> { return Promise.resolve(); }
   addExternalSubtitle(): Promise<void> { return Promise.resolve(); }
+  getDiagnostics(): Promise<PlayerDiagnosticsSnapshot> { return Promise.reject(new Error('unsupported')); }
   getFrameData(): null { return null; }
   release(): Promise<void> { this.released = true; return Promise.resolve(); }
   subscribe(listener: (event: NativeBridgeEvent) => void): () => void {

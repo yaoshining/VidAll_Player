@@ -1,3 +1,4 @@
+import { PlayerDiagnosticsSnapshot } from '../public/diagnostics';
 import {
   AudioParams,
   ExternalAudio,
@@ -28,6 +29,27 @@ export class PlayerSession implements VidAllPlayer {
   private readonly nativeBridge: NativePlayerBridge;
   private surface?: PlayerSurface;
   private source?: MediaSource;
+  private diagnosticsRevision: number = 0;
+  private diagnosticsClosed: boolean = false;
+  private diagnosticsPending?: Promise<PlayerDiagnosticsSnapshot>;
+
+  getDiagnostics(): Promise<PlayerDiagnosticsSnapshot> {
+    if (this.diagnosticsClosed) return Promise.reject(new Error('DIAGNOSTICS_RELEASED'));
+    if (this.diagnosticsPending !== undefined) return this.diagnosticsPending;
+    const revision = this.diagnosticsRevision;
+    const request = new Promise<PlayerDiagnosticsSnapshot>((resolve, reject) => {
+      this.queue.enqueue(async () => {
+        if (revision !== this.diagnosticsRevision) throw new Error('DIAGNOSTICS_STALE');
+        const snapshot = await this.nativeBridge.getDiagnostics();
+        if (revision !== this.diagnosticsRevision || this.diagnosticsClosed) throw new Error('DIAGNOSTICS_STALE');
+        resolve(snapshot);
+      }).catch((error: Error) => reject(error));
+    });
+    this.diagnosticsPending = request;
+    request.then(() => { this.diagnosticsPending = undefined; }, () => { this.diagnosticsPending = undefined; });
+    return request;
+  }
+
   private tracks: PlayerTrack[] = [];
   // ETS 侧对外暴露的音轨/字幕 id -> 真实 mpv track-list id 的映射，仅覆盖由原生
   // track-list 事件枚举出的内嵌轨道（见 mergeNativeTracks）；外挂音频/字幕沿用
@@ -51,6 +73,7 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   attachSurface(surface: PlayerSurface): Promise<void> {
+    this.diagnosticsRevision++;
     return this.enqueue('attachSurface', () => {
       this.validateSurface(surface);
       if (this.surface !== undefined && this.surface.generation === surface.generation &&
@@ -68,6 +91,7 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   resizeSurface(surface: PlayerSurface): Promise<void> {
+    this.diagnosticsRevision++;
     return this.enqueue('resizeSurface', () => {
       this.validateSurface(surface);
       if (this.surface === undefined || surface.generation !== this.surface.generation) {
@@ -81,6 +105,7 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   detachSurface(generation: number): Promise<void> {
+    this.diagnosticsRevision++;
     return this.enqueue('detachSurface', () => {
       if (this.surface !== undefined && this.surface.generation === generation) {
         return this.nativeBridge.detachSurface(generation).then(() => {
@@ -93,6 +118,7 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   load(source: MediaSource): Promise<void> {
+    this.diagnosticsRevision++;
     return this.enqueue('load', () => {
       try {
         validateMediaSource(source);
@@ -538,6 +564,7 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   stop(): Promise<void> {
+    this.diagnosticsRevision++;
     return this.enqueue('stop', () => {
       const state = this.stateMachine.getState();
       if (state === 'idle' || state === 'completed' || state === 'error') {
@@ -554,6 +581,8 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   release(): Promise<void> {
+    this.diagnosticsRevision++;
+    this.diagnosticsClosed = true;
     if (this.stateMachine.getReleasePhase() !== 'open') {
       return Promise.resolve();
     }

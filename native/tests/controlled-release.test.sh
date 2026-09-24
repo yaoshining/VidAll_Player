@@ -196,6 +196,12 @@ PY
   grep -Fq -- '--allow libEGL.so --allow libvulkan.so --allow libohaudio.so' "$CONTROLLED_BUILD" || fail '受控构建必须允许 MPV 的 OpenHarmony 图形和音频系统依赖'
   grep -Fq -- '--allow libnative_buffer.so --allow libnative_image.so --allow libnative_window.so' "$CONTROLLED_BUILD" || fail '受控构建必须允许 MPV 的 OpenHarmony native window 系统依赖'
   grep -Fq 'sbom.cdx.json' "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" || fail 'CI 必须使用统一的 CycloneDX SBOM 文件名'
+  python3 "$PROJECT_ROOT/native/tests/smb-host-source-path.test.py"
+  python3 "$PROJECT_ROOT/native/tests/smb-source-cache.test.py"
+  python3 "$PROJECT_ROOT/native/tests/smb-source-safety.test.py"
+  # 回归：host 工具源码路径也必须迁移，不能调用已移除的下载函数。
+  ! grep -q 'git_clone_retry' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'host 工具仍调用不存在的 git_clone_retry'
+  grep -Fq -- 'ensure_samba_source "$SAMBA_HOST_DIR"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail 'host 源码必须使用有界的锁定提交获取'
   grep -Fq 'mkdir -p "$SAMBA_DIR/bin"' "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '复制 host 工具前必须创建交叉树 bin 目录'
   grep -Fq "if not bld.env.CROSS_COMPILE:" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须从 Waf 图中移除 HostCC 子系统'
   grep -Fq "not bld.env.CROSS_COMPILE and not bld.CONFIG_SET('USING_SYSTEM_ASN1_COMPILE')" "$PROJECT_ROOT/native/scripts/build-libsmbclient-controlled.sh" || fail '交叉构建必须复用预编译的 asn1_compile'
@@ -231,22 +237,25 @@ detection_job = workflow.split('  detect-build-changes:', 1)[1].split('  build-l
 for build_input in (
     'native/scripts/build-libmpv-bootstrap.sh',
     'native/scripts/audit-libmpv-elf.sh',
+    'native/scripts/build-ohcodec-ffmpeg.sh',
+    'native/scripts/fetch-locked-source.py',
+    'native/scripts/finalize-ohcodec-prefix.py',
+    'native/scripts/build-libsmbclient-controlled.sh',
+    'native/patches/ffmpeg-runtime',
     'native/patches/libmpv-ohos-build',
     'native/config/sources.lock.json',
 ):
     assert build_input in detection_job, f'CI 变更检测必须覆盖动态 libmpv 输入：{build_input}'
-assert 'native/scripts/build-libsmbclient-controlled.sh' not in detection_job, 'CI 变更检测不得继续跟踪旧 libsmbclient 构建脚本'
 assert 'force_build' in workflow, 'CI 必须支持强制重建入口'
-assert 'ffmpeg_artifact_repository:' in workflow, 'CI 必须声明受控 FFmpeg producer 仓库输入'
-assert 'ffmpeg_artifact_run_id:' in workflow, 'CI 必须使用固定 workflow run ID 获取 FFmpeg 制品'
 assert 'build-libmpv-external-ffmpeg:' in workflow, 'CI 必须执行 external FFmpeg libmpv 构建'
 libmpv_job = workflow.split('  build-libmpv-external-ffmpeg:', 1)[1].split('  controlled-release:', 1)[0]
-assert 'FFMPEG_ARTIFACT_RUN_ID:' in libmpv_job and "'31637632656'" in libmpv_job, 'CI 必须为自动事件提供固定 FFmpeg run ID'
-assert 'gh run download "$FFMPEG_ARTIFACT_RUN_ID"' in libmpv_job, 'CI 必须通过环境变量安全传递固定 run ID'
-assert '--repo "$FFMPEG_ARTIFACT_REPOSITORY"' in libmpv_job, 'CI 必须通过环境变量安全传递 producer 仓库'
-assert '${{ inputs.ffmpeg_artifact_run_id }}' not in libmpv_job.split('run: |', 1)[1], 'workflow inputs 不得直接插值进 shell'
-assert '--name ffmpeg-8.0-ohos-arm64-v8a' in libmpv_job, 'CI 必须下载受控 ARM64 FFmpeg 8 制品'
-assert 'VIDALL_PLAYER_FFMPEG_PREFIX:' in libmpv_job, 'CI 必须向 bootstrap 注入 external FFmpeg prefix'
+assert 'gh run download' not in libmpv_job, '默认构建不得依赖会过期的 Actions artifact'
+assert '31637632656' not in workflow, '不得继续使用已过期的 FFmpeg run'
+assert 'build-ohcodec-ffmpeg.sh' in libmpv_job, '必须从锁定源码构建 OHCodec FFmpeg'
+assert 'build-libsmbclient-controlled.sh' in libmpv_job, '必须提供 SMB/TLS 静态闭包'
+assert '140fd653aed8cad774f991ba083e2d01e86420c7' in libmpv_job, '必须锁定 FFmpeg 提交'
+assert '1bab837e662ffa47ce51efd0720d3ed7c4988944' in libmpv_job, '必须锁定 OHCodec 补丁来源'
+assert 'VIDALL_PLAYER_FFMPEG_PREFIX=' in libmpv_job, 'CI 必须向 bootstrap 注入 external FFmpeg prefix'
 assert 'build-libmpv-bootstrap.sh' in libmpv_job, 'external FFmpeg job 必须执行受控引导脚本'
 assert 'test -n "${OHOS_NDK:-}"' in libmpv_job, '真实 libmpv 构建必须验证 OpenHarmony NDK'
 assert '/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony' in libmpv_job, 'CI 必须兼容自动发现 DevEco Studio 默认 OpenHarmony NDK'

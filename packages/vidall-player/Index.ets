@@ -19,3 +19,5 @@ export {
   ProxyLeaseStatus,
   VideoParams
 } from './src/main/ets/public/types';
+
+export { DiagnosticStatus, DiagnosticField, PlayerDiagnosticsFields, PlayerDiagnosticsSnapshot } from './src/main/ets/public/diagnostics';
