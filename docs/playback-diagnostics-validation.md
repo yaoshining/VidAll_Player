@@ -71,3 +71,17 @@ SHA-256：`3dc5f8b4641b2ec93d62869858fc3b0b673e34069042a8debea62735ca9fe698`。
 旧探针重复使用同一个 XComponent 和 NativeWindow，历史 `surface-rebuild` 记录仅证明重新绑定，撤回真实表面重建通过的结论。新探针等待 XComponent 的 onDestroy，再创建新控制器和组件，等待 onLoad，检查不同表面 ID、generation=2 的首帧和诊断快照。该新场景尚待真机重新执行，不能沿用旧 19/19 作为通过证据。
 
 直播断言现在只接受 fileSizeBytes=unavailable；durationMs 与 progressPercent 各自必须 unavailable 或 available 且 estimated=true，error/unsupported 均不通过。尺寸验证要求 available，偶数样本中位数改为中间两项平均值（历史 15 样本窗口不受影响）。回归测试覆盖失败状态、旧值、估算回归、奇偶样本和表面证据缺失；CI 同时覆盖入口与页面清单路径。
+
+## 2026-09-24 审查修复后真机复验
+
+在 MateTV Pro / API 24 上部署本分支探针与 #81 配套六库。第一轮 18/19：XComponent 已真实销毁并重新创建，但公开 firstFrame 事件漏传 surfaceGeneration，探针正确拒绝通过。保留 [失败报告](evidence/diagnostics79/retest-before-firstframe-fix.json)。先增加可复现的会话测试，再在原生事件转译处传递已校验的 surfaceGeneration；过期表面事件仍被拒绝。
+
+修复后完整重跑 **19/19 通过，9 次首帧，0 个播放器错误**。新表面 ID 从 `5132485918822` 变为 `5132485918823`，onDestroy/onLoad 完成，收到 generation=2 的首帧及诊断快照。直播 durationMs 与 progressPercent 均 available 且 estimated=true，fileSizeBytes 为 unavailable/not-ready。此次结果替代旧探针在这两项上的验收缺口。
+
+- [最终报告](evidence/diagnostics79/retest-final.json)
+- [实际安装 HAP、库和素材 SHA-256](evidence/diagnostics79/retest-runtime.json)
+- 15 次采样耗时中位数 3 ms、P95 17 ms；这是受控低负载窗口，不外推 4K/DV 或长期表现。
+- CTest 14/14、会话与探针回归测试通过；修复后 HAP/HAR 构建与安装成功。
+- 结束后停止 SDK demo、两个本机服务并移除本轮反向转发，清理三份测试缓存；本地六库按备份 SHA-256 恢复。未改动 VidAll_TV 包或数据。
+
+HEVC/HDR/DV、4K 长时及其它渲染后端仍不在本轮范围。

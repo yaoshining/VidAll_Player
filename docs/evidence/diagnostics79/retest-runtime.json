@@ -1,0 +1,23 @@
+{
+  "commit": "d91a38b7f85ef70e2fe181b20cbee0b9bf46f362",
+  "hapSha256": "e1b59eb23027ead34bb32960b4145ffc88c4b0dadef3d6d2d7ff2ddcbf02f96b",
+  "native": {
+    "libs/arm64-v8a/libavcodec.so.62": "9a4b5a7504f7a0f5580918a99f921032527cadc9c9a56b69aa769d732b69d2f2",
+    "libs/arm64-v8a/libavfilter.so.11": "7d1ba8ecdad89e962082e7e7ad6f5932af91768bb85506e2fb855400e45911df",
+    "libs/arm64-v8a/libavformat.so.62": "79a662542a888a767b33dd4dd241c1eee263ad2e0b29ae5e1720fc52d11073b4",
+    "libs/arm64-v8a/libavutil.so.60": "baf6fb10d7a1d50df87d7a96c4373668fa98a1524c09ffa391f5f483a04f8178",
+    "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libs/arm64-v8a/libentry.so": "ef571b4822148d87c8439ed1703ebc458b5be7000b5976a1e4580a599b880db9",
+    "libs/arm64-v8a/libmpv.so": "3ae9969ac13a58aaa5827520a44e56461f566aff66b9bdd7fe4b78f0da31b076",
+    "libs/arm64-v8a/libswresample.so.6": "bfae9d5fe2b49d27af6b08355323180d2e31aa9fb6f9b05f7fe1ab1e354b86de",
+    "libs/arm64-v8a/libswscale.so.9": "f08467c3ba1f3b66f7c66225cd983ff0b3637323aec56ec1da6bf090d77b5519",
+    "libs/arm64-v8a/libvidall_player_native.so": "caaa94d86f2845b75a41220411fae9a7efdea79273d8acfa1aee10bbe387aa14"
+  },
+  "fixtureSha256": {
+    "diagnostics79-audio.m4a": "6e88c589626612fda9c9f9fc7a97ee83688f9d1c47d5f7579dc349acb9dca199",
+    "live.ts": "4711916763cbb5711ac9544a8d6a155dec161dbf6e5291918ff082cc230d21b8",
+    "diagnostics79-dual.mp4": "7981e53bb3fb37ede68d5a38196fa22d729b0f033695d282b22a0cd8e5019821",
+    "diagnostics79-silent.mp4": "2f3d19eaf4f3116c92e752d54e57bbdf777e1efc1c409edf4f6e7bac329e44ba"
+  },
+  "candidate": "d91a38b + firstFrame surfaceGeneration regression fix"
+}
