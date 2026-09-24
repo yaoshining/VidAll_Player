@@ -4,7 +4,7 @@
 
 ## 结论
 
-最终版本 **19/19 检查通过**，9 次原生首帧事件，0 个播放器错误事件。使用 SDK demo 的独立诊断页，未安装、改写或清理 VidAll_TV 包与配置。
+2026-09-23 原版运行库候选 **19/19 检查通过**，9 次原生首帧事件，0 个播放器错误事件。使用 SDK demo 的独立诊断页，未安装、改写或清理 VidAll_TV 包与配置。
 
 - 本地 H.264 640×360、25 fps、AAC 48 kHz 双音轨的参数与 ffprobe 一致。
 - 区分输入 floatp 与音频 API 输出 float，立体声切换到第二条单声道轨道后 channels 更新。
@@ -52,10 +52,16 @@
 - `devecocli build --modules entry@default vidall_player@default` 成功，最终 HAR 单独重打包成功。
 - `git diff --check` 通过。
 
-最终 HAR：`packages/vidall-player/build/default/outputs/default/vidall_player.har`。
+当时的 HAR 输出位置：`packages/vidall-player/build/default/outputs/default/vidall_player.har`（后续构建会覆盖，此摘要仅对应本轮历史产物）。
 
 SHA-256：`3dc5f8b4641b2ec93d62869858fc3b0b673e34069042a8debea62735ca9fe698`。
 
 ## 保留边界
 
 未验证 Dolby Vision/HDR 素材、4K 长时压力；该电视策略固定选择 Vulkan，没有通过改动后端策略强制测试 OpenGLES/SW 渲染路径。硬解对照依赖独立 OHCodec 修复，不将原版 HAR 宣称为已具备该修复。PR 保留草稿、不自动合并；上述边界应在消费端/渲染发布验收时补充。
+
+## 2026-09-24 同步 main
+
+当前分支已合入 PR #81 的合并提交 `54e4b17`。诊断 API、缓存读取与估算标记修复以及 OHCodec 恢复现已进入 main；本 PR 剩余变更主要为探针、测试接入与上述历史验收证据。
+
+同步后 CTest 14/14、诊断会话测试与探针断言测试通过，`devecocli build --modules entry@default vidall_player@default` 成功。本次同步未重新部署真机，上述 19/19 结果仍只对应记录中的运行库指纹。#81 配套运行库的独立 H.264 真机证据见 [OHCodec 真机验收](ohcodec-device-validation-20260923.md)；构建成功不能替代新组合的真机验收。
