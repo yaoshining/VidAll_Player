@@ -350,7 +350,7 @@ export class PlayerSession implements VidAllPlayer {
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
         this.stateMachine.getState() !== 'playing') {
         this.stateMachine.transition('playing');
-        this.stateMachine.emit({ type: 'firstFrame', sequence: event.sequence });
+        this.stateMachine.emit({ type: 'firstFrame', sequence: event.sequence, surfaceGeneration: event.surfaceGeneration });
       }
       return;
     }

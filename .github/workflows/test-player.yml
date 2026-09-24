@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - 'entry/src/ohosTest/**'
+      - 'entry/src/main/ets/pages/DiagnosticsProbe.ets'
+      - 'entry/src/main/ets/entryability/EntryAbility.ets'
+      - 'entry/src/main/resources/base/profile/main_pages.json'
+      - 'entry/src/main/ets/player/DiagnosticsProbeChecks.ets'
+      - 'scripts/test/diagnostics79/**'
       - 'entry/build-profile.json5'
       - 'entry/oh-package.json5'
       - 'entry/oh-package-lock.json5'
@@ -20,6 +25,11 @@ on:
     branches: [main]
     paths:
       - 'entry/src/ohosTest/**'
+      - 'entry/src/main/ets/pages/DiagnosticsProbe.ets'
+      - 'entry/src/main/ets/entryability/EntryAbility.ets'
+      - 'entry/src/main/resources/base/profile/main_pages.json'
+      - 'entry/src/main/ets/player/DiagnosticsProbeChecks.ets'
+      - 'scripts/test/diagnostics79/**'
       - 'entry/build-profile.json5'
       - 'entry/oh-package.json5'
       - 'entry/oh-package-lock.json5'
@@ -101,6 +111,7 @@ jobs:
           cmake --build /tmp/vidall-native-tests -j 4
           ctest --test-dir /tmp/vidall-native-tests --output-on-failure
           node native/tests/diagnostics-session.test.cjs
+          node native/tests/diagnostics-device.test.cjs
 
       - name: 还原 ohpm 依赖并编译 HAR
         run: devecocli build --modules vidall_player@default

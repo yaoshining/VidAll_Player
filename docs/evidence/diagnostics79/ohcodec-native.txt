@@ -1,0 +1,1 @@
+09-23 04:36:30.004 29610 29901 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: hwdec-current: ohcodec

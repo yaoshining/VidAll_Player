@@ -60,6 +60,18 @@ async function main() {
   let errors=0; failed.subscribe(e=>{if(e.type==='error')errors++;});
   await assert.rejects(failed.getDiagnostics(), /read failed/); assert.equal(errors,0);
   await assert.rejects(failed.getDiagnostics(), /read failed/); await failed.release();
+  let nativeEvent;
+  const frames=[];
+  const surfacePlayer=new PlayerSession({eventListener:e=>frames.push(e)},new Proxy({subscribe:cb=>{nativeEvent=cb;return()=>{};}},{get:(o,k)=>o[k]||(()=>Promise.resolve())}));
+  await surfacePlayer.attachSurface({componentId:'new-surface',generation:2,width:640,height:360});
+  await surfacePlayer.load({kind:'localFile',uri:'file:///synthetic.mp4'});
+  const epoch=1;
+  nativeEvent({type:'state',message:'preparing',eventEpoch:epoch,surfaceGeneration:2,sequence:1});
+  nativeEvent({type:'state',message:'playing',eventEpoch:epoch,surfaceGeneration:1,sequence:2});
+  assert.equal(frames.filter(e=>e.type==='firstFrame').length,0);
+  nativeEvent({type:'state',message:'playing',eventEpoch:epoch,surfaceGeneration:2,sequence:3});
+  assert.equal(frames.find(e=>e.type==='firstFrame')?.surfaceGeneration,2);
+  await surfacePlayer.release();
   console.log('诊断会话：并发合并、生命周期过期、释放后拒绝、错误隔离通过');
 }
 main().catch(e => {console.error(e);process.exitCode=1;});

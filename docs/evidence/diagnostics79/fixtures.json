@@ -1,0 +1,79 @@
+[
+  {
+    "name": "diagnostics79-audio.m4a",
+    "sha256": "6e88c589626612fda9c9f9fc7a97ee83688f9d1c47d5f7579dc349acb9dca199",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "r_frame_rate": "0/0"
+        }
+      ],
+      "format": {
+        "duration": "12.010000",
+        "size": "195579"
+      }
+    }
+  },
+  {
+    "name": "diagnostics79-dual.mp4",
+    "sha256": "7981e53bb3fb37ede68d5a38196fa22d729b0f033695d282b22a0cd8e5019821",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 640,
+          "height": 360,
+          "r_frame_rate": "25/1"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 2,
+          "r_frame_rate": "0/0"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "channels": 1,
+          "r_frame_rate": "0/0"
+        }
+      ],
+      "format": {
+        "duration": "90.000000",
+        "size": "11617358"
+      }
+    }
+  },
+  {
+    "name": "diagnostics79-silent.mp4",
+    "sha256": "2f3d19eaf4f3116c92e752d54e57bbdf777e1efc1c409edf4f6e7bac329e44ba",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 320,
+          "height": 180,
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "duration": "12.000000",
+        "size": "285760"
+      }
+    }
+  }
+]
