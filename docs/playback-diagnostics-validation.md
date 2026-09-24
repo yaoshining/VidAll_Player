@@ -4,12 +4,12 @@
 
 ## 结论
 
-2026-09-23 原版运行库候选 **19/19 检查通过**，9 次原生首帧事件，0 个播放器错误事件。使用 SDK demo 的独立诊断页，未安装、改写或清理 VidAll_TV 包与配置。
+2026-09-23 原版运行库候选原始报告为 **19/19 检查通过**（其中表面场景只做重新绑定，不构成真实组件重建验收；直播断言存在下述覆盖缺口），9 次原生首帧事件，0 个播放器错误事件。使用 SDK demo 的独立诊断页，未安装、改写或清理 VidAll_TV 包与配置。
 
 - 本地 H.264 640×360、25 fps、AAC 48 kHz 双音轨的参数与 ffprobe 一致。
 - 区分输入 floatp 与音频 API 输出 float，立体声切换到第二条单声道轨道后 channels 更新。
 - 暂停位置稳定、恢复、seek 至 20%、HTTP 网络、关闭缓存、stop 在途请求拒绝及停止后旧值不可用通过。
-- 无音轨、无视频轨、无长度 MPEG-TS 流、连续重开、surface generation 1→2、release 后拒绝读取通过。
+- 无音轨、无视频轨、无长度 MPEG-TS 流、连续重开、surface generation 1→2 重新绑定、release 后拒绝读取通过；旧直播断言未拒绝所有错误状态，也未检查 progressPercent 的估算标记。
 - 原版运行库快照为 `hardwareDecoder=no`、`renderBackend=vulkan`，准确反映软件解码 + Vulkan 输出。
 - 独立 OHCodec 对照使用 `76d3bd5c84a3431a7873daeb3fcba940942804c6` 的 libmpv 与六个 FFmpeg runtime：真实快照为 `hardwareDecoder=ohcodec`，与 [原生日志](evidence/diagnostics79/ohcodec-native.txt) 一致；暂停、seek、切轨、切源等也通过。此轮直播断言发现下述估算标记问题，不能称为该轮全部通过。修复后由最终原版运行库 19/19 复验覆盖。临时替换的七个库已按原始 SHA-256 逐一还原，没有合入独立 OHCodec 变更。
 
@@ -65,3 +65,9 @@ SHA-256：`3dc5f8b4641b2ec93d62869858fc3b0b673e34069042a8debea62735ca9fe698`。
 当前分支已合入 PR #81 的合并提交 `54e4b17`。诊断 API、缓存读取与估算标记修复以及 OHCodec 恢复现已进入 main；本 PR 剩余变更主要为探针、测试接入与上述历史验收证据。
 
 同步后 CTest 14/14、诊断会话测试与探针断言测试通过，`devecocli build --modules entry@default vidall_player@default` 成功。本次同步未重新部署真机，上述 19/19 结果仍只对应记录中的运行库指纹。#81 配套运行库的独立 H.264 真机证据见 [OHCodec 真机验收](ohcodec-device-validation-20260923.md)；构建成功不能替代新组合的真机验收。
+
+## PR 审查后修正
+
+旧探针重复使用同一个 XComponent 和 NativeWindow，历史 `surface-rebuild` 记录仅证明重新绑定，撤回真实表面重建通过的结论。新探针等待 XComponent 的 onDestroy，再创建新控制器和组件，等待 onLoad，检查不同表面 ID、generation=2 的首帧和诊断快照。该新场景尚待真机重新执行，不能沿用旧 19/19 作为通过证据。
+
+直播断言现在只接受 fileSizeBytes=unavailable；durationMs 与 progressPercent 各自必须 unavailable 或 available 且 estimated=true，error/unsupported 均不通过。尺寸验证要求 available，偶数样本中位数改为中间两项平均值（历史 15 样本窗口不受影响）。回归测试覆盖失败状态、旧值、估算回归、奇偶样本和表面证据缺失；CI 同时覆盖入口与页面清单路径。

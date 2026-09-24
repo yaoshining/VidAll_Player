@@ -5,6 +5,8 @@ on:
     paths:
       - 'entry/src/ohosTest/**'
       - 'entry/src/main/ets/pages/DiagnosticsProbe.ets'
+      - 'entry/src/main/ets/entryability/EntryAbility.ets'
+      - 'entry/src/main/resources/base/profile/main_pages.json'
       - 'entry/src/main/ets/player/DiagnosticsProbeChecks.ets'
       - 'scripts/test/diagnostics79/**'
       - 'entry/build-profile.json5'
@@ -24,6 +26,8 @@ on:
     paths:
       - 'entry/src/ohosTest/**'
       - 'entry/src/main/ets/pages/DiagnosticsProbe.ets'
+      - 'entry/src/main/ets/entryability/EntryAbility.ets'
+      - 'entry/src/main/resources/base/profile/main_pages.json'
       - 'entry/src/main/ets/player/DiagnosticsProbeChecks.ets'
       - 'scripts/test/diagnostics79/**'
       - 'entry/build-profile.json5'

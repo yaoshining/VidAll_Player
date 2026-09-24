@@ -3,7 +3,7 @@ import { createPlayer, VidAllPlayer, PlayerEvent, PlayerTrack, PlayerDiagnostics
 import { common } from '@kit.AbilityKit';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { hidebug } from '@kit.PerformanceAnalysisKit';
-import { validateProbeSnapshot, summarizeTimings, ProbeTimings } from '../player/DiagnosticsProbeChecks';
+import { validateProbeSnapshot, validateLiveSnapshot, validateSurfaceRebuild, summarizeTimings, ProbeTimings } from '../player/DiagnosticsProbeChecks';
 
 interface ProbeRecord { name: string; passed: boolean; detail: string; snapshot?: PlayerDiagnosticsSnapshot; }
 interface ProbeWindow { name: string; samples: number; cpu: number[]; pssKb: number[]; wall: ProbeTimings; native: ProbeTimings; positionStart?: number; positionEnd?: number; dropsStart?: string; dropsEnd?: string; }
@@ -20,6 +20,11 @@ struct DiagnosticsProbe {
   private context?: common.UIAbilityContext;
   private cancelled: boolean = false;
   private report: ProbeReport = { startedAt: Date.now(), finishedAt: 0, records: [], windows: [], errors: [], firstFrames: 0, completed: false };
+  @State surfaceVisible: boolean = true;
+  private started: boolean = false;
+  private surfaceDestroyed: boolean = false;
+  private surfaceLoaded: boolean = false;
+  private rebuiltFirstFrame: boolean = false;
   @State status: string = '诊断验收准备中';
 
   aboutToAppear(): void { this.context = getContext(this) as common.UIAbilityContext; }
@@ -39,7 +44,10 @@ struct DiagnosticsProbe {
   private event(event: PlayerEvent): void {
     if (event.state) this.state = event.state;
     if (event.type === 'tracks') this.tracks = event.tracks ?? [];
-    if (event.type === 'firstFrame') this.report.firstFrames++;
+    if (event.type === 'firstFrame') {
+      this.report.firstFrames++;
+      if (event.surfaceGeneration === 2) this.rebuiltFirstFrame = true;
+    }
     if (event.error) this.report.errors.push(event.error.code);
   }
   private async open(uri: string, kind: 'localFile' | 'http', width: number, height: number): Promise<PlayerDiagnosticsSnapshot> {
@@ -115,23 +123,56 @@ struct DiagnosticsProbe {
       const audioOnly = await this.open(`file://${cache}/diagnostics79-audio.m4a`, 'localFile', 0, 0);
       this.record('audio-only', audioOnly.fields.videoInputWidth.status !== 'available', '无视频轨', audioOnly);
       const live = await this.open('http://127.0.0.1:18780/live.ts', 'http', 640, 360);
-      this.record('live', (live.fields.durationMs.status !== 'available' || live.fields.durationMs.estimated) && live.fields.fileSizeBytes.status !== 'available', '无长度流：保留 mpv 估算时长，不当成确定总时长', live);
+      this.record('live', validateLiveSnapshot(live).length === 0, '无长度流：保留 mpv 估算时长，不当成确定总时长', live);
       for (let i = 0; i < 3; i++) await this.open(`file://${cache}/diagnostics79-dual.mp4`, 'localFile', 640, 360);
       this.record('rapid-reopen', true, '三次重开均取得当前代际快照', await this.player.getDiagnostics());
-      await this.player.detachSurface(1); this.surface.generation = 2; await this.player.attachSurface(this.surface);
+      const oldId = this.surface.componentId;
+      await this.player.stop();
+      await this.player.detachSurface(1);
+      this.surfaceDestroyed = false;
+      this.surfaceLoaded = false;
+      this.surfaceVisible = false;
+      await this.waitForSurface(false);
+      this.controller = new XComponentController();
+      this.surfaceVisible = true;
+      await this.waitForSurface(true);
+      const newId = this.controller.getXComponentSurfaceId();
+      this.surface = { componentId: newId, generation: 2, width: 1280, height: 720 };
+      await this.player.attachSurface(this.surface);
+      this.rebuiltFirstFrame = false;
       await this.open(`file://${cache}/diagnostics79-dual.mp4`, 'localFile', 640, 360);
-      const rebuilt = await this.player.getDiagnostics(); this.record('surface-rebuild', rebuilt.surfaceGeneration === 2, '表面代际更新', rebuilt);
+      for (let i = 0; i < 100 && !this.rebuiltFirstFrame; i++) await this.delay(100);
+      const rebuilt = await this.player.getDiagnostics();
+      this.record('surface-rebuild', validateSurfaceRebuild({destroyed: this.surfaceDestroyed,
+        loaded: this.surfaceLoaded, attached: true, firstFrame: this.rebuiltFirstFrame,
+        oldId, newId, generation: rebuilt.surfaceGeneration}),
+        `XComponent 销毁/创建，新表面 ${oldId} -> ${newId}，generation=2 首帧=${this.rebuiltFirstFrame}`, rebuilt);
       await this.player.release();
       try { await this.player.getDiagnostics(); this.record('released', false, '释放后仍可读取'); } catch (_) { this.record('released', true, '释放后拒绝读取'); }
       this.report.completed = true;
     } catch (e) { this.record('probe-error', false, (e as Error).message); }
     finally { if (this.player) await this.player.release(); this.report.finishedAt = Date.now(); this.save(); console.info('Diagnostics79 FINISHED'); }
   }
+  private async waitForSurface(loaded: boolean): Promise<void> {
+    for (let i = 0; i < 100; i++) {
+      if (this.cancelled) throw new Error('cancelled');
+      if (loaded ? this.surfaceLoaded : this.surfaceDestroyed) return;
+      await this.delay(100);
+    }
+    throw new Error(loaded ? 'surface-create-timeout' : 'surface-destroy-timeout');
+  }
   build() {
     Column({space:16}) {
       Text('Issue #79 SDK 真机诊断验收').fontSize(28)
-      XComponent({id:'diagnostics79-surface',type:XComponentType.SURFACE,controller:this.controller})
-        .width(640).height(360).backgroundColor('#000000').onLoad(() => { void this.run(); })
+      if (this.surfaceVisible) {
+        XComponent({id:'diagnostics79-surface',type:XComponentType.SURFACE,controller:this.controller})
+          .width(640).height(360).backgroundColor('#000000')
+          .onLoad(() => {
+            this.surfaceLoaded = true;
+            if (!this.started) { this.started = true; void this.run(); }
+          })
+          .onDestroy(() => { this.surfaceDestroyed = true; })
+      }
       Text(this.status).fontSize(20)
     }.width('100%').height('100%').justifyContent(FlexAlign.Center)
   }
