@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "name": "pr-main",
+      "passed": true
+    },
+    {
+      "name": "push-main-head",
+      "passed": true
+    },
+    {
+      "name": "merge-group",
+      "passed": true
+    },
+    {
+      "name": "manual",
+      "passed": true
+    },
+    {
+      "name": "checkout-event-sha",
+      "passed": true
+    },
+    {
+      "name": "real-host-and-context",
+      "passed": true
+    },
+    {
+      "name": "real-target-no-signing",
+      "passed": true
+    },
+    {
+      "name": "failure-evidence",
+      "passed": true
+    },
+    {
+      "name": "aggregate-not-skip-success",
+      "passed": true
+    },
+    {
+      "name": "failure-cannot-be-ignored",
+      "passed": true
+    }
+  ]
+}

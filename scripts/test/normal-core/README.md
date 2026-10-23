@@ -1,6 +1,6 @@
-# 正常核心接入宿主门禁
+# 正常核心接入 CI 门禁
 
-本目录只验证宿主契约。Ubuntu CI 成功不代表 HarmonyOS 目标编译、真机播放、物理 HDR 或正式发布验收，`formalArtifactAllowed=false` 保持。
+本目录包含宿主契约和独立 unsigned HAR 目标构建入口。Ubuntu 宿主成功不代表 HarmonyOS 目标编译；目标构建成功仍不代表真机播放、物理 HDR 或正式发布验收，`formalArtifactAllowed=false` 保持。
 
 ## 运行
 
@@ -25,7 +25,13 @@ python3 -B scripts/test/normal-core/run.py --out /tmp/vidall-normal-core-evidenc
 
 `public/` 仅从固定结果和日志白名单生成，包含库输入清单/产品源码的 SHA，不包含库、HAP、生成的宿主可执行文件、SDK、签名、凭据、媒体或原始来源锁。日志中的本机路径替换为占位符。上传前独立检查 UTF-8、JSON、扩展名、符号链接和路径；边界检查失败不上传。7 个上传门禁测试覆盖正常文本及拒绝路径。
 
-专用工作流 `.github/workflows/normal-core.yml` 在 `codex/004-normal-core-integration` 推送时以及手动触发时执行。已有 HarmonyOS 工作流不变。推送仍须先获得用户对精确提交 SHA 的批准。
+专用工作流 `.github/workflows/normal-core.yml` 在 main 目标 PR、main/集成/文档分支 push、手动和 merge_group 事件运行。PR 默认测试 GitHub 两父 merge SHA，并核对 base/head；merge_group 校验 head 与 base 祖先关系。仓库未启用 merge queue 时不宣称已有远端 merge_group 结果。推送仍须用户批准精确 SHA。
+
+宿主 job 运行现有47项检查（包括工具/编译步骤，不等于47测试用例）和新增 CI 契约。self-hosted macos/deveco job 不读取签名，只用 `devecocli build clean` 和 `devecocli build --modules vidall_player@default` 构建当前 bridge/ArkTS，消费已有固定八库，不重建 producer。fork PR 不进入受控 runner，组合结果将明确失败/待受控验证，不能将跳过视为成功。旧 test-player、build-libmpv 工作流职责不变。
+
+`ci-target.py` 先通过官方 devecocli 的实际选择只读探测 Studio，再绑定 `DEVECO_CLI_STUDIO_PATH`；`ci-toolchain-lock.json` 锁定 API24/6.1.1.115 metadata 与实际 clang/nm/readelf 哈希。缺少工具、探测歧义、工具漂移或实际 compile_commands 使用其他 clang/sysroot 均失败，不修改运行器默认 SDK。clean 后遗留 HAR、bridge 或 compile_commands 会失败；本次 HAR 必须有固定八库及本次真实 ARM64 bridge。
+
+`ci-context.py` 和收尾共同核对 HEAD/tree/tracked 字节快照。公开文本索引覆盖 context、完整宿主 runner 输出或目标命令/产物身份；缺记录、步骤失败或源码漂移不能为绿色。失败收集和结果判定分离：非零日志仍可安全上传，但最终 assess 与组合结果失败。仅上传脱敏 UTF-8 JSON/log，不上传 HAR、二进制、SDK、签名或设备原始日志。
 
 ## HAR 元数据规范化
 
