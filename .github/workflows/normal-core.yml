@@ -1,0 +1,45 @@
+name: 正常核心接入宿主门禁
+
+on:
+  push:
+    branches: [codex/004-normal-core-integration]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  host-contracts:
+    name: Ubuntu 宿主契约（非 HarmonyOS 目标验收）
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: 检出精确提交
+        uses: actions/checkout@v4
+      - name: 配置 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/test/normal-core/package-lock.json
+      - name: 安装宿主工具与锁定依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm
+          npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
+      - name: 重放实际函数、输入和负例门禁
+        env:
+          LLVM_NM: llvm-nm
+        run: python3 -B scripts/test/normal-core/run.py --out "$RUNNER_TEMP/normal-core-evidence"
+      - name: 核对上传内容边界
+        id: public_gate
+        if: always()
+        run: python3 -B scripts/test/normal-core/check-public.py "$RUNNER_TEMP/normal-core-evidence/public"
+      - name: 保存白名单文本证据（含失败记录）
+        if: always() && steps.public_gate.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: normal-core-host-${{ github.sha }}
+          path: ${{ runner.temp }}/normal-core-evidence/public/
+          if-no-files-found: error
+          retention-days: 14

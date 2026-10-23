@@ -1,0 +1,11 @@
+{
+  "profile": "stable-target-prefix-macro-map-origin-staging",
+  "stablePrefix": "/usr/local",
+  "ffmpegRelative": "mpv/source/_staged/ffmpeg",
+  "artifact": "/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/install/usr/local/lib/libmpv.so",
+  "ohcodecLifecycleExperiment": false,
+  "ohcodecDiagnostic": false,
+  "testReturnReplacement": false,
+  "handoffTrace": true,
+  "handoffTest": false
+}

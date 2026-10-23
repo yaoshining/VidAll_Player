@@ -1,0 +1,112 @@
+{
+  "contentPassed": true,
+  "repositories": {
+    "ohos_ijkplayer": {
+      "current": {
+        "head": "1bb2a7c33ed88eafbeb3f42bcc4bf4299797497b",
+        "branch": "yaoshining-hdr-playback",
+        "trackedStatus": "M .github/workflows/build-ffmpeg8.yml\n M .gitignore\n M doc/FFmpeg/BUILD.gn\n M doc/FFmpeg/ohos_ijkffmpeg_config.sh\n M ijkplayer/src/main/cpp/ijkplayer/ff_ffplay.c\n M ijkplayer/src/main/cpp/ijkplayer/ijkmeta.c\n M ijkplayer/src/main/cpp/ijkplayer/ijkmeta.h\n M ijkplayer/src/main/cpp/ijksdl/CMakeLists.txt\n M ijkplayer/src/main/cpp/ijksdl/ffmpeg/ijksdl_vout_overlay_ffmpeg.c\n M ijkplayer/src/main/cpp/ijksdl/ijksdl_fourcc.h\n M ijkplayer/src/main/cpp/ijksdl/ijksdl_vout.h\n M ijkplayer/src/main/cpp/ijksdl/video/gles2/color.c\n M ijkplayer/src/main/cpp/ijksdl/video/gles2/internal.h\n M ijkplayer/src/main/cpp/ijksdl/video/gles2/renderer.c\n M ijkplayer/src/main/cpp/ijksdl/video/ijksdl_vout_android_nativewindow.c\n M ijkplayer/src/main/cpp/proxy/ijkplayer_napi_proxy.cpp\n M ijkplayer/src/main/cpp/third_party/ffmpeg/config.h\n M tools/ffmpeg8/README_zh.md\n M tools/ffmpeg8/build-libsmbclient.sh",
+        "indexSHA256": "4be69a16203c8202deb4bfe33661b104f089a90d7b0432211fc70e685434ef22"
+      },
+      "matches": {
+        "head": true,
+        "branch": true,
+        "trackedStatus": true,
+        "indexSHA256": false
+      }
+    },
+    "VidAll_Player": {
+      "current": {
+        "head": "ed7de980e3d2220a968de8999b7efb1c7c1550ce",
+        "branch": "main",
+        "trackedStatus": "M .github/workflows/test-player.yml\n M .gitignore\n M docs/controlled-libmpv-release.md\n M native/tests/fixture-public-import.test.sh\n M packages/vidall-player/hvigorfile.ts\n M release/audits/candidate-readiness.json\n M release/manifests/candidate-003-libmpv-player-har.json",
+        "indexSHA256": "a1c2b03a7bad43febb06ef79e4eb66791fa8303079fb704c15ccf7dda83ea17c"
+      },
+      "matches": {
+        "head": true,
+        "branch": true,
+        "trackedStatus": true,
+        "indexSHA256": true
+      }
+    },
+    "VidAll_TV": {
+      "current": {
+        "head": "1babceac7bd3cc725fb052c4b018b6f2cb30b07c",
+        "branch": "main",
+        "trackedStatus": "",
+        "indexSHA256": "6b06019bb7f0aa7aed1baa521de826e6634867309e25af0060cdf64c686be283"
+      },
+      "matches": {
+        "head": true,
+        "branch": true,
+        "trackedStatus": true,
+        "indexSHA256": true
+      }
+    }
+  },
+  "artifacts": [
+    {
+      "path": "<PROJECTS>/VidAll_Player/release/artifacts/vidall_player-20261017-a38162bc.har",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_Player/entry/src/main/cpp/third_party/libmpv/arm64-v8a/libmpv.so",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/vidall_player.har",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/arm64-v8a/libc++_shared.so",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/arm64-v8a/libcurl.so",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/arm64-v8a/libsmb2.so",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/arm64-v8a/libavcodec.so.62",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/arm64-v8a/libavformat.so.62",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/arm64-v8a/libavutil.so.60",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/arm64-v8a/libavfilter.so.11",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/arm64-v8a/libswresample.so.6",
+      "matches": true
+    },
+    {
+      "path": "<PROJECTS>/VidAll_TV/entry/libs/arm64-v8a/libswscale.so.9",
+      "matches": true
+    }
+  ],
+  "preservedFiles": {
+    "out/phase28/seal.json": true,
+    "out/phase28/ci/CI-RUN.json": true,
+    "out/phase28/REPORT.md": true,
+    "out/phase28/REVIEW-RESPONSE.md": true,
+    "out/phase27/snapshots/02/seal.json": true,
+    ".specify/feature.json": true,
+    "docs/vidall-tv-baseline-handoff.json": true
+  },
+  "mainDiffSHA256": "0897278b5339bdb69191af10a98fc1bb3c96bc7c4900c693ef629f4c374573bf",
+  "mainDiffMatches": true,
+  "stagedDiffEmpty": true,
+  "indexNote": "producer index既有stat差异不重置；Player/TV index逐字节比较",
+  "formalArtifactAllowed": false,
+  "baselineKind": "历史保护基线，复用 phase31 检查器对照 producer out/phase28-device-validation/boundary-before.json；不是本轮新建快照"
+}

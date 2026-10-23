@@ -1,0 +1,48 @@
+{
+  "sourceSHA256": "4091c3d6ec73348db204e4f76f111d0a91e9badcde7c6c0b68282c9e7453f41c",
+  "method": "actual-entry-slices-platform-and-session-stubs",
+  "results": [
+    {
+      "case": "create-unconfigured",
+      "exit": 0,
+      "stdout": "PASS\n",
+      "stderr": ""
+    },
+    {
+      "case": "create-ui",
+      "exit": 0,
+      "stdout": "PASS\n",
+      "stderr": ""
+    },
+    {
+      "case": "release-terminal",
+      "exit": 0,
+      "stdout": "PASS\n",
+      "stderr": ""
+    },
+    {
+      "case": "cleanup-terminal",
+      "exit": 0,
+      "stdout": "PASS\n",
+      "stderr": ""
+    },
+    {
+      "case": "create-terminal-race",
+      "exit": 0,
+      "stdout": "PASS\n",
+      "stderr": ""
+    },
+    {
+      "case": "release-terminal-race",
+      "exit": 0,
+      "stdout": "PASS\n",
+      "stderr": ""
+    },
+    {
+      "case": "normal-release",
+      "exit": 0,
+      "stdout": "PASS\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+10-23 22:58:12.676 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 runtime ready
+10-23 22:58:12.678 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 keepScreen true
+10-23 22:58:12.718 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state preparing
+10-23 22:58:12.930 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 22:58:12.930 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 firstFrame 1
+10-23 22:58:14.563 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state paused
+10-23 22:58:15.218 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 pause-verified {"before":880,"after":880}
+10-23 22:58:15.240 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 22:58:15.943 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 resume-verified 1520
+10-23 22:58:16.197 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 failed SEEK_TARGET_MISMATCH
+10-23 22:58:16.395 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state released
+10-23 22:58:16.397 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 keepScreen false
+10-23 22:58:16.397 30340 30340 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 session-end 

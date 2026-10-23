@@ -1,0 +1,29 @@
+{
+  "normalPassed": true,
+  "normalLogSHA256": "709b56164b624b89b6c3c04d8b1cce9cc5c933ab31c36558572e1e3cb8b965e1",
+  "normalChecks": [
+    "pause-verified",
+    "resume-verified",
+    "seek-verified",
+    "release-ok",
+    "reopen-release-ok",
+    "summary {\"firstFrames\":2,\"errors\":0}",
+    "keepScreen false",
+    "session-end"
+  ],
+  "smbShortPassed": true,
+  "smbLogSHA256": "6f912b5d5a123df101700bad346f17d86f782822fc1c54b1e7bb435d9e89d32a",
+  "limits": [
+    "SMB仅短出帧与进度推进，不是60分钟长播",
+    "未核验物理HDR或用户主观声画",
+    "终局为独立链接接缝，非真实GPU故障",
+    "宿主kill与native deadline退出机制未独立区分"
+  ],
+  "formalArtifactAllowed": false,
+  "logHashScope": "normalLogSHA256/smbLogSHA256 是本机私有原始日志身份；以下公开提取事件文本单独计算身份。原始设备日志不纳入提交。",
+  "publicEventSHA256": {
+    "normalized-consumer-events.txt": "dbbe33c03cc93add5c2a1cdb4be9c49946301de273d232485f1f584623cdca62",
+    "consumer-smb-events-03.log.txt": "0d4c7a2af3fb0e00a5577042fb13b8a299294d3176be8b9c73d91974b3f46b3a",
+    "terminal-consumer-events-01.log.txt": "3b736f4493fb0adf58f16e7752b9bed6c9ec94ae454fea7fb85bcc1a092d6785"
+  }
+}

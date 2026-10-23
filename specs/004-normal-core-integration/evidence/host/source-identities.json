@@ -1,0 +1,6 @@
+{
+  "native/runtime/process_runtime.cpp": "7104b64212d8416d0e99a4034519e90d93133e3131a7cbbda27730c346074dfd",
+  "packages/vidall-player/src/main/cpp/napi_init.cpp": "4091c3d6ec73348db204e4f76f111d0a91e9badcde7c6c0b68282c9e7453f41c",
+  "release/inputs/004-normal-core/manifest.json": "97d5030fe0ac0420bcf489508db6ead92defa7e71d4c85922ce9f5c81c762d2f",
+  "scripts/test/normal-core/package-lock.json": "6bc5d9a569fad488e7ea39258bf55a1f0ce5784bf37b1eff4717ed0bb2367308"
+}

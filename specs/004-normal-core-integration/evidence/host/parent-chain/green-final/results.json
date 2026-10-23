@@ -1,0 +1,102 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "case": "normal-last-reference",
+      "exit": 0,
+      "seconds": 0.616,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": null,
+      "deadlineValid": null,
+      "passed": true
+    },
+    {
+      "case": "normal-explicit-release",
+      "exit": 0,
+      "seconds": 0.013,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": null,
+      "deadlineValid": null,
+      "passed": true
+    },
+    {
+      "case": "terminal-before-last-reference",
+      "exit": 86,
+      "seconds": 1.054,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 1043.84,
+      "deadlineValid": true,
+      "passed": true
+    },
+    {
+      "case": "terminal-direct-destructor",
+      "exit": 86,
+      "seconds": 1.046,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 1030.93,
+      "deadlineValid": true,
+      "passed": true
+    },
+    {
+      "case": "terminal-render-tail",
+      "exit": 86,
+      "seconds": 1.058,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 1041.94,
+      "deadlineValid": true,
+      "passed": true
+    },
+    {
+      "case": "terminal-during-render-free",
+      "exit": 86,
+      "seconds": 1.045,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 1028.47,
+      "deadlineValid": true,
+      "passed": true
+    },
+    {
+      "case": "terminal-callback-close",
+      "exit": 86,
+      "seconds": 1.052,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 1031.97,
+      "deadlineValid": true,
+      "passed": true
+    },
+    {
+      "case": "terminal-cleanup-swap",
+      "exit": 86,
+      "seconds": 1.049,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 1034.74,
+      "deadlineValid": true,
+      "passed": true
+    },
+    {
+      "case": "terminal-callback-delivery-blocked",
+      "exit": 86,
+      "seconds": 1.044,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 1036.65,
+      "deadlineValid": true,
+      "passed": true
+    },
+    {
+      "case": "terminal-logger-blocked",
+      "exit": 86,
+      "seconds": 1.031,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 1023.43,
+      "deadlineValid": true,
+      "passed": true
+    }
+  ],
+  "sourceBindingSHA256": "f8f4181c8688fb2e71b4b355390f520541314bfb6b69f68f614911ffbf3d8a15",
+  "limits": [
+    "平台API被替身覆盖，不是GPU真实故障注入",
+    "std::thread、shared_ptr/unique_ptr、真实父级函数和process_runtime均实际编译执行",
+    "Start/render线程主体是最小调度替身；未逐字编译完整RenderLoop",
+    "callback场景阻塞生产者通知交付线程；logger场景堵塞独立审计pipe写线程，不冒称真实平台logger挂死"
+  ]
+}

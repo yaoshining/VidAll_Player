@@ -1,0 +1,57 @@
+{
+  "baselineCommit": "951343145e076277be99f7b459ec614d5a64f8b8",
+  "tvHAR": "826b667dcd315e75e71f89065c3aef4bd60ea73743916ee629469f93228c66a9",
+  "baselineHAR": "a79ae22ab33721b879c1bddfeae33a7bb194f48a4b090b9b49c548ec68a069dc",
+  "same": [
+    "package/CHANGELOG.md",
+    "package/Index.d.ets",
+    "package/LICENSE",
+    "package/README-CN.md",
+    "package/README.md",
+    "package/ets/modules.abc",
+    "package/libs/arm64-v8a/libc++_shared.so",
+    "package/libs/arm64-v8a/libmpv.so",
+    "package/libs/x86_64/libc++_shared.so",
+    "package/oh-package.json5",
+    "package/src/main/ets/internal/capabilities.d.ets",
+    "package/src/main/ets/internal/commandQueue.d.ets",
+    "package/src/main/ets/internal/inputValidator.d.ets",
+    "package/src/main/ets/internal/networkRecovery.d.ets",
+    "package/src/main/ets/internal/playerFailure.d.ets",
+    "package/src/main/ets/internal/playerSession.d.ets",
+    "package/src/main/ets/internal/proxyLeaseRegistry.d.ets",
+    "package/src/main/ets/internal/redaction.d.ets",
+    "package/src/main/ets/internal/stateMachine.d.ets",
+    "package/src/main/ets/native/harNativePackagingProbe.d.ets",
+    "package/src/main/ets/native/nativeBridge.d.ets",
+    "package/src/main/ets/public/diagnostics.d.ets",
+    "package/src/main/ets/public/player.d.ets",
+    "package/src/main/ets/public/playerContract.d.ets",
+    "package/src/main/ets/public/types.d.ets",
+    "package/src/main/ets/xcomponent/surfaceAdapter.d.ets",
+    "package/src/main/module.json"
+  ],
+  "different": [
+    {
+      "path": "package/ets/sourceMaps.map",
+      "oldSHA256": "29c57f35db3a9f127bd9a9432969fa682545fb5c6ee6571aef02ca1e2254f76f",
+      "newSHA256": "ca10b71f84bedbe3f9de89ca3687e81df982f19b3a5bb3286bd556bed32dd347",
+      "oldBytes": 93346,
+      "newBytes": 93346
+    },
+    {
+      "path": "package/libs/arm64-v8a/libvidall_player_native.so",
+      "oldSHA256": "caaa94d86f2845b75a41220411fae9a7efdea79273d8acfa1aee10bbe387aa14",
+      "newSHA256": "894e80072514452cf945fc8db7847234e3afc1939aa1e0b6b7d894c0dc7da05a",
+      "oldBytes": 271504,
+      "newBytes": 271504
+    },
+    {
+      "path": "package/libs/x86_64/libvidall_player_native.so",
+      "oldSHA256": "8cdf651e24591ed6c0c871a67e58267d9810bd0adb574e8ecec938b9cc96a3aa",
+      "newSHA256": "9daa06cd75d0d8c778eac5a71e7038b3411a65e96ed4deb5e4af7dc223a9c781",
+      "oldBytes": 72968,
+      "newBytes": 72952
+    }
+  ]
+}
