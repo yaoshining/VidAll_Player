@@ -1,0 +1,22 @@
+10-23 23:15:18.757 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 runtime ready
+10-23 23:15:18.760 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 keepScreen true
+10-23 23:15:18.780 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state preparing
+10-23 23:15:18.990 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 23:15:18.990 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 firstFrame 1
+10-23 23:15:20.591 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state paused
+10-23 23:15:21.246 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 pause-verified {"before":960,"after":960}
+10-23 23:15:21.269 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 23:15:21.971 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 resume-verified 1680
+10-23 23:15:22.074 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 seek-target {"target":20000,"reached":20040}
+10-23 23:15:22.777 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 seek-verified {"target":20000,"before":1680,"reached":20040,"after":20600}
+10-23 23:15:22.777 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 diagnostics {"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":20600},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+10-23 23:15:22.969 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state released
+10-23 23:15:22.970 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 release-ok 
+10-23 23:15:22.979 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state preparing
+10-23 23:15:23.123 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 23:15:23.123 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 firstFrame 2
+10-23 23:15:24.862 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state released
+10-23 23:15:24.862 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 reopen-release-ok 
+10-23 23:15:24.862 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 summary {"firstFrames":2,"errors":0}
+10-23 23:15:24.863 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 keepScreen false
+10-23 23:15:24.863 43092 43092 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 session-end 

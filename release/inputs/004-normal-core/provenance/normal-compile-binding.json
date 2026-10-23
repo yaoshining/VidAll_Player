@@ -1,0 +1,35 @@
+{
+  "mode": "A",
+  "mpvLibrarySHA256": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
+  "ffmpegOhdecSHA256": "d7c4bcc960d54dcae930168a56fcd6cf2b064e8758294b9e6a98c80768f19499",
+  "compilerDatabaseSHA256": "8552036a74da3d57b84f3ab355fb929c798a33e04e8a424eae36be425af8db83",
+  "observedMacros": {
+    "TRACE": true,
+    "TEST": false,
+    "DIAGNOSTIC": false,
+    "EXPERIMENT": false,
+    "RETURN_REPLACEMENT": false
+  },
+  "translationUnits": [
+    {
+      "file": "../source/misc/dispatch.c",
+      "command": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang -Ilibmpv.so.p -I. -I../source -I../source/include -Icommon -Ietc -Iplayer/javascript -Iplayer/lua -Isub -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include/fribidi -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include/freetype2 -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include/harfbuzz -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include/libxml2 -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/mpv/source/_staged/ffmpeg/include -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/libplacebo/install/include -fvisibility=hidden -fdiagnostics-color=always -Wall -Winvalid-pch -Wextra -std=c11 -O3 -D_FILE_OFFSET_BITS=64 -Wdisabled-optimization -Wempty-body -Wformat -Wimplicit-fallthrough -Woverflow -Wparentheses -Wpointer-arith -Wshadow -Wundef -Wvla -Wno-cast-function-type -Wno-format-zero-length -Wno-missing-field-initializers -Wno-sign-compare -Wno-switch -Wno-unused-parameter -fno-math-errno -fno-signed-zeros -fno-trapping-math -Werror=format-security -D_GNU_SOURCE -DNO_BUILD_TIMESTAMPS -Wmissing-prototypes -Wstrict-prototypes -Werror=implicit-function-declaration -Wno-pointer-sign -DWINICONV_CONST= --target=aarch64-linux-ohos --sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot -fPIC -D__MUSL__=1 -Wno-int-conversion -fmacro-prefix-map=/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c=. -DMP_OHCODEC_HANDOFF_TRACE=1 -fPIC -pthread -DPL_HAVE_PTHREAD -DPTHREAD_HAS_SETCLOCK -DPL_STATIC -MD -MQ libmpv.so.p/misc_dispatch.c.o -MF libmpv.so.p/misc_dispatch.c.o.d -o libmpv.so.p/misc_dispatch.c.o -c ../source/misc/dispatch.c"
+    },
+    {
+      "file": "../source/video/out/hwdec/hwdec_ohcodec_pl.c",
+      "command": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang -Ilibmpv.so.p -I. -I../source -I../source/include -Icommon -Ietc -Iplayer/javascript -Iplayer/lua -Isub -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include/fribidi -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include/freetype2 -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include/harfbuzz -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/deps/lib/pkgconfig/../../include/libxml2 -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/mpv/source/_staged/ffmpeg/include -I/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/libplacebo/install/include -fvisibility=hidden -fdiagnostics-color=always -Wall -Winvalid-pch -Wextra -std=c11 -O3 -D_FILE_OFFSET_BITS=64 -Wdisabled-optimization -Wempty-body -Wformat -Wimplicit-fallthrough -Woverflow -Wparentheses -Wpointer-arith -Wshadow -Wundef -Wvla -Wno-cast-function-type -Wno-format-zero-length -Wno-missing-field-initializers -Wno-sign-compare -Wno-switch -Wno-unused-parameter -fno-math-errno -fno-signed-zeros -fno-trapping-math -Werror=format-security -D_GNU_SOURCE -DNO_BUILD_TIMESTAMPS -Wmissing-prototypes -Wstrict-prototypes -Werror=implicit-function-declaration -Wno-pointer-sign -DWINICONV_CONST= --target=aarch64-linux-ohos --sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot -fPIC -D__MUSL__=1 -Wno-int-conversion -fmacro-prefix-map=/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c=. -DMP_OHCODEC_HANDOFF_TRACE=1 -fPIC -pthread -DPL_HAVE_PTHREAD -DPTHREAD_HAS_SETCLOCK -DPL_STATIC -MD -MQ libmpv.so.p/video_out_hwdec_hwdec_ohcodec_pl.c.o -MF libmpv.so.p/video_out_hwdec_hwdec_ohcodec_pl.c.o.d -o libmpv.so.p/video_out_hwdec_hwdec_ohcodec_pl.c.o -c ../source/video/out/hwdec/hwdec_ohcodec_pl.c"
+    }
+  ],
+  "ffmpegExplicitFlags": "-fPIC -I./deps/include -DMP_OHCODEC_HANDOFF_TRACE=1\n",
+  "buildProfile": {
+    "profile": "stable-target-prefix-macro-map-origin-staging",
+    "stablePrefix": "/usr/local",
+    "ffmpegRelative": "mpv/source/_staged/ffmpeg",
+    "artifact": "/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/install/usr/local/lib/libmpv.so",
+    "ohcodecLifecycleExperiment": false,
+    "ohcodecDiagnostic": false,
+    "testReturnReplacement": false,
+    "handoffTrace": true,
+    "handoffTest": false
+  }
+}

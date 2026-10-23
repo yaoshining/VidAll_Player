@@ -1,0 +1,35 @@
+{
+  "sourceMapsSemanticEqual": true,
+  "native": {
+    "arm64-v8a": {
+      "textEqual": false,
+      "differentSections": [
+        ".note.gnu.build-id",
+        ".dynsym",
+        ".rela.dyn",
+        ".rodata",
+        ".eh_frame",
+        ".text",
+        ".dynamic"
+      ],
+      "textSHA256": "d00a4bc7d7b9cdfda29ed85d3ac0a97e37b9152dce165c5a36b89769b6ad76c0"
+    },
+    "x86_64": {
+      "textEqual": false,
+      "differentSections": [
+        ".note.gnu.build-id",
+        ".dynsym",
+        ".rela.dyn",
+        ".rela.plt",
+        ".gcc_except_table",
+        ".rodata",
+        ".eh_frame_hdr",
+        ".eh_frame",
+        ".text",
+        ".dynamic",
+        ".got.plt"
+      ],
+      "textSHA256": "2b1d2b5294ac455efeaf51fd874f584c1bb7a8edaabedbc4538534065c66b6d9"
+    }
+  }
+}

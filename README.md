@@ -93,3 +93,8 @@ GitHub Actions 的 `验证 ArkTS 测试模块` 任务会在 PR 和 `main` 的相
 TV/手机示例的生命周期状态机、WebDAV 错误脱敏、遥控器焦点边界和原生能力报告均已纳入本地测试。`scripts/evidence/run-arm64-tv-gate.sh` 当前是 ARM64 TV 100 次生命周期门禁的阻断证据模板，不执行设备自动化；必须通过 `devecocli device list` 确认可用 ARM64 API 22 TV 后，使用 `devecocli build` 和 `devecocli run --device <serial>` 完成真实检查并归档日志。
 
 当前没有连接设备，候选 manifest 维持 `candidate`，发布状态维持 `blocked`。待完成证据包括 API 15 安装、API 19 审查、API 22 ARM64 TV 生命周期与媒体样本、手机示例、双平台 clean build、受控私有源 consumer-smoke、许可证/SBOM 及双渠道回读。
+
+
+## 独立正常核心接入
+
+本分支新增进程初始化与终局接管要求，详见 [接入与迁移说明](docs/normal-core-integration.md)。原 entry 示例尚未迁移；本轮使用 fixtures/normal-core-consumer 验证公共根入口。TV 与旧候选未替换。

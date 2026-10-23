@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "format": "项目配套清单（非认证 SPDX）",
+  "runtime": [
+    {
+      "path": "arm64-v8a/libavfilter.so.11",
+      "sha256": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
+      "size": 3943016
+    },
+    {
+      "path": "arm64-v8a/libavformat.so.62",
+      "sha256": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+      "size": 19264368
+    },
+    {
+      "path": "arm64-v8a/libswscale.so.9",
+      "sha256": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
+      "size": 738688
+    },
+    {
+      "path": "arm64-v8a/libavcodec.so.62",
+      "sha256": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
+      "size": 12306216
+    },
+    {
+      "path": "arm64-v8a/libmpv.so",
+      "sha256": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
+      "size": 15715544
+    },
+    {
+      "path": "arm64-v8a/libc++_shared.so",
+      "sha256": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "size": 1262504
+    },
+    {
+      "path": "arm64-v8a/libswresample.so.6",
+      "sha256": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
+      "size": 91736
+    },
+    {
+      "path": "arm64-v8a/libavutil.so.60",
+      "sha256": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43",
+      "size": 683384
+    }
+  ],
+  "staticLinkInputs": [
+    {
+      "path": "run/deps/lib/libass.a",
+      "sha256": "57031b8e8199a1d2a1343bc7880e8bd9988d3ae2d5193c8d39f866900be3023c"
+    },
+    {
+      "path": "run/deps/lib/libdovi.a",
+      "sha256": "cc4d8d41b6251afe6a36f427df7cec7fca533bf14ee9b7c26bd2248b9199e1dc"
+    },
+    {
+      "path": "run/deps/lib/libfontconfig.a",
+      "sha256": "3adb4b2916ca831bafaecd345d086a056c3f070a7e44ee159c001f21dc371641"
+    },
+    {
+      "path": "run/deps/lib/libfreetype.a",
+      "sha256": "21a5cf4d25ded30e97cce18ae8ed05df8fa10e8c13dd8c87f9c4bf6120d836f2"
+    },
+    {
+      "path": "run/deps/lib/libfribidi.a",
+      "sha256": "e159bd5688d004ee120885dd3a74bff338300f4d91aa94872e54898fb0f5db79"
+    },
+    {
+      "path": "run/deps/lib/libharfbuzz.a",
+      "sha256": "f67e156d0d67ddb3ebadb061e9e5692c7842fc0ceacb31ad6e8e64373348edf9"
+    },
+    {
+      "path": "run/deps/lib/liblcms2.a",
+      "sha256": "36c04ed4ae908dfde71ce3a7ed4de1bbb5382dd6567b573c5f14ffa6c094a602"
+    },
+    {
+      "path": "run/deps/lib/liblua.a",
+      "sha256": "21da61f7b45071e8c92b1713abea20db586a0f6fbfbba5671bc995b0a68b13fe"
+    },
+    {
+      "path": "run/deps/lib/libshaderc_combined.a",
+      "sha256": "0be975c2560a5aedb76ffe374ddd98e591dbbcd0d2481251984227cdbdebf346"
+    },
+    {
+      "path": "run/deps/lib/libxml2.a",
+      "sha256": "899918d31c9074dc71ed48438e534007fa4b22639577175d63d7d7986ab32d70"
+    },
+    {
+      "path": "run/libplacebo/install/lib/libplacebo.a",
+      "sha256": "4124ab8e1d7a64beeda1419b7ddc99c309cef4c0ad9e2b44c4928ada1c1ff1d4"
+    }
+  ],
+  "licenseIndex": "../licenses/index.json",
+  "sourceLock": "source-lock.json",
+  "formalArtifactAllowed": false,
+  "scope": "核心动态库、静态链接输入与生产者来源/许可证索引；系统平台库不随包分发"
+}

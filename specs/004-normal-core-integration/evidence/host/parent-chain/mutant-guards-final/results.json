@@ -1,0 +1,44 @@
+{
+  "passed": false,
+  "cases": [
+    {
+      "case": "terminal-render-tail",
+      "exit": 86,
+      "seconds": 1.691,
+      "forbiddenEvents": [
+        "DESTROY renderer-callback-remove after_terminal=1",
+        "DESTROY renderer after_terminal=1",
+        "DESTROY egl-unbind after_terminal=1",
+        "DESTROY egl-surface after_terminal=1",
+        "DESTROY egl-context after_terminal=1",
+        "DESTROY egl-display after_terminal=1",
+        "DESTROY window after_terminal=1"
+      ],
+      "deadlineElapsedMs": 1049.23,
+      "deadlineValid": true,
+      "passed": false
+    },
+    {
+      "case": "terminal-during-render-free",
+      "exit": 86,
+      "seconds": 1.04,
+      "forbiddenEvents": [
+        "DESTROY egl-unbind after_terminal=1",
+        "DESTROY egl-surface after_terminal=1",
+        "DESTROY egl-context after_terminal=1",
+        "DESTROY egl-display after_terminal=1",
+        "DESTROY window after_terminal=1"
+      ],
+      "deadlineElapsedMs": 1025.49,
+      "deadlineValid": true,
+      "passed": false
+    }
+  ],
+  "sourceBindingSHA256": "e51c7b1a09e74b2f2fb28880a2eea150394e745a21a33850f00d6f78822eb2c2",
+  "limits": [
+    "平台API被替身覆盖，不是GPU真实故障注入",
+    "std::thread、shared_ptr/unique_ptr、真实父级函数和process_runtime均实际编译执行",
+    "Start/render线程主体是最小调度替身；未逐字编译完整RenderLoop",
+    "callback场景阻塞生产者通知交付线程；logger场景堵塞独立审计pipe写线程，不冒称真实平台logger挂死"
+  ]
+}

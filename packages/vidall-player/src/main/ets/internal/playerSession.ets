@@ -1,3 +1,4 @@
+import { playerTerminalError, onPlayerTerminal } from '../public/runtime';
 import { PlayerDiagnosticsSnapshot } from '../public/diagnostics';
 import {
   AudioParams,
@@ -32,8 +33,19 @@ export class PlayerSession implements VidAllPlayer {
   private diagnosticsRevision: number = 0;
   private diagnosticsClosed: boolean = false;
   private diagnosticsPending?: Promise<PlayerDiagnosticsSnapshot>;
+  private diagnosticsCached?: PlayerDiagnosticsSnapshot;
+  private terminal: boolean = false;
+  private unsubscribeTerminal?: () => void;
 
   getDiagnostics(): Promise<PlayerDiagnosticsSnapshot> {
+    const fatal = playerTerminalError();
+    if (fatal !== undefined) {
+      if (this.diagnosticsCached !== undefined) {
+        this.diagnosticsCached.freshness = 'cached-terminal';
+        return Promise.resolve(this.diagnosticsCached);
+      }
+      return Promise.reject(fatal);
+    }
     if (this.diagnosticsClosed) return Promise.reject(new Error('DIAGNOSTICS_RELEASED'));
     if (this.diagnosticsPending !== undefined) return this.diagnosticsPending;
     const revision = this.diagnosticsRevision;
@@ -42,6 +54,8 @@ export class PlayerSession implements VidAllPlayer {
         if (revision !== this.diagnosticsRevision) throw new Error('DIAGNOSTICS_STALE');
         const snapshot = await this.nativeBridge.getDiagnostics();
         if (revision !== this.diagnosticsRevision || this.diagnosticsClosed) throw new Error('DIAGNOSTICS_STALE');
+        if (playerTerminalError() !== undefined) throw new Error('PLAYER_TERMINAL');
+        this.diagnosticsCached = snapshot;
         resolve(snapshot);
       }).catch((error: Error) => reject(error));
     });
@@ -67,6 +81,10 @@ export class PlayerSession implements VidAllPlayer {
       options?.subtitleFontsDir, options?.hardwareDecoding,
       options?.hdrToneMapping, options?.hdrComputePeak);
     this.nativeBridge.subscribe((event) => this.handleNativeBridgeEvent(event));
+    this.unsubscribeTerminal = onPlayerTerminal(() => {
+      if (this.stateMachine.getReleasePhase() === 'closed') return;
+      this.terminal = true; this.diagnosticsRevision++; this.queue.close(); this.stateMachine.enterTerminal();
+    });
     if (options?.eventListener !== undefined) {
       this.stateMachine.subscribe(options.eventListener);
     }
@@ -84,6 +102,7 @@ export class PlayerSession implements VidAllPlayer {
         return;
       }
       return this.nativeBridge.attachSurface(surface).then(() => {
+        if (playerTerminalError() !== undefined) throw new Error('PLAYER_TERMINAL');
         this.surface = surface;
         this.stateMachine.setSurfaceGeneration(surface.generation);
       });
@@ -98,6 +117,7 @@ export class PlayerSession implements VidAllPlayer {
         throw lifecycleFailure('INVALID_SURFACE_GENERATION', 'Surface generation is not attached.');
       }
       return this.nativeBridge.resizeSurface(surface).then(() => {
+        if (playerTerminalError() !== undefined) throw new Error('PLAYER_TERMINAL');
         this.surface = surface;
         this.stateMachine.setSurfaceGeneration(surface.generation);
       });
@@ -109,6 +129,7 @@ export class PlayerSession implements VidAllPlayer {
     return this.enqueue('detachSurface', () => {
       if (this.surface !== undefined && this.surface.generation === generation) {
         return this.nativeBridge.detachSurface(generation).then(() => {
+          if (playerTerminalError() !== undefined) throw new Error('PLAYER_TERMINAL');
           this.surface = undefined;
           this.stateMachine.setSurfaceGeneration(undefined);
         });
@@ -142,6 +163,7 @@ export class PlayerSession implements VidAllPlayer {
       // 被上一媒体最后一次 emit 的 100ms 窗口卡住。
       this.lastPositionEmitAtMs = 0;
       return this.nativeBridge.load(source).then(() => {
+        if (playerTerminalError() !== undefined) throw new Error('PLAYER_TERMINAL');
         this.source = source;
         this.tracks = this.createExternalAudioTracks(source.externalAudio).concat(
         this.createExternalSubtitleTracks(source.externalSubtitles, source.externalAudio?.length ?? 0)
@@ -332,10 +354,12 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   reportNativeEvent(event: PlayerEvent): boolean {
+    if (this.terminal || playerTerminalError() !== undefined) return false;
     return this.stateMachine.emitIncoming(event);
   }
 
   private handleNativeBridgeEvent(event: NativeBridgeEvent): void {
+    if (this.terminal || playerTerminalError() !== undefined) return;
     if (event.type === 'state' && event.message === 'preparing') {
       if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
@@ -574,6 +598,7 @@ export class PlayerSession implements VidAllPlayer {
         throw lifecycleFailure('INVALID_STATE', 'Stop requires an active media session.');
       }
       return this.nativeBridge.stop().then(() => {
+        if (playerTerminalError() !== undefined) throw new Error('PLAYER_TERMINAL');
         this.abortActiveMedia('stop');
         this.source = undefined;
       });
@@ -581,6 +606,8 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   release(): Promise<void> {
+    const fatal = playerTerminalError();
+    if (fatal !== undefined) return Promise.reject(fatal);
     this.diagnosticsRevision++;
     this.diagnosticsClosed = true;
     if (this.stateMachine.getReleasePhase() !== 'open') {
@@ -588,6 +615,8 @@ export class PlayerSession implements VidAllPlayer {
     }
     this.queue.close();
     return this.nativeBridge.release().then(() => {
+      if (playerTerminalError() !== undefined) throw new Error('PLAYER_TERMINAL');
+      this.unsubscribeTerminal?.();
       // Native release completes before the public session publishes closed.
       this.releaseLeases('release');
       this.stateMachine.release();
@@ -600,6 +629,7 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   getFrameData(): FrameData | null {
+    if (playerTerminalError() !== undefined) return null;
     return this.nativeBridge.getFrameData();
   }
 
@@ -654,7 +684,15 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   private enqueue(_name: string, operation: () => void | Promise<void>): Promise<void> {
-    return this.queue.enqueue(() => Promise.resolve(operation()));
+    const fatal = playerTerminalError();
+    if (fatal !== undefined) return Promise.reject(fatal);
+    return this.queue.enqueue(() => {
+      const error = playerTerminalError();
+      if (error !== undefined) return Promise.reject(error);
+      return Promise.resolve(operation()).then(() => {
+        if (playerTerminalError() !== undefined) throw new Error('PLAYER_TERMINAL');
+      });
+    });
   }
 
   private abortActiveMedia(reason: string): void {

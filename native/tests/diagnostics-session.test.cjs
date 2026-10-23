@@ -5,6 +5,8 @@ const Module = require('node:module');
 const ts = require(process.env.TYPESCRIPT_PATH || '/Applications/DevEco-Studio.app/Contents/plugins/codelinter/node_modules/typescript');
 const original = Module._load;
 Module._load = function(name, parent, main) {
+  if (name === 'libvidall_player_native.so') return { __esModule:true,default:{getRuntimeStatus:()=>JSON.stringify({state:'ready'})} };
+  if (name === '@kit.ArkTS') return {util:{}};
   if (name === '../native/nativeBridge') return { createNativePlayerBridge: () => { throw Error('mock required'); } };
   return original.call(this, name, parent, main);
 };

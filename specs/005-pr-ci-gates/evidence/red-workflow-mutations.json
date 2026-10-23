@@ -1,0 +1,32 @@
+[
+  {
+    "name": "noPR",
+    "exit": 1,
+    "rejected": true
+  },
+  {
+    "name": "headCheckout",
+    "exit": 1,
+    "rejected": true
+  },
+  {
+    "name": "noTarget",
+    "exit": 1,
+    "rejected": true
+  },
+  {
+    "name": "noAlways",
+    "exit": 0,
+    "rejected": false
+  },
+  {
+    "name": "noAssessment",
+    "exit": 0,
+    "rejected": false
+  },
+  {
+    "name": "ignoreError",
+    "exit": 0,
+    "rejected": false
+  }
+]

@@ -1,0 +1,66 @@
+{
+  "scope": "事后当前源码与已构建对象/最终 bridge 关联快照；不是构建前源码封存，不用 host source-identities 替代目标构建证据。",
+  "compileCommandsSHA256": "05478affe1b210083e4c841c481f995fd8beac77ccfc2550de65d462e2df5e3d",
+  "compiledSources": [
+    {
+      "source": "packages/vidall-player/src/main/cpp/napi_init.cpp",
+      "sourceSHA256": "4091c3d6ec73348db204e4f76f111d0a91e9badcde7c6c0b68282c9e7453f41c",
+      "object": "CMakeFiles/vidall_player_native.dir/napi_init.cpp.o",
+      "objectSHA256": "56972201bbbc44682cb402efa7e78709371a042908bdd8a7822f84ff406a6d06",
+      "sourceMTimeNs": 1792766609090954758,
+      "objectMTimeNs": 1792767869554055733
+    },
+    {
+      "source": "native/runtime/process_runtime.cpp",
+      "sourceSHA256": "7104b64212d8416d0e99a4034519e90d93133e3131a7cbbda27730c346074dfd",
+      "object": "CMakeFiles/vidall_player_native.dir/tmp/phase32-player-integration-20261023/repo/native/runtime/process_runtime.cpp.o",
+      "objectSHA256": "9b72ec924cf8df6d7342eaee47f9d21d9c2ba5bb76d4c2421fd95c835147453e",
+      "sourceMTimeNs": 1792765690041654274,
+      "objectMTimeNs": 1792767868604498452
+    },
+    {
+      "source": "native/render/render_backend_policy.cpp",
+      "sourceSHA256": "2f8f2a3882d428a796c14c5eeb76c31f03b8e1dc2d0942ac97b12b7aa2b557fd",
+      "object": "CMakeFiles/vidall_player_native.dir/tmp/phase32-player-integration-20261023/repo/native/render/render_backend_policy.cpp.o",
+      "objectSHA256": "71e03f69bb505e58b8c81beafcfbac77cfcba5ee44e86517cae3ebe001d44f6e",
+      "sourceMTimeNs": 1792763730024795142,
+      "objectMTimeNs": 1792767868209103848
+    }
+  ],
+  "strippedBridgeSHA256": "266c7c44300a536a59d2e40d74b84650123a0c1f61601add06678a26e905c331",
+  "formalArtifactAllowed": false,
+  "productSources": {
+    "native/runtime/process_runtime.cpp": "7104b64212d8416d0e99a4034519e90d93133e3131a7cbbda27730c346074dfd",
+    "native/runtime/process_runtime.h": "715b86ca26f8d4a5f64e02bd60817feca5653d5d11e272d2fa58e9c17c9dbb91",
+    "native/render/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native/render/surface_renderer.cpp": "504e3b9af6e8beeac19cbef5c73bfa4d8a0e0fd029bae810ac8a426c84102dd0",
+    "native/render/surface_renderer.h": "1060bc5cbfd21780613da884d35fa0e2d6b4c9f3c3edbc156fc04e615a8e06d5",
+    "native/render/render_backend_policy.h": "212b7729c0b6618f6905105d4f081f641de8022e19cd3f8da2a63a0a1b249ae7",
+    "native/render/render_backend_policy.cpp": "2f8f2a3882d428a796c14c5eeb76c31f03b8e1dc2d0942ac97b12b7aa2b557fd",
+    "packages/vidall-player/src/main/module.json5": "a3cc13b7f808278cdb05b974a21f4368115d469bb7f9ddbeb5f024c0bc19e6ba",
+    "packages/vidall-player/src/main/cpp/CMakeLists.txt": "75a31a98e02ca87059c29900eb93eebb717d28a1b5451aa0d159baf4f01a2eef",
+    "packages/vidall-player/src/main/cpp/napi_init.cpp": "4091c3d6ec73348db204e4f76f111d0a91e9badcde7c6c0b68282c9e7453f41c",
+    "packages/vidall-player/src/main/ets/native/harNativePackagingProbe.ets": "7244e42d8828f18ad7ea6e46376bc2904727c08cf8bc6ea19e0ee57216452832",
+    "packages/vidall-player/src/main/ets/native/nativeBridge.ets": "8b6714b2bbbd3852a52f124d73a93fe016817a15d38fb4f33e76780c2983d86e",
+    "packages/vidall-player/src/main/ets/internal/redaction.ets": "8fb42ecdb656d4d76912ecf6bb9f596594120c15e753a688d73ff5b2c9cb48a8",
+    "packages/vidall-player/src/main/ets/internal/networkRecovery.ets": "66a4c497daa005e6cb5185860ed88a1fdc810771ecc93574073b56c5cf3cba98",
+    "packages/vidall-player/src/main/ets/internal/inputValidator.ets": "c9e74cc7b6a69875d993dba378a118474f7bee4a1c6a6a7542d8ccedf2078d84",
+    "packages/vidall-player/src/main/ets/internal/stateMachine.ets": "c150211511da24160de3fcf5c73e84386e15d08790ccf079a3d883b6201e259f",
+    "packages/vidall-player/src/main/ets/internal/commandQueue.ets": "6f60cf3075e1c9ab6498577e08801a33079e66d97403dd4559d73d0c00016f60",
+    "packages/vidall-player/src/main/ets/internal/playerSession.ets": "c4f2150d3ecced3b7507ba080e12089b40781e0a985c51ac514611a34391ee09",
+    "packages/vidall-player/src/main/ets/internal/proxyLeaseRegistry.ets": "0c43de42790c1092c5d50b72d04970a06b9dcd9f743d7b9162043c6c502d38d7",
+    "packages/vidall-player/src/main/ets/internal/capabilities.ets": "802cecf28a651708d252063735564f2f7e41b190e7b6a5f586c438061d02d5ec",
+    "packages/vidall-player/src/main/ets/internal/playerFailure.ets": "ea85221c7508ebb2782cba3dc295d91cc243905fe1e40e512fb14d0c8d50a326",
+    "packages/vidall-player/src/main/ets/public/diagnostics.ets": "31e78f5074b1425249315040d132cc38f174735f3b475598a21ca81726453d5c",
+    "packages/vidall-player/src/main/ets/public/player.ets": "f22eced1488c479b2a16d6fd7f377d123cf242d8e34ecf542cde86081539f277",
+    "packages/vidall-player/src/main/ets/public/playerContract.ets": "67ae6e56917d04c12a8a9043288300b3218f09daffa3b07db4da6ddba34037be",
+    "packages/vidall-player/src/main/ets/public/types.ets": "0c59dc35505515e870590642c00becdc1c5b4b5208a1e1545661813dd8031f22",
+    "packages/vidall-player/src/main/ets/public/runtime.ets": "453dba6adeb38e1c1b29ef7ac444cd33c2a04b82abdfd282d2420d1ba6ab3397",
+    "packages/vidall-player/src/main/ets/xcomponent/surfaceAdapter.ets": "46074cb2a4b9b7f6f88c600de6ba606337c80c49d3b51f5277da90a2548da366",
+    "packages/vidall-player/src/main/cpp/types/libvidall_player_native/oh-package.json5": "2557e56148458e1fe584a37f1aae41f1c5e0bcb432e567b53aae53233664e7e1",
+    "packages/vidall-player/src/main/cpp/types/libvidall_player_native/index.d.ts": "4b6655ece915446cc71e2e8f580bb931f924a09b6ce6839ea36296e06ff074f0",
+    "packages/vidall-player/src/main/resources/rawfile/vidall-runtime/smb.conf": "e1b3daca2b984bb7ee03a1191206505b66f5d8bc7e25dd0bb474b25b581dd1d7",
+    "packages/vidall-player/Index.ets": "63d5233ca39700e92eaf3d1352530fa4238975495413b7a46b5f31387b7ccb68",
+    "packages/vidall-player/build-profile.json5": "37350cb12001fcb968834a6ff58d2852824fbd33ec13609531c0082fdf25c4f2"
+  }
+}

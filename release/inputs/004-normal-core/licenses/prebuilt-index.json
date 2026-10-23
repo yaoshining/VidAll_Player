@@ -1,0 +1,56 @@
+[
+  {
+    "source": "/Users/yaoshining/.rustup/toolchains/stable-aarch64-apple-darwin/share/doc/rust/COPYRIGHT-library.html",
+    "saved": "licenses/prebuilt/rust-prebuilt/share/doc/rust/COPYRIGHT-library.html",
+    "sha256": "0a65bb747c49c7bb816cbc7188319bd6e4e8d08091c1190b8a3c0971c47968ed",
+    "role": "rust-prebuilt"
+  },
+  {
+    "source": "/Users/yaoshining/.rustup/toolchains/stable-aarch64-apple-darwin/share/doc/rust/COPYRIGHT.html",
+    "saved": "licenses/prebuilt/rust-prebuilt/share/doc/rust/COPYRIGHT.html",
+    "sha256": "0f5145af4007e81334d8d9777460e7a0c56f6e6bf33fe85159ccf6053ba098c6",
+    "role": "rust-prebuilt"
+  },
+  {
+    "source": "/Users/yaoshining/.rustup/toolchains/stable-aarch64-apple-darwin/share/doc/cargo/LICENSE-MIT",
+    "saved": "licenses/prebuilt/rust-prebuilt/share/doc/cargo/LICENSE-MIT",
+    "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+    "role": "rust-prebuilt"
+  },
+  {
+    "source": "/Users/yaoshining/.rustup/toolchains/stable-aarch64-apple-darwin/share/doc/cargo/LICENSE-APACHE",
+    "saved": "licenses/prebuilt/rust-prebuilt/share/doc/cargo/LICENSE-APACHE",
+    "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb",
+    "role": "rust-prebuilt"
+  },
+  {
+    "source": "/Users/yaoshining/.rustup/toolchains/stable-aarch64-apple-darwin/share/doc/cargo/LICENSE-THIRD-PARTY",
+    "saved": "licenses/prebuilt/rust-prebuilt/share/doc/cargo/LICENSE-THIRD-PARTY",
+    "sha256": "cbc759b1f17a2ac38fe3eb9e9563b1a08ba0f900611c49faaf68b46907b6d898",
+    "role": "rust-prebuilt"
+  },
+  {
+    "source": "/Users/yaoshining/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/src/rust/library/compiler-builtins/LICENSE.txt",
+    "saved": "licenses/prebuilt/rust-prebuilt/lib/rustlib/src/rust/library/compiler-builtins/LICENSE.txt",
+    "sha256": "ab6eec6caf0fa5775e411c7a8bc6a45c4ef2956b0980b157ab74fc5cd62a928b",
+    "role": "rust-prebuilt"
+  },
+  {
+    "source": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/NOTICE.txt",
+    "saved": "licenses/prebuilt/ohos-sdk/NOTICE.txt",
+    "sha256": "b490abe4a9ee4372b2160c3389c678720b1d449ee159ece16082ab779a362869",
+    "role": "ohos-sdk"
+  },
+  {
+    "source": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/NOTICE",
+    "saved": "licenses/prebuilt/ohos-sdk/llvm/NOTICE",
+    "sha256": "ba7ef7f747d7dd264bec5031f7db5ac2c0ae757c064679606ce0770a4ef45f00",
+    "role": "ohos-sdk"
+  },
+  {
+    "source": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/include/llvm/Support/LICENSE.TXT",
+    "saved": "licenses/prebuilt/ohos-sdk/llvm/include/llvm/Support/LICENSE.TXT",
+    "sha256": "54cbc326a78b9400065bfc5830a57fdcdaf808286d4ac35d8a9e324aa77b7241",
+    "role": "ohos-sdk"
+  }
+]

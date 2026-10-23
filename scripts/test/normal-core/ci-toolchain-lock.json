@@ -1,0 +1,11 @@
+{
+  "apiVersion": "24",
+  "version": "6.1.1.115",
+  "baseline": "当前004正常HAR的DevEco6.1.1.268/API24工具链；只读核对，不改SDK",
+  "files": {
+    "oh-uni-package.json": "a139d05a00412b689703a06d1b56c3ac7866599d750bbb4d9b6ee71bb3c4cf36",
+    "llvm/bin/clang": "9afb300b3e752fb96cb1cdd6fa57df351bf7b600ceb570f233511462611baf9d",
+    "llvm/bin/llvm-nm": "43cf64a638274cb407a3f8a9120b34b77ec8f9a4575f4f1f2f403b8972bf23e1",
+    "llvm/bin/llvm-readelf": "36203f31e186342a65c9669a7c3fb873072e5ad743fc522a748a7bec09a500e1"
+  }
+}

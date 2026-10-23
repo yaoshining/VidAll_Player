@@ -21,3 +21,5 @@ export {
 } from './src/main/ets/public/types';
 
 export { DiagnosticStatus, DiagnosticField, PlayerDiagnosticsFields, PlayerDiagnosticsSnapshot } from './src/main/ets/public/diagnostics';
+
+export { initializePlayerRuntime, getPlayerRuntimeStatus, onPlayerTerminal, PlayerRuntimeOptions, PlayerRuntimeStatus, PlayerTerminalInfo } from './src/main/ets/public/runtime';

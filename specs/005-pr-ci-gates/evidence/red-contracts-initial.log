@@ -1,0 +1,192 @@
+FFFFFFFFFFFFFFFFF
+======================================================================
+FAIL: test_aggregate_skipped_failure_cancelled (__main__.Contracts.test_aggregate_skipped_failure_cancelled)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 57, in test_aggregate_skipped_failure_cancelled
+    m=module('ci-evidence')
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-evidence.py
+
+======================================================================
+FAIL: test_fork_is_explicit (__main__.Contracts.test_fork_is_explicit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 47, in test_fork_is_explicit
+    m=module('ci-context');env,event=self.context();event['pull_request']['head']['repo']['full_name']='foreign/fork';self.assertFalse(m.verify(self.root,env,event)['trustedTarget'])
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-context.py
+
+======================================================================
+FAIL: test_har_wrong_missing_bridge_and_core (__main__.Contracts.test_har_wrong_missing_bridge_and_core)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 85, in test_har_wrong_missing_bridge_and_core
+    m=module('ci-target');base=self.root/'inputs';base.mkdir();names=['libmpv.so','libavcodec.so.62','libavformat.so.62','libavfilter.so.11','libavutil.so.60','libswresample.so.6','libswscale.so.9','libc++_shared.so'];rows=[]
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-target.py
+
+======================================================================
+FAIL: test_head_checkout_rejected (__main__.Contracts.test_head_checkout_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 34, in test_head_checkout_rejected
+    m=module('ci-context');env,event=self.context();env['GITHUB_SHA']=event['pull_request']['head']['sha'];self.git('checkout',env['GITHUB_SHA'])
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-context.py
+
+======================================================================
+FAIL: test_input_missing_wrong_hash (__main__.Contracts.test_input_missing_wrong_hash)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 100, in test_input_missing_wrong_hash
+    m=module('ci-target');p=self.root/'lib';p.write_bytes(b'a');rows=[{'path':'lib','sha256':sha(p)}];m.input_bytes(self.root,rows);p.write_bytes(b'b')
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-target.py
+
+======================================================================
+FAIL: test_missing_failure_records_not_green (__main__.Contracts.test_missing_failure_records_not_green)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 65, in test_missing_failure_records_not_green
+    m=module('ci-evidence');out=self.root/'evidence';m.finish(out,{},'host');self.assertFalse(json.loads((out/'public/ci-status.json').read_text())['stepsPassed'])
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-evidence.py
+
+======================================================================
+FAIL: test_pr_real_merge (__main__.Contracts.test_pr_real_merge)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 26, in test_pr_real_merge
+    m=module('ci-context');env,event=self.context();r=m.verify(self.root,env,event);self.assertTrue(r['passed']);self.assertEqual(r['checkoutSHA'],env['GITHUB_SHA'])
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-context.py
+
+======================================================================
+FAIL: test_public_failure_collection (__main__.Contracts.test_public_failure_collection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 63, in test_public_failure_collection
+    m=module('ci-evidence');out=self.root/'evidence';(out/'work').mkdir(parents=True);(out/'work/failure.log').write_text('failure at /Users/private/secret/file\n');m.finish(out,{'build':{'outcome':'failure'}},'target');text=(out/'public/failure.log').read_text();self.assertNotIn('/Users/',text);self.assertFalse(json.loads((out/'public/ci-status.json').read_text())['stepsPassed'])
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-evidence.py
+
+======================================================================
+FAIL: test_push_manual_merge_group (__main__.Contracts.test_push_manual_merge_group)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 37, in test_push_manual_merge_group
+    m=module('ci-context');base,head,merge=self.repo()
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-context.py
+
+======================================================================
+FAIL: test_real_command_failure_keeps_output (__main__.Contracts.test_real_command_failure_keeps_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 49, in test_real_command_failure_keeps_output
+    m=module('ci-target');work=self.root/'work';work.mkdir();rows=[]
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-target.py
+
+======================================================================
+FAIL: test_real_command_timeout_keeps_output (__main__.Contracts.test_real_command_timeout_keeps_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 53, in test_real_command_timeout_keeps_output
+    m=module('ci-target');work=self.root/'work';work.mkdir();rows=[]
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-target.py
+
+======================================================================
+FAIL: test_sdk_ambiguity_or_absent (__main__.Contracts.test_sdk_ambiguity_or_absent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 67, in test_sdk_ambiguity_or_absent
+    m=module('ci-target')
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-target.py
+
+======================================================================
+FAIL: test_sdk_hash_and_api_drift (__main__.Contracts.test_sdk_hash_and_api_drift)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 77, in test_sdk_hash_and_api_drift
+    m=module('ci-target');native,lock=self.sdk();self.assertTrue(m.sdk_identity(native,lock)['passed']);(native/'llvm/bin/clang').write_text('drift')
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-target.py
+
+======================================================================
+FAIL: test_sdk_missing_or_wrong_api (__main__.Contracts.test_sdk_missing_or_wrong_api)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 80, in test_sdk_missing_or_wrong_api
+    m=module('ci-target');native,lock=self.sdk();(native/'oh-uni-package.json').write_text(json.dumps({'apiVersion':'22','version':'6.1.1.115'}))
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-target.py
+
+======================================================================
+FAIL: test_unknown_event_missing_fields (__main__.Contracts.test_unknown_event_missing_fields)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 42, in test_unknown_event_missing_fields
+    m=module('ci-context');env,event=self.context();event['pull_request']['base'].pop('sha')
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-context.py
+
+======================================================================
+FAIL: test_wrong_checkout (__main__.Contracts.test_wrong_checkout)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 28, in test_wrong_checkout
+    m=module('ci-context');env,event=self.context();env['GITHUB_SHA']='0'*40
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-context.py
+
+======================================================================
+FAIL: test_wrong_pr_parent (__main__.Contracts.test_wrong_pr_parent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 31, in test_wrong_pr_parent
+    m=module('ci-context');env,event=self.context();event['pull_request']['head']['sha']='f'*40
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 10, in module
+    if not p.exists():raise AssertionError('新增CI入口尚未实现：'+p.name)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 新增CI入口尚未实现：ci-context.py
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.010s
+
+FAILED (failures=17)

@@ -1,0 +1,57 @@
+{
+  "meson": {
+    "path": "/Users/yaoshining/anaconda3/bin/meson",
+    "sha256": "2ac5f65bc3760309298f8cab1c8abd2773633a5c0e1470a22f7aa7940c0e2084",
+    "size": 241
+  },
+  "ninja": {
+    "path": "/Users/yaoshining/anaconda3/bin/ninja",
+    "sha256": "4e2125bd4c149186d6715a3d46ca294fc58ff9dbae8b3444c8e9330941276b57",
+    "size": 305104
+  },
+  "pkg-config": {
+    "path": "/opt/homebrew/bin/pkg-config",
+    "sha256": "a06f8c311a0a36515ea9b69ea9a44ee5ce43df00b29b5f46d5bf044dfe9ae282",
+    "size": 554871
+  },
+  "python": {
+    "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "sha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+    "size": 34640
+  },
+  "clang": {
+    "path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+    "sha256": "9afb300b3e752fb96cb1cdd6fa57df351bf7b600ceb570f233511462611baf9d",
+    "size": 99638576
+  },
+  "clang++": {
+    "path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang++",
+    "sha256": "9afb300b3e752fb96cb1cdd6fa57df351bf7b600ceb570f233511462611baf9d",
+    "size": 99638576
+  },
+  "ld.lld": {
+    "path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/ld.lld",
+    "sha256": "532be70a0ac2739bf357c362874eb652e7bd34904d2411eba6a91212c568b072",
+    "size": 61123808
+  },
+  "llvm-ar": {
+    "path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/llvm-ar",
+    "sha256": "0c9e216748ed566d184c0cf470b6665b7c06d301423e7ee06d6fdcc0bbcd92cc",
+    "size": 13627856
+  },
+  "llvm-strip": {
+    "path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/llvm-strip",
+    "sha256": "aa65df91af6d7a9cdafc7443918db32bb12e5e86007c6b0d14a68dc5c3d1945d",
+    "size": 4121632
+  },
+  "llvm-readelf": {
+    "path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/llvm-readelf",
+    "sha256": "36203f31e186342a65c9669a7c3fb873072e5ad743fc522a748a7bec09a500e1",
+    "size": 6070864
+  },
+  "llvm-objdump": {
+    "path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/llvm-objdump",
+    "sha256": "7d759d66fdd98caf277af2296d21dd19f26d9449fc13ee700f06e8db8ce86934",
+    "size": 15034416
+  }
+}

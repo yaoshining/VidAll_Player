@@ -1,0 +1,10 @@
+{
+  "connected": true,
+  "pidAbsent": true,
+  "abilityAbsent": true,
+  "windowAbsent": true,
+  "hostExitRequestSeen": true,
+  "terminalKeepScreenFalse": true,
+  "exitPath": "提示、保屏释放、宿主退出请求及最终进程消失通过；宿主kill与native3秒兜底未独立区分",
+  "realGpuFault": false
+}
