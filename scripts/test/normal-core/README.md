@@ -40,3 +40,7 @@ python3 -B scripts/test/normal-core/run.py --out /tmp/vidall-normal-core-evidenc
 `normalize-har.py compare 左.har 右.har --report 新报告.json` 同时要求逐成员一致和完整归档 SHA 一致，任一差异返回非零。13 项独立测试验证元数据/顺序变化稳定、原始文件不变、内容变更改变哈希并令比较失败，以及危险输入和既有输出保护。规范化不会修复内容差异，也不提升正式发布状态。
 
 该步骤不属于产品编译器或运行时修改，只负责生成独立的可重复归档。消费者仍必须实际构建消费规范化 HAR；本脚本通过不能替代这一验证。
+
+## 工作流解析门禁
+
+`ci-schema.py --out 新证据目录` 下载并验证锁定actionlint1.7.12归档，对全部workflow执行真实schema/表达式检查，并验证job.env/runner与job.if/steps两个错误scope负例。`--archive`仅供本机复用同摘要官方归档，不能绕过摘要验证。既有deveco标签在.github/actionlint.yaml显式声明；外部ShellCheck/Pyflakes不在该门禁范围。CI_OUT在step运行时使用RUNNER_TEMP初始化，禁止再把runner上下文放进job.env。缺schema通过记录时host assess失败。

@@ -150,6 +150,8 @@ class Contracts(unittest.TestCase):
   for c in checks:(out/'suite/public'/(c['name']+'.log')).write_text('PASS')
   (out/'suite/public/index.json').write_text('{}');steps={s:{'outcome':'success'} for s in ['context','dependencies','contracts','host']}
   with patch.object(m,'ROOT',self.root):
+   self.assertFalse(m.finish(out,steps,'host')['stepsPassed'])
+   (out/'work/schema-result.json').write_text(json.dumps({'passed':True}))
    self.assertTrue(m.finish(out,steps,'host')['stepsPassed']);self.assertIn('host/index.json',[r['path'] for r in json.loads((out/'public/index.json').read_text())['files']])
    (self.root/'a').write_text('dirty');self.assertFalse(m.finish(out,steps,'host')['stepsPassed']);self.git('checkout','--','a');self.git('commit','--allow-empty','-m','same tree new commit');self.assertFalse(m.finish(out,steps,'host')['stepsPassed'])
 

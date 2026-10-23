@@ -23,6 +23,7 @@ def finish(out,steps,mode):
  except (OSError,ValueError) as error:errors.append('收尾源码快照不符：'+str(error))
  if not context.get('passed') or not all(context.get(k) for k in ['checkoutSHA','treeSHA','trackedBytesSHA256']):errors.append('缺少有效事件/源码身份')
  if mode=='host':
+  if not read(work/'schema-result.json').get('passed'):errors.append('Actions schema/作用域门禁缺失或失败')
   suite=out/'suite/public';summary=read(suite/'summary.json');checks=summary.get('checks',[])
   if not summary.get('passed') or len(checks)!=47 or not all(r.get('passed') and r.get('exit')==r.get('expectedExit') for r in checks):errors.append('宿主47项检查未全部通过')
   if not (suite/'source-identities.json').is_file():errors.append('宿主源码身份缺失')

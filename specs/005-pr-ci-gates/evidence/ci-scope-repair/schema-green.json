@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "version": "1.7.12",
+  "platform": "darwin_arm64",
+  "commands": [
+    {
+      "name": "schema-version",
+      "exit": 0,
+      "seconds": 1.479,
+      "passed": true
+    },
+    {
+      "name": "schema-all",
+      "exit": 0,
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "schema-job-env-runner",
+      "exit": 1,
+      "seconds": 0.007,
+      "passed": false,
+      "expectedExit": 1,
+      "acceptedAsNegative": true
+    },
+    {
+      "name": "schema-job-if-steps",
+      "exit": 1,
+      "seconds": 0.006,
+      "passed": false,
+      "expectedExit": 1,
+      "acceptedAsNegative": true
+    }
+  ],
+  "formalArtifactAllowed": false,
+  "archiveSHA256": "aba9ced2dee8d27fecca3dc7feb1a7f9a52caefa1eb46f3271ea66b6e0e6953f",
+  "binarySHA256": "8db11704dc296f096216db4db65d86cd7f0ebfdf4c38453a1da276b137b88388",
+  "workflows": {
+    ".github/workflows/build-libmpv.yml": "7a6e121a449cd32a8536d8277c41835496ffd556347df735b52345551cccda99",
+    ".github/workflows/normal-core.yml": "ee0942fcc27b91075ff6827d657c1938543368c1eed874c73c0ef355e98e563a",
+    ".github/workflows/test-player.yml": "d8d62ab57af9dcd04ce266634334caa5683f3e3d384373c4300293ff9ac07f84"
+  },
+  "configSHA256": "8feb754bde7f8c605dc660239fc8cdbb07dea0fc0dab174b5cfb6a33ec81ad83",
+  "scopeMutations": [
+    {
+      "name": "job-env-runner",
+      "rejectedForExpectedContext": true
+    },
+    {
+      "name": "job-if-steps",
+      "rejectedForExpectedContext": true
+    }
+  ]
+}

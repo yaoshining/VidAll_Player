@@ -27,3 +27,7 @@ normal-core目前只有原集成分支push/manual；其47项宿主门禁有效�
 ## Spec Kit 与宪章
 
 中文、TDD、真实构建与能力边界保持。复用speckit-analyze只读交叉核验；仓库旧prerequisite脚本不支持--require-spec，按支持参数运行后单独验证spec存在。新feature指针只在隔离clone指向005，不改旧004规格/证据。历史受控退出例外不扩展为新的产品行为。
+
+## 真实CI后的最小返修
+
+job.env可用上下文不含runner，原YAML结构测试未覆盖GitHub表达式scope。将CI_OUT初始化移到shell step，不改变目标构建逻辑。增加ci-schema.py及官方归档hash锁，在host contracts阶段跑全工作流解析和两种scope变异；actionlint内置Actions规则完整开启，仅外部ShellCheck/Pyflakes不在本范围。现有deveco标签加入官方config，旧workflow原字节不改。本次只修CI及验证；不重建新核心，不操作设备。

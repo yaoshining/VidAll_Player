@@ -19,3 +19,7 @@ US1：审查PR #82时，CI实际测试GitHub生成的PR merge checkout，而不�
 ## 成功标准
 
 SC01：冻结旧workflow/缺少CI runner时测试明确RED；GREEN拒绝错eventSHA/PR父关系、缺输入、错包、build失败/timeout以及target被skip。SC02：实际host入口与一次真实unsigned HAR目标构建通过，未生成新producer库。SC03：精确提交在clean checkout重放并记录source/tree/event身份，远端结果仅在批准后取得；旧66e9d3 CI不借用到新SHA。
+
+## FR08：工作流解析作用域返修
+
+2026-10-24实际run39995258720在job启动前失败，GitHub明确拒绝job级env使用runner.temp。新增固定官方actionlint1.7.12检查全部工作流的schema与表达式作用域；自托管标签仅显式声明真实deveco，不忽略表达式规则。CI_OUT改在step运行时通过RUNNER_TEMP/GITHUB_ENV初始化。归档必须摘要匹配，两个非法作用域负例须由真实解析器拒绝；缺schema结果也禁止host绿色。原失败与本机HAR记录保留，远端新SHA仍需精确批准。

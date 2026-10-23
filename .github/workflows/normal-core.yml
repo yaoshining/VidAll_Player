@@ -17,8 +17,6 @@ jobs:
     name: 当前组合宿主契约
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    env:
-      CI_OUT: ${{ runner.temp }}/normal-core-host-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: 默认检出事件提交（PR 为 merge SHA）
         uses: actions/checkout@v4
@@ -26,7 +24,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: 初始化失败证据目录
-        run: python3 -B scripts/test/normal-core/ci-evidence.py prepare --out "$CI_OUT"
+        shell: bash
+        run: |
+          set -euo pipefail
+          CI_OUT="$RUNNER_TEMP/normal-core-host-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf '%s\n' "CI_OUT=$CI_OUT" >> "$GITHUB_ENV"
+          python3 -B scripts/test/normal-core/ci-evidence.py prepare --out "$CI_OUT"
       - name: 绑定事件与实际 checkout
         id: context
         run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
@@ -51,6 +54,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 -B scripts/test/normal-core/ci-schema.test.py 2>&1 | tee "$CI_OUT/work/schema-archive-tests.log"
+          python3 -B scripts/test/normal-core/ci-schema.py --out "$CI_OUT" 2>&1 | tee "$CI_OUT/work/schema.log"
           node scripts/test/normal-core/ci-workflow.test.cjs 2>&1 | tee "$CI_OUT/work/workflow.log"
           node scripts/test/normal-core/ci-workflow-mutations.cjs 2>&1 | tee "$CI_OUT/work/workflow-mutations.log"
           python3 -B scripts/test/normal-core/ci-contract.test.py 2>&1 | tee "$CI_OUT/work/contracts.log"
@@ -85,8 +90,6 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, macos, deveco]
     timeout-minutes: 45
-    env:
-      CI_OUT: ${{ runner.temp }}/normal-core-target-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: 默认检出事件提交（不检出 PR head）
         uses: actions/checkout@v4
@@ -94,7 +97,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: 初始化失败证据目录
-        run: python3 -B scripts/test/normal-core/ci-evidence.py prepare --out "$CI_OUT"
+        shell: bash
+        run: |
+          set -euo pipefail
+          CI_OUT="$RUNNER_TEMP/normal-core-target-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf '%s\n' "CI_OUT=$CI_OUT" >> "$GITHUB_ENV"
+          python3 -B scripts/test/normal-core/ci-evidence.py prepare --out "$CI_OUT"
       - name: 绑定事件与实际 checkout
         id: context
         run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"

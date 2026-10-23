@@ -11,3 +11,6 @@
 - [ ] T009（FR07）用户批准后核对PR merge/新head远端CI与artifact身份；远端未运行保持待验。
 
 T007 的 Spec Kit/host 部分已完成；目标HAR及T008精确重放在本候选冻结后记录于外部预览，不能提前勾选。T009严格等待精确SHA授权后的实际远端结果。
+
+- [x] T010（FR08）保留真实GitHub失败、实际actionlint RED，修复job.env作用域并加入全workflow解析/归档和scope负例，缺证拒绝；原T009仍未通过。
+- [ ] T011（FR08）冻结返修精确SHA并clean重放，另行取得推送批准后核对新远端CI。
