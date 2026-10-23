@@ -29,7 +29,7 @@ python3 -B scripts/test/normal-core/run.py --out /tmp/vidall-normal-core-evidenc
 
 宿主 job 运行现有47项检查（包括工具/编译步骤，不等于47测试用例）和新增 CI 契约。self-hosted macos/deveco job 不读取签名，只用 `devecocli build clean` 和 `devecocli build --modules vidall_player@default` 构建当前 bridge/ArkTS，消费已有固定八库，不重建 producer。fork PR 不进入受控 runner，组合结果将明确失败/待受控验证，不能将跳过视为成功。旧 test-player、build-libmpv 工作流职责不变。
 
-`ci-target.py` 先通过官方 devecocli 的实际选择只读探测 Studio，再绑定 `DEVECO_CLI_STUDIO_PATH`；`ci-toolchain-lock.json` 锁定 API24/6.1.1.115 metadata 与实际 clang/nm/readelf 哈希。缺少工具、探测歧义、工具漂移或实际 compile_commands 使用其他 clang/sysroot 均失败，不修改运行器默认 SDK。clean 后遗留 HAR、bridge 或 compile_commands 会失败；本次 HAR 必须有固定八库及本次真实 ARM64 bridge。
+`ci-target.py` 先记录源码和固定八库字节，执行一次 `DEVECO_CLI_DEBUG=1 devecocli build clean`，从实际 ToolProvider 日志选择 Studio，再严格核验并绑定 `DEVECO_CLI_STUDIO_PATH`；`ci-toolchain-lock.json` 锁定 API24/6.1.1.115 metadata 与实际 clang/nm/readelf 哈希。缺少工具、探测歧义、工具漂移或实际 compile_commands 使用其他 clang/sysroot 均失败，不修改运行器默认 SDK。clean 发生在 SDK 身份核验之前，只清隔离工程生成物；文档 catalog 不可作为工具选择证据，缺失/歧义时不继续 build。clean 后遗留 HAR、bridge 或 compile_commands 会失败；本次 HAR 必须有固定八库及本次真实 ARM64 bridge。
 
 `ci-context.py` 和收尾共同核对 HEAD/tree/tracked 字节快照。公开文本索引覆盖 context、完整宿主 runner 输出或目标命令/产物身份；缺记录、步骤失败或源码漂移不能为绿色。失败收集和结果判定分离：非零日志仍可安全上传，但最终 assess 与组合结果失败。仅上传脱敏 UTF-8 JSON/log，不上传 HAR、二进制、SDK、签名或设备原始日志。
 

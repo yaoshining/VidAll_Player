@@ -14,3 +14,6 @@ T007 的 Spec Kit/host 部分已完成；目标HAR及T008精确重放在本候�
 
 - [x] T010（FR08）保留真实GitHub失败、实际actionlint RED，修复job.env作用域并加入全workflow解析/归档和scope负例，缺证拒绝；原T009仍未通过。
 - [ ] T011（FR08）冻结返修精确SHA并clean重放，另行取得推送批准后核对新远端CI。
+
+- [x] T012（FR04/09）保留715d真实CI失败与catalog日志身份；真实execute语义RED、顺序RED、接口RED分别记录；单次clean解析与严格SDK绑定GREEN及29契约通过。
+- [ ] T013（FR09）冻结本次新SHA，完成精确clean/HAR及完整宿主回放，提交精确预览；用户批准后远端CI单独核验（本机SDK成功不代表远端iMac身份已知）。

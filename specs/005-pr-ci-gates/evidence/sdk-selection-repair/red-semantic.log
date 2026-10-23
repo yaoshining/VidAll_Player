@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_real_execute_clean_resolver_semantics (__main__.Contracts.test_real_execute_clean_resolver_semantics)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 218, in test_real_execute_clean_resolver_semantics
+    self.assertTrue(r['passed'],r.get('error'));self.assertEqual([c['name'] for c in r['commands']],['clean','devecocli-version','input-audit','har-build']);self.assertEqual(r['sourceBefore'],r['sourceAfter'])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : devecocli 未给出唯一 Studio 选择；不能猜测 SDK 路径
+
+----------------------------------------------------------------------
+Ran 1 test in 0.506s
+
+FAILED (failures=1)

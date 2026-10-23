@@ -155,4 +155,68 @@ class Contracts(unittest.TestCase):
    self.assertTrue(m.finish(out,steps,'host')['stepsPassed']);self.assertIn('host/index.json',[r['path'] for r in json.loads((out/'public/index.json').read_text())['files']])
    (self.root/'a').write_text('dirty');self.assertFalse(m.finish(out,steps,'host')['stepsPassed']);self.git('checkout','--','a');self.git('commit','--allow-empty','-m','same tree new commit');self.assertFalse(m.finish(out,steps,'host')['stepsPassed'])
 
+ def test_discover_uses_real_clean_output_not_docs_catalog(self):
+  m=module('ci-target');work=self.root/'work';work.mkdir();native,lock=self.sdk();studio=self.root/'Fake.app';actual=studio/'Contents/sdk/default/openharmony/native';actual.parent.mkdir(parents=True);native.rename(actual)
+  rows=[];calls=[]
+  def execute(name,args,root,env,work,rows,timeout):
+   calls.append(args);return '1.3.4\n'
+  clean='[DEBUG] [ToolProvider] /unused/App.app => version 6.0.0\n[DEBUG] [ToolProvider] Using auto → '+str(studio)+' (6.1.1.268)\nClean completed successfully.\n'
+  with patch.object(m,'command',side_effect=execute):child,found=m.discover_sdk(self.root,dict(os.environ),work,rows,lock,clean)
+  self.assertEqual(found,actual.resolve());self.assertEqual(child['DEVECO_CLI_STUDIO_PATH'],str(studio.resolve()));self.assertEqual(calls,[['devecocli','--version']])
+  # 真实CI目录输出既无ToolProvider也无路径，不能作为选择证据。
+  catalog='  harmonyos-guides     开发指南\n  harmonyos-references API参考\n'
+  for text in [catalog,clean+'[DEBUG] [ToolProvider] Using auto → /second/App.app (6.1.1.268)\n']:
+   with patch.object(m,'command',side_effect=execute):
+    with self.assertRaises(ValueError):m.discover_sdk(self.root,dict(os.environ),work,rows,lock,text)
+ def test_clean_then_identity_failure_stops_build(self):
+  m,base,env=self.runner_fixture();child={**env,'TEST_MODE':'fake-success'}
+  for mode in ['missing-selection','wrong-sdk-hash']:
+   with patch.object(m,'discover_sdk',side_effect=ValueError(mode)):r=m.execute(self.root,self.root/('result-'+mode),child)
+   self.assertFalse(r['passed']);self.assertEqual([c['name'] for c in r['commands']],['clean']);self.assertEqual(r['commands'][0]['exit'],0)
+   self.assertEqual(set(r['inputsBefore']),m.NAMES)
+ def test_sdk_explicit_and_multiple_candidates(self):
+  m=module('ci-target')
+  text='[DEBUG] [ToolProvider] /old/App.app => version 6.0.0\n[DEBUG] [ToolProvider] /current/App.app => version 6.1.1.268\n[DEBUG] [ToolProvider] Using auto → /current/App.app (6.1.1.268)'
+  self.assertEqual(m.selected_studio(text)[0],'/current/App.app')
+  self.assertEqual(m.selected_studio('[DEBUG] [ToolProvider] Using DEVECO_CLI_STUDIO_PATH → /chosen/App.app')[0],'/chosen/App.app')
+
+ def test_real_execute_clean_resolver_semantics(self):
+  m,base,env=self.runner_fixture();native,lock=self.sdk();studio=self.root/'Studio.app';actual=studio/'Contents/sdk/default/openharmony/native';actual.parent.mkdir(parents=True);native.rename(actual)
+  helpers=self.root/'helpers';helpers.mkdir()
+  for name in ['ci-context.py','normalize-har.py']:(helpers/name).write_bytes((HERE/name).read_bytes())
+  (helpers/'ci-toolchain-lock.json').write_text(json.dumps(lock));m.HERE=helpers
+  sources=['packages/vidall-player/src/main/cpp/napi_init.cpp','native/runtime/process_runtime.cpp']
+  for name in sources:p=self.root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('source')
+  self.git('add','.');self.git('commit','-m','SDK fixture')
+  output=self.root/'packages/vidall-player/build/default/outputs/default';cc=self.root/'packages/vidall-player/.cxx/default/default/debug/arm64-v8a/compile_commands.json';bridge=self.root/'packages/vidall-player/build/default/intermediates/stripped_native_libs/default/arm64-v8a/libvidall_player_native.so'
+  selection='[DEBUG] [ToolProvider] Using auto → '+str(studio)+' (6.1.1.268)\n'
+  catalog='harmonyos-guides\nharmonyos-references\nbest-practices\nharmonyos-faqs\nharmonyos-releases\nharmonyos-roadmap\n'
+  for mode in ['normal','no-selection','ambiguous','clean-fail','wrong-hash']:
+   calls=[]
+   def execute(name,args,root,child,work,rows,timeout):
+    args=[str(a) for a in args];calls.append(args);code=0;text='OK'
+    if args==['devecocli','docs','catalog']:text=catalog
+    elif args==['devecocli','--version']:text='1.3.4'
+    elif args==['devecocli','build','clean']:
+     text=selection if mode!='no-selection' else catalog
+     if mode=='ambiguous':text+='[DEBUG] [ToolProvider] Using auto → /second/Studio.app (6.1.1.268)\n'
+     if mode=='clean-fail':code=7
+     if mode=='wrong-hash':(actual/'llvm/bin/clang').write_text('drift')
+     for p in [cc,bridge,*output.glob('*.har')]:p.unlink(missing_ok=True)
+    elif args==['devecocli','build','--modules','vidall_player@default']:
+     self.assertEqual(child['DEVECO_CLI_STUDIO_PATH'],str(studio.resolve()))
+     blob=bytearray(64);blob[:6]=b'\x7fELF\x02\x01';blob[18:20]=(183).to_bytes(2,'little');bridge.parent.mkdir(parents=True,exist_ok=True);bridge.write_bytes(blob);output.mkdir(parents=True,exist_ok=True)
+     with tarfile.open(output/'fixture.har','w:gz') as t:
+      for n in sorted(m.NAMES|{'libvidall_player_native.so'}):
+       data=bytes(blob) if n=='libvidall_player_native.so' else (base/n).read_bytes();item=tarfile.TarInfo('package/libs/arm64-v8a/'+n);item.size=len(data);t.addfile(item,io.BytesIO(data))
+     cc.parent.mkdir(parents=True,exist_ok=True);cc.write_text(json.dumps([{'file':str(self.root/n),'arguments':[str(actual/'llvm/bin/clang'),'--sysroot='+str(actual/'sysroot'),'-c',str(self.root/n)]} for n in sources]))
+    (work/(name+'.log')).write_text(text);rows.append({'name':name,'exit':code,'passed':code==0})
+    if code:raise RuntimeError(name+' 失败：'+str(code))
+    return text
+   with patch.object(m,'command',side_effect=execute):r=m.execute(self.root,self.root/('result-'+mode),env)
+   if mode=='normal':
+    self.assertTrue(r['passed'],r.get('error'));self.assertEqual([c['name'] for c in r['commands']],['clean','devecocli-version','input-audit','har-build']);self.assertEqual(r['sourceBefore'],r['sourceAfter'])
+   else:self.assertFalse(r['passed']);self.assertNotIn('har-build',[c['name'] for c in r['commands']])
+   self.assertEqual(calls.count(['devecocli','build','clean']),1);self.assertNotIn(['devecocli','docs','catalog'],calls)
+
 if __name__=='__main__':unittest.main()

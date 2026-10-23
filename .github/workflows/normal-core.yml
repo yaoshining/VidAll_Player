@@ -106,7 +106,7 @@ jobs:
       - name: 绑定事件与实际 checkout
         id: context
         run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
-      - name: 探测并锁定 SDK、clean、构建和核对 HAR
+      - name: 单次 clean 记录工具选择、锁定 SDK 后构建和核对 HAR
         id: target
         shell: bash
         run: |

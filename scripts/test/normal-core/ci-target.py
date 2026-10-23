@@ -39,15 +39,14 @@ def sdk_identity(native,lock):
   rows[name]=expected
  return {'passed':True,'apiVersion':metadata['apiVersion'],'version':metadata['version'],'files':rows}
 
-def discover_sdk(root,env,work,rows,lock):
- probeenv={**env,'DEVECO_CLI_DEBUG':'1','DEVECO_CLI_SKIP_VERSION_CHECK':'1'}
- text=command('toolchain-probe',['devecocli','docs','catalog'],root,probeenv,work,rows,60)
+def discover_sdk(root,env,work,rows,lock,text):
+ # clean 已调用与 build 相同的官方 ToolProvider；目录列表不是工具选择证据。
+ command('devecocli-version',['devecocli','--version'],root,env,work,rows,30)
  studio,version=selected_studio(text);studio=Path(studio).resolve();native=studio/'Contents/sdk/default/openharmony/native'
- identity=sdk_identity(native,lock);identity['selectionVersion']=version
- # Build and probe must use the same official CLI selection, never another auto SDK.
+ identity=sdk_identity(native,lock);identity['selectionVersion']=version;identity['selectionEvidence']='clean.log';identity['cleanBeforeSDKIdentity']=True
+ # 将 clean 实际选择固定给 build，禁止再次自动选择另一 SDK。
  child={**env,'DEVECO_CLI_STUDIO_PATH':str(studio),'LLVM_NM':str(native/'llvm/bin/llvm-nm')}
  (work/'toolchain.json').write_text(json.dumps(identity,ensure_ascii=False,indent=2)+'\n')
- command('devecocli-version',['devecocli','--version'],root,child,work,rows,30)
  return child,native
 
 def input_bytes(base,libraries):
@@ -90,11 +89,13 @@ def execute(root,out,env,timeout=1200):
  work=out/'work';work.mkdir(parents=True,exist_ok=True);rows=[];result={'passed':False,'commands':rows,'formalArtifactAllowed':False}
  try:
   identity=load('ci-context');before_source=identity.snapshot(root);result['sourceBefore']=before_source
-  lock=json.loads((HERE/'ci-toolchain-lock.json').read_text());child,native=discover_sdk(root,env,work,rows,lock)
   base=root/'release/inputs/004-normal-core';manifest=json.loads((base/'manifest.json').read_text());before=input_bytes(base,manifest['libraries'])
   if set(before)!=NAMES:raise ValueError('固定八库集合不符')
+  result['inputsBefore']=before
+  probeenv={**env,'DEVECO_CLI_DEBUG':'1','DEVECO_CLI_SKIP_VERSION_CHECK':'1'}
+  clean=command('clean',['devecocli','build','clean'],root,probeenv,work,rows,timeout)
+  lock=json.loads((HERE/'ci-toolchain-lock.json').read_text());child,native=discover_sdk(root,probeenv,work,rows,lock,clean)
   command('input-audit',[sys.executable,'-B',root/'scripts/audit/normal-core-verify.py'],root,child,work,rows,120)
-  command('clean',['devecocli','build','clean'],root,child,work,rows,timeout)
   output=root/'packages/vidall-player/build/default/outputs/default'
   cc=root/'packages/vidall-player/.cxx/default/default/debug/arm64-v8a/compile_commands.json'
   bridge=root/'packages/vidall-player/build/default/intermediates/stripped_native_libs/default/arm64-v8a/libvidall_player_native.so'

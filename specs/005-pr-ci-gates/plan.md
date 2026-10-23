@@ -4,7 +4,7 @@
 
 normal-core目前只有原集成分支push/manual；其47项宿主门禁有效，但没有事件/merge身份记录。test-player现有HAR/Hypium职责保留，签名探测不引入新门禁。build-libmpv被skip的旧源码构建依赖旧native/config/sources.lock，不能用它重建或证明当前release/inputs/004-normal-core固定输入。本轮新增专门normal-core unsigned HAR目标门禁，不改变上述旧workflow。
 
-使用deveco-cli skill的 `devecocli build clean`、`devecocli build --modules vidall_player@default`。目标工具链由 `DEVECO_CLI_DEBUG=1 devecocli docs catalog` 只读探测官方实际 Studio 选择，再以 `DEVECO_CLI_STUDIO_PATH` 固定同一目录用于 clean/build。精确锁定 API24 / 6.1.1.115 metadata 和 clang/nm/readelf 字节；与既有004目标输入使用的本机 DevEco 6.1.1.268 配套，版本号本身不替代 hash。拒绝探测错误/歧义和工具漂移，编译命令还须绑定同一 clang/sysroot。远端工具不同将明确失败；不新增未配置必填变量、不使用本机路径默认、不调整运行器配置。原始目标输出仅本地/runner保留，上传仅身份与脱敏日志。
+使用deveco-cli skill的 `devecocli build clean`、`devecocli build --modules vidall_player@default`。先保存干净源码及固定八库字节快照，再执行一次 `DEVECO_CLI_DEBUG=1 devecocli build clean`，从真实 ToolProvider 日志读取实际 Studio 选择，严格核验 SDK 后以 `DEVECO_CLI_STUDIO_PATH` 固定同一目录用于 build。clean 在 SDK 身份核验前执行，仅清理隔离工程生成物；不是只读探测，也不额外执行第二次 clean。精确锁定 API24 / 6.1.1.115 metadata 和 clang/nm/readelf 字节；与既有004目标输入使用的本机 DevEco 6.1.1.268 配套，版本号本身不替代 hash。拒绝探测错误/歧义和工具漂移，编译命令还须绑定同一 clang/sysroot。远端工具不同将明确失败；不新增未配置必填变量、不使用本机路径默认、不调整运行器配置。原始目标输出仅本地/runner保留，上传仅身份与脱敏日志。
 
 ## 最小实现边界
 
@@ -31,3 +31,7 @@ normal-core目前只有原集成分支push/manual；其47项宿主门禁有效�
 ## 真实CI后的最小返修
 
 job.env可用上下文不含runner，原YAML结构测试未覆盖GitHub表达式scope。将CI_OUT初始化移到shell step，不改变目标构建逻辑。增加ci-schema.py及官方归档hash锁，在host contracts阶段跑全工作流解析和两种scope变异；actionlint内置Actions规则完整开启，仅外部ShellCheck/Pyflakes不在本范围。现有deveco标签加入官方config，旧workflow原字节不改。本次只修CI及验证；不重建新核心，不操作设备。
+
+## SDK 选择证据返修
+
+1.3.4 官方 CLI 的 clean/build 均调用同一 ToolProvider；docs catalog 不触发 resolver。回归保留该真实输出，先复现旧 execute 错误，再通过同一 execute/discover/sdk/HAR/编译命令/源码快照链验证一次 clean 后构建。测试夹具仅模拟外部命令输出与产物，不充当真实目标构建。无选择/多选择/clean 非零/SDK 错 hash 均停止 build，原缺 SDK/元数据/API/工具检查保留。真实本机 clean/HAR 及精确提交回放绑定在外部预览；远端 iMac SDK 仍未知，不升级/调整系统以迁就门禁。
