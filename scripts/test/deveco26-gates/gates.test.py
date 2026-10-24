@@ -13,7 +13,7 @@ class Gates(unittest.TestCase):
    old=load(HERE.parent/'normal-core/ci-evidence.py');self.verdict=lambda n,s:old.verdict(n)
   else:self.m=load(HERE/'gates.py');self.verdict=self.m.verdict
  def good(self):
-  summary={'passed':True,'targetPassed':True,'consumerPassed':True,'cleanupPassed':True,'apiNegativePassed':True,'sourceDownloadPassed':True,'source':IDENTITY}
+  summary={'passed':True,'targetPassed':True,'consumerPassed':True,'cleanupPassed':True,'apiNegativePassed':True,'sourceDownloadPassed':True,'hypiumPassed':True,'source':IDENTITY}
   return {'host-contracts':{'result':'success','outputs':{'source':json.dumps(IDENTITY)}},'target-har':{'result':'success','outputs':{'summary':json.dumps(summary)}}}
  def test_missing_consumer_evidence_rejected(self):self.assertFalse(self.verdict({'host-contracts':{'result':'success'},'target-har':{'result':'success'}},S))
  def test_complete(self):self.assertTrue(self.verdict(self.good(),S))
@@ -25,8 +25,10 @@ class Gates(unittest.TestCase):
   self.assertFalse(self.verdict(self.good(),'d'*40))
   n=self.good();s=json.loads(n['target-har']['outputs']['summary']);s['source']['treeSHA']='e'*40;n['target-har']['outputs']['summary']=json.dumps(s);self.assertFalse(self.verdict(n,S))
  def test_consumer_or_cleanup_false(self):
-  for key in ['consumerPassed','targetPassed','cleanupPassed','apiNegativePassed','sourceDownloadPassed','passed']:
+  for key in ['consumerPassed','targetPassed','cleanupPassed','apiNegativePassed','sourceDownloadPassed','hypiumPassed','passed']:
    n=self.good();s=json.loads(n['target-har']['outputs']['summary']);s[key]=False;n['target-har']['outputs']['summary']=json.dumps(s);self.assertFalse(self.verdict(n,S))
+ def test_missing_hypium_rejected(self):
+  n=self.good();s=json.loads(n['target-har']['outputs']['summary']);s.pop('hypiumPassed');n['target-har']['outputs']['summary']=json.dumps(s);self.assertFalse(self.verdict(n,S))
  def test_missing_source_download_flag_rejected(self):
   n=self.good();s=json.loads(n['target-har']['outputs']['summary']);s.pop('sourceDownloadPassed');n['target-har']['outputs']['summary']=json.dumps(s);self.assertFalse(self.verdict(n,S))
  def test_finish_requires_source_download_proof(self):
@@ -36,9 +38,9 @@ class Gates(unittest.TestCase):
    out=Path(temp);work=out/'work';work.mkdir()
    artifacts={'harSHA256':'f'*64,'libraries':{'fixed':'hash'}}
    common={'passed':True,'sourceBefore':IDENTITY,'sourceAfter':IDENTITY}
-   records={'context.json':{**IDENTITY,'passed':True},'evaluation-result.json':{**common,'artifact':artifacts},'consumer-result.json':{**common,'inputHAR':'f'*64,'libraries':artifacts['libraries'],'artifact':{'passed':True},'cleanup':{'passed':True}},'consumer-negative-result.json':{**common,'specificArkTSDiagnostic':True,'cleanup':{'passed':True}},'cleanup-result.json':{'passed':True}}
+   records={'context.json':{**IDENTITY,'passed':True},'evaluation-result.json':{**common,'artifact':artifacts},'consumer-result.json':{**common,'inputHAR':'f'*64,'libraries':artifacts['libraries'],'artifact':{'passed':True},'cleanup':{'passed':True}},'consumer-negative-result.json':{**common,'specificArkTSDiagnostic':True,'cleanup':{'passed':True}},'hypium-result.json':{**common,'inputHAR':'f'*64,'compiled':True,'signed':False,'executed':False,'cleanup':{'passed':True},'suiteNames':sorted(self.m.HYP.SUITES),'dependency':{'passed':True},'artifact':{'passed':True},'buildExit':0},'cleanup-result.json':{'passed':True}}
    for n,d in records.items():(work/n).write_text(json.dumps(d))
-   steps={k:{'outcome':'success'} for k in ['context','trust','bootstrap','runtime','target','api_negative','consumer','cleanup']}
+   steps={k:{'outcome':'success'} for k in ['context','trust','bootstrap','runtime','target','api_negative','consumer','hypium','cleanup']}
    with patch.object(self.m.E.CONTEXT,'assert_snapshot',return_value=IDENTITY),patch.object(self.m.E,'publish',return_value={'passed':True}),patch.object(self.m,'output',lambda *a:None):
     for mode in ['missing','cleanup-false','old-lock','old-source','mock','positive']:
      path=work/'release-source-result.json'
@@ -50,6 +52,16 @@ class Gates(unittest.TestCase):
      elif mode=='mock':candidate['transportMode']='injected-test-transport'
      if mode!='missing':path.write_text(json.dumps(candidate))
      with self.subTest(mode=mode):self.assertEqual(self.m.finish(out,steps)['passed'],mode=='positive')
+ def test_host_missing_or_old_producer_evidence(self):
+  with tempfile.TemporaryDirectory() as d:
+   out=Path(d);work=out/'work';work.mkdir();native={'passed':True,'sourceBefore':IDENTITY,'sourceAfter':IDENTITY,'ctestNames':sorted(self.m.HOST.EXPECTED),'ctestPassed':14,'diagnosticsJS':['diagnostics-session','diagnostics-device']};producer={'passed':True,'sourceBefore':IDENTITY,'sourceAfter':IDENTITY,'files':self.m.PRODUCER.load_lock()['files'],'producerLatestNormalFullCloudRebuildVerified':False}
+   (work/'legacy-native-result.json').write_text(json.dumps(native));self.assertFalse(self.m.host_proof(out,IDENTITY))
+   for mode in ['pass','missing-source','wrong-files','false']:
+    r=copy.deepcopy(producer)
+    if mode=='missing-source':r.pop('sourceAfter')
+    if mode=='wrong-files':r['files']={}
+    if mode=='false':r['passed']=False
+    (work/'producer-input-result.json').write_text(json.dumps(r));self.assertEqual(self.m.host_proof(out,IDENTITY),mode=='pass')
  def test_trust_exact_event_and_fork(self):
   c={**IDENTITY,'eventSHA':S,'event':'pull_request','passed':True,'trustedTarget':True,'repository':'yaoshining/VidAll_Player','headRepository':'yaoshining/VidAll_Player'}
   self.assertTrue(self.m.trusted(c,S));self.assertFalse(self.m.trusted(c,''));self.assertFalse(self.m.trusted(c,'d'*40))

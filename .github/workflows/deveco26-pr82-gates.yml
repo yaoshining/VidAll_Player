@@ -1,4 +1,4 @@
-name: DevEco26 PR组合门禁（独立profile）
+name: Player 云端默认构建门禁（DevEco26）
 
 on:
   pull_request:
@@ -47,7 +47,7 @@ jobs:
           set -euo pipefail
           {
             sudo apt-get update
-            sudo apt-get install -y clang llvm
+            sudo apt-get install -y clang llvm cmake
             npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
           } 2>&1 | tee "$CI_OUT/work/dependencies.log"
       - name: CI 事件、失败路径与工作流回归
@@ -55,6 +55,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 -B scripts/test/cloud-build/host.test.py 2>&1 | tee "$CI_OUT/work/legacy-host-tests.log"
+          python3 -B scripts/test/cloud-build/producer-input.test.py 2>&1 | tee "$CI_OUT/work/producer-input-tests.log"
+          python3 -B scripts/test/cloud-build/hypium.test.py 2>&1 | tee "$CI_OUT/work/hypium-tests.log"
+          node scripts/test/cloud-build/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/cloud-workflow-tests.log"
           python3 -B scripts/test/deveco26/release-source.test.py 2>&1 | tee "$CI_OUT/work/release-source-tests.log"
           python3 -B scripts/test/deveco26-gates/gates.test.py 2>&1 | tee "$CI_OUT/work/gates-tests.log"
           python3 -B scripts/test/deveco26-gates/consumer.test.py 2>&1 | tee "$CI_OUT/work/consumer-tests.log"
@@ -64,6 +68,12 @@ jobs:
           node scripts/test/normal-core/ci-workflow.test.cjs 2>&1 | tee "$CI_OUT/work/workflow.log"
           node scripts/test/normal-core/ci-workflow-mutations.cjs 2>&1 | tee "$CI_OUT/work/workflow-mutations.log"
           python3 -B scripts/test/normal-core/ci-contract.test.py 2>&1 | tee "$CI_OUT/work/contracts.log"
+      - name: 旧独有14项CTest与2项诊断JS不得丢失
+        id: native_legacy
+        run: python3 -B scripts/test/cloud-build/host.py --out "$CI_OUT"
+      - name: 锁定当前producer核心交付
+        id: producer_input
+        run: python3 -B scripts/test/cloud-build/producer-input.py --out "$CI_OUT"
       - name: 全量宿主真实函数与负例门禁
         id: host
         env:
@@ -153,6 +163,13 @@ jobs:
         id: consumer
         run: |
           python3 -B scripts/test/deveco26-gates/consumer.py --out "$CI_OUT" \
+            --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
+            --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
+            --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"
+      - name: 完整九套Hypium无签名实际编译（不执行）
+        id: hypium
+        run: |
+          python3 -B scripts/test/cloud-build/hypium.py --out "$CI_OUT" \
             --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
             --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
             --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"

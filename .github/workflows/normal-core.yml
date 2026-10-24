@@ -1,12 +1,6 @@
-name: 正常核心组合门禁
+name: 历史正常核心宿主契约（手动，无目标构建）
 
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main, codex/004-normal-core-integration, codex/docs-pr4-speckit-closeout]
-  merge_group:
-    types: [checks_requested]
   workflow_dispatch:
 
 permissions:
@@ -84,62 +78,3 @@ jobs:
       - name: 缺失或失败证据禁止绿色
         if: always()
         run: python3 -B scripts/test/normal-core/ci-evidence.py assess --out "$CI_OUT"
-
-  target-har:
-    name: 当前固定八库 unsigned HAR
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, macos, deveco]
-    timeout-minutes: 45
-    steps:
-      - name: 默认检出事件提交（不检出 PR head）
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: 初始化失败证据目录
-        shell: bash
-        run: |
-          set -euo pipefail
-          CI_OUT="$RUNNER_TEMP/normal-core-target-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          printf '%s\n' "CI_OUT=$CI_OUT" >> "$GITHUB_ENV"
-          python3 -B scripts/test/normal-core/ci-evidence.py prepare --out "$CI_OUT"
-      - name: 绑定事件与实际 checkout
-        id: context
-        run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
-      - name: 单次 clean 记录工具选择、锁定 SDK 后构建和核对 HAR
-        id: target
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -B scripts/test/normal-core/ci-target.py --out "$CI_OUT" 2>&1 | tee "$CI_OUT/work/target.log"
-      - name: 收集失败记录并核对公开边界
-        id: public_gate
-        if: always()
-        env:
-          CI_STEPS: ${{ toJSON(steps) }}
-        run: python3 -B scripts/test/normal-core/ci-evidence.py finish --out "$CI_OUT" --mode target
-      - name: 保存目标文本证据（不上传目标二进制）
-        if: always() && steps.public_gate.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: normal-core-target-${{ github.sha }}-${{ github.run_attempt }}
-          path: ${{ env.CI_OUT }}/public/
-          if-no-files-found: error
-          retention-days: 14
-      - name: 缺失或失败证据禁止绿色
-        if: always()
-        run: python3 -B scripts/test/normal-core/ci-evidence.py assess --out "$CI_OUT"
-
-  normal-core-result:
-    name: 正常核心必需组合结果
-    if: always()
-    needs: [host-contracts, target-har]
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: host 与 target 均成功才通过（fork 待受控运行）
-        env:
-          CI_NEEDS: ${{ toJSON(needs) }}
-        run: python3 -B scripts/test/normal-core/ci-evidence.py verdict

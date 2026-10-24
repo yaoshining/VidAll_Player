@@ -36,7 +36,7 @@ def run(root,out,archive=None):
   command('all',[*args,*files]);result['workflows']={str(p.relative_to(root)):digest(p) for p in files};result['configSHA256']=digest(config)
   # 外部ShellCheck/Pyflakes不在本门禁范围；Actions schema/表达式规则没有忽略项。
   original=(root/'.github/workflows/normal-core.yml').read_text()
-  mutants={'job-env-runner':(original.replace('    timeout-minutes: 15\n','    timeout-minutes: 15\n    env:\n      CONTEXT_NEGATIVE: ${{ runner.temp }}\n',1),'runner'), 'job-if-steps':(original.replace("    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository", "    if: steps.missing.outcome == 'success'",1),'steps')}
+  mutants={'job-env-runner':(original.replace('    timeout-minutes: 15\n','    timeout-minutes: 15\n    env:\n      CONTEXT_NEGATIVE: ${{ runner.temp }}\n',1),'runner'), 'job-if-steps':(original.replace("    runs-on: ubuntu-24.04\n", "    runs-on: ubuntu-24.04\n    if: steps.missing.outcome == 'success'\n",1),'steps')}
   checks=[]
   for name,(text,context) in mutants.items():
    if text==original:raise ValueError('作用域变异未生效')

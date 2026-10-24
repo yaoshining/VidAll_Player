@@ -5,6 +5,9 @@ from pathlib import Path
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[2]
 s=importlib.util.spec_from_file_location('evaluate007',HERE.parent/'deveco26/evaluate.py');E=importlib.util.module_from_spec(s);s.loader.exec_module(E)
 s=importlib.util.spec_from_file_location('release009',HERE.parent/'deveco26/release-source.py');RELEASE=importlib.util.module_from_spec(s);s.loader.exec_module(RELEASE)
+def load_cloud(name):
+ s=importlib.util.spec_from_file_location('cloud010'+name,HERE.parent/'cloud-build'/(name+'.py'));m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+HYP=load_cloud('hypium');HOST=load_cloud('host');PRODUCER=load_cloud('producer-input')
 def identity(data):
  return isinstance(data,dict) and set(data)=={'checkoutSHA','treeSHA','trackedBytesSHA256'} and all(isinstance(data.get(k),str) and re.fullmatch('[0-9a-f]{'+str(n)+'}',data[k]) for k,n in [('checkoutSHA',40),('treeSHA',40),('trackedBytesSHA256',64)])
 def trusted(context,approved):
@@ -14,7 +17,7 @@ def verdict(needs,expected):
  try:
   if set(needs)!={'host-contracts','target-har'} or any(v.get('result')!='success' for v in needs.values()):return False
   source=json.loads(needs['host-contracts']['outputs']['source']);summary=json.loads(needs['target-har']['outputs']['summary'])
-  return identity(source) and source['checkoutSHA']==expected and summary.get('source')==source and all(summary.get(k) is True for k in ['passed','targetPassed','consumerPassed','cleanupPassed','apiNegativePassed','sourceDownloadPassed'])
+  return identity(source) and source['checkoutSHA']==expected and summary.get('source')==source and all(summary.get(k) is True for k in ['passed','targetPassed','consumerPassed','cleanupPassed','apiNegativePassed','sourceDownloadPassed','hypiumPassed'])
  except (KeyError,TypeError,ValueError):return False
 
 def output(key,value):
@@ -37,12 +40,19 @@ def finish(out,steps):
  try:
   release_lock,archive_lock=RELEASE.load_inputs();source_ok=RELEASE.proof_valid(read('release-source-result.json'),source,release_lock,archive_lock)
  except (OSError,ValueError,TypeError,KeyError):pass
- required=['context','trust','bootstrap','runtime','target','api_negative','consumer','cleanup'];steps_ok=all(steps.get(k,{}).get('outcome')=='success' for k in required)
- summary={'passed':valid and target_ok and consumer_ok and cleanup_ok and negative_ok and steps_ok and source_ok,'sourceDownloadPassed':source_ok,'targetPassed':target_ok,'consumerPassed':consumer_ok,'cleanupPassed':cleanup_ok,'apiNegativePassed':negative_ok,'source':source,'formalArtifactAllowed':False}
+ hypium_ok=HYP.proof(read('hypium-result.json'),source,target.get('artifact',{}).get('harSHA256'))
+ required=['context','trust','bootstrap','runtime','target','api_negative','consumer','hypium','cleanup'];steps_ok=all(steps.get(k,{}).get('outcome')=='success' for k in required)
+ summary={'passed':valid and target_ok and consumer_ok and cleanup_ok and negative_ok and steps_ok and source_ok and hypium_ok,'hypiumPassed':hypium_ok,'sourceDownloadPassed':source_ok,'targetPassed':target_ok,'consumerPassed':consumer_ok,'cleanupPassed':cleanup_ok,'apiNegativePassed':negative_ok,'source':source,'formalArtifactAllowed':False}
  (work/'gate-summary.json').write_text(json.dumps(summary,indent=2)+'\n');status=E.publish(ROOT,out,summary['passed'])
  if not status['passed'] and summary['passed']:
   summary['passed']=False;(work/'gate-summary.json').write_text(json.dumps(summary,indent=2)+'\n');E.publish(ROOT,out,False)
  output('summary',summary);return summary
+
+def host_proof(out,source):
+ try:
+  read=lambda n:json.loads((out/'work'/n).read_text())
+  return HOST.proof(read('legacy-native-result.json'),source) and PRODUCER.proof(read('producer-input-result.json'),source)
+ except (OSError,ValueError,TypeError,KeyError):return False
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('mode',choices=['trust','host-output','finish','assess','verdict']);p.add_argument('--out',type=Path);a=p.parse_args()
@@ -52,6 +62,6 @@ def main():
  context=json.loads((a.out/'work/context.json').read_text());source={k:context[k] for k in ['checkoutSHA','treeSHA','trackedBytesSHA256']};E.CONTEXT.assert_snapshot(ROOT,source)
  if a.mode=='trust':
   good=trusted(context,os.environ.get('DEVECO26_APPROVED_EVENT_SHA',''));(a.out/'work/trust.json').write_text(json.dumps({'passed':good,'approvedSHA':os.environ.get('DEVECO26_APPROVED_EVENT_SHA',''),'eventSHA':context.get('eventSHA'),'formalArtifactAllowed':False})+'\n');return 0 if good else 1
- if not json.loads((a.out/'public/ci-status.json').read_text()).get('stepsPassed'):return 1
+ if not json.loads((a.out/'public/ci-status.json').read_text()).get('stepsPassed') or not host_proof(a.out,source):return 1
  output('source',source);return 0
 if __name__=='__main__':raise SystemExit(main())

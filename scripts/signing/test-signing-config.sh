@@ -64,15 +64,11 @@ fi
 
 echo '签名环境配置测试通过'
 
-# CI 必须选择 ci product；当前暂时使用与开发环境等价的独立材料副本。
+# 自动构建不再扫描宿主签名材料；Hypium由隔离云端unsigned工程编译。
 workflow="$PROJECT_ROOT/.github/workflows/test-player.yml"
-for expected in \
-  'devecocli build --product ci --modules entry@ohosTest'; do
-  if ! grep -Fq "$expected" "$workflow"; then
-    echo "测试失败：CI 工作流缺少 $expected" >&2
-    exit 1
-  fi
-done
+grep -Fq 'cloud-build/host.py' "$workflow" || { echo '缺少宿主继任检查' >&2; exit 1; }
+! grep -Eq 'signing_ready|check_signing|.ohos/config' "$workflow" || { echo 'CI不应自动读取签名材料' >&2; exit 1; }
+grep -Fq 'cloud-build/hypium.py' "$PROJECT_ROOT/.github/workflows/deveco26-pr82-gates.yml" || { echo '缺少unsigned Hypium编译' >&2; exit 1; }
 
 # 签名脚本或说明变更必须触发 CI，避免仅靠人工发现配置回归。
 for expected in "'scripts/signing/**'" "'signing/README.md'"; do
