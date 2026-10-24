@@ -55,6 +55,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 -B scripts/test/deveco26/release-source.test.py 2>&1 | tee "$CI_OUT/work/release-source-tests.log"
           python3 -B scripts/test/deveco26-gates/gates.test.py 2>&1 | tee "$CI_OUT/work/gates-tests.log"
           python3 -B scripts/test/deveco26-gates/consumer.test.py 2>&1 | tee "$CI_OUT/work/consumer-tests.log"
           node scripts/test/deveco26-gates/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/new-workflow-tests.log"
@@ -121,11 +122,11 @@ jobs:
         env:
           DEVECO26_APPROVED_EVENT_SHA: ${{ vars.DEVECO26_APPROVED_EVENT_SHA }}
         run: python3 -B scripts/test/deveco26-gates/gates.py trust --out "$CI_OUT"
-      - name: 准备精确官方归档与CLI
+      - name: 读取固定私有Release原包并准备锁定CLI
         id: bootstrap
         env:
-          DEVECO26_ARCHIVE_URL: ${{ secrets.DEVECO26_ARCHIVE_URL }}
-        run: python3 -B scripts/test/deveco26/bootstrap.py prepare --out "$CI_OUT"
+          DEVECO26_RELEASE_READ_TOKEN: ${{ secrets.DEVECO26_RELEASE_READ_TOKEN }}
+        run: python3 -B scripts/test/deveco26/release-source.py --out "$CI_OUT"
       - name: 实际SDK的CMake与头文件回归
         id: runtime
         shell: bash

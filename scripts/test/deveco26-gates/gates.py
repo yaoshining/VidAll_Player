@@ -4,6 +4,7 @@ import argparse,importlib.util,json,os,re,sys
 from pathlib import Path
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[2]
 s=importlib.util.spec_from_file_location('evaluate007',HERE.parent/'deveco26/evaluate.py');E=importlib.util.module_from_spec(s);s.loader.exec_module(E)
+s=importlib.util.spec_from_file_location('release009',HERE.parent/'deveco26/release-source.py');RELEASE=importlib.util.module_from_spec(s);s.loader.exec_module(RELEASE)
 def identity(data):
  return isinstance(data,dict) and set(data)=={'checkoutSHA','treeSHA','trackedBytesSHA256'} and all(isinstance(data.get(k),str) and re.fullmatch('[0-9a-f]{'+str(n)+'}',data[k]) for k,n in [('checkoutSHA',40),('treeSHA',40),('trackedBytesSHA256',64)])
 def trusted(context,approved):
@@ -13,7 +14,7 @@ def verdict(needs,expected):
  try:
   if set(needs)!={'host-contracts','target-har'} or any(v.get('result')!='success' for v in needs.values()):return False
   source=json.loads(needs['host-contracts']['outputs']['source']);summary=json.loads(needs['target-har']['outputs']['summary'])
-  return identity(source) and source['checkoutSHA']==expected and summary.get('source')==source and all(summary.get(k) is True for k in ['passed','targetPassed','consumerPassed','cleanupPassed','apiNegativePassed'])
+  return identity(source) and source['checkoutSHA']==expected and summary.get('source')==source and all(summary.get(k) is True for k in ['passed','targetPassed','consumerPassed','cleanupPassed','apiNegativePassed','sourceDownloadPassed'])
  except (KeyError,TypeError,ValueError):return False
 
 def output(key,value):
@@ -32,8 +33,12 @@ def finish(out,steps):
  consumer_ok=consumer.get('passed') is True and consumer.get('sourceBefore')==source==consumer.get('sourceAfter') and consumer.get('inputHAR')==target.get('artifact',{}).get('harSHA256') and consumer.get('libraries')==target.get('artifact',{}).get('libraries') and consumer.get('artifact',{}).get('passed') is True
  cleanup_ok=consumer.get('cleanup',{}).get('passed') is True and read('cleanup-result.json').get('passed') is True
  negative_ok=negative.get('passed') is True and negative.get('specificArkTSDiagnostic') is True and negative.get('cleanup',{}).get('passed') is True and negative.get('sourceBefore')==source==negative.get('sourceAfter')
+ source_ok=False
+ try:
+  release_lock,archive_lock=RELEASE.load_inputs();source_ok=RELEASE.proof_valid(read('release-source-result.json'),source,release_lock,archive_lock)
+ except (OSError,ValueError,TypeError,KeyError):pass
  required=['context','trust','bootstrap','runtime','target','api_negative','consumer','cleanup'];steps_ok=all(steps.get(k,{}).get('outcome')=='success' for k in required)
- summary={'passed':valid and target_ok and consumer_ok and cleanup_ok and negative_ok and steps_ok,'targetPassed':target_ok,'consumerPassed':consumer_ok,'cleanupPassed':cleanup_ok,'apiNegativePassed':negative_ok,'source':source,'formalArtifactAllowed':False}
+ summary={'passed':valid and target_ok and consumer_ok and cleanup_ok and negative_ok and steps_ok and source_ok,'sourceDownloadPassed':source_ok,'targetPassed':target_ok,'consumerPassed':consumer_ok,'cleanupPassed':cleanup_ok,'apiNegativePassed':negative_ok,'source':source,'formalArtifactAllowed':False}
  (work/'gate-summary.json').write_text(json.dumps(summary,indent=2)+'\n');status=E.publish(ROOT,out,summary['passed'])
  if not status['passed'] and summary['passed']:
   summary['passed']=False;(work/'gate-summary.json').write_text(json.dumps(summary,indent=2)+'\n');E.publish(ROOT,out,False)
