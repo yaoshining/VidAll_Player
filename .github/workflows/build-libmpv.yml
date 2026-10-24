@@ -9,6 +9,9 @@ on:
       - '.github/workflows/build-libmpv.yml'
       - 'release/inputs/004-normal-core/**'
       - 'scripts/test/cloud-build/**'
+      - 'scripts/test/normal-core/package.json'
+      - 'scripts/test/normal-core/package-lock.json'
+      - 'specs/010-cloud-build-device-execution/history/**'
   push:
     branches: [main]
     paths:
@@ -18,6 +21,9 @@ on:
       - '.github/workflows/build-libmpv.yml'
       - 'release/inputs/004-normal-core/**'
       - 'scripts/test/cloud-build/**'
+      - 'scripts/test/normal-core/package.json'
+      - 'scripts/test/normal-core/package-lock.json'
+      - 'specs/010-cloud-build-device-execution/history/**'
   workflow_dispatch:
 
 permissions:
@@ -31,6 +37,12 @@ jobs:
     steps:
       - name: 检出项目
         uses: actions/checkout@v4
+      - name: 配置云端契约解析工具
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 安装已有锁定的YAML契约依赖
+        run: npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
       - name: 锁定当前producer交付，未来核心更新须独立目标证据
         run: python3 -B scripts/test/cloud-build/producer-input.py --out "$RUNNER_TEMP/producer-input"
       - name: 验证能力证据门禁
@@ -49,6 +61,7 @@ jobs:
           python3 native/tests/finalize-ohcodec-prefix.test.py
           python3 native/tests/check-ohcodec-runtime.test.py
           bash native/tests/libmpv-packaging.test.sh
+          node native/tests/cloud-source-workflow.test.cjs
 
   clean-environment:
     name: 清洁环境元数据验证 (${{ matrix.os }})
@@ -82,4 +95,4 @@ jobs:
           path: ${{ runner.temp }}/libmpv-release-audit
           if-no-files-found: error
       - name: 说明交叉构建门禁
-        run: echo '实际 OpenHarmony 交叉编译仅在包含锁定 SDK 的受控发布环境执行；该 CI 验证所有可移植的锁定、审计及制品生成契约。'
+        run: echo '源码生产职责已转交ohos_ijkplayer；本任务保留锁定、来源、许可证及双平台元数据契约，不冒称最新normal核心完整目标重建通过。'

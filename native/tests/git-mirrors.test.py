@@ -1,4 +1,4 @@
-"""验证 CI Git 镜像映射，使用 Git 自身解析 URL，不连接网络。"""
+"""验证历史生产配方的 Git 镜像映射；使用 Git 自身解析 URL，不连接网络。"""
 import os
 from pathlib import Path
 import re
@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 class MirrorsTest(unittest.TestCase):
     def setUp(self):
-        workflow = (Path(__file__).parents[2]/'.github/workflows/build-libmpv.yml').read_text()
+        workflow = (Path(__file__).parents[2]/'specs/010-cloud-build-device-execution/history/build-libmpv.pre-cloud.yml').read_text()
         job = workflow.split('  build-libmpv-external-ffmpeg:', 1)[1].split('    steps:', 1)[0]
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

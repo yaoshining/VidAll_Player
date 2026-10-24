@@ -220,7 +220,8 @@ PY
   grep -Fq -- '-Dopensles=disabled' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch" || fail 'mpv 补丁必须基于锁定上游脚本并保留 OpenSLES 配置'
   grep -Fq -- '-Dmanpage-build=disabled' "$PROJECT_ROOT/native/patches/libmpv-ohos-build/0004-mpv-meson-wipe-reconfigure.patch" || fail 'mpv 补丁必须保留锁定上游的构建末尾配置'
 
-  python3 - "$PROJECT_ROOT/.github/workflows/build-libmpv.yml" <<'PY'
+  # 历史生产职责已退役；原精确工具/闭包/镜像断言继续核封存配方。
+  python3 - "$PROJECT_ROOT/specs/010-cloud-build-device-execution/history/build-libmpv.pre-cloud.yml" <<'PY'
 from pathlib import Path
 import sys
 
