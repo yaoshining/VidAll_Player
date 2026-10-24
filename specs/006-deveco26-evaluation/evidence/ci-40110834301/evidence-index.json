@@ -1,0 +1,135 @@
+{
+  "sourceCommit": "610dd1f6e83fa844a7096de20ce591b72e48e9da",
+  "originalArtifactDigest": "sha256:01bf591e8dec7cc14c80e0a13c70c8d55e19c5feaba21d7333356455c751e179",
+  "originalArtifactIndexedFiles": 33,
+  "selectedEvidenceNotFullArtifact": true,
+  "files": [
+    {
+      "path": "bootstrap-result.json",
+      "source": "GitHub artifact bootstrap-result.json",
+      "bytes": 1092,
+      "sha256": "66c0f6e897b21af7878d5d15a40caa5cd77653c29ef412c64b9c6466d597eaec",
+      "unchanged": true
+    },
+    {
+      "path": "context.json",
+      "source": "GitHub artifact context.json",
+      "bytes": 527,
+      "sha256": "c7745ffd7f643362afb66f6084ea17360a3f89822de95364ba6a84dfe4c4d68d",
+      "unchanged": true
+    },
+    {
+      "path": "evaluation-result.json",
+      "source": "GitHub artifact evaluation-result.json",
+      "bytes": 22725,
+      "sha256": "b03efaaff9c0de985bfeb0c9c8cd5f7de70f18822abc69971a65f85652885168",
+      "unchanged": true
+    },
+    {
+      "path": "evaluation-status.json",
+      "source": "GitHub artifact evaluation-status.json",
+      "bytes": 78,
+      "sha256": "80e66ee8d5341604326b0c73468f4210ef08b86a2d7333f915b8ed770e841f3c",
+      "unchanged": true
+    },
+    {
+      "path": "cleanup-result.json",
+      "source": "GitHub artifact cleanup-result.json",
+      "bytes": 153,
+      "sha256": "f22901fe68329db7b7850315436b74a0145363b4833fe93083fdd0d25aed5e72",
+      "unchanged": true
+    },
+    {
+      "path": "contracts.log",
+      "source": "GitHub artifact contracts.log",
+      "bytes": 140,
+      "sha256": "201a268a58888f87321bfef387a099adfbc27dba21873532f3f21a83e31c739b",
+      "unchanged": true
+    },
+    {
+      "path": "bootstrap-tests.log",
+      "source": "GitHub artifact bootstrap-tests.log",
+      "bytes": 373,
+      "sha256": "06e7ba33d3527f73d85cc62d381161702570c1273cf19a99369ded8e6637e89a",
+      "unchanged": true
+    },
+    {
+      "path": "runtime-tests.log",
+      "source": "GitHub artifact runtime-tests.log",
+      "bytes": 104,
+      "sha256": "72e9a921e17eba08525244ec168847a408ebbf4a6b5b5f8f0dead996616318eb",
+      "unchanged": true
+    },
+    {
+      "path": "workflow-tests.log",
+      "source": "GitHub artifact workflow-tests.log",
+      "bytes": 61,
+      "sha256": "4b2751ba483b6e5d14beb6ef0435f3e6cd7aac152e1c0634e8d566af8868a415",
+      "unchanged": true
+    },
+    {
+      "path": "stop-daemon.json",
+      "source": "GitHub artifact stop-daemon.json",
+      "bytes": 35,
+      "sha256": "017f1e95fc33c0afdf02c04751468f1177c1ed05a1bb516b9831fbc22bc6b0c1",
+      "unchanged": true
+    },
+    {
+      "path": "stop-daemon.log",
+      "source": "GitHub artifact stop-daemon.log",
+      "bytes": 91,
+      "sha256": "150ef3e6d5d25582fa6cab6d5fc00cee39edd637337faf17be1af566f947fde8",
+      "unchanged": true
+    },
+    {
+      "path": "unmount-01.json",
+      "source": "GitHub artifact unmount-01.json",
+      "bytes": 34,
+      "sha256": "1ab013ae272f9bbe981fabed06b0d9b273200a1a461959a5ad96cfd90d71cf9f",
+      "unchanged": true
+    },
+    {
+      "path": "unmount-01.log",
+      "source": "GitHub artifact unmount-01.log",
+      "bytes": 17,
+      "sha256": "e2e7e4de75aa32d2268acd6fb9074177fbb16c94025e0b863e444f72f183a2e4",
+      "unchanged": true
+    },
+    {
+      "path": "artifact-original-index.json",
+      "source": "artifact/index.json",
+      "bytes": 5089,
+      "sha256": "0c15578076c4691abb0734f76d50f1957871e07993bc7916046bcd423a5b2154",
+      "unchanged": true
+    },
+    {
+      "path": "independent-review.json",
+      "source": "ROOT-REMOTE-REVIEW.json",
+      "bytes": 1177,
+      "sha256": "a40b5b8743601b515604b975226396a062bdc5cb98179873870c94893caee28b",
+      "unchanged": true
+    },
+    {
+      "path": "pr82-baseline.json",
+      "source": "root-pr82-current.json",
+      "bytes": 636,
+      "sha256": "8e41313a18eaa18b7d08aa2ad3d6323a6fcb2bb591a53cf3aba0df1745befde8",
+      "unchanged": true
+    },
+    {
+      "path": "runner-setup.log",
+      "source": "runner-setup.log",
+      "bytes": 2073,
+      "sha256": "0c352ea22e3578d9cb3e90ff6488ddcbb7f1df9ced424beed9601907f8bc268d",
+      "unchanged": true
+    },
+    {
+      "path": "run-summary.json",
+      "source": "脱敏摘要：GitHub run/jobs/artifact元数据与Secret删除回读",
+      "bytes": 5217,
+      "sha256": "9cd83a6967b5357cec5a4690006b18a1aefb60211c8573ed1262969a5f8f6f24",
+      "unchanged": false
+    }
+  ],
+  "formalArtifactAllowed": false
+}

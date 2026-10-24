@@ -20,3 +20,11 @@
 5. 首次精确重放构建通过，但CLI留下daemon导致卸载失败。本地收尾误把手工steps_ok=True传给publish，形成无效通过汇总；已封存为invalid并纠正失败，不能作为验收。修复从clean前即设置独立HVIGOR_USER_HOME（不修改HOME），收尾以同一目录和锁定Node调用官方当前项目--stop-daemon再卸载。最终重放统一采集每步真实exit生成CI_STEPS，禁止手工填通过。
 
 6. 官方stop发出终止请求后会先返回，daemon仍可能短暂占用DMG。保留第二次完整重放的cleanup失败；新增90秒总期限，仅等待本轮隔离registry且cwd匹配的已停止PID退出。只对明确资源忙且退出16的detach最多重试5次，不force、不额外kill；每次命令日志/退出码独立留存，退出0后仍核挂载已消失。进程查询权限失败不能视作退出。
+
+## 官方首跑与门禁状态复核（2026-10-25）
+
+真实官方macos-26-arm64运行40110834301已完成精确610dd1f的准备/构建/卸载；ZIP digest及33项索引由两次独立下载核验。此前本地错误/EOF记录不删除，CI本身只执行这一轮，没有用重跑掩盖失败。见[持久证据](evidence/ci-40110834301/README.md)。
+
+新事实：云端HAR/bridge与本地摘要不同，原因未单独归因，不宣称跨主机可重复；固定八库/API仍一致。首跑临时Secret经单独授权创建，结束已删除；不能从这个例外推出永久Secret或SDK镜像上传授权。
+
+#82当前head/merge不是610dd1f，旧default目标也不是deveco26目标；独立push绿色不证明旧目标或#82组合通过。当前main required-status接口404、规则集disabled，与workflow里“必需”名称不同。以上差异已先向用户报告；[方案](integration-plan.md)明确需要未来实际merge、consumer和独立规则授权，不修改本轮代码或远端设置。

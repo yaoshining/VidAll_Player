@@ -1,0 +1,166 @@
+{
+  "recordedAt": "2026-10-25",
+  "repository": "yaoshining/VidAll_Player",
+  "event": "push",
+  "branch": "codex/deveco26-evaluation",
+  "headSHA": "610dd1f6e83fa844a7096de20ce591b72e48e9da",
+  "runID": 40110834301,
+  "runAttempt": 1,
+  "runURL": "https://github.com/yaoshining/VidAll_Player/actions/runs/40110834301",
+  "status": "completed",
+  "conclusion": "success",
+  "createdAt": "2026-10-24T16:17:00Z",
+  "updatedAt": "2026-10-24T16:26:39Z",
+  "jobs": [
+    {
+      "id": 120922014197,
+      "name": "官方ARM64与固定八库评估",
+      "labels": [
+        "macos-26"
+      ],
+      "conclusion": "success",
+      "startedAt": "2026-10-24T16:17:02Z",
+      "completedAt": "2026-10-24T16:26:38Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-24T16:17:03Z",
+          "completed_at": "2026-10-24T16:17:04Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-24T16:17:04Z",
+          "completed_at": "2026-10-24T16:17:11Z"
+        },
+        {
+          "name": "初始化独立证据目录",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-24T16:17:11Z",
+          "completed_at": "2026-10-24T16:17:11Z"
+        },
+        {
+          "name": "绑定实际事件提交",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-24T16:17:11Z",
+          "completed_at": "2026-10-24T16:17:12Z"
+        },
+        {
+          "name": "契约测试（不冒充目标构建）",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-24T16:17:12Z",
+          "completed_at": "2026-10-24T16:17:18Z"
+        },
+        {
+          "name": "精确归档和CLI准备（缺少一次性来源明确失败）",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-24T16:17:18Z",
+          "completed_at": "2026-10-24T16:25:39Z"
+        },
+        {
+          "name": "挂载SDK的真实CMake与目标头文件回归",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-24T16:25:39Z",
+          "completed_at": "2026-10-24T16:25:40Z"
+        },
+        {
+          "name": "显式工具身份与单次clean及unsigned HAR",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-24T16:25:40Z",
+          "completed_at": "2026-10-24T16:26:17Z"
+        },
+        {
+          "name": "卸载本次只读挂载",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-24T16:26:17Z",
+          "completed_at": "2026-10-24T16:26:30Z"
+        },
+        {
+          "name": "收集成功与失败脱敏文本",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-24T16:26:30Z",
+          "completed_at": "2026-10-24T16:26:31Z"
+        },
+        {
+          "name": "上传公开文本（不含SDK或HAR）",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-24T16:26:31Z",
+          "completed_at": "2026-10-24T16:26:33Z"
+        },
+        {
+          "name": "缺失或失败证据禁止通过",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-24T16:26:33Z",
+          "completed_at": "2026-10-24T16:26:33Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 24,
+          "started_at": "2026-10-24T16:26:33Z",
+          "completed_at": "2026-10-24T16:26:33Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-10-24T16:26:33Z",
+          "completed_at": "2026-10-24T16:26:36Z"
+        }
+      ]
+    }
+  ],
+  "artifact": {
+    "id": 12566429056,
+    "name": "deveco26-evaluation-610dd1f6e83fa844a7096de20ce591b72e48e9da-1",
+    "bytes": 233289,
+    "digest": "sha256:01bf591e8dec7cc14c80e0a13c70c8d55e19c5feaba21d7333356455c751e179",
+    "indexedFiles": 33,
+    "downloadedAndVerified": true,
+    "containsHAR": false,
+    "containsSDK": false
+  },
+  "temporarySecret": {
+    "name": "DEVECO26_ARCHIVE_URL",
+    "setViaStdin": true,
+    "deleted": true,
+    "absentReadback": true,
+    "rootIndependentAbsent": true,
+    "observedUTC": "2026-10-24T16:28:24.162751+00:00"
+  },
+  "scope": {
+    "singleClean": true,
+    "crossHostByteReproducibility": false,
+    "consumerBuilt": false,
+    "deviceVerified": false,
+    "persistentSourceVerified": false
+  },
+  "formalArtifactAllowed": false
+}

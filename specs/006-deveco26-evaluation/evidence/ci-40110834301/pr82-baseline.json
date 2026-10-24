@@ -1,0 +1,24 @@
+{
+  "observedAt": "2026-10-25",
+  "url": "https://github.com/yaoshining/VidAll_Player/pull/82",
+  "state": "open",
+  "merged": false,
+  "head": "codex/docs-pr4-speckit-closeout",
+  "head_sha": "99b2c967675bada272bfa1c982a180ea7b2c7f66",
+  "base": "main",
+  "base_sha": "951343145e076277be99f7b459ec614d5a64f8b8",
+  "merge_commit_sha": "70026ad8237cb30f1dd9184ac238a2dfd34fff5a",
+  "bodyOutdated": true,
+  "requiredStatusChecks": {
+    "status": 404,
+    "message": "Branch not protected"
+  },
+  "rulesets": [
+    {
+      "enforcement": "disabled",
+      "id": 19571723,
+      "name": "main branch",
+      "target": "branch"
+    }
+  ]
+}
