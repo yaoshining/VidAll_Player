@@ -22,6 +22,17 @@
   "targets": [
     {
       "name": "default"
+    },
+    {
+      "name": "deveco26",
+      "config": {
+        "buildOption": {
+          "externalNativeOptions": {
+            "arguments": "-DVIDALL_FIXED_CXX_RUNTIME=ON -DOHOS_STL=none",
+            "abiFilters": ["arm64-v8a"]
+          }
+        }
+      }
     }
   ]
 }

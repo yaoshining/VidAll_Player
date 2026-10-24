@@ -1,0 +1,83 @@
+name: DevEco26 独立评估（非原门禁替代）
+
+on:
+  push:
+    branches: [codex/deveco26-evaluation]
+
+permissions:
+  contents: read
+
+jobs:
+  evaluation:
+    name: 官方ARM64与固定八库评估
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 初始化独立证据目录
+        shell: bash
+        run: |
+          set -euo pipefail
+          CI_OUT="$RUNNER_TEMP/deveco26-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          mkdir -p "$CI_OUT/work"
+          printf '%s\n' "CI_OUT=$CI_OUT" >> "$GITHUB_ENV"
+      - name: 绑定实际事件提交
+        id: context
+        run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
+      - name: 契约测试（不冒充目标构建）
+        id: contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B scripts/test/deveco26/contract.test.py 2>&1 | tee "$CI_OUT/work/contracts.log"
+          python3 -B scripts/test/deveco26/bootstrap.test.py 2>&1 | tee "$CI_OUT/work/bootstrap-tests.log"
+          npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
+          node scripts/test/deveco26/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/workflow-tests.log"
+      - name: 精确归档和CLI准备（缺少一次性来源明确失败）
+        id: bootstrap
+        env:
+          DEVECO26_ARCHIVE_URL: ${{ secrets.DEVECO26_ARCHIVE_URL }}
+        run: python3 -B scripts/test/deveco26/bootstrap.py prepare --out "$CI_OUT"
+      - name: 挂载SDK的真实CMake与目标头文件回归
+        id: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          export DEVECO26_SDK="$CI_OUT/environment/mounted/DevEco-Studio.app/Contents/sdk/default/openharmony/native"
+          export DEVECO26_CMAKE="$DEVECO26_SDK/build-tools/cmake/bin/cmake"
+          python3 -B scripts/test/deveco26/runtime.test.py 2>&1 | tee "$CI_OUT/work/runtime-tests.log"
+      - name: 显式工具身份与单次clean及unsigned HAR
+        id: target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B scripts/test/deveco26/evaluate.py build --out "$CI_OUT" \
+            --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
+            --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
+            --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"
+      - name: 卸载本次只读挂载
+        id: cleanup
+        if: always()
+        run: python3 -B scripts/test/deveco26/bootstrap.py cleanup --out "$CI_OUT"
+      - name: 收集成功与失败脱敏文本
+        id: public_gate
+        if: always()
+        env:
+          CI_STEPS: ${{ toJSON(steps) }}
+        run: python3 -B scripts/test/deveco26/evaluate.py finish --out "$CI_OUT"
+      - name: 上传公开文本（不含SDK或HAR）
+        id: upload
+        if: always() && steps.public_gate.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deveco26-evaluation-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ env.CI_OUT }}/public/
+          if-no-files-found: error
+          retention-days: 14
+      - name: 缺失或失败证据禁止通过
+        id: assess
+        if: always()
+        run: python3 -B scripts/test/deveco26/evaluate.py assess --out "$CI_OUT"

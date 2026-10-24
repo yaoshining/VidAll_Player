@@ -1,0 +1,81 @@
+{
+  "location": "独立临时验证目录；原始失败不覆写",
+  "records": [
+    {
+      "path": "red-contracts.log",
+      "sha256": "64a5330a420bef060853e4e878fdd44a4599d7bb04840efdae4b65121b4534bd",
+      "bytes": 13525
+    },
+    {
+      "path": "red-version.log",
+      "sha256": "eaa3ca8c45ca07afac5699185d17b7c899ce8c655896504b61413e6a67116074",
+      "bytes": 637
+    },
+    {
+      "path": "red-node-path.log",
+      "sha256": "89f32cacdc0d76ad2c82110942241e46d6f31eedd5ae129449a2b03db9cf04ef",
+      "bytes": 701
+    },
+    {
+      "path": "red-common-required.log",
+      "sha256": "99c04dc7aec5041210b6d5d362bd75bf6c7bb5075919382d4d12e7690224e859",
+      "bytes": 864
+    },
+    {
+      "path": "red-workflow-structural.log",
+      "sha256": "25a09107800823e253fb66e7090fd1eb3502dc3a28dc33478d05bd2f2d4d40ac",
+      "bytes": 32
+    },
+    {
+      "path": "red-cmake.log",
+      "sha256": "cb73a4a9195a068b72e32cbcfa77b31cbc8d7bd1802f8752dd8a72b7207d5dfc",
+      "bytes": 3418
+    },
+    {
+      "path": "red-ohos-headers.log",
+      "sha256": "2a8e2df2597ac6edaf0e7ea934660ba15094322dafee6507c870c57038598fd1",
+      "bytes": 22161
+    },
+    {
+      "path": "red-native-clean.log",
+      "sha256": "7fd4e784938ff5130277c86ff692cde763dc0dc1acea7105836db58c1b658d94",
+      "bytes": 2951
+    },
+    {
+      "path": "red-bootstrap-diagnostics.log",
+      "sha256": "0ed503e51c71621de61d3dbeed3f2d46d295e2a6ded2dd4e14917c0bae2d86c1",
+      "bytes": 1413
+    },
+    {
+      "path": "red-link-identity.log",
+      "sha256": "e78a116301b10978b7afb5471c84ed18d9dc11aad87239a656ba48b794adabc3",
+      "bytes": 1796
+    },
+    {
+      "path": "green-native-clean.log",
+      "sha256": "e11562b54c0e98c365566b02b31e6b9c766ad7dd54fed553bf579e80bf12feb0",
+      "bytes": 103
+    },
+    {
+      "path": "green-bootstrap-05.log",
+      "sha256": "659487b44340e3abee528c6581a8216a5ad3d68a5ebc73d7bf6fa1ee58bb69c8",
+      "bytes": 276
+    },
+    {
+      "path": "green-runtime-03.log",
+      "sha256": "661d65c4b52265e095c881df72ed4481af57f89aa5e52ff0705fc6d532fd4c8f",
+      "bytes": 104
+    },
+    {
+      "path": "green-workflow-04.log",
+      "sha256": "4b2751ba483b6e5d14beb6ef0435f3e6cd7aac152e1c0634e8d566af8868a415",
+      "bytes": 61
+    },
+    {
+      "path": "green-link-identity.log",
+      "sha256": "79897d011a1aaa76145e639592b1207fa563cb1187e00ac85c3ee31c86a0b15f",
+      "bytes": 101
+    }
+  ],
+  "formalArtifactAllowed": false
+}
