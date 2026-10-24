@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+"""新组合必须检查consumer与事件身份；旧组合仅用于精确缺口RED，不修改旧语义。"""
+import unittest,importlib.util,os,json,copy
+from pathlib import Path
+HERE=Path(__file__).resolve().parent
+S='a'*40;IDENTITY={'checkoutSHA':S,'treeSHA':'b'*40,'trackedBytesSHA256':'c'*64}
+def load(path):
+ s=importlib.util.spec_from_file_location('subject',path);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+class Gates(unittest.TestCase):
+ def setUp(self):
+  if os.environ.get('GATES_BASELINE'):
+   old=load(HERE.parent/'normal-core/ci-evidence.py');self.verdict=lambda n,s:old.verdict(n)
+  else:self.m=load(HERE/'gates.py');self.verdict=self.m.verdict
+ def good(self):
+  summary={'passed':True,'targetPassed':True,'consumerPassed':True,'cleanupPassed':True,'apiNegativePassed':True,'source':IDENTITY}
+  return {'host-contracts':{'result':'success','outputs':{'source':json.dumps(IDENTITY)}},'target-har':{'result':'success','outputs':{'summary':json.dumps(summary)}}}
+ def test_missing_consumer_evidence_rejected(self):self.assertFalse(self.verdict({'host-contracts':{'result':'success'},'target-har':{'result':'success'}},S))
+ def test_complete(self):self.assertTrue(self.verdict(self.good(),S))
+ def test_skipped_missing_cancelled(self):
+  for result in ['skipped','cancelled','failure','']:
+   n=self.good();n['target-har']['result']=result;self.assertFalse(self.verdict(n,S))
+  self.assertFalse(self.verdict({'host-contracts':self.good()['host-contracts']},S))
+ def test_old_sha_or_tree_rejected(self):
+  self.assertFalse(self.verdict(self.good(),'d'*40))
+  n=self.good();s=json.loads(n['target-har']['outputs']['summary']);s['source']['treeSHA']='e'*40;n['target-har']['outputs']['summary']=json.dumps(s);self.assertFalse(self.verdict(n,S))
+ def test_consumer_or_cleanup_false(self):
+  for key in ['consumerPassed','targetPassed','cleanupPassed','apiNegativePassed','passed']:
+   n=self.good();s=json.loads(n['target-har']['outputs']['summary']);s[key]=False;n['target-har']['outputs']['summary']=json.dumps(s);self.assertFalse(self.verdict(n,S))
+ def test_trust_exact_event_and_fork(self):
+  c={**IDENTITY,'eventSHA':S,'event':'pull_request','passed':True,'trustedTarget':True,'repository':'yaoshining/VidAll_Player','headRepository':'yaoshining/VidAll_Player'}
+  self.assertTrue(self.m.trusted(c,S));self.assertFalse(self.m.trusted(c,''));self.assertFalse(self.m.trusted(c,'d'*40))
+  c['headRepository']='fork/Player';self.assertFalse(self.m.trusted(c,S))
+if __name__=='__main__':unittest.main()

@@ -1,0 +1,193 @@
+name: DevEco26 PR组合门禁（独立profile）
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, codex/deveco26-pr82-gates]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+
+jobs:
+  host-contracts:
+    name: DevEco26组合宿主契约
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      source: ${{ steps.host_source.outputs.source }}
+    steps:
+      - name: 默认检出事件提交（PR 为 merge SHA）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 初始化失败证据目录
+        shell: bash
+        run: |
+          set -euo pipefail
+          CI_OUT="$RUNNER_TEMP/normal-core-host-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf '%s\n' "CI_OUT=$CI_OUT" >> "$GITHUB_ENV"
+          python3 -B scripts/test/normal-core/ci-evidence.py prepare --out "$CI_OUT"
+      - name: 绑定事件与实际 checkout
+        id: context
+        run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
+      - name: 配置 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/test/normal-core/package-lock.json
+      - name: 安装锁定宿主依赖
+        id: dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            sudo apt-get update
+            sudo apt-get install -y clang llvm
+            npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
+          } 2>&1 | tee "$CI_OUT/work/dependencies.log"
+      - name: CI 事件、失败路径与工作流回归
+        id: contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B scripts/test/deveco26-gates/gates.test.py 2>&1 | tee "$CI_OUT/work/gates-tests.log"
+          python3 -B scripts/test/deveco26-gates/consumer.test.py 2>&1 | tee "$CI_OUT/work/consumer-tests.log"
+          node scripts/test/deveco26-gates/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/new-workflow-tests.log"
+          python3 -B scripts/test/normal-core/ci-schema.test.py 2>&1 | tee "$CI_OUT/work/schema-archive-tests.log"
+          python3 -B scripts/test/normal-core/ci-schema.py --out "$CI_OUT" 2>&1 | tee "$CI_OUT/work/schema.log"
+          node scripts/test/normal-core/ci-workflow.test.cjs 2>&1 | tee "$CI_OUT/work/workflow.log"
+          node scripts/test/normal-core/ci-workflow-mutations.cjs 2>&1 | tee "$CI_OUT/work/workflow-mutations.log"
+          python3 -B scripts/test/normal-core/ci-contract.test.py 2>&1 | tee "$CI_OUT/work/contracts.log"
+      - name: 全量宿主真实函数与负例门禁
+        id: host
+        env:
+          LLVM_NM: llvm-nm
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B scripts/test/normal-core/run.py --out "$CI_OUT/suite" 2>&1 | tee "$CI_OUT/work/host.log"
+      - name: 收集失败记录并核对公开边界
+        id: public_gate
+        if: always()
+        env:
+          CI_STEPS: ${{ toJSON(steps) }}
+        run: python3 -B scripts/test/normal-core/ci-evidence.py finish --out "$CI_OUT" --mode host
+      - name: 保存公开文本（成功和失败均保留）
+        if: always() && steps.public_gate.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deveco26-gates-host-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ env.CI_OUT }}/public/
+          if-no-files-found: error
+          retention-days: 14
+      - name: 缺失或失败证据禁止绿色
+        if: always()
+        run: python3 -B scripts/test/normal-core/ci-evidence.py assess --out "$CI_OUT"
+
+      - name: 绑定已通过宿主结果输出
+        id: host_source
+        run: python3 -B scripts/test/deveco26-gates/gates.py host-output --out "$CI_OUT"
+
+  target-har:
+    name: DevEco26 当前HAR与独立消费者
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.DEVECO26_APPROVED_EVENT_SHA != '' && vars.DEVECO26_APPROVED_EVENT_SHA == github.sha
+    environment: deveco26-build
+    runs-on: macos-26
+    timeout-minutes: 60
+    outputs:
+      summary: ${{ steps.public_gate.outputs.summary }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 初始化独立证据目录
+        shell: bash
+        run: |
+          set -euo pipefail
+          CI_OUT="$RUNNER_TEMP/deveco26-gates-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          mkdir -p "$CI_OUT/work"
+          printf '%s\n' "CI_OUT=$CI_OUT" >> "$GITHUB_ENV"
+      - name: 绑定真实事件和源码
+        id: context
+        run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
+      - name: 只允许已批准的实际事件SHA
+        id: trust
+        env:
+          DEVECO26_APPROVED_EVENT_SHA: ${{ vars.DEVECO26_APPROVED_EVENT_SHA }}
+        run: python3 -B scripts/test/deveco26-gates/gates.py trust --out "$CI_OUT"
+      - name: 准备精确官方归档与CLI
+        id: bootstrap
+        env:
+          DEVECO26_ARCHIVE_URL: ${{ secrets.DEVECO26_ARCHIVE_URL }}
+        run: python3 -B scripts/test/deveco26/bootstrap.py prepare --out "$CI_OUT"
+      - name: 实际SDK的CMake与头文件回归
+        id: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          export DEVECO26_SDK="$CI_OUT/environment/mounted/DevEco-Studio.app/Contents/sdk/default/openharmony/native"
+          export DEVECO26_CMAKE="$DEVECO26_SDK/build-tools/cmake/bin/cmake"
+          python3 -B scripts/test/deveco26/runtime.test.py 2>&1 | tee "$CI_OUT/work/runtime-tests.log"
+      - name: 显式deveco26目标单次clean与HAR
+        id: target
+        run: |
+          python3 -B scripts/test/deveco26/evaluate.py build --out "$CI_OUT" \
+            --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
+            --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
+            --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"
+      - name: 临时HAR删除公共API的真实编译负例
+        id: api_negative
+        run: |
+          python3 -B scripts/test/deveco26-gates/consumer.py --negative-api --out "$CI_OUT" \
+            --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
+            --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
+            --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"
+      - name: 同一HAR的独立unsigned消费者构建与九库核验
+        id: consumer
+        run: |
+          python3 -B scripts/test/deveco26-gates/consumer.py --out "$CI_OUT" \
+            --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
+            --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
+            --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"
+      - name: 停止本轮目标daemon并卸载SDK
+        id: cleanup
+        if: always()
+        run: python3 -B scripts/test/deveco26/bootstrap.py cleanup --out "$CI_OUT"
+      - name: 收集真实三方结果与失败证据
+        id: public_gate
+        if: always()
+        env:
+          CI_STEPS: ${{ toJSON(steps) }}
+        run: python3 -B scripts/test/deveco26-gates/gates.py finish --out "$CI_OUT"
+      - name: 仅上传脱敏文本
+        if: always() && steps.public_gate.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deveco26-target-consumer-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ env.CI_OUT }}/public/
+          if-no-files-found: error
+          retention-days: 14
+      - name: 缺证或失败明确退出失败
+        id: assess
+        if: always()
+        run: python3 -B scripts/test/deveco26-gates/gates.py assess --out "$CI_OUT"
+
+  deveco26-result:
+    name: 正常核心 DevEco26 组合结果
+    if: always()
+    needs: [host-contracts, target-har]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: host、target、consumer与清理全部通过才成功
+        env:
+          CI_NEEDS: ${{ toJSON(needs) }}
+        run: python3 -B scripts/test/deveco26-gates/gates.py verdict
