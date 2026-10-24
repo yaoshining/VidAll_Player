@@ -15,7 +15,7 @@ class Tests(unittest.TestCase):
     if f.is_file():self.assertEqual(f.read_bytes(),(p/'entry/src/ohosTest'/f.relative_to(original)).read_bytes())
    self.assertEqual(len(r['suites']),9);self.assertEqual(json.loads((p/'build-profile.json5').read_text())['app']['signingConfigs'],[])
    self.assertEqual(json.loads((p/'entry/oh-package.json5').read_text())['dependencies'],{'@vidall/player':'file:./libs/current.har'})
-   self.assertFalse((p/'entry/src/main/cpp').exists());self.assertEqual(r['mode'],'compile-only-unsigned')
+   self.assertEqual([x['name'] for x in json.loads((p/'build-profile.json5').read_text())['modules'][0]['targets']],['default']);self.assertFalse((p/'entry/src/main/cpp').exists());self.assertEqual(r['mode'],'compile-only-unsigned')
    with self.assertRaises(ValueError):m.prepare_project(ROOT,p,har)
  def test_actual_output_required(self):
   m=load()
@@ -29,10 +29,13 @@ class Tests(unittest.TestCase):
      if entry!='missing-bytecode':z.writestr('ets/modules.abc',b'' if entry=='empty-bytecode' else b'abc')
     with self.assertRaises(ValueError):m.compiled_output(hap)
  def test_failure_or_missing_fields_not_built(self):
-  m=load();s={'checkoutSHA':'a'*40,'treeSHA':'b'*40,'trackedBytesSHA256':'c'*64};r={'passed':True,'sourceBefore':s,'sourceAfter':s,'inputHAR':'d'*64,'compiled':True,'signed':False,'executed':False,'cleanup':{'passed':True},'suiteNames':sorted(m.SUITES),'dependency':{'passed':True},'artifact':{'passed':True},'buildExit':0}
-  self.assertTrue(m.proof(r,s,'d'*64))
+  m=load();s={'checkoutSHA':'a'*40,'treeSHA':'b'*40,'trackedBytesSHA256':'c'*64};libs={n:'e'*64 for n in m.C.E.TARGET.NAMES|{'libvidall_player_native.so'}};api={'compileSdkVersion':'26.0.0.105','minAPIVersion':50003015,'targetAPIVersion':60002022};target={'artifact':{'harSHA256':'d'*64,'libraries':libs},'api':api}
+  r={'passed':True,'sourceBefore':s,'sourceAfter':s,'inputHAR':'d'*64,'compiled':True,'signed':False,'executed':False,'cleanup':{'passed':True},'suiteNames':sorted(m.SUITES),'dependency':{'passed':True,'installedLibraries':libs},'artifact':{'passed':True,'hapSHA256':'f'*64,'libraries':libs,'api':api},'buildExit':0,'bytecodeSHA256':'1'*64,'bytecodeBytes':123,'moduleName':'entry_test','stagedSources':m.suite_sources(ROOT/'entry/src/ohosTest')}
+  self.assertTrue(m.proof(r,s,target))
   for k in r:
-   bad=dict(r);bad.pop(k);self.assertFalse(m.proof(bad,s,'d'*64),k)
-  for k,v in [('buildExit',1),('compiled',False),('signed',True),('inputHAR','e'*64)]:
-   bad=dict(r);bad[k]=v;self.assertFalse(m.proof(bad,s,'d'*64))
+   bad=dict(r);bad.pop(k);self.assertFalse(m.proof(bad,s,target),k)
+  for k,v in [('buildExit',1),('compiled',False),('signed',True),('inputHAR','e'*64),('moduleName','entry'),('bytecodeSHA256',''),('bytecodeBytes',0),('stagedSources',{})]:
+   bad=dict(r);bad[k]=v;self.assertFalse(m.proof(bad,s,target),k)
+  for key,value in [('api',{}),('libraries',{}),('hapSHA256','')]:
+   bad=dict(r);bad['artifact']={**r['artifact'],key:value};self.assertFalse(m.proof(bad,s,target),key)
 if __name__=='__main__':unittest.main()

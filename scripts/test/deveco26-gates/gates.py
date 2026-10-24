@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""新profile组合；拒绝缺consumer、错误事件和未批准target，不改变旧组合。"""
+"""默认云端组合；拒绝缺consumer/Hypium/旧独有host证据及未批准target。"""
 import argparse,importlib.util,json,os,re,sys
 from pathlib import Path
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[2]
@@ -40,7 +40,7 @@ def finish(out,steps):
  try:
   release_lock,archive_lock=RELEASE.load_inputs();source_ok=RELEASE.proof_valid(read('release-source-result.json'),source,release_lock,archive_lock)
  except (OSError,ValueError,TypeError,KeyError):pass
- hypium_ok=HYP.proof(read('hypium-result.json'),source,target.get('artifact',{}).get('harSHA256'))
+ hypium_ok=HYP.proof(read('hypium-result.json'),source,target)
  required=['context','trust','bootstrap','runtime','target','api_negative','consumer','hypium','cleanup'];steps_ok=all(steps.get(k,{}).get('outcome')=='success' for k in required)
  summary={'passed':valid and target_ok and consumer_ok and cleanup_ok and negative_ok and steps_ok and source_ok and hypium_ok,'hypiumPassed':hypium_ok,'sourceDownloadPassed':source_ok,'targetPassed':target_ok,'consumerPassed':consumer_ok,'cleanupPassed':cleanup_ok,'apiNegativePassed':negative_ok,'source':source,'formalArtifactAllowed':False}
  (work/'gate-summary.json').write_text(json.dumps(summary,indent=2)+'\n');status=E.publish(ROOT,out,summary['passed'])
