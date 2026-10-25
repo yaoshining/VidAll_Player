@@ -109,10 +109,13 @@ def validate_source(source):
     require(isinstance(source, dict) and set(source) == SOURCE_KEYS, 'source-fields')
     require(source['repository'] == REPOSITORY and source['repositoryId'] == REPOSITORY_ID, 'repository')
     require(positive_integer(source['runId']) and positive_integer(source['runAttempt']), 'run-identity')
-    require(source['event'] in ('pull_request', 'workflow_dispatch', 'push'), 'event')
+    require(source['event'] in ('pull_request', 'workflow_dispatch', 'push', 'merge_group'), 'event')
     require(isinstance(source['workflowPath'], str) and re.fullmatch(r'\.github/workflows/[A-Za-z0-9_-]+\.yml', source['workflowPath']), 'workflow-path')
     for field in ['workflowSHA', 'headSHA', 'eventMergeSHA', 'sourceTreeSHA']:
         require(is_hash(source[field], 40), 'source-commit')
+    # merge queue 的 head 是实际 group checkout，不得借用其中某个 PR 的 head。
+    if source['event'] == 'merge_group':
+        require(source['headSHA'] == source['eventMergeSHA'], 'merge-group-checkout')
     for field in ['sourceTrackedBytesSHA256', 'toolchainLockSHA256', 'releaseSourceLockSHA256', 'inputHAR_SHA256']:
         require(is_hash(source[field]), 'source-digest')
 

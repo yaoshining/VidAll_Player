@@ -16,7 +16,7 @@
 
 最小方案供根审查：明确退役Player两条历史生产入口、保留脚本/旧锁/宿主来源与许可证契约；新增硬门禁只允许当前004精确八库及manifest基线，任何核心更新必须另交producer精确源码/补丁/工具/实际目标制品与功能证据，未具备则直接拒绝。当前组合不重建、不改库；这属于生产职责明确交接，不声称#9已完成新全量目标。若根不接受该阶段边界，则B保持阻塞，不能通过简单skip冒称全部构建迁云。必要producer代码变更另行精确预览，当前不越仓修改。
 
-## C：云端设备包与iMac手动执行（先方案，不启用）
+## C：云端设备包与iMac手动执行（本地实现，尚未启用）
 
 普通consumer缺少实际媒体，只能保留编译用途。新增独立device-package staging，复用normal-core-consumer公共初始化/terminal主体，在固定rawfile/test_video.mp4注入短合成媒体；云端绑定生成器/参数/媒体SHA和HAP来源，缺媒体失败关闭。不得使用私人NAS影片、签名或未批准二进制代替fixture。
 
@@ -30,6 +30,10 @@ iMac仅专用label（拟vidall-device-imac，不创建），默认分支手动di
 
 ## 验证与停止点
 
+2026-10-25 后续实施授权：优先单bundle短测，先本地受控事务，之后再接手动CI。主实施负责device-execution与本规格；协作实施负责新增device-smoke fixture和device-package构建，互不覆盖旧入口/产品。当前iMac实际为DevEco26/HDC3.2.0f，新HDC SHA ae849a571227166700f543f24ee2f16ef4124a66f2cb6ee7b48c8c06f4aeafb4，CLI已移至NVM路径；新增观察性质device-tools锁，不更新旧编译锁。材料指定目录为空、当前无活动设备，真实签名/设备仍待验。
+
+短测新增暂停恢复、成功seek、关闭重开与120秒总限时；nonce/HAP/库/PID与真实事件绑定。全事务锁覆盖准备到cleanup，清理失败/断连写持久journal；下一会话先拒绝，不能以释放文件锁等同清理成功。签名前后全ZIP成员字节相等，官方verify-app与profile/证书/设备范围匹配必须独立通过。第一轮不实现Hypium双包，不自动配置签名材料、环境/label或推送/上传；完成本地TDD/构建/独立审查后统一精确预览。
+
 TDD先真实旧工作流缺覆盖/签名决定built等RED；实现后测试官方runner限定、旧目标退役不丢检查、Hypium缺模块/错HAR/API/旧缓存/编译失败/缺签名、汇总缺证/skip拒绝。设备控制器在C获准后用实际函数mock平台：错run/head/来源/签名/包摘要/设备离线/超时/并发/清理失败均拒绝或待验，不能用job绿色冒充真机通过。
 
-本地完成后根审查、冻结精确提交、一次必要clean真实构建重放与清理、推送预览；云端环境允许ref/批准SHA更新不沿用f28aa，另批。签名、runner标签和正式required/ruleset切换单独阶段批准。当前只完成specify/plan/task和覆盖映射，待根审后才动实现。
+本地完成后根审查、冻结精确提交、一次必要clean真实构建重放与清理、推送预览；云端环境允许ref/批准SHA更新不沿用f28aa，另批。签名、runner标签和正式required/ruleset切换单独阶段批准。当前已完成本地实现/TDD，等待根审与冻结同源构建；真实签名、设备输出schema、短测与远端启用仍待验。

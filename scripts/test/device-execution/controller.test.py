@@ -75,6 +75,18 @@ class Tests(unittest.TestCase):
         self.assertEqual(result['runAttempt'], 2)
         self.assertEqual(len(result['libraries']), 9)
 
+    def test_merge_group_uses_group_checkout_not_pr_head(self):
+        self.source.update(event='merge_group', headSHA=self.source['eventMergeSHA'])
+        self.repack()
+        self.assertTrue(self.verify()['artifactVerified'])
+        for field, value in [('headSHA', '9' * 40), ('eventMergeSHA', '9' * 40), ('repository', 'other/repo'), ('repositoryId', 1), ('headSHA', None)]:
+            with self.subTest(field=field, value=value):
+                old = self.source[field]
+                self.source[field] = value
+                self.repack()
+                with self.assertRaises(C.ContractError): self.verify()
+                self.source[field] = old
+
     def test_absent_external_approval(self):
         for value in ['', '0' * 64, None]:
             with self.assertRaises(C.ContractError):

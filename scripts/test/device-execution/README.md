@@ -1,6 +1,6 @@
 # 本机设备执行前置预检（Spec010 C）
 
-本目录实现制品预检、签名前后 ZIP 有效载荷比较和本机互斥。**尚未实现签名、安装、启动、清理和真机验收适配器**。即使输入全部合格，也只返回 `pending`；始终保持 `deviceVerified=false`、`formalArtifactAllowed=false`。这不是完整的设备执行器。
+`controller.py` 实现制品预检、签名前后 ZIP 有效载荷比较和本机互斥，单独运行始终返回 `pending`。本轮新增 `executor.py`、`imac.py` 和 `signer-helper/`，提供固定短测事务与本地签名/验签/设备适配器；用法和授权边界见 [EXECUTION.md](EXECUTION.md)。这些新增能力目前仅完成宿主测试，真实签名、口令可用性和设备输出格式仍待验，不能将宿主GREEN当真机通过。
 
 ## 本地验证
 
@@ -21,7 +21,7 @@ python3 -B scripts/test/device-execution/controller.py \
   --device-state unknown
 ```
 
-调用者必须从独立审批取得 `--approval-sha256`，不能临时计算包内或未审查 envelope 的摘要后自行授权。`--device-state` 是调用者提供的观察，不是本程序实测；输出始终标记 `deviceStateIndependentlyVerified=false`。设备标识与 HDC 可执行文件身份的实时核验留给后续只读适配器。
+调用者必须从独立审批取得 `--approval-sha256`，不能临时计算包内或未审查 envelope 的摘要后自行授权。`--device-state` 是调用者提供的观察，不是本程序实测；输出始终标记 `deviceStateIndependentlyVerified=false`。实际执行入口 `imac.py` 另行核验设备与工具身份；本预检接口自身不做实时观察。
 
 ## 两层绑定，避免循环自证
 
@@ -36,7 +36,7 @@ sourceTreeSHA, sourceTrackedBytesSHA256, toolchainLockSHA256,
 releaseSourceLockSHA256, inputHAR_SHA256
 ```
 
-仓库固定为 `yaoshining/VidAll_Player` / `1307243374`。所有提交/树标识为 40 位小写十六进制，摘要为 64 位 SHA256。工作流路径为 `.github/workflows/<名称>.yml`。工作流、run attempt、head 和实际 merge 均需明确；不使用 `latest`、分支名或客户端猜测的 merge 替代它们。
+仓库固定为 `yaoshining/VidAll_Player` / `1307243374`。所有提交/树标识为 40 位小写十六进制，摘要为 64 位 SHA256。工作流路径为 `.github/workflows/<名称>.yml`。`merge_group` 的 headSHA 必须等于实际 group checkout/eventMergeSHA，而非某个 PR head。工作流、run attempt、head 和实际 merge 均需明确；不使用 `latest`、分支名或客户端猜测的 merge 替代它们。
 
 外部 envelope 的字段（均必需且不允许额外字段）：
 

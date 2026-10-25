@@ -55,6 +55,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node scripts/test/device-package/session.test.cjs 2>&1 | tee "$CI_OUT/work/device-session-tests.log"
+          node scripts/test/device-package/journal.test.cjs 2>&1 | tee "$CI_OUT/work/device-journal-tests.log"
+          node scripts/test/device-package/platform.test.cjs 2>&1 | tee "$CI_OUT/work/device-platform-tests.log"
+          python3 -B scripts/test/device-package/package.test.py 2>&1 | tee "$CI_OUT/work/device-package-tests.log"
+          node scripts/test/device-package/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/device-package-workflow-tests.log"
+          python3 -B scripts/test/device-execution/executor.test.py 2>&1 | tee "$CI_OUT/work/device-executor-tests.log"
+          python3 -B scripts/test/device-execution/imac.test.py 2>&1 | tee "$CI_OUT/work/device-imac-tests.log"
           python3 -B scripts/test/device-execution/controller.test.py 2>&1 | tee "$CI_OUT/work/device-preflight-tests.log"
           python3 -B scripts/test/cloud-build/host.test.py 2>&1 | tee "$CI_OUT/work/legacy-host-tests.log"
           python3 -B scripts/test/cloud-build/producer-input.test.py 2>&1 | tee "$CI_OUT/work/producer-input-tests.log"
@@ -138,6 +145,18 @@ jobs:
         env:
           DEVECO26_RELEASE_READ_TOKEN: ${{ secrets.DEVECO26_RELEASE_READ_TOKEN }}
         run: python3 -B scripts/test/deveco26/release-source.py --out "$CI_OUT"
+      - name: 官方签名jar的真实SID契约（不签真实HAP）
+        id: signer_contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B scripts/test/device-execution/signer-helper/test.py \
+            --jar "$CI_OUT/environment/mounted/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/lib/hap-sign-tool.jar" \
+            --javac "$CI_OUT/environment/mounted/DevEco-Studio.app/Contents/jbr/Contents/Home/bin/javac" \
+            --java "$CI_OUT/environment/mounted/DevEco-Studio.app/Contents/jbr/Contents/Home/bin/java" \
+            --out "$CI_OUT/signer-helper" 2>&1 | tee "$CI_OUT/work/signer-helper-tests.log"
+          cp "$CI_OUT/signer-helper/RESULT.json" "$CI_OUT/work/signer-helper-result.json"
+          cp "$CI_OUT/signer-helper/helper-build.json" "$CI_OUT/work/signer-helper-build.json"
       - name: 实际SDK的CMake与头文件回归
         id: runtime
         shell: bash
@@ -174,6 +193,13 @@ jobs:
             --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
             --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
             --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"
+      - name: 同一HAR的专用短测unsigned设备包（不安装）
+        id: device_package
+        run: |
+          python3 -B scripts/test/device-package/package.py --out "$CI_OUT" \
+            --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
+            --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
+            --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"
       - name: 停止本轮目标daemon并卸载SDK
         id: cleanup
         if: always()
@@ -196,6 +222,17 @@ jobs:
         id: assess
         if: always()
         run: python3 -B scripts/test/deveco26-gates/gates.py assess --out "$CI_OUT"
+      - name: 独立上传已核unsigned设备包（不含签名或私密材料）
+        id: device_unsigned_upload
+        if: success() && steps.device_package.outcome == 'success' && steps.assess.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: device-unsigned-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.CI_OUT }}/device-package/unsigned-artifact/manifest.json
+            ${{ env.CI_OUT }}/device-package/unsigned-artifact/device-unsigned.hap
+          if-no-files-found: error
+          retention-days: 7
 
   deveco26-result:
     name: 正常核心 DevEco26 组合结果

@@ -16,5 +16,9 @@
 - R6 真机专用标签、跨本测试流程的设备互斥、精确设备选择；离线/认证失败=待验，不假通过。仅应用保屏，无系统设置改动；只结束本次独立测试应用/本次资源，不重启全局HDC或触碰TV应用。
 - R7 云端设备包与普通unsigned consumer分开：前者必须含受控短媒体及摘要，缺媒体/签名不能安装。优先评估iMac固定工具的受控签名（不编译），避免私钥迁入云端；签名材料/专用bundle profile与工具尚待批准，签名前后必须核有效载荷一致。也不预先排除获批云端签名，但不得默默选择。缺材料授权/包契约时不部署、不注册runner、不提前开启设备workflow。
 - R8 每阶段真实RED先于实现，覆盖缺检查/skip冒绿/错来源/错包/权限和离线边界；精确提交clean重放、artifact与清理证据后才请求推送。新required check选择与远端规则设置另批。
+- R9 本轮先实现单bundle `com.yaoshining.vidalldeviceprobe` 的隔离短测：独立入口移除NAS、网络权限和备份能力，包内受控合成媒体、全新nonce日志；120秒内验证真实渲染/进度、暂停恢复、成功seek和关闭重开。失败catch不产生成功session-end，释放与应用保屏关闭独立finally执行。九套Hypium继续只编译，不借单entry契约宣称真机通过。
+- R10 本地首次受控执行先于GitHub手动入口。固定已审控制器与独立device-tools锁；受测PR仅作为数据制品，不在持钥iMac执行其脚本。签名/验签/安装前需要外部精确审批绑定来源包、工具和专用签名配置；当前材料缺失则pending。工具锁仅记录观察值，不视为部署批准。
+- R11 全事务持有同设备锁；进程/Ability/Window查询失败或断连不能推断已退出。异常清理不明时持久journal阻止后续安装；正常路径必须保屏false回读，强停路径仅能证明系统窗口资源释放，不能冒充应用自清理。只清本轮bundle/文件，不修改系统保屏、TV、候选或默认SDK。
+- R12 当前短测身份限于已验签/全载荷不变的安装包、九库摘要、系统包元数据、本次PID/nonce；`installedPayloadVerified`与`runtimeMappedLibraryHashVerified`分开。后者保持false，不将source-identity回显冒充实际运行映射哈希，不扩产品API/native探针。
 
 本阶段与项目宪章的适用性：CI/执行控制变更不新增播放器UI/API；遥控器/物理HDR/声画与原API兼容真机验收仍待验。设备相关命令遵循deveco-cli优先，若仅固定HDC安装/测试能力可用，须记录其能力限制与精确工具SHA，不通过CLI run触发构建。
