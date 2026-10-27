@@ -413,12 +413,12 @@ class FixedDevice:
             raise TimeoutError('session-timeout')
         finally:self.collecting=False
     def cleanup(self):
-        evidence=getattr(self,'evidence',None)
+        evidence=getattr(self,'evidence',None);phase='pre-uninstall'
         def observe(name,call):
             try:value=call()
             except (ContractError,TimeoutError,OSError,ValueError,KeyboardInterrupt,SystemExit) as error:
                 if evidence:
-                    try:evidence.cleanup_command(name,error=error,window=window_evidence({'timedOut':isinstance(error,TimeoutError)},self.process) if name=='window' else None)
+                    try:evidence.cleanup_command(name,error=error,phase=phase,window=window_evidence({'timedOut':isinstance(error,TimeoutError)},self.process) if name=='window' else None)
                     except (ContractError,OSError,ValueError,KeyboardInterrupt,SystemExit) as recording_error:self.evidence_failure=failure_details(recording_error,'cleanup')
                 raise
             if evidence:
@@ -428,7 +428,7 @@ class FixedDevice:
                         'window':['window-command-success','window-absent'],'uninstall':['uninstall-command-success','uninstall-semantic-success'],
                         'packages':['package-absent'],'connection':['device-connected']}.get(name,[])
                     checked=cleanup_proof({name:value},self.serial,self.process)['checks']
-                    evidence.cleanup_command(name,value,checks={k:checked[k] for k in keys},window=window_evidence(value,self.process) if name=='window' else None)
+                    evidence.cleanup_command(name,value,phase=phase,checks={k:checked[k] for k in keys},window=window_evidence(value,self.process) if name=='window' else None)
                 except (ContractError,OSError,ValueError,KeyboardInterrupt,SystemExit) as error:self.evidence_failure=failure_details(error,'cleanup')
             return value
         def ownership(**values):
@@ -452,11 +452,11 @@ class FixedDevice:
         ownership(processMatched=True)
         records={}
         records['stop']=observe('stop',lambda:self.hdc(['shell','aa','force-stop',BUNDLE],15))
-        deadline=time.monotonic()+5
+        deadline=time.monotonic()+5;deadline_code='cleanup-window-deadline'
         def bounded_query(name,command,global_command=False):
-            remaining=deadline-time.monotonic();require(remaining>0,'cleanup-window-deadline')
+            remaining=deadline-time.monotonic();require(remaining>0,deadline_code)
             result=observe(name,lambda:self.call(command,remaining) if global_command else self.hdc(command,remaining))
-            require(time.monotonic()<deadline,'cleanup-window-deadline')
+            require(time.monotonic()<deadline,deadline_code)
             return result
         for attempt in range(3):
             # 每份窗口快照前独立确认连接、UDID、安装生命周期、PID和Ability；任何失败不重试掩盖。
@@ -477,10 +477,32 @@ class FixedDevice:
             if attempt==2 or not window_resample_allowed(records['window'],self.process):break
             require('force stop process successfully' in records['stop'].get('stdout','') and command_ok(records['stop']) and not records['stop'].get('stderr'),'cleanup-stop-unconfirmed')
             time.sleep(min(0.1,max(0,deadline-time.monotonic())))
-        for name,command,timeout in [('uninstall',['uninstall',BUNDLE],30),('packages',['shell','bm','dump','-a'],15)]:
-            records[name]=observe(name,lambda command=command,timeout=timeout:self.hdc(command,timeout))
-        records['connection']=observe('connection',lambda:self.command([self.tools['hdc'],'list','targets','-v'],15))
+        pre_checks=cleanup_proof(records,self.serial,self.process)['checks']
+        # 只有原有合法计数缺口允许后验；坏行、目标窗口或命令失败必须锁存失败。
+        pre_window_valid=(pre_checks['window-command-success'] and pre_checks['window-absent']) or window_resample_allowed(records['window'],self.process)
+        # 窗口查询后再核安装生命周期，防止卸载不属于本事务的新安装。
+        current=package_identity(observe('identity',lambda:self.hdc(['shell','bm','dump','-n',BUNDLE])),self.signing['certificateDER_SHA256'],self.version)
+        require(current==self.installed_identity,'installed-lifecycle-changed')
+        records['uninstall']=observe('uninstall',lambda:self.hdc(['uninstall',BUNDLE],30))
+        require(command_ok(records['uninstall']) and not records['uninstall'].get('stderr') and 'uninstall bundle successfully' in records['uninstall']['stdout'],'cleanup-uninstall-unconfirmed')
+        # 卸载后仅一次新鲜完整快照。清理独立计时，不增加播放或窗口重采预算。
+        phase='post-uninstall';deadline=time.monotonic()+5;deadline_code='cleanup-final-deadline'
+        records['connection']=bounded_query('connection',[self.tools['hdc'],'list','targets','-v'],True)
+        require(connected_output(records['connection'],self.serial),'cleanup-device-offline')
+        device=bounded_query('device-id',['shell','bm','get','-u'])
+        require(command_ok(device) and not device.get('stderr'),'device-id-query-failed')
+        match=re.fullmatch(r'\s*udid of current device is[ \t]*:\s*([A-Za-z0-9_-]{8,256})\s*',device['stdout']);require(match is not None,'device-id-format')
+        require(digest(match.group(1).encode())==self.approval['deviceIdSHA256'],'device-id-mismatch')
+        records['packages']=bounded_query('packages',['shell','bm','dump','-a'])
+        records['pid']=bounded_query('pid',['shell','pidof',BUNDLE])
+        records['ability']=bounded_query('ability',['shell','aa','dump','-a'])
+        records['window']=bounded_query('window',['shell','hidumper','-s','WindowManagerService','-a','-a'])
         result=cleanup_proof(records,self.serial,self.process)
+        result['checks']['pre-uninstall-window-valid']=pre_window_valid
+        if not pre_window_valid:result['failedChecks'].append('pre-uninstall-window-invalid')
+        result['checks']['cleanup-evidence-retained']=not bool(getattr(self,'evidence_failure',None))
+        if not result['checks']['cleanup-evidence-retained']:result['failedChecks'].append('cleanup-evidence-not-retained')
+        result['confirmed']=all(result['checks'].values())
         result['appSelfCleanup']='confirmed' if self.app_cleanup else 'unconfirmed'
         return result
 

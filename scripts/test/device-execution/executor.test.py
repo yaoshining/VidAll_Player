@@ -57,6 +57,29 @@ def events(binding):
     return [{**binding, **r, 'schemaVersion':1,'seq':i+1} for i,r in enumerate([start,*actual_trace()])]
 
 class Tests(unittest.TestCase):
+    def test_cleanup_phase_fixed_enum_and_history_limit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            record=E.SmokeEvidence(Path(tmp),self.request)
+            for i in range(32):record.cleanup_command('window',{'returncode':0,'stdout':'synthetic','stderr':''},phase='pre-uninstall' if i<31 else 'post-uninstall')
+            saved=json.loads(record.path.read_text());self.assertEqual(len(saved['cleanupCommandHistory']),32)
+            self.assertEqual(saved['cleanupCommandHistory'][-1]['phase'],'post-uninstall')
+            before=record.path.read_bytes()
+            with self.assertRaisesRegex(ContractError,'evidence-size'):record.cleanup_command('window',phase='post-uninstall')
+            self.assertEqual(before,record.path.read_bytes())
+        for invalid in ['secret-phase','post-install',1,{},['pre-uninstall']]:
+            with tempfile.TemporaryDirectory() as tmp:
+                record=E.SmokeEvidence(Path(tmp),self.request);before=record.path.read_bytes()
+                with self.assertRaisesRegex(ContractError,'evidence-fields'):record.cleanup_command('window',phase=invalid)
+                self.assertEqual(before,record.path.read_bytes())
+
+    def test_cleanup_fixed_new_failures_are_preserved_without_private_fields(self):
+        value={'confirmed':False,'checks':{'pre-uninstall-window-valid':False,'cleanup-evidence-retained':False,'secret':True},'failedChecks':['pre-uninstall-window-invalid','cleanup-evidence-not-retained','secret'],'private':'do-not-save'}
+        result=E.sanitized_cleanup(value)
+        self.assertEqual(result['checks'],{'pre-uninstall-window-valid':False,'cleanup-evidence-retained':False})
+        self.assertEqual(result['failedChecks'],value['failedChecks'][:2]);self.assertNotIn('private',result)
+        for code in ['cleanup-final-deadline','cleanup-uninstall-unconfirmed']:
+            self.assertEqual(E.failure_details(ContractError(code),'cleanup')['code'],code)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup); self.root = Path(self.temp.name)
         self.binding = {'nonce': 'a'*32, 'bundle': 'com.yaoshining.vidalldeviceprobe', 'pid': 4321, 'startedAtMs': 1000000, 'unsignedHapSHA256': 'b'*64}

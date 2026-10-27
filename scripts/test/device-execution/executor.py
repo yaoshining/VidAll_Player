@@ -32,7 +32,7 @@ SAFE_FAILURE_CODES=frozenset({
     'events-missing-or-excessive','session-binding','event-order','event-session-mismatch','event-time','session-failed',
     'event-value','scenario-order','session-completion','runtime-not-ready','progress-not-observed','pause-not-stable',
     'seek-not-observed','render-not-observed','eof-not-observed','keep-screen-not-released','lifecycle-not-confirmed',
-    'cleanup-window-deadline','cleanup-ability-present-or-unknown','cleanup-stop-unconfirmed',
+    'cleanup-final-deadline','cleanup-uninstall-unconfirmed','cleanup-window-deadline','cleanup-ability-present-or-unknown','cleanup-stop-unconfirmed',
     'device-disconnected-or-process-reused','session-timeout','startup-evidence-missing','too-many-device-events',
     'startup-session-mismatch','startup-time-mismatch','startup-pid-reused','pid-query-invalid','process-stat-query-failed',
     'process-stat-invalid','process-start-token','event-transfer-failed','device-not-connected','device-clock-unknown',
@@ -93,10 +93,10 @@ APP_VALUES=frozenset({'ready','started','passed','released','new-first-frame','t
 EVENT_NUMBERS=frozenset({'count','positionMs','durationMs','beforeMs','afterMs','intervalMs','targetMs','reachedMs','generation','sequence'})
 CLEANUP_NAMES=frozenset({'device-id','connection-before','package-before','identity','prestop-pid','stop','pid','ability','window','uninstall','packages','connection'})
 
-CLEANUP_CHECKS=frozenset({'device-connected','stop-command-success','ability-command-success','window-command-success',
+CLEANUP_CHECKS=frozenset({'pre-uninstall-window-valid','cleanup-evidence-retained','device-connected','stop-command-success','ability-command-success','window-command-success',
     'uninstall-command-success','stop-semantic-success','pid-absent','ability-absent','window-absent',
     'uninstall-semantic-success','package-absent'})
-CLEANUP_FAILURES=frozenset({'cleanup-device-not-connected','stop-command-failed','ability-command-failed','window-command-failed',
+CLEANUP_FAILURES=frozenset({'pre-uninstall-window-invalid','cleanup-evidence-not-retained','cleanup-device-not-connected','stop-command-failed','ability-command-failed','window-command-failed',
     'uninstall-command-failed','stop-semantic-failure','process-still-present-or-unknown','ability-still-present-or-unknown',
     'window-evidence-invalid','package-still-present-or-unknown','uninstall-semantic-failure'})
 
@@ -214,8 +214,10 @@ class SmokeEvidence:
         self.data['events']=safe_event_snapshot(rows,binding or self.binding);self._write()
     def event_read(self,response=None,error=None):
         self.data['eventRead']=safe_command_result(response,error);self._write()
-    def cleanup_command(self,name,response=None,error=None,checks=None,window=None):
+    def cleanup_command(self,name,response=None,error=None,checks=None,window=None,phase=None):
         require(name in CLEANUP_NAMES,'evidence-fields');self.data['cleanupCommands'][name]=safe_command_result(response,error)
+        if phase is not None:
+            require(phase in ('pre-uninstall','post-uninstall'),'evidence-fields');self.data['cleanupCommands'][name]['phase']=phase
         if isinstance(checks,dict):self.data['cleanupCommands'][name]['checks']={k:v for k,v in checks.items() if k in CLEANUP_CHECKS and type(v) is bool}
         if name=='window' and window is not None:self.data['cleanupCommands'][name]['windowEvidence']=safe_window_evidence(window)
         # 重采仍保留每次固定字段/摘要，不能只覆盖最后一份窗口证据。

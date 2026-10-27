@@ -246,7 +246,7 @@ class Tests(unittest.TestCase):
             return original(args,timeout)
         d.command=command
         with patch.object(d.evidence,'cleanup_command',side_effect=OSError('disk-secret')):result=d.cleanup()
-        self.assertTrue(result['confirmed']);self.assertFalse(self.present);self.assertIn('code',d.evidence_failure)
+        self.assertFalse(result['confirmed']);self.assertFalse(self.present);self.assertIn('code',d.evidence_failure);self.assertIn('cleanup-evidence-not-retained',result['failedChecks'])
 
     def test_cleanup_requires_every_success(self):
         self.assertTrue(M.cleanup_proof(self.proof(),'192.168.3.85:5555')['confirmed'])
@@ -345,7 +345,7 @@ class Tests(unittest.TestCase):
     def test_window_count_retry_strict_success_keeps_failed_attempt(self):
         d=self.window_cleanup_adapter([good(self.incomplete_window_42_41()),good(self.actual_window())])
         with patch.object(M.time,'sleep'):result=d.cleanup()
-        self.assertTrue(result['confirmed']);self.assertEqual(self.window_reads,2)
+        self.assertTrue(result['confirmed']);self.assertEqual(self.window_reads,3)
         data=json.loads(d.evidence.path.read_text());attempts=data['cleanupWindowAttempts']
         self.assertEqual(attempts[0]['windowEvidence']['code'],'window-table-incomplete');self.assertEqual(attempts[0]['windowEvidence']['reportedTotal'],42);self.assertEqual(attempts[0]['windowEvidence']['observedRows'],41)
         self.assertEqual(attempts[1]['windowEvidence']['code'],'ok')
@@ -355,13 +355,13 @@ class Tests(unittest.TestCase):
     def test_window_permanent_count_failure_is_bounded_and_preserved(self):
         d=self.window_cleanup_adapter([good(self.incomplete_window_42_41())])
         with patch.object(M.time,'sleep'):result=d.cleanup()
-        self.assertFalse(result['confirmed']);self.assertEqual(self.window_reads,3)
+        self.assertFalse(result['confirmed']);self.assertEqual(self.window_reads,4)
         data=json.loads(d.evidence.path.read_text())
-        self.assertEqual(len(data['cleanupWindowAttempts']),3)
+        self.assertEqual(len(data['cleanupWindowAttempts']),4)
         self.assertEqual(len(data['cleanupCommandHistory']),len(data['cleanupCommandOrder']))
         self.assertLessEqual(len(data['cleanupCommandHistory']),32)
-        for name in ['device-id','ability','window']:self.assertEqual(sum(row['name']==name for row in data['cleanupCommandHistory']),3)
-        self.assertEqual(data['cleanupCommandHistory'][-1]['name'],'connection')
+        for name in ['device-id','ability','window']:self.assertEqual(sum(row['name']==name for row in data['cleanupCommandHistory']),4)
+        self.assertEqual(data['cleanupCommandHistory'][-1]['name'],'window')
 
     def test_window_retry_never_hides_target_or_bad_rows(self):
         original=self.incomplete_window_42_41()
@@ -369,7 +369,7 @@ class Tests(unittest.TestCase):
             with self.subTest(raw=raw):
                 d=self.window_cleanup_adapter([good(raw),good(self.actual_window())])
                 with patch.object(M.time,'sleep'):result=d.cleanup()
-                self.assertFalse(result['confirmed']);self.assertEqual(self.window_reads,1)
+                self.assertFalse(result['confirmed']);self.assertEqual(self.window_reads,2)
                 self.root.joinpath('window-evidence','smoke-'+d.nonce+'.json').unlink()
                 import shutil;shutil.rmtree(self.root/'session')
 
@@ -407,6 +407,143 @@ class Tests(unittest.TestCase):
                 with patch.object(M.time,'sleep'),self.assertRaises(ContractError):d.cleanup()
                 self.assertEqual(self.window_reads,1);self.assertTrue(self.present)
                 import shutil;shutil.rmtree(self.root/'session');(self.root/'window-evidence'/('smoke-'+d.nonce+'.json')).unlink()
+
+    def final_snapshot_adapter(self,pre=None,post=None):
+        # 每个合成子案例隔离，前一个断言失败也不会遮蔽后续语义断言。
+        import shutil
+        if (self.root/'session').exists():shutil.rmtree(self.root/'session')
+        for evidence in (self.root/'window-evidence').glob('smoke-*.json'):evidence.unlink()
+        d=self.window_cleanup_adapter([pre or good(self.actual_window())]);base=d.command
+        self.final_calls=[]
+        def command(args,timeout):
+            if not self.present:self.final_calls.append((list(args),timeout))
+            if not self.present and 'WindowManagerService' in args:
+                self.window_reads+=1;return post or good(self.actual_window())
+            return base(args,timeout)
+        d.command=command;return d
+
+    def test_final_snapshot_after_three_incomplete_keeps_all_evidence(self):
+        d=self.final_snapshot_adapter(good(self.incomplete_window_42_41()))
+        with patch.object(M.time,'sleep'):result=d.cleanup()
+        self.assertTrue(result['confirmed']);self.assertEqual(self.window_reads,4)
+        data=json.loads(d.evidence.path.read_text())
+        self.assertEqual([a['windowEvidence']['code'] for a in data['cleanupWindowAttempts']],['window-table-incomplete']*3+['ok'])
+        self.assertEqual([a['phase'] for a in data['cleanupWindowAttempts']],['pre-uninstall']*3+['post-uninstall'])
+        self.assertEqual(data['cleanupCommandOrder'][-6:],['connection','device-id','packages','pid','ability','window'])
+        self.assertEqual(len(data['cleanupCommandHistory']),29)
+        self.assertEqual(data['cleanupCommandHistory'][-7]['name'],'uninstall')
+        self.assertEqual(data['cleanupCommandHistory'][-8]['name'],'identity')
+
+    def test_final_snapshot_required_even_when_pre_complete(self):
+        d=self.final_snapshot_adapter()
+        result=d.cleanup();self.assertTrue(result['confirmed']);self.assertEqual(self.window_reads,2)
+        self.assertEqual(len(self.final_calls),6)
+        self.assertTrue(all(0<timeout<=5 for _,timeout in self.final_calls))
+
+    def test_final_incomplete_never_reuses_pre_complete_or_retries(self):
+        d=self.final_snapshot_adapter(post=good(self.incomplete_window_42_41()))
+        result=d.cleanup();self.assertFalse(result['confirmed']);self.assertEqual(self.window_reads,2)
+        self.assertEqual(result['windowEvidence']['code'],'window-table-incomplete')
+        self.assertEqual(len(self.final_calls),6)
+
+    def test_final_deadline_rejects_late_healthy_output(self):
+        d=self.final_snapshot_adapter();base=d.command;clock=[0.0]
+        def command(args,timeout):
+            value=base(args,timeout)
+            if not self.present and 'WindowManagerService' in args:clock[0]=6.0
+            return value
+        d.command=command
+        with patch.object(M.time,'monotonic',side_effect=lambda:clock[0]),self.assertRaisesRegex(ContractError,'cleanup-final-deadline'):d.cleanup()
+        self.assertFalse(self.present)
+
+    def test_final_guard_failures_are_not_hidden_by_healthy_window(self):
+        failures=['offline','udid','package','pid','ability','ability-error','window-error','window-timeout']
+        for failure in failures:
+            with self.subTest(failure=failure):
+                d=self.final_snapshot_adapter();base=d.command
+                def command(args,timeout):
+                    if not self.present:
+                        if failure=='offline' and args[-3:]==['list','targets','-v']:return good('192.168.3.85:5555 TCP Offline')
+                        if failure=='udid' and args[-3:]==['bm','get','-u']:return good('udid of current device is: OTHERDEVICE')
+                        if failure=='package' and args[-3:]==['bm','dump','-a']:return good('ID: 0\n'+BUNDLE+'\n')
+                        if failure=='pid' and args[-3:]==['shell','pidof',BUNDLE]:return good('4321\n')
+                        if failure.startswith('ability') and args[-3:]==['aa','dump','-a']:return good('AbilityManagerService '+BUNDLE,2 if failure=='ability-error' else 0)
+                        if failure.startswith('window') and 'WindowManagerService' in args:
+                            if failure=='window-timeout':raise TimeoutError('synthetic')
+                            return good(self.actual_window(),2)
+                    return base(args,timeout)
+                d.command=command
+                try:result=d.cleanup()
+                except (ContractError,TimeoutError):pass
+                else:self.assertFalse(result['confirmed'])
+                import shutil;shutil.rmtree(self.root/'session');d.evidence.path.unlink()
+
+    def test_final_does_not_erase_pre_hard_failure(self):
+        cases=[good(self.actual_window().replace(' 7654 ',' 4321 ')),good('unknown table'),{**good(self.actual_window()),'stderr':'synthetic-error'},good(self.actual_window(),2)]
+        for pre in cases:
+            with self.subTest(pre=pre):
+                d=self.final_snapshot_adapter(pre)
+                result=d.cleanup();self.assertFalse(result['confirmed']);self.assertIn('pre-uninstall-window-invalid',result['failedChecks'])
+                self.assertFalse(self.present)
+                import shutil;shutil.rmtree(self.root/'session');d.evidence.path.unlink()
+
+    def test_final_rechecks_lifecycle_immediately_before_uninstall(self):
+        d=self.final_snapshot_adapter();base=d.command
+        def command(args,timeout):
+            if self.window_reads and self.present and args[-4:]==['bm','dump','-n',BUNDLE]:self.install_time=9999
+            return base(args,timeout)
+        d.command=command
+        with self.assertRaisesRegex(ContractError,'installed-lifecycle-changed'):d.cleanup()
+        self.assertTrue(self.present);self.assertEqual(self.final_calls,[])
+
+    def test_final_healthy_never_hides_failed_stop(self):
+        d=self.final_snapshot_adapter();base=d.command
+        def command(args,timeout):
+            if 'force-stop' in args:return good('synthetic stop failed')
+            return base(args,timeout)
+        d.command=command;result=d.cleanup()
+        self.assertFalse(result['confirmed']);self.assertIn('stop-semantic-failure',result['failedChecks'])
+        self.assertEqual(self.window_reads,2);self.assertFalse(self.present)
+
+    def test_final_deadline_each_query_rejects_late_success(self):
+        for late_call in range(1,7):
+            with self.subTest(late_call=late_call):
+                d=self.final_snapshot_adapter();base=d.command;clock=[0.0]
+                def command(args,timeout):
+                    result=base(args,timeout)
+                    if len(self.final_calls)==late_call:clock[0]=6.0
+                    return result
+                d.command=command
+                with patch.object(M.time,'monotonic',side_effect=lambda:clock[0]),self.assertRaisesRegex(ContractError,'cleanup-final-deadline'):d.cleanup()
+                self.assertEqual(len(self.final_calls),late_call)
+                self.assertFalse(self.present)
+
+    def test_final_deadline_before_next_query_prevents_call(self):
+        d=self.final_snapshot_adapter();clock=[0.0];normal=d.evidence.cleanup_command
+        def record(*args,**kwargs):
+            normal(*args,**kwargs)
+            if kwargs.get('phase')=='post-uninstall' and args[0]=='device-id':clock[0]=6.0
+        with patch.object(d.evidence,'cleanup_command',side_effect=record),patch.object(M.time,'monotonic',side_effect=lambda:clock[0]),self.assertRaisesRegex(ContractError,'cleanup-final-deadline'):d.cleanup()
+        self.assertEqual(len(self.final_calls),2)
+
+    def test_final_recovered_evidence_write_failure_stays_failed(self):
+        d=self.final_snapshot_adapter();normal=d.evidence.cleanup_command;failed=[False]
+        def record(name,*args,**kwargs):
+            if name=='window' and not failed[0]:failed[0]=True;raise OSError('synthetic-private')
+            return normal(name,*args,**kwargs)
+        with patch.object(d.evidence,'cleanup_command',side_effect=record):result=d.cleanup()
+        self.assertFalse(result['confirmed']);self.assertIn('cleanup-evidence-not-retained',result['failedChecks'])
+        self.assertFalse(self.present);self.assertNotIn('synthetic-private',d.evidence.path.read_text())
+
+    def test_final_uninstall_failure_cannot_be_redeemed(self):
+        d=self.final_snapshot_adapter();base=d.command
+        def command(args,timeout):
+            value=base(args,timeout)
+            if args[-2:]==['uninstall',BUNDLE]:return good('uninstall failed')
+            return value
+        d.command=command
+        with self.assertRaisesRegex(ContractError,'cleanup-uninstall-unconfirmed'):d.cleanup()
+        self.assertEqual(self.final_calls,[])
 
     def test_window_retry_rejects_duplicate_ids_and_stderr(self):
         raw=self.incomplete_window_42_41().replace(' 23 1 1 1',' 22 1 1 1')

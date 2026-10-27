@@ -115,3 +115,10 @@ Round10 f2288b69已按精确批准推送，run40536674072 attempt2云端组合�
 Round12验证边界：已证正常EOF事件交付存在源码缺口；旧Round11未保留MPV结束reason，不能断言当次失败完全由这一缺口造成。正常EOF仅在loadfile reply_userdata和playlist_entry_id闭合后投递，reply晚到END_FILE不补判成功；同URI重载仍以独立entry区分。buffering使用既有completed状态合法边，公开类型与诊断新鲜度不变。窗口上游实现存在总数包括被过滤session的机制线索，但尚未证实目标TV版本相同或当次具体原因；严格42/41原输出仍不通过，不做总数容错。
 
 本轮本地同源码HAR与独立unsigned HAP已实际构建，未签名、未设备执行。窗口三轮各项白名单命令摘要/结构证据均持久化（32条总上限内），最终检查仍调用原始window_pids，其AST与本轮基线一致。新增重采资格不会改写原输出或接受不完整快照；最后一次慢返回超过5秒同样拒绝。源码/日志/输入清单及清理记录置于Round12隔离证据，旧封存不回写。
+
+
+## Round14 最小实现顺序
+
+先以真实 FixedDevice.cleanup 和 SmokeEvidence 建立旧源码 RED，再调整终态采样。卸载前最后一次安装生命周期复核，明确卸载成功后一次六查询；不复用旧窗口/PID/Ability。前置窗口硬失败单独锁存，证据写失败保持失败；旧完整性解析逐字冻结。证据 phase 只接受 pre-uninstall/post-uninstall 固定枚举；旧 history32 上限不变。最坏实际29条（旧路径实际24条，替换末尾2条为6条，再加1次身份复核），所有中间失败保留。
+
+匹配验证为 imac/executor/controller/reconciliation 与真实官方签名 CLI 参数契约回归（仅解析、不签名）；pages helper 源码/输入不变，本轮不重复其官方派生测试；增加复用旧窗口、擦除硬失败、漏最终期限、漏卸载前归属四类变异。产品/库/fixture/HAR/HAP不改，无需目标重编。根审通过后整理精确提交，推送和再次设备执行另给预览；本轮无远端动作。
