@@ -105,3 +105,12 @@ Round10 f2288b69已按精确批准推送，run40536674072 attempt2云端组合�
 Round12本地构建使用明确逐字节源码清单和空签名隔离副本：先构建当前native/ETS HAR，再由同一快照fixture消费该HAR。首次准备因评估器要求副本Git元数据失败，未到编译，已保留；仓外脚本以新副本无旧产物及源码清单替代该本地前置后，真实clean/build通过。未修改CI源码身份规则，不把未提交快照称为云端精确提交。两个专属daemon均已停止，重复产物待证据核验后精确清理。
 
 新native测试编译实际Load/Stop/COMMAND_REPLY/END_FILE/DispatchCompletion，NAPI投递使用替身，Release仅核真实源码失效早于released/join顺序；删除三处生产接线的变异均被拒绝。不是设备强并发或真实TSFN验收。现有host job仅追加一条completion-event.test.py，配套工作流删除变异，无新job/权限/手动设备workflow。
+
+## Round12 CI返修：父级真实切片依赖闭包
+
+精确提交baf386e4已按用户批准推送PR82。run40556300632 attempt1中新EOF/执行器契约、原14CTest及producer检查通过；全量47链的父级切片在编译时缺少Release新增调用的InvalidateCompletion，parent-green及三组变异均exit2（不是预期语义失败），汇总失败。诊断40556300805、原生40556300830成功；target因新merge未授权仍跳过。旧失败artifact12756314709完整95文本索引已核，保留原始失败。
+
+最小修复仅提取实际InvalidateCompletion到原parent-chain编译链、补对应mutex/epoch/entry/vector成员；normal-explicit-release从非空状态验证真实失效清空。没有空stub、删除旧断言或修改产品源码/核心库/工作流，也无需重建先前已验证HAR。完整normal-core/run.py 47项及原父级变异已通过；临时TU将失效函数置空或删除Release调用的两项变异都以FAIL/94被拒。首次推送前精确回放遗漏该完整47链是验证范围缺口，本次按原完整入口补齐，不以其他局部通过替代。
+
+- [x] T049 CI失败定位、真实编译RED、实际函数依赖修复与47项GREEN、失效语义变异、根审代码检查完成。
+- [ ] T050 本地精确返修提交/重放及新推送预览；用户批准新SHA后方可推送。新merge目标配置仍另批，设备/旧事务不操作。

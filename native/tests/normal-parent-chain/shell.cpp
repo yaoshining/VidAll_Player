@@ -11,6 +11,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -46,11 +47,14 @@ public:
  /* EXTRACT NativeSession() */
  /* EXTRACT ~NativeSession() */
  /* EXTRACT void Release() */
+ /* EXTRACT void InvalidateCompletion() */
  /* EXTRACT void StopRendererLocked() */
  /* EXTRACT void DestroyRenderer() */
  /* EXTRACT void CloseCallbackLocked() */
  std::unique_ptr<mpv_handle,decltype(&mpv_terminate_destroy)>player_{nullptr,mpv_terminate_destroy};
- std::mutex lifecycleMutex_,rendererMutex_,callbackMutex_;
+ std::mutex lifecycleMutex_,rendererMutex_,callbackMutex_,completionMutex_;
+ // 与实际InvalidateCompletion读取的成员类型一致，非空初值检验Release真实清理调用。
+ std::uint64_t completionEpoch_=7;std::int64_t completionEntry_=17;std::vector<std::int64_t>completionEnded_{11};
  std::condition_variable renderCondition_;
  std::thread eventThread_,renderThread_;
  std::atomic<bool>stopEvents_{false};
@@ -88,7 +92,7 @@ int main(int argc,char**argv){
   while(!cleanupObserved)std::this_thread::sleep_for(std::chrono::milliseconds(1));
   terminalNow();held.unlock();cleanup.join();
  }else{
-  if(mode=="normal-explicit-release")p->Release();
+  if(mode=="normal-explicit-release"){p->Release();if(p->completionEpoch_!=0||p->completionEntry_!=-1||!p->completionEnded_.empty()){event("FAIL completion invalidation");return 94;}}
   p.reset();event("owner-delete");
  }
  if(mode.rfind("terminal-",0)==0){for(;;)std::this_thread::sleep_for(std::chrono::milliseconds(10));}
