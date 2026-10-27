@@ -33,5 +33,16 @@ let count=0;
  }
  const p2=new Port('hang'),r2=await new SmokeSession(p2,25,25).run();assert.equal(r2.passed,false);assert.ok(p2.keep.includes(false));count++;
  const jp=new Port('journal'),jr=await new SmokeSession(jp).run();assert.equal(jr.passed,false);assert.ok(jp.keep.includes(false));count++;
+ const staleFailures=[];
+ async function staleCase(name,run){try{await run();count++;}catch(e){staleFailures.push({name,error:e.message});}}
+ await staleCase('stale-once-recovers',async()=>{const p=new Port();const sample=p.sample.bind(p);let n=0;p.sample=async guard=>{guard?.();if(n++===0)throw Error('DIAGNOSTICS_STALE');return sample();};const r=await new SmokeSession(p).run();assert.equal(r.passed,true);assert.equal(p.events.at(-1).event,'session-end');assert.ok(n>1);});
+ await staleCase('stale-50-attempt-bound',async()=>{const p=new Port();let n=0;p.sample=async()=>{n++;throw Error('DIAGNOSTICS_STALE');};const r=await new SmokeSession(p).run();assert.equal(r.passed,false);assert.equal(r.error,'DIAGNOSTICS_STALE');assert.equal(n,50);assert.ok(p.t<=5000);assert.ok(p.keep.includes(false));});
+ await staleCase('stale-frozen-clock-count-bound',async()=>{const p=new Port();p.sleep=async()=>{};let n=0;p.sample=async()=>{n++;throw Error('DIAGNOSTICS_STALE');};const r=await new SmokeSession(p).run();assert.equal(r.error,'DIAGNOSTICS_STALE');assert.equal(n,50);});
+ await staleCase('cancelled-stale-no-retry',async()=>{const p=new Port();const session=new SmokeSession(p);let n=0;p.sample=async()=>{n++;session.cancel();throw Error('DIAGNOSTICS_STALE');};const r=await session.run();assert.equal(r.error,'SESSION_CANCELLED');assert.equal(n,1);});
+ await staleCase('deadline-stale-no-next-request',async()=>{const p=new Port();let n=0;p.sample=async()=>{n++;throw Error('DIAGNOSTICS_STALE');};const r=await new SmokeSession(p,50).run();assert.equal(r.error,'SESSION_TIMEOUT');assert.equal(n,1);});
+ await staleCase('valid-result-after-cancel-rejected',async()=>{const p=new Port();const session=new SmokeSession(p);const original=p.sample.bind(p);p.sample=async()=>{session.cancel();return original();};await assert.rejects(()=>session.checked(),/SESSION_CANCELLED/);});
+ for(const error of ['DIAGNOSTICS_RELEASED','PLAYER_TERMINAL','PRIVATE_OTHER_FAILURE'])await staleCase('no-retry-'+error,async()=>{const p=new Port();let n=0;p.sample=async()=>{n++;throw Error(error);};const r=await new SmokeSession(p).run();assert.equal(r.error,error);assert.equal(n,1);});
+ await staleCase('late-retry-success-rejected',async()=>{const p=new Port();const original=p.sample.bind(p);let calls=0;p.sample=async()=>{if(++calls===1)throw Error('DIAGNOSTICS_STALE');p.t+=5001;return original();};const r=await new SmokeSession(p).run();assert.equal(r.passed,false);assert.equal(r.error,'DIAGNOSTICS_STALE');assert.equal(calls,2);});
+if(staleFailures.length){console.error(JSON.stringify({staleFailures,casesAttempted:count+staleFailures.length}));throw Error('stale regression failed');}
  console.log(JSON.stringify(process.argv.includes('--trace-json')?{events:p.events,passed:true,scope:'actual SmokeSession with fake platform observations'}:{passed:true,cases:count,scope:'实际SmokeSession函数/模拟播放器观察；不是设备通过'}));
 })().catch(e=>{console.error(e);process.exitCode=1;});

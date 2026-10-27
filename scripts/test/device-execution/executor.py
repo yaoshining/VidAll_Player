@@ -88,7 +88,7 @@ APP_VALUES=frozenset({'ready','started','passed','released','new-first-frame','t
     'KEEP_SCREEN_NOT_RELEASED','CLEANUP_FAILED','JOURNAL_FAILED','UNEXPECTED_FAILURE','TERMINAL','observed',
     'DIAGNOSTIC_UNAVAILABLE','EOF_WITHOUT_CYCLE_DIAGNOSTIC','RUNTIME_NOT_READY','PLAYER_ALREADY_OPEN','NO_PLAYER',
     'NO_SESSION_DIRECTORY','TERMINAL_RELEASE_FORBIDDEN','REPEATED_LAUNCH','CONTENT_LOAD_FAILED',
-    'SESSION_ALREADY_ACTIVE','INVALID_LAUNCH','NONCE_REUSE','SESSION_NOT_STARTED'})
+    'DIAGNOSTICS_STALE','DIAGNOSTICS_RELEASED','PLAYER_TERMINAL','SESSION_ALREADY_ACTIVE','INVALID_LAUNCH','NONCE_REUSE','SESSION_NOT_STARTED'})
 EVENT_NUMBERS=frozenset({'count','positionMs','durationMs','beforeMs','afterMs','intervalMs','targetMs','reachedMs','generation','sequence'})
 CLEANUP_NAMES=frozenset({'connection-before','package-before','identity','prestop-pid','stop','pid','ability','window','uninstall','packages','connection'})
 
@@ -110,11 +110,34 @@ def sanitized_failure(value):
     if diff is not None:result['payloadDiff']=diff
     return result
 
+WINDOW_CODES=frozenset({'ok','window-evidence-unknown','window-query-timeout','window-query-failed','window-output-invalid',
+    'window-count-unrecognized','window-header-ambiguous','window-table-incomplete','window-row-unrecognized',
+    'window-format-unrecognized','window-separator-unrecognized','window-section-unrecognized','window-metadata-unrecognized',
+    'window-tail-unrecognized','window-integer-field','window-number-field','window-row-brackets','window-identity-field',
+    'window-bundle-present','window-process-present'})
+
+def safe_window_evidence(value):
+    value=value if isinstance(value,dict) else {}
+    result={'code':value.get('code') if isinstance(value.get('code'),str) and value.get('code') in WINDOW_CODES else 'window-evidence-unknown',
+        'format':value.get('format') if isinstance(value.get('format'),str) and value.get('format') in ('legacy3','current25') else 'unknown'}
+    for key in ['parsePassed','commandPassed','absenceConfirmed','bundleMentioned','targetProcessMentioned','rowsTruncated']:
+        if type(value.get(key)) is bool:result[key]=value[key]
+    for key in ['outputBytes','headerCount','totalCount','focusCount','separatorCount','reportedTotal','observedRows']:
+        v=value.get(key)
+        if type(v) is int and 0<=v<=2*1024*1024:result[key]=v
+        elif key in ('reportedTotal','observedRows'):result[key]=None
+    sha=value.get('outputSHA256')
+    if isinstance(sha,str) and re.fullmatch('[0-9a-f]{64}',sha):result['outputSHA256']=sha
+    counts=value.get('rowColumnCounts')
+    if isinstance(counts,list):result['rowColumnCounts']=[n for n in counts[:64] if type(n) is int and 0<=n<=4096]
+    return result
+
 def sanitized_cleanup(value):
     value=value if isinstance(value,dict) else {}
     result={'confirmed':value.get('confirmed') is True,'appSelfCleanup':value.get('appSelfCleanup') if value.get('appSelfCleanup') in ('confirmed','unconfirmed','not-started') else 'unconfirmed'}
     checks=value.get('checks',{});result['checks']={k:v for k,v in checks.items() if k in CLEANUP_CHECKS and type(v) is bool} if isinstance(checks,dict) else {}
     reasons=value.get('failedChecks',[]);result['failedChecks']=[v for v in reasons if isinstance(v,str) and v in CLEANUP_FAILURES][:16] if isinstance(reasons,list) else []
+    if 'windowEvidence' in value:result['windowEvidence']=safe_window_evidence(value['windowEvidence'])
     if value.get('deviceMutation')=='none':result['deviceMutation']='none'
     return result
 
@@ -190,9 +213,10 @@ class SmokeEvidence:
         self.data['events']=safe_event_snapshot(rows,binding or self.binding);self._write()
     def event_read(self,response=None,error=None):
         self.data['eventRead']=safe_command_result(response,error);self._write()
-    def cleanup_command(self,name,response=None,error=None,checks=None):
+    def cleanup_command(self,name,response=None,error=None,checks=None,window=None):
         require(name in CLEANUP_NAMES,'evidence-fields');self.data['cleanupCommands'][name]=safe_command_result(response,error)
         if isinstance(checks,dict):self.data['cleanupCommands'][name]['checks']={k:v for k,v in checks.items() if k in CLEANUP_CHECKS and type(v) is bool}
+        if name=='window' and window is not None:self.data['cleanupCommands'][name]['windowEvidence']=safe_window_evidence(window)
         self.data['cleanupCommandOrder'].append(name);require(len(self.data['cleanupCommandOrder'])<=32,'evidence-size');self._write()
     def parse_failure(self,line,data):
         require(type(line) is int and 1<=line<=2048 and isinstance(data,bytes) and len(data)<=2*1024*1024,'evidence-fields')

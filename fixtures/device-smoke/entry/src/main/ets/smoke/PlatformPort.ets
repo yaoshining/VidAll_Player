@@ -46,12 +46,33 @@ export class PlatformPort implements SmokePort {
     if (this.state !== 'playing') await player.play();
   }
   private requirePlayer(): VidAllPlayer { if (this.player === undefined) throw new Error('NO_PLAYER'); return this.player; }
-  async sample(): Promise<SmokeSample> {
+  private sampleGuard(player: VidAllPlayer, cycle: number, checkActive?: () => void): void {
+    checkActive?.();
+    if (getPlayerRuntimeStatus().state === 'terminal') throw new Error('PLAYER_TERMINAL');
+    if (this.player !== player || this.cycle !== cycle) throw new Error('DIAGNOSTICS_RELEASED');
+  }
+  private async diagnostics(player: VidAllPlayer, cycle: number, checkActive?: () => void): Promise<PlayerDiagnosticsSnapshot> {
+    this.sampleGuard(player, cycle, checkActive);
+    let snapshot: PlayerDiagnosticsSnapshot;
+    try { snapshot = await player.getDiagnostics(); }
+    finally { this.sampleGuard(player, cycle, checkActive); }
+    if (snapshot.freshness === 'cached-terminal') throw new Error('PLAYER_TERMINAL');
+    return snapshot;
+  }
+  async sample(checkActive?: () => void): Promise<SmokeSample> {
+    checkActive?.();
+    if (getPlayerRuntimeStatus().state === 'terminal') throw new Error('PLAYER_TERMINAL');
+    const player = this.requirePlayer(); const cycle = this.cycle;
+    this.sampleGuard(player, cycle, checkActive);
     if (this.state === 'completed' && this.measuredCycle !== this.cycle) throw new Error('EOF_WITHOUT_CYCLE_DIAGNOSTIC');
     if (this.state === 'completed') return { positionMs: this.lastPosition, durationMs: this.duration, paused: false, completed: true, frames: this.frames, errors: this.errors };
-    const player = this.requirePlayer(); let snapshot: PlayerDiagnosticsSnapshot = await player.getDiagnostics();
+    let snapshot: PlayerDiagnosticsSnapshot = await this.diagnostics(player, cycle, checkActive);
+    this.sampleGuard(player, cycle, checkActive);
     for (let i = 0; i < 50 && (snapshot.fields.positionMs.status !== 'available' || snapshot.fields.durationMs.status !== 'available'); i++) {
-      await this.sleep(100); snapshot = await player.getDiagnostics();
+      this.sampleGuard(player, cycle, checkActive);
+      try { await this.sleep(100); } finally { this.sampleGuard(player, cycle, checkActive); }
+      snapshot = await this.diagnostics(player, cycle, checkActive);
+      this.sampleGuard(player, cycle, checkActive);
     }
     if (snapshot.fields.positionMs.status !== 'available' || snapshot.fields.positionMs.value === undefined || snapshot.fields.durationMs.status !== 'available' || snapshot.fields.durationMs.value === undefined || snapshot.fields.paused.status !== 'available' || snapshot.fields.paused.value === undefined) throw new Error('DIAGNOSTIC_UNAVAILABLE');
     this.measuredCycle = this.cycle; this.lastPosition = snapshot.fields.positionMs.value; this.duration = snapshot.fields.durationMs.value;

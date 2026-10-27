@@ -411,4 +411,19 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ContractError):E.recover(p,self.root/'state',{**self.request,'nonce':'c'*32})
         p.online=False;r=E.recover(p,self.root/'state',self.request);self.assertFalse(r['recovered'])
 
+class WindowEvidenceTests(unittest.TestCase):
+    def test_fixed_app_errors_preserved_unknown_redacted(self):
+        binding={'nonce':'a'*32,'bundle':E.BUNDLE,'unsignedHapSHA256':'b'*64}
+        for code in ['DIAGNOSTICS_STALE','DIAGNOSTICS_RELEASED','PLAYER_TERMINAL','SESSION_CANCELLED','SESSION_TIMEOUT']:
+            rows=E.safe_event_snapshot([dict(binding,event='session-failed',value=code)],binding)
+            self.assertEqual(rows['rows'][0]['value'],code)
+        self.assertNotIn('private-secret',json.dumps(E.safe_event_snapshot([dict(binding,event='session-failed',value='private-secret')],binding)))
+    def test_window_nested_evidence_rebuilt_not_copied(self):
+        unsafe={'code':'window-table-incomplete','format':'current25','reportedTotal':4,'observedRows':3,'secret':'private-secret','rowColumnCounts':[25,25],'outputSHA256':'a'*64}
+        safe=E.sanitized_cleanup({'windowEvidence':unsafe})['windowEvidence']
+        self.assertEqual(safe['code'],'window-table-incomplete');self.assertNotIn('private-secret',json.dumps(safe))
+        self.assertEqual(E.safe_window_evidence({'code':'private-secret'})['code'],'window-evidence-unknown')
+        for v in [[],{},['private-secret']]:
+            self.assertEqual(E.safe_window_evidence({'code':v,'format':v})['code'],'window-evidence-unknown')
+
 if __name__=='__main__': unittest.main()

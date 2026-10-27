@@ -55,9 +55,36 @@
 
 - [x] T038 Round8本地失败证据闭环TDD（executor43/imac58/controller28通过；根审129项及最终固定枚举补丁已通过，远端执行未完成）：本nonce安全事件快照/精确固定错误码/逐项清理证据和独立最终结果在私有输出删除前原子持久化；异常中断不记passed。保留Round7失败原字节，对账另审，不远端写。
 
-- [ ] T039 根审Round8诊断实现，另行审查旧cleanup-unknown安全对账方案及新精确执行预览；用户批准前禁止部署/账本写/签名/安装。设备短测仍待验。
+- [x] T039 Round8诊断根审及Round9对账方案/精确预览审查完成；用户批准后执行结果单列T043，设备短测仍未通过。
 
 ## 执行器累计修复提交收尾
 
 - [x] T040 盘点568a68以来恢复的执行器/测试/helper/当前规格依赖，保留旧失败封存，整理自包含文本修复和脱敏汇总；不包含材料、凭据、原日志或二进制。
-- [ ] T041 精确本地提交与clean重放、范围/秘密扫描、根审后形成推送预览；用户批准前不推送。新CI不沿用旧merge许可，真实helper/CLI本地结果不称云端通过。
+- [x] T041 e6c97c87精确本地提交/clean重放/秘密扫描及根审通过，经用户批准推送；新merge另获批准，run40498456949 attempt2 host/target/summary成功。真实helper/CLI专项保留本地重放边界，不冒称云端执行。
+
+
+## 2026-10-27 cleanup-only 对账补充（Round9已按精确批准执行）
+
+独立 `reconciliation.py` 复用同一设备锁与只读解析，既有 controller/executor/imac 原字节不变。外部精确审批绑定脚本及依赖、工具/设备、旧 journal 与 nonce、原 nonce 账本及有效期。锁下新鲜核对专用包、进程、Ability、窗口和宿主活动均不存在后，先 O_EXCL 原字节归档和独立只读证据，再比较并原子更新可变事务头；任何前置失败不解除阻塞，账本永不改写。旧短测始终未通过，不将对账当作场景验收。
+
+TDD 覆盖正常对账、摘要/nonce/设备/工具漂移、锁冲突、残留和未知状态、归档/证据/写头失败与中断。新短测使用 run 40498456949 attempt 2 的 artifact 12732547397/HAP 2cb2aa0f…；最新 HAP 独立派生 pages 与旧值相同不表示可沿用旧批准。Round9的对账及一次短测已取得独立精确批准并执行：对账成功，签名/验签/安装通过，场景及运行时窗口门禁未通过，原失败保留。未来远端写入及执行仍须新精确批准；手动 workflow 留到短测通过后另审。
+
+- [x] T042 独立 cleanup-only 对账本地真实RED/GREEN28项及旧执行器129项回归、根审代码检查完成；精确预览获批准后Round9对账已完成；保留原失败及原字节归档。
+- [x] T043 Round9获批执行对账及新HAP一次短测：签名/验签/安装通过，440ms首帧前DIAGNOSTICS_STALE失败，运行时window-evidence-invalid未确认；事后无残留、临时材料清理完成。此勾选仅表示执行和失败留证完成，旧Round7/9失败不改写。
+
+
+## Round10：独立短测 stale 重新采样与窗口失败诊断
+
+Round9 对账、签名/验签/安装已完成；短测在440ms首帧前以DIAGNOSTICS_STALE失败，原运行时窗口证据门禁失效。原失败、事件摘要、cleanup-unknown和8nonce不改；事后无残留不追认通过。
+
+仅在独立fixture消费层捕获精确DIAGNOSTICS_STALE：初次计入最多50次请求、100ms间隔，重试预算5秒；在各await返回后核期限并拒绝晚到成功，不声称能取消平台中尚未返回的Promise；继续受原场景deadline/取消约束。每次await前后检查，terminal/released/同player或cycle已变优先失败，其他错误不重试，不修改产品API的新鲜度语义。先真实共享函数RED/GREEN，随后真实ArkTS unsigned编译；宿主替身不算设备通过。
+
+窗口只补固定解析错误码和有界结构/计数/输出摘要持久化，不修改window_pids原接受条件，不忽略行或自动重试。未知原始窗口名/错误/其他应用数据不入证据。现有证据不足以确定Round9窗口失配原因，本轮不能宣称已修复该真实根因。
+
+本轮仅本地实现/验证和精确提交预览；推送、配置、签名及再次设备执行分别待批准。手动workflow仍不接入。
+
+- [x] T044 stale有界重采样/取消与terminal真实函数TDD、窗口精确脱敏诊断TDD及根审完成；session25/platform11/imac60/executor45/controller28/reconciliation28通过。窗口真实失配根因仍待新鲜证据。
+- [x] T045 真实ArkTS unsigned编译与16文本文件提交范围整理完成；精确提交clean回放及推送预览结果保存在仓外绑定最终SHA的 publication，未通过不得提出推送。
+- [ ] T046 用户另行批准后才推送该精确提交及核对新CI；旧cleanup-unknown对账、重新签名/设备执行需新预览批准，真机通过仍待验。
+
+Round10本地目标验证：DevEco26锁定工具与空signingConfigs独立工程实际clean/build通过。首次ArkTS拒绝未声明类型的throw已留失败日志，最小改为Error类型断言后通过；消费保留HAR ef9e196b…，不冒充当前提交同源云端HAP。现有host job仅新增独立reconciliation.test.py一条命令及工作流变异断言，无新增设备workflow、runner或权限。

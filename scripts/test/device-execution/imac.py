@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 from controller import ContractError, DeviceLease, digest, is_hash, read_file, read_json, require, verify_artifact, read_zip_members
-from executor import BUNDLE, certificate_ders, recover, save_state, transaction, verify_signed, sign_verify_transaction, failure_details, SmokeEvidence
+from executor import BUNDLE, certificate_ders, recover, save_state, transaction, verify_signed, sign_verify_transaction, failure_details, SmokeEvidence, safe_window_evidence, WINDOW_CODES
 
 HERE=Path(__file__).resolve().parent
 STATE_DIRECTORY=Path('/Users/shiningyao/Library/Application Support/VidAllDeviceExecution/tv-192.168.3.85-5555')
@@ -129,6 +129,38 @@ def window_pids(output):
         windows.add(cells[3]);pids.add(int(cells[2]))
     return pids
 
+def window_evidence(response,process=None):
+    """只留固定结构与摘要；不保存窗口名、其他应用或命令原文。接受规则仍由window_pids决定。"""
+    response=response if isinstance(response,dict) else {}
+    text=response.get('stdout');detail={'code':'window-output-invalid','parsePassed':False,'commandPassed':False,'absenceConfirmed':False}
+    if isinstance(text,str) and len(text.encode())<=2*1024*1024:
+        raw=text.encode();lines=[x.strip() for x in text.splitlines() if x.strip()]
+        headers=[i for i,x in enumerate(lines) if x.startswith('WindowName')]
+        totals=[i for i,x in enumerate(lines) if re.fullmatch(r'Total window num:[ \t]*[0-9]+',x)]
+        focus=[i for i,x in enumerate(lines) if x.startswith('Focus window:')]
+        detail.update(outputBytes=len(raw),outputSHA256=digest(raw),headerCount=len(headers),totalCount=len(totals),focusCount=len(focus),separatorCount=sum(bool(re.fullmatch('-+',x)) for x in lines),reportedTotal=None,observedRows=None)
+        if len(totals)==1:
+            digits=lines[totals[0]].split(':')[1].strip()
+            if len(digits)<=7:detail['reportedTotal']=int(digits)
+        if len(headers)==1:
+            header=lines[headers[0]].split();detail['format']='legacy3' if header==['WindowName','WindowId','PID'] else ('current25' if len(header)==25 else 'unknown')
+            end=focus[0] if len(focus)==1 else (totals[0] if len(totals)==1 else None)
+            if end is not None and end>headers[0]:
+                rows=[x for x in lines[headers[0]+1:end] if not re.fullmatch('-+',x)]
+                detail.update(observedRows=len(rows),rowColumnCounts=[len(x.split()) for x in rows[:64]],rowsTruncated=len(rows)>64)
+        try:
+            require(len(totals)!=1 or len(lines[totals[0]].split(':')[1].strip())<=7,'window-count-unrecognized')
+            pids=window_pids(text);detail['parsePassed']=True;detail['bundleMentioned']=BUNDLE in text
+            detail['targetProcessMentioned']=bool(process and process['pid'] in pids)
+            detail['code']='window-bundle-present' if detail['bundleMentioned'] else ('window-process-present' if detail['targetProcessMentioned'] else 'ok')
+        except (ContractError,KeyError,TypeError,ValueError) as error:
+            detail['code']=str(error) if str(error) in WINDOW_CODES else 'window-evidence-unknown'
+    detail['commandPassed']=command_ok(response) and not bool(response.get('stderr'))
+    if response.get('timedOut'):detail['code']='window-query-timeout'
+    elif not detail['commandPassed']:detail['code']='window-query-failed'
+    detail['absenceConfirmed']=detail['code']=='ok' and detail['parsePassed'] and detail['commandPassed']
+    return safe_window_evidence(detail)
+
 def cleanup_proof(records,serial,process=None):
     # 各项保持原严格判定，但不再吞掉具体哪项证据失效。
     checks={};failed=[]
@@ -155,7 +187,7 @@ def cleanup_proof(records,serial,process=None):
     check('window-absent','window-evidence-invalid',lambda:bool(window_absent()))
     check('uninstall-semantic-success','uninstall-semantic-failure',lambda:'uninstall bundle successfully' in records['uninstall']['stdout'])
     check('package-absent','package-still-present-or-unknown',lambda:BUNDLE not in package_list(records.get('packages')))
-    return {'confirmed':all(checks.values()),'appSelfCleanup':'unconfirmed','checks':checks,'failedChecks':failed}
+    return {'confirmed':all(checks.values()),'appSelfCleanup':'unconfirmed','checks':checks,'failedChecks':failed,'windowEvidence':window_evidence(records.get('window'),process)}
 
 def local_readiness(approval,signing,tools):
     missing=[]
@@ -373,7 +405,7 @@ class FixedDevice:
             try:value=call()
             except (ContractError,TimeoutError,OSError,ValueError,KeyboardInterrupt,SystemExit) as error:
                 if evidence:
-                    try:evidence.cleanup_command(name,error=error)
+                    try:evidence.cleanup_command(name,error=error,window=window_evidence({'timedOut':isinstance(error,TimeoutError)},self.process) if name=='window' else None)
                     except (ContractError,OSError,ValueError,KeyboardInterrupt,SystemExit) as recording_error:self.evidence_failure=failure_details(recording_error,'cleanup')
                 raise
             if evidence:
@@ -383,7 +415,7 @@ class FixedDevice:
                         'window':['window-command-success','window-absent'],'uninstall':['uninstall-command-success','uninstall-semantic-success'],
                         'packages':['package-absent'],'connection':['device-connected']}.get(name,[])
                     checked=cleanup_proof({name:value},self.serial,self.process)['checks']
-                    evidence.cleanup_command(name,value,checks={k:checked[k] for k in keys})
+                    evidence.cleanup_command(name,value,checks={k:checked[k] for k in keys},window=window_evidence(value,self.process) if name=='window' else None)
                 except (ContractError,OSError,ValueError,KeyboardInterrupt,SystemExit) as error:self.evidence_failure=failure_details(error,'cleanup')
             return value
         def ownership(**values):

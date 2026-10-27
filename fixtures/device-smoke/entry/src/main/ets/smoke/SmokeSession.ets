@@ -5,7 +5,7 @@ export interface SmokePort {
   sleep(ms: number): Promise<void>;
   initialize(): Promise<void>;
   open(cycle: number): Promise<void>;
-  sample(): Promise<SmokeSample>;
+  sample(checkActive?: () => void): Promise<SmokeSample>;
   pause(): Promise<void>;
   play(): Promise<void>;
   seek(percent: number): Promise<void>;
@@ -30,11 +30,26 @@ export class SmokeSession {
     if (this.port.now() - this.started > this.limitMs) throw new Error('SESSION_TIMEOUT');
   }
   private async checked(): Promise<SmokeSample> {
-    this.guard();
-    const s = await this.port.sample();
-    if (s.errors !== 0) throw new Error('PLAYER_ERROR');
-    if (!Number.isFinite(s.positionMs) || !Number.isFinite(s.durationMs) || Math.abs(s.durationMs - 30000) > 100) throw new Error('MEDIA_DURATION');
-    return s;
+    // 最多50次（含首次），仅重采样明确的过期快照；不改变公共API的新鲜度规则。
+    const began = this.port.now();
+    for (let attempt = 0; attempt < 50; attempt++) {
+      this.guard();
+      try {
+        const s = await this.port.sample((): void => { this.guard(); });
+        this.guard();
+        if (attempt > 0 && this.port.now() - began >= 5000) throw new Error('DIAGNOSTICS_STALE');
+        if (s.errors !== 0) throw new Error('PLAYER_ERROR');
+        if (!Number.isFinite(s.positionMs) || !Number.isFinite(s.durationMs) || Math.abs(s.durationMs - 30000) > 100) throw new Error('MEDIA_DURATION');
+        return s;
+      } catch (failure) {
+        this.guard();
+        if ((failure as Error).message !== 'DIAGNOSTICS_STALE') throw (failure as Error);
+        if (attempt === 49 || this.port.now() - began >= 5000) throw (failure as Error);
+      }
+      this.guard(); await this.port.sleep(100); this.guard();
+      if (this.port.now() - began >= 5000) throw new Error('DIAGNOSTICS_STALE');
+    }
+    throw new Error('DIAGNOSTICS_STALE');
   }
   private emit(event: string, value: string): void {
     try { this.port.record(event, this.cycle, value); }

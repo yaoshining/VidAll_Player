@@ -162,6 +162,25 @@ class Tests(unittest.TestCase):
         text=(self.root/'evidence'/('smoke-'+d.nonce+'.json')).read_text();data=json.loads(text)
         self.assertEqual(data['events']['count'],1);self.assertNotIn('secret-password',text)
 
+    def test_window_exact_reason_and_safe_structure(self):
+        cases=[('WindowManagerService\nTotal window num: 0','window-header-ambiguous'),
+               (self.actual_window().replace('Total window num: 1','Total window num: 2'),'window-table-incomplete'),
+               (self.actual_window().replace('SyntheticWindow','secret-window-name'),'ok')]
+        for text,code in cases:
+            detail=M.window_evidence(good(text),{'pid':4321})
+            self.assertEqual(detail['code'],code)
+            self.assertNotIn('secret-window-name',json.dumps(detail))
+            self.assertIn('reportedTotal',detail)
+        huge=M.window_evidence(good('WindowName WindowId PID\nTotal window num: '+'9'*5000))
+        self.assertEqual(huge['code'],'window-count-unrecognized');self.assertIsNone(huge['reportedTotal'])
+        detail=M.window_evidence({'returncode':1,'stdout':'secret','stderr':'password','timedOut':True})
+        self.assertEqual(detail['code'],'window-query-timeout');self.assertNotIn('password',json.dumps(detail))
+
+    def test_window_reason_survives_cleanup_proof(self):
+        proof=self.proof();proof['window']=good('WindowManagerService\nTotal window num: 0')
+        result=M.cleanup_proof(proof,'192.168.3.85:5555')
+        self.assertFalse(result['confirmed']);self.assertEqual(result['windowEvidence']['code'],'window-header-ambiguous')
+
     def test_cleanup_command_evidence_saved_before_uninstall(self):
         d=self.adapter();d.install();original=d.command
         state=self.root/'evidence';d.evidence=M.SmokeEvidence(state,{'nonce':d.nonce,'bundle':BUNDLE,'unsignedHapSHA256':sha(b'package')})
@@ -172,7 +191,7 @@ class Tests(unittest.TestCase):
             if 'WindowManagerService' in args:return self.proof()['window']
             if args[-2:]==['uninstall',BUNDLE]:
                 saved=json.loads((state/('smoke-'+d.nonce+'.json')).read_text())
-                self.assertIn('stop',saved['cleanupCommands']);self.assertIn('window',saved['cleanupCommands'])
+                self.assertIn('stop',saved['cleanupCommands']);self.assertIn('window',saved['cleanupCommands']);self.assertEqual(saved['cleanupCommands']['window']['windowEvidence']['code'],'ok')
                 self.present=False;return good('uninstall bundle successfully')
             return original(args,timeout)
         d.command=command;result=d.cleanup();self.assertTrue(result['confirmed'])
