@@ -182,13 +182,31 @@ def verify_artifact(artifact, approval, expected_approval_sha256):
     libraries = verify_hap(members[hap['path']], manifest)
     return {'artifactVerified': True, 'deviceVerified': False, 'formalArtifactAllowed': False, 'artifactId': envelope['artifactId'], 'runId': source['runId'], 'runAttempt': source['runAttempt'], 'headSHA': source['headSHA'], 'eventMergeSHA': source['eventMergeSHA'], 'approvalSHA256': expected_approval_sha256, 'zipSHA256': envelope['zipSHA256'], 'manifestSHA256': envelope['manifestSHA256'], 'unsignedHAP_SHA256': hap['sha256'], 'bundleName': manifest['bundleName'], 'libraries': libraries, 'mediaSHA256': manifest['media']['sha256']}
 
-def compare_signed_payload(unsigned, signed):
-    """HAP签名块不属于ZIP成员；任何新增/删除/修改成员都不能豁免。"""
-    before = read_zip_members(read_file(unsigned))
-    after = read_zip_members(read_file(signed))
-    require(set(before) == set(after), 'signed-payload-members')
-    require(all(before[name] == after[name] for name in before), 'signed-payload-changed')
-    return {'payloadEqual': True, 'membersCompared': len(before), 'signatureVerified': False, 'deviceVerified': False, 'formalArtifactAllowed': False, 'nextRequired': 'official-verify-app-with-approved-certificate-profile-and-device'}
+def compare_signed_payload(unsigned, signed, expected_pages=None):
+    """原成员必须逐字节相同；仅接受由可信官方helper独立派生的精确.pages.info。"""
+    before=read_zip_members(read_file(unsigned));after=read_zip_members(read_file(signed))
+    expected=dict(before)
+    if expected_pages is not None:
+        require('.pages.info' not in before,'unsigned-pages-present')
+        require(isinstance(expected_pages,bytes) and 0<len(expected_pages)<=1024*1024,'derived-pages-invalid')
+        expected['.pages.info']=expected_pages
+    differences=[]
+    # 原输入的已知成员与固定派生名允许输出；任何新增名称只存摘要，避免日志注入。
+    for name in sorted(set(expected)|set(after)):
+        left=expected.get(name);right=after.get(name)
+        if left==right:continue
+        identity={'name':name} if name in {'.pages.info','module.json','ets/modules.abc'} else {'nameSHA256':digest(name.encode()),'nameBytes':len(name.encode())}
+        differences.append({**identity,'kind':'added' if left is None else 'removed' if right is None else 'changed',
+            'expected':None if left is None else {'bytes':len(left),'sha256':digest(left)},
+            'actual':None if right is None else {'bytes':len(right),'sha256':digest(right)}})
+    if differences:
+        error=ContractError('signed-payload-members' if set(expected)!=set(after) else 'signed-payload-changed')
+        error.payload_diff={'schemaVersion':1,'expectedMembers':len(expected),'actualMembers':len(after),'differenceCount':len(differences),'truncated':len(differences)>32,'entries':differences[:32]}
+        raise error
+    return {'payloadEqual':True,'membersCompared':len(before),'derivedPagesVerified':expected_pages is not None,
+        'signatureVerified':False,'deviceVerified':False,'formalArtifactAllowed':False,
+        'nextRequired':'official-verify-app-with-approved-certificate-profile-and-device'}
+
 
 class DeviceLease:
     """固定设备路径的真实进程锁；保留锁inode，退出只解锁不unlink。"""
@@ -218,6 +236,7 @@ class DeviceLease:
     def __exit__(self, *unused):
         if self.fd is not None:
             fcntl.flock(self.fd, fcntl.LOCK_UN); os.close(self.fd); self.fd = None
+
 
 def preflight(artifact, approval, expected_approval_sha256, lock_path, device_state='unknown', signing_configuration=None):
     """仅验证制品并检查互斥；device_state为观察输入，不是本程序实测。"""

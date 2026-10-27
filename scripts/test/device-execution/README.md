@@ -1,6 +1,8 @@
 # 本机设备执行前置预检（Spec010 C）
 
-`controller.py` 实现制品预检、签名前后 ZIP 有效载荷比较和本机互斥，单独运行始终返回 `pending`。本轮新增 `executor.py`、`imac.py` 和 `signer-helper/`，提供固定短测事务与本地签名/验签/设备适配器；用法和授权边界见 [EXECUTION.md](EXECUTION.md)。这些新增能力目前仅完成宿主测试，真实签名、口令可用性和设备输出格式仍待验，不能将宿主GREEN当真机通过。
+`controller.py` 实现制品预检、精确派生载荷比较和本机互斥，单独运行始终返回 `pending`。`executor.py`、`imac.py`、`signer-helper/` 与 `pages-helper/` 提供固定签名/验签/短测/清理链；授权边界见 [EXECUTION.md](EXECUTION.md)。当前已有专用材料真实签名与完整验签通过、Round7安装身份通过，但短测事件验收和原清理联合门禁未通过。后验无设备残留不能追认通过，旧 `cleanup-unknown` 仍阻塞新事务。
+
+本次累计本地修复新增有界脱敏事件与清理分项持久证据，129项宿主回归通过；它们尚未获得新云端或设备结果。实际 signer、页面派生与公开CLI测试的范围见 [修复汇总](REPAIR-SUMMARY.json)。
 
 ## 本地验证
 
@@ -69,13 +71,13 @@ api, libraries, media, test
 
 测试 fixture 的 `setUp` / `repack` 提供完整可执行数据结构示例。它们的所有字节都是测试替身，不能拿来生成真实批准记录。
 
-入口源码摘要、合成媒体声明和 HAR 输入摘要需要上游构建与审查证据，本程序只检查其格式和外部绑定，不能从已编译 ArkTS 反推出源码。后续执行必须使用新的独立 session，不复用旧 NAS 计划或凭据；**当前没有执行这一步，不能据 manifest 的布尔值宣称它已完成**。
+入口源码摘要、合成媒体声明和 HAR 输入摘要需要上游构建与审查证据，本程序只检查其格式和外部绑定，不能从已编译 ArkTS 反推出源码。后续执行必须使用新的独立 session，不复用旧 NAS 计划或凭据；不能据 manifest 的布尔值宣称执行通过；Round7曾执行专用短测但验收失败。
 
 ## ZIP 与签名边界
 
 读取前限制单个归档 128 MiB、展开总量 512 MiB、成员数 4096。拒绝路径逃逸、非规范路径、重名成员、符号链接/特殊文件、加密和不支持的压缩；只在内存读取，不向磁盘解包。JSON 也拒绝重名键与非有限数字。
 
-`compare_signed_payload(unsigned, signed)` 对比双方全部 ZIP 成员的名字和解压后原始字节。标准 HAP 签名块不属于 ZIP 成员，不需要豁免任何成员；`META-INF` 等新增/变更成员也会被拒绝。
+`compare_signed_payload(unsigned, signed, expected_pages)` 要求所有 unsigned 原成员的解压字节不变；只允许新增由锁定官方 JAR 从同一 unsigned、alignment=4/signCode=1 独立派生的精确 `.pages.info`。unsigned 已含此成员时拒绝。两个参数的只读比较仍要求完全相同，但真实签名适配器必须调用精确派生路径。签名块本身不是 ZIP 成员；`META-INF` 和其他新增/删除/变更仍拒绝，重复/歧义成员不允许。
 
 有效载荷相等不证明签名真实性。这个函数始终返回 `signatureVerified=false`。后续仍需真实官方 `hap-sign-tool verify-app` 成功，并把签名工具、已批准证书/profile、设备范围、签名前后 HAP 摘要绑定到验证记录。自称 `signatureVerified=true` 的配置不会让 `preflight` 放行，缺少官方适配器时继续 `official-signature-verifier-not-connected`。
 
@@ -83,4 +85,4 @@ api, libraries, media, test
 
 `DeviceLease` 使用文件系统 `flock`，父目录必须属于当前用户且不可被组或其他用户写入，锁文件必须为本人拥有的单链接普通文件且仅本人可读写。拒绝末级符号链接。所有针对同一设备的调用者必须约定同一个锁路径；当前接口不会自己选择设备。释放时保留锁文件 inode，只解锁关闭，避免 unlink 引起两把锁。预检只在检查期间持锁；它不是跨越未来签名/安装动作的持久预约。
 
-离线、未授权、未知设备、锁占用、缺少签名配置都有明确 `pendingReason` 和 `nextRequired`。剩余真实设备执行、签名、部署、清理、官方工具身份核验、现场 HDR/听音均继续待验收。本目录不改系统设置，不替换候选，不访问 TV/Player 产品工作区。
+离线、未授权、未知设备、锁占用、缺少签名配置都有明确 `pendingReason` 和 `nextRequired`。新的控制器真机执行、旧cleanup-unknown对账、短测功能、原清理联合门禁及现场HDR/听音继续待验收；已有签名完整校验事实不重复标为未完成。本目录不改系统设置，不替换候选，不访问 TV/Player 产品工作区。

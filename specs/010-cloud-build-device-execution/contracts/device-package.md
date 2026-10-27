@@ -12,7 +12,7 @@
 
 固定 `unsignedHAP_SHA256` → `signedHAP_SHA256`；本地配置只提供明确的signer工具路径/SHA、JRE路径/SHA、证书SHA/指纹、profile SHA/bundle/有效期/允许设备、key alias与安全取密方式。签名材料需用户专项提供，不自动探测~/.ohos/config，不复用TV生产材料、不在日志输出口令或profile设备清单。
 
-用实际官方验签工具核签名和profile，验签失败不可安装。签名前后全部有效载荷成员（除标准签名元数据块）必须同集合/同bytes/SHA，九库/模块API/bundle/媒体分别复核。不得仅比九库而遗漏ArkTS代码/资源变化。云端unsigned输入及其原始证据保持不可改写。signed包/profile只在iMac受控私有目录，运行后按批准保留期清理；不上传公开Actions artifact。
+用实际官方验签工具核签名和profile，验签失败不可安装。签名前后所有原有效载荷成员必须同bytes/SHA；唯一允许新增项为锁定官方JAR从同一批准unsigned、alignment=4/signCode=1独立派生的精确`.pages.info`，派生class及内容SHA/长度由外部批准绑定，unsigned已存在该成员则拒绝。标准签名块本身不属于ZIP成员，其他新增/删除/修改或重复歧义成员仍拒绝，九库/模块API/bundle/媒体分别复核。不得仅比九库而遗漏ArkTS代码/资源变化。云端unsigned输入及其原始证据保持不可改写。signed包/profile只在iMac受控私有目录，运行后按批准保留期清理；不上传公开Actions artifact。
 
 当前签名材料缺失时状态为 `signing_ready=false / deviceVerified=false / pendingReason=signing-material-missing`，不能制造假签名或把unsigned包安装失败算测试失败。
 

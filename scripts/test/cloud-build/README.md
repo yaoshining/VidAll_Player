@@ -8,4 +8,4 @@
 
 历史Player源码生产workflow完整原文保存在Spec010/history，旧配方/SDK锁和所有构建脚本仍保留；活动调度退役其两条self-hosted生产job，保留原来源、SBOM、许可证、打包及精确cargo版本契约。旧normal-core workflow仅手动运行云端宿主检查，不再派发旧SDK目标或产生旧组合结果。
 
-设备前置控制器见 `../device-execution/README.md`。当前只实现来源、包载荷、互斥和未就绪判定；尚无签名/官方验签/HDC安装执行适配器。云端真实设备包还需独立bundle、合成媒体和本轮session，禁止复用旧NAS配置。iMac标签和服务未改；main切换云端且旧任务结束后才可按独立审批移除deveco构建标签，保留harmonyos-test。
+设备前置控制器见 `../device-execution/README.md`。已实现固定签名/官方验签/HDC适配器及独立bundle合成媒体包，禁止复用旧NAS配置。冻结云端制品已构建并核验；Round7签名/安装身份通过、短测及原清理门禁未通过，最新持久诊断修复仅本地验证。宿主测试、云端构建和真机结论分别记录，详见执行器汇总。iMac标签和服务未改；main切换云端且旧任务结束后才可按独立审批移除deveco构建标签，保留harmonyos-test。

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "scope": "568a68后累计执行器本地修复；中文当前状态汇总",
+  "baseCommit": "568a68d882690355137ba705247ce0182f0c8ce3",
+  "sourceRecovery": {
+    "originalLocalCommit": "1ad19aa",
+    "exactRecoveredTree": "4d2e7b4120fc5c95c765ba9f57c1ae9ac56c7e58",
+    "round3MatchedFiles": 17,
+    "originalCommitObjectRecreated": false
+  },
+  "changes": [
+    "实际HDC/UDID/包清单/窗口/包身份严格格式兼容",
+    "公开CLI参数修复及独立sign-verify模式",
+    "官方同unsigned精确.pages.info派生与原载荷比较",
+    "真实签名者/原输入固定身份门禁",
+    "失败事件、固定错误码、分项清理及独立nonce结果持久化"
+  ],
+  "localHostTests": {
+    "controller": 28,
+    "executor": 43,
+    "imac": 58,
+    "total": 129,
+    "platform": "替身命令与真实函数，不代表新真机通过"
+  },
+  "localOfficialTests": {
+    "pagesHelper": 15,
+    "publicCLIParser": 3,
+    "actualSignerWrapperChecks": 9,
+    "cloudPagesAndCLIExecuted": false,
+    "privateMaterialsRead": false,
+    "signingPerformed": false
+  },
+  "priorExecution": {
+    "round6": "真实签名完整校验passed，临时输出清理",
+    "round7": "签名完整验签及安装身份通过；终态事件验收拒绝；原清理联合门禁未确认",
+    "specificScenarioFailure": "原事件已删除，不可恢复",
+    "postrunAbsence": "独立只读确认无专用包/进程/Ability/窗口残留",
+    "journalStatus": "cleanup-unknown",
+    "journalSHA256": "39adc1fc0409bd99aa0f4177faa6eaf2fc1c5b2c0fb2bc3fcdfa902ab6739119",
+    "oldRecordsRewritten": false
+  },
+  "acceptance": {
+    "newControllerDeviceVerified": false,
+    "formalArtifactAllowed": false,
+    "reconciliationImplemented": false,
+    "newRemoteCI": false,
+    "pending": [
+      "旧cleanup-unknown安全对账的精确方案与批准",
+      "新控制器精确执行批准及短测",
+      "物理HDR/主观声画",
+      "pages-helper及公开CLI云端回归"
+    ]
+  },
+  "publication": "精确commit重放和推送预览放仓外；未获精确批准不得推送或远端配置",
+  "exclusions": [
+    "私钥/证书/profile/凭据",
+    "原始TTY和设备日志",
+    "HAP/HAR/SDK/库/测试媒体二进制",
+    "TV/候选/系统修改"
+  ]
+}

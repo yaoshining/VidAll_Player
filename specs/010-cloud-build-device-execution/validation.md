@@ -1,5 +1,11 @@
 # 本地验证与未完成范围
 
+## 2026-10-26 设备格式适配
+
+普通HDC连接及只读UDID/profile名单核对已完成，电视在有效probe profile名单中；这不表示应用真机测试通过。真实提示 `is :` 与五列 `Connected localhost hdc` 导致冻结执行器拒绝，已添加脱敏格式回归和重复/冲突/未知尾列负例。新执行器是基于 `568a68d` 的本地修订，不继承旧精确执行审批，需重新审查与预览；已批准云端HAP输入不变。
+
+历史自动材料口令不可用，已按 `scripts/test/device-execution/MANUAL-SIGNING.md` 生成新的手动专用材料。2026-10-27 已独立核公开证书与CSR匹配、官方profile验签通过、probe bundle、唯一电视授权摘要、normal APL及空ACL/permissions。p12仅容器SHA/stat，alias vidallDeviceProbe为用户回忆值；私钥解锁/签名配对仍待实际交互。未迁移、配置iMac、签名、安装或播放。
+
 ## 已有证据
 
 - 第一轮真实RED：原活动工作流仍有4条self-hosted任务；原状态脚本在构建失败情况下仍按签名存在报告built=true；原consumer staging不含Hypium。
@@ -22,7 +28,7 @@
 - iMac专用label/控制器部署，main工作流生效顺序与正式required规则选择；本轮未改远端设置。
 - 原Hypium九套运行契约适配、物理HDR和主观声画。本轮不重跑长播、不更换候选、不修改TV。
 
-本轮短测的身份范围为 `installedPayloadVerified`：官方验签、全ZIP有效载荷相等、九库摘要及安装成功/系统包元数据/PID/nonce绑定。`source-identity.json`是交付声明回读，不能证明运行映射逐字节哈希，`runtimeMappedLibraryHashVerified=false`保持；不为此扩大产品API/native或要求设备root。
+本轮短测的身份范围为 `installedPayloadVerified`：官方验签、原ZIP有效载荷相等及唯一精确派生.pages.info、九库摘要及安装成功/系统包元数据/PID/nonce绑定。`source-identity.json`是交付声明回读，不能证明运行映射逐字节哈希，`runtimeMappedLibraryHashVerified=false`保持；不为此扩大产品API/native或要求设备root。
 
 ## 本轮 C 本地 TDD 与审查修复
 
@@ -32,3 +38,41 @@
 - 完整 CLI 依赖闭包锁定，事务入口完整核验，后续按真实被调用工具核验；采样不重复未执行的 CLI 闭包，保留 120 秒截止。工具观察不等于配置批准。
 - 实际 signer helper 使用同锁官方 JAR 的 SignerInfo SID，拒仅附带获批证书的链；临时合成证书测试不能证明用户材料可签名。
 - 初始拒绝骨架 RED 是新功能未实现（部分 errors），不称旧代码语义缺陷；ownership 旧行为重放为复审变异复现，原始记录保留。最终日志和逐文件摘要在外部 implementation/executor/GREEN-FINAL.json，避免在冻结源码内自引用。
+
+## 2026-10-27 最新执行前补丁
+
+`1ad19aa` 加当前未提交补丁：包清单唯一ID首行末尾冒号、窗口固定25列与中间分隔线、Focus/SingleHand附属统计严格解析，保留旧三列。缺头零计数、旧表尾未知行、重复/不完整/错误输出等负例拒绝。真实RED保留；imac38、controller23、executor19通过。固定iMac Python3.9.6内存导入三模块和当前包/窗口/Ability只读解析通过；未把这些检查等同签名、安装、退出或保屏清理。旧568a68远端CI与HAP保持冻结，新补丁尚无远端CI。
+
+最新执行预览在外部 signing-review-20261025/MANUAL-EXECUTION-PREVIEW.md；原自动材料/空设备快照只作历史记录。待验仍包括实际口令/alias、官方signed HAP验签、安装元数据生命周期schema、短测、正常及异常清理。
+
+## 2026-10-27 首次获批签名尝试与清理
+
+审批 a3f6b3da… 对应12文件已临时部署并核验。用户前台手动执行，根读取终端确认官方 sign-app success；随后事务返回 ContractError 且未产生 signature 结果，无法确认具体验签失败点。未安装/启动probe，journal为complete、installed为空、cleanup为not-started/deviceMutation=none；nonce已消耗，不得重用。signed/verify临时输出已按原finally清理，不能猜测坏密码或用后续代码倒推原因。
+
+iMac部署目录及12份副本已按批准清除，删除前无活动签名/执行进程，删除后probe包仍不存在；journal与nonce摘要保持，原本机材料未动。公开材料范围与官方sign命令成功，不等于signed HAP验签/有效载荷/安装或播放通过。
+
+为下一次调查新增本地最小诊断：transaction仅持久固定白名单errorCode及阶段，verify-app/profile/实际SID/payload区分；任意错误原文/伪造阶段/平台敏感输出不进入JSON。真实RED3项失败，GREEN23项executor、38项imac、23项controller通过；未提交、部署或重新签名。未来再试须新nonce、控制器摘要及精确审批；本次批准不能覆盖新代码。
+
+## Round2本地预览状态
+
+旧失败的现场错误码未留存；但根已用同锁JAR独立复现确定阻塞：verify-app的outCertChain传.pem会在实际验签前被官方工具拒绝，.cer进入验签流程。文件名最小修复的自动回归先RED后GREEN；不借此宣称该真实signed HAP其余验签项已通过。
+
+新增纯sign-verify模式允许两项安装/卸载权限均false，不安装/播放。executor29、imac40、controller23本地测试通过；现有同锁Java25.0.2及helper Java17字节码版本兼容，未证明新一轮HAP验签成功。材料容器/公开证书/profile、冻结云ZIP/HAP摘要重核一致；电视Connected、probe不存在、旧journal/消耗nonce保留且旧部署目录不存在。新代码与新nonce均需新精确执行批准，尚未提交、推送、配置、传输或签名。
+
+## 2026-10-27 Round2 实际结果与 Round3 本地修复
+
+Round2 官方交互sign-app成功；verify-app、verify-profile、证书/设备/有效期、实际Signer SID已依序通过，随后 `payload-compare/signed-payload-members` 失败。signed输出和临时部署已按批准清理，专属脱敏结果/nonce保留，未安装播放。真实差异成员未保留，因此不能声称本次实际signed仅多一个文件。
+
+根以同锁JAR在冻结HAP做无私钥预处理：19个原成员全部相同，新增.pages.info 6680字节/SHA256 `4364749b8c09d61a99ffa507ca0acd5f794c2d2bfc388243c54a15d4b9f09738`。来源为外置 `round2/ROOT-OFFICIAL-UNSIGNED-PREPROCESS-REPRO.json`，不代表实际签名或本轮新代码通过。Round3新增独立派生helper与安全差异记录，先RED后GREEN；不关闭signCode、不忽略任意文件、不放宽签名者/证书/profile检查。新精确预览、签名完整链和设备验证继续待验。
+
+Round3本地完成：controller28、executor31、imac43共102项通过，含签名后unsigned被替换时验签不执行；真实父级锁代码保持Round2不变。ExpectedPages helper15项使用锁定官方JAR通过，冻结HAP实际派生摘要与根复现相同；双目录编译class一致。新增Python用例已并入既有CI测试入口；新helper的远端CI仍未执行，不以本地结果代称云端通过。预览含13份文件，仅签名完整校验；审批未获前无部署/重签/设备写入。
+
+## Round3运行结果与Round4修复
+
+Round3实际结果failed/sign-app/official-sign-failed，对应用户终端11011005；未产生signedArtifact，未安装播放。nonce已消费，13份临时副本删除、旧journal/结果/账本保留。真实公开CmdUtil解析证明-a4不受信；去掉该对参数后解析通过。此前字节码内部键与stub参数测试不能覆盖公开CLI trustlist，已补真实生产argv解析测试。checkSignAlignment缺省写a=4，后续签名路径读取该值传入copyFileAndAlignment，证据来自同一固定JAR；helper/精确.pages.info要求未变。
+
+恢复源码先17文件原hash匹配与原102项通过，再做真实RED/GREEN；新签名/设备操作仍需新精确批准，未因恢复或CLI解析成功冒称已执行。
+
+## 执行器累计修复当前状态
+
+截至本次本地提交准备：专用手动材料签名/完整验签和Round7安装身份通过；短测终态事件验收拒绝、原清理联合门禁未确认，后验无设备残留。旧journal cleanup-unknown及历史失败保留，原始事件缺失不能追认根因。Round8诊断129项和最终根审通过，新控制器尚未设备运行/发布；旧账本对账尚未实现/批准。本提交包含自568a68以来执行器必需恢复/修复文本，保留产品/八库/API/旧锁，现有云端workflow不变；准确执行与证据边界见`../../scripts/test/device-execution/REPAIR-SUMMARY.json`（从仓库根查看）。旧段落中的待办按各阶段日期解释，以上为当前状态。

@@ -12,6 +12,7 @@ import sys
 import tempfile
 import unittest
 import zipfile
+import warnings
 from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
@@ -232,6 +233,42 @@ class Tests(unittest.TestCase):
             result = subprocess.run(command, text=True, capture_output=True, timeout=10)
         self.assertEqual(result.returncode, 2)
         self.assertEqual(json.loads(result.stdout)['pendingReason'], 'device-busy')
+
+def zipbytes(rows):
+    b=io.BytesIO()
+    with zipfile.ZipFile(b,'w') as z:
+        for k,v in rows:z.writestr(k,v)
+    return b.getvalue()
+class PagesTests(unittest.TestCase):
+    def setUp(self):
+        self.t=tempfile.TemporaryDirectory();self.addCleanup(self.t.cleanup);self.d=Path(self.t.name)
+        self.u=self.d/'u.hap';self.s=self.d/'s.hap';self.rows=[('module.json',b'original'),('ets/modules.abc',b'code')]
+        self.u.write_bytes(zipbytes(self.rows));self.pages=b'exact official derived bytes'
+    def compare(self,rows):
+        self.s.write_bytes(zipbytes(rows));return C.compare_signed_payload(self.u,self.s,self.pages)
+    def test_exact_derived_member(self):
+        r=self.compare(self.rows+[('.pages.info',self.pages)])
+        self.assertTrue(r['derivedPagesVerified']);self.assertEqual(r['membersCompared'],2);self.assertFalse(r['signatureVerified'])
+    def test_wrong_derived_and_original_changes(self):
+        for rows in [self.rows+[('.pages.info',b'wrong')],self.rows[:-1]+[('.pages.info',self.pages)],[('module.json',b'changed'),self.rows[1],('.pages.info',self.pages)],self.rows+[('.pages.info',self.pages),('secret-password-name',b'private')]]:
+            with self.subTest(rows=len(rows)):
+                with self.assertRaises(C.ContractError) as caught:self.compare(rows)
+                report=caught.exception.payload_diff
+                self.assertNotIn('secret-password-name',json.dumps(report));self.assertLess(len(json.dumps(report)),20000)
+    def test_unsigned_derived_rejected(self):
+        self.u.write_bytes(zipbytes(self.rows+[('.pages.info',self.pages)]))
+        with self.assertRaisesRegex(C.ContractError,'unsigned-pages-present'):self.compare(self.rows+[('.pages.info',self.pages)])
+    def test_duplicate_and_ambiguous_rejected(self):
+        for extra in [('.pages.info',self.pages),('./.pages.info',self.pages),('a/../.pages.info',self.pages)]:
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                with self.assertRaises(C.ContractError):self.compare(self.rows+[('.pages.info',self.pages),extra])
+    def test_missing_derived_and_bounded_unknown_diff(self):
+        with self.assertRaises(C.ContractError):self.compare(self.rows)
+        with self.assertRaises(C.ContractError) as caught:self.compare(self.rows+[('.pages.info',self.pages)]+[('private-'+str(i),b'x') for i in range(100)])
+        report=caught.exception.payload_diff
+        self.assertTrue(report['truncated']);self.assertLessEqual(len(report['entries']),32)
+        self.assertNotIn('private-',json.dumps(report))
 
 if __name__ == '__main__':
     unittest.main()

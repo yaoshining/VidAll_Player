@@ -12,13 +12,17 @@
 - R2 旧test-player独有的完整CMake/CTest14项、两个诊断JS、ArkTS/Hypium测试模块必须有新的云端覆盖。新组合已有的诊断JS/C++不得被误算成覆盖所有旧native测试。缺签名不跳过无签名编译；built必须绑定实际命令和产物，不能仅由signing_ready推导。
 - R3 unsigned编译、signed可安装包和设备执行分开声明。当前Hypium实际加载用例/旧demo尚未适配normal运行初始化和真实异步事件，不把编译成功当运行通过；纯解析负例仍有效。需要实际设备执行的新入口须独立初始化、terminal接管、应用保屏/释放、确定性夹具和完成证据。
 - R4 FFmpeg/OHCodec/mpv等producer源码重建职责必须交给明确的云端producer契约。#7/#8历史目标构建成功与#9宿主矩阵不等于当前004八库全组合重建；在完整来源/补丁/工具链/artifact匹配闭环前，不删除旧验证后声称全部迁移完成。
-- R5 iMac仅手动、受审控制器执行：固定run/attempt/artifactID/ZIP与HAP摘要、源head/merge、workflow、签名身份/有效期/bundle/设备profile。拒任意URL、shell命令、PR脚本或当前分支下载执行；不在iMac编译，不复用通用deveco标签接构建。受控本地签名是独立可选动作，须精确工具/材料授权及unsigned→signed有效载荷不变验证。
+- R5 iMac仅手动、受审控制器执行：固定run/attempt/artifactID/ZIP与HAP摘要、源head/merge、workflow、签名身份/有效期/bundle/设备profile。拒任意URL、shell命令、PR脚本或当前分支下载执行；不在iMac编译，不复用通用deveco标签接构建。受控本地签名是独立可选动作，须精确工具/材料授权及unsigned→signed原成员不变及官方唯一精确派生.pages.info验证。
 - R6 真机专用标签、跨本测试流程的设备互斥、精确设备选择；离线/认证失败=待验，不假通过。仅应用保屏，无系统设置改动；只结束本次独立测试应用/本次资源，不重启全局HDC或触碰TV应用。
-- R7 云端设备包与普通unsigned consumer分开：前者必须含受控短媒体及摘要，缺媒体/签名不能安装。优先评估iMac固定工具的受控签名（不编译），避免私钥迁入云端；签名材料/专用bundle profile与工具尚待批准，签名前后必须核有效载荷一致。也不预先排除获批云端签名，但不得默默选择。缺材料授权/包契约时不部署、不注册runner、不提前开启设备workflow。
+- R7 云端设备包与普通unsigned consumer分开：前者必须含受控短媒体及摘要，缺媒体/签名不能安装。优先评估iMac固定工具的受控签名（不编译），避免私钥迁入云端；专用手动材料/profile与固定工具已获两次限定签名批准，官方sign-app成功；新轮次/新执行器必须重新精确审批。签名前后原有效载荷一致，仅允许官方同输入/参数的精确派生.pages.info。也不预先排除获批云端签名，但不得默默选择。缺材料授权/包契约时不部署、不注册runner、不提前开启设备workflow。
 - R8 每阶段真实RED先于实现，覆盖缺检查/skip冒绿/错来源/错包/权限和离线边界；精确提交clean重放、artifact与清理证据后才请求推送。新required check选择与远端规则设置另批。
 - R9 本轮先实现单bundle `com.yaoshining.vidalldeviceprobe` 的隔离短测：独立入口移除NAS、网络权限和备份能力，包内受控合成媒体、全新nonce日志；120秒内验证真实渲染/进度、暂停恢复、成功seek和关闭重开。失败catch不产生成功session-end，释放与应用保屏关闭独立finally执行。九套Hypium继续只编译，不借单entry契约宣称真机通过。
-- R10 本地首次受控执行先于GitHub手动入口。固定已审控制器与独立device-tools锁；受测PR仅作为数据制品，不在持钥iMac执行其脚本。签名/验签/安装前需要外部精确审批绑定来源包、工具和专用签名配置；当前材料缺失则pending。工具锁仅记录观察值，不视为部署批准。
+- R10 本地首次受控执行先于GitHub手动入口。固定已审控制器与独立device-tools锁；受测PR仅作为数据制品，不在持钥iMac执行其脚本。签名/验签/安装前需要外部精确审批绑定来源包、工具和专用签名配置；材料已就绪且签名命令成功，但完整payload门禁未过，设备仍未安装；任何材料/新审批缺失仍pending。工具锁仅记录观察值，不视为部署批准。
 - R11 全事务持有同设备锁；进程/Ability/Window查询失败或断连不能推断已退出。异常清理不明时持久journal阻止后续安装；正常路径必须保屏false回读，强停路径仅能证明系统窗口资源释放，不能冒充应用自清理。只清本轮bundle/文件，不修改系统保屏、TV、候选或默认SDK。
 - R12 当前短测身份限于已验签/全载荷不变的安装包、九库摘要、系统包元数据、本次PID/nonce；`installedPayloadVerified`与`runtimeMappedLibraryHashVerified`分开。后者保持false，不将source-identity回显冒充实际运行映射哈希，不扩产品API/native探针。
 
 本阶段与项目宪章的适用性：CI/执行控制变更不新增播放器UI/API；遥控器/物理HDR/声画与原API兼容真机验收仍待验。设备相关命令遵循deveco-cli优先，若仅固定HDC安装/测试能力可用，须记录其能力限制与精确工具SHA，不通过CLI run触发构建。
+
+## 执行器累计修复当前状态
+
+截至本次本地提交准备：专用手动材料签名/完整验签和Round7安装身份通过；短测终态事件验收拒绝、原清理联合门禁未确认，后验无设备残留。旧journal cleanup-unknown及历史失败保留，原始事件缺失不能追认根因。Round8诊断129项和最终根审通过，新控制器尚未设备运行/发布；旧账本对账尚未实现/批准。本提交包含自568a68以来执行器必需恢复/修复文本，保留产品/八库/API/旧锁，现有云端workflow不变；准确执行与证据边界见`../../scripts/test/device-execution/REPAIR-SUMMARY.json`（从仓库根查看）。旧段落中的待办按各阶段日期解释，以上为当前状态。
