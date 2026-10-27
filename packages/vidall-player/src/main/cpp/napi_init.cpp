@@ -2,6 +2,7 @@
 #include <hilog/log.h>
 
 #include <atomic>
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstring>
@@ -491,10 +492,13 @@ public:
         mpv_set_option_string(player_.get(), "demuxer-lavf-o", smbOptions.c_str());
         mpv_set_option_string(player_.get(), "stream-lavf-o", smbOptions.c_str());
         const char* command[] = {"loadfile", uri.c_str(), "replace", nullptr};
-        if (mpv_command_async(player_.get(), 0, command) < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
+        // 先登记新请求身份；异步reply中的entry id不能用晚到事件的当前epoch替代。
+        const auto request = BeginCompletion();
+        if (mpv_command_async(player_.get(), request, command) < 0) {
+            InvalidateCompletion();
+            return {false, handle, "NATIVE_PLAYBACK_FAILED"};
+        }
         diagnosticsStopped_ = false;
-        ++eventEpoch_;
-        eventSequence_ = 0;
         firstFrameSent_ = false;
         // 抑制旧文件残留 time-pos：在新文件 FILE_LOADED 之前不派发 position，
         // 避免旧媒体进度携带新 eventEpoch_ 误报到 ArkTS。
@@ -625,6 +629,7 @@ public:
         // 调用 mpv_command_async 会返回 MPV_ERROR_UNINITIALIZED，这里与其余播放命令一致，
         // 用 rendererReady_ 门闩避免对未初始化 handle 下达 mpv 命令。
         if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        InvalidateCompletion();
         const char* command[] = {"stop", nullptr};
         if (mpv_command_async(player_.get(), 0, command) < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         diagnosticsStopped_ = true;
@@ -712,6 +717,7 @@ public:
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         vidall::runtime::ParkIfTerminal();
         if (released_) return;
+        InvalidateCompletion();
         released_ = true;
         StopRendererLocked();
         vidall::runtime::ParkIfTerminal();
@@ -764,6 +770,81 @@ private:
             return;
         }
         auto* event = new Event{type, message, eventEpoch_, ++eventSequence_, generation_};
+        if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
+    }
+
+    // 独立窄锁：Load/Stop/Release可持lifecycle锁进入；事件线程绝不反向取lifecycle锁。
+    // 唯一嵌套为completion -> callback，只进行非阻塞TSFN投递，不等待MPV/UI。
+    std::uint64_t BeginCompletion()
+    {
+        std::lock_guard<std::mutex> lock(completionMutex_);
+        completionEpoch_ = ++eventEpoch_;
+        completionGeneration_ = generation_.load();
+        completionEntry_ = -1;
+        completionReplied_ = false;
+        completionEnded_.clear();
+        eventSequence_ = 0;
+        return completionEpoch_;
+    }
+
+    void InvalidateCompletion()
+    {
+        std::lock_guard<std::mutex> lock(completionMutex_);
+        completionEpoch_ = 0;
+        completionEntry_ = -1;
+        completionEnded_.clear();
+    }
+
+    void CompletionReply(const mpv_event& event)
+    {
+        std::lock_guard<std::mutex> lock(completionMutex_);
+        if (!completionEpoch_ || event.reply_userdata != completionEpoch_ || completionReplied_) return;
+        completionReplied_ = true;
+        const auto* command = static_cast<const mpv_event_command*>(event.data);
+        int64_t entry = -1;
+        int matches = 0;
+        if (event.error >= 0 && command && command->result.format == MPV_FORMAT_NODE_MAP && command->result.u.list) {
+            const auto* list = command->result.u.list;
+            if (list->num >= 0 && list->num <= 64 && list->keys && list->values) {
+                for (int i = 0; i < list->num; i++) {
+                    if (list->keys[i] && std::strcmp(list->keys[i], "playlist_entry_id") == 0) {
+                        ++matches;
+                        if (list->values[i].format == MPV_FORMAT_INT64) entry = list->values[i].u.int64;
+                    }
+                }
+            }
+        }
+        if (matches != 1 || entry <= 0 || std::find(completionEnded_.begin(), completionEnded_.end(), entry) != completionEnded_.end()) {
+            completionEpoch_ = 0; return;
+        }
+        completionEntry_ = entry;
+    }
+
+    void CompleteFile(const mpv_event_end_file* end)
+    {
+        std::lock_guard<std::mutex> lock(completionMutex_);
+        if (!end || !completionEpoch_ || end->playlist_entry_id <= 0) return;
+        if (!completionReplied_) {
+            // reply晚于END_FILE不追认成功；旧文件的END_FILE不能误伤新entry。
+            if (completionEnded_.size() >= 8) completionEpoch_ = 0;
+            else completionEnded_.push_back(end->playlist_entry_id);
+            return;
+        }
+        if (end->playlist_entry_id != completionEntry_) return;
+        const auto epoch = completionEpoch_;
+        const auto generation = completionGeneration_;
+        completionEpoch_ = 0; // 无论原因只消费一次，非EOF不能稍后补为EOF。
+        if (end->reason != MPV_END_FILE_REASON_EOF || released_ || vidall::runtime::AdmissionError() ||
+            epoch != eventEpoch_.load() || generation != generation_.load()) return;
+        DispatchCompletion(epoch, generation);
+    }
+
+    void DispatchCompletion(std::uint64_t epoch, std::uint64_t generation)
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        if (released_ || vidall::runtime::AdmissionError() || eventTsfn_ == nullptr ||
+            epoch != eventEpoch_.load() || generation != generation_.load()) return;
+        auto* event = new Event{"state", "completed", epoch, ++eventSequence_, generation};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
     }
 
@@ -851,6 +932,7 @@ private:
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
+            if (event->event_id == MPV_EVENT_COMMAND_REPLY) CompletionReply(*event);
             // issue #71（vo_gpu_next 路径）：旧 vo_gpu 在 GlRenderLoop/SwRenderLoop 里首帧派发
             // "playing"；改为 vo_gpu_next 后这些循环被跳过，这里在视频输出重建（VO 出帧）时
             // 派发一次首帧 "playing"，保证消费方 _isPlaying 正确。firstFrameSent_ 只发一次。
@@ -869,6 +951,7 @@ private:
             }
             if (event->event_id == MPV_EVENT_END_FILE) {
                 const auto* end = static_cast<mpv_event_end_file*>(event->data);
+                CompleteFile(end);
                 if (end != nullptr && end->reason == MPV_END_FILE_REASON_ERROR) Dispatch("error", "libmpv playback failed");
                 // 重置 video-params 缓存，避免跨文件残留旧属性
                 vpPixfmt_.clear(); vpHwPixfmt_.clear(); vpBitDepth_ = 0; vpPrimaries_.clear();
@@ -1485,6 +1568,12 @@ private:
     std::atomic<bool> released_{false};
     std::string surfaceId_;
     std::atomic<std::uint64_t> generation_{0};
+    std::mutex completionMutex_;
+    std::uint64_t completionEpoch_ = 0;
+    std::uint64_t completionGeneration_ = 0;
+    int64_t completionEntry_ = -1;
+    bool completionReplied_ = false;
+    std::vector<int64_t> completionEnded_;
     std::atomic<std::uint64_t> eventEpoch_{0};
     std::atomic<std::uint64_t> eventSequence_{0};
     std::atomic<int> width_{0};

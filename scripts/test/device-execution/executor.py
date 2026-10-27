@@ -32,6 +32,7 @@ SAFE_FAILURE_CODES=frozenset({
     'events-missing-or-excessive','session-binding','event-order','event-session-mismatch','event-time','session-failed',
     'event-value','scenario-order','session-completion','runtime-not-ready','progress-not-observed','pause-not-stable',
     'seek-not-observed','render-not-observed','eof-not-observed','keep-screen-not-released','lifecycle-not-confirmed',
+    'cleanup-window-deadline','cleanup-ability-present-or-unknown','cleanup-stop-unconfirmed',
     'device-disconnected-or-process-reused','session-timeout','startup-evidence-missing','too-many-device-events',
     'startup-session-mismatch','startup-time-mismatch','startup-pid-reused','pid-query-invalid','process-stat-query-failed',
     'process-stat-invalid','process-start-token','event-transfer-failed','device-not-connected','device-clock-unknown',
@@ -90,7 +91,7 @@ APP_VALUES=frozenset({'ready','started','passed','released','new-first-frame','t
     'NO_SESSION_DIRECTORY','TERMINAL_RELEASE_FORBIDDEN','REPEATED_LAUNCH','CONTENT_LOAD_FAILED',
     'DIAGNOSTICS_STALE','DIAGNOSTICS_RELEASED','PLAYER_TERMINAL','SESSION_ALREADY_ACTIVE','INVALID_LAUNCH','NONCE_REUSE','SESSION_NOT_STARTED'})
 EVENT_NUMBERS=frozenset({'count','positionMs','durationMs','beforeMs','afterMs','intervalMs','targetMs','reachedMs','generation','sequence'})
-CLEANUP_NAMES=frozenset({'connection-before','package-before','identity','prestop-pid','stop','pid','ability','window','uninstall','packages','connection'})
+CLEANUP_NAMES=frozenset({'device-id','connection-before','package-before','identity','prestop-pid','stop','pid','ability','window','uninstall','packages','connection'})
 
 CLEANUP_CHECKS=frozenset({'device-connected','stop-command-success','ability-command-success','window-command-success',
     'uninstall-command-success','stop-semantic-success','pid-absent','ability-absent','window-absent',
@@ -217,6 +218,10 @@ class SmokeEvidence:
         require(name in CLEANUP_NAMES,'evidence-fields');self.data['cleanupCommands'][name]=safe_command_result(response,error)
         if isinstance(checks,dict):self.data['cleanupCommands'][name]['checks']={k:v for k,v in checks.items() if k in CLEANUP_CHECKS and type(v) is bool}
         if name=='window' and window is not None:self.data['cleanupCommands'][name]['windowEvidence']=safe_window_evidence(window)
+        # 重采仍保留每次固定字段/摘要，不能只覆盖最后一份窗口证据。
+        safe=json.loads(json.dumps(self.data['cleanupCommands'][name]))
+        self.data.setdefault('cleanupCommandHistory',[]).append({'name':name,**safe})
+        if name=='window':self.data.setdefault('cleanupWindowAttempts',[]).append(safe)
         self.data['cleanupCommandOrder'].append(name);require(len(self.data['cleanupCommandOrder'])<=32,'evidence-size');self._write()
     def parse_failure(self,line,data):
         require(type(line) is int and 1<=line<=2048 and isinstance(data,bytes) and len(data)<=2*1024*1024,'evidence-fields')

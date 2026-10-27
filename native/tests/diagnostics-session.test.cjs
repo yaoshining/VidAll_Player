@@ -73,7 +73,23 @@ async function main() {
   assert.equal(frames.filter(e=>e.type==='firstFrame').length,0);
   nativeEvent({type:'state',message:'playing',eventEpoch:epoch,surfaceGeneration:2,sequence:3});
   assert.equal(frames.find(e=>e.type==='firstFrame')?.surfaceGeneration,2);
+  nativeEvent({type:'state',message:'completed',eventEpoch:epoch-1,surfaceGeneration:2,sequence:4});
+  nativeEvent({type:'state',message:'completed',eventEpoch:epoch,surfaceGeneration:1,sequence:5});
+  assert.equal(frames.filter(e=>e.state==='completed').length,0);
+  nativeEvent({type:'state',message:'completed',eventEpoch:epoch,surfaceGeneration:2,sequence:6});
+  assert.equal(frames.filter(e=>e.state==='completed').length,1,'真实native EOF必须交付公开completed');
+  nativeEvent({type:'state',message:'completed',eventEpoch:epoch,surfaceGeneration:2,sequence:7});
+  assert.equal(frames.filter(e=>e.state==='completed').length,1);
   await surfacePlayer.release();
+  nativeEvent({type:'state',message:'completed',eventEpoch:epoch,surfaceGeneration:2,sequence:8});
+  assert.equal(frames.filter(e=>e.state==='completed').length,1);
+  let bufferingNative;const bufferingEvents=[];
+  const bufferingPlayer=new PlayerSession({eventListener:e=>bufferingEvents.push(e)},new Proxy({subscribe:cb=>{bufferingNative=cb;return()=>{};}},{get:(o,k)=>o[k]||(()=>Promise.resolve())}));
+  await bufferingPlayer.attachSurface({componentId:'buffered',generation:1,width:640,height:360});await bufferingPlayer.load({kind:'localFile',uri:'file:///synthetic.mp4'});
+  bufferingNative({type:'state',message:'preparing',eventEpoch:1,surfaceGeneration:1,sequence:1});
+  bufferingNative({type:'state',message:'playing',eventEpoch:1,surfaceGeneration:1,sequence:2});bufferingPlayer.reportBuffering(true);
+  bufferingNative({type:'state',message:'completed',eventEpoch:1,surfaceGeneration:1,sequence:3});
+  assert.equal(bufferingEvents.filter(e=>e.state==='completed').length,1,'buffering正常EOF仍交付completed');await bufferingPlayer.release();
   console.log('诊断会话：并发合并、生命周期过期、释放后拒绝、错误隔离通过');
 }
 main().catch(e => {console.error(e);process.exitCode=1;});

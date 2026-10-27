@@ -60,6 +60,7 @@ jobs:
           node scripts/test/device-package/platform.test.cjs 2>&1 | tee "$CI_OUT/work/device-platform-tests.log"
           python3 -B scripts/test/device-package/package.test.py 2>&1 | tee "$CI_OUT/work/device-package-tests.log"
           node scripts/test/device-package/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/device-package-workflow-tests.log"
+          python3 -B native/tests/completion-event.test.py 2>&1 | tee "$CI_OUT/work/native-completion-tests.log"
           python3 -B scripts/test/device-execution/executor.test.py 2>&1 | tee "$CI_OUT/work/device-executor-tests.log"
           python3 -B scripts/test/device-execution/reconciliation.test.py 2>&1 | tee "$CI_OUT/work/device-reconciliation-tests.log"
           python3 -B scripts/test/device-execution/imac.test.py 2>&1 | tee "$CI_OUT/work/device-imac-tests.log"

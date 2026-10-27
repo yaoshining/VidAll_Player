@@ -378,6 +378,16 @@ export class PlayerSession implements VidAllPlayer {
       }
       return;
     }
+    if (event.type === 'state' && event.message === 'completed') {
+      // 仅原生同一媒体entry的正常EOF可进入既有completed状态；释放/旧上下文先拒绝。
+      const state = this.stateMachine.getState();
+      if (this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
+        (state === 'playing' || state === 'paused' || state === 'buffering') &&
+        this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence)) {
+        this.stateMachine.transition('completed');
+      }
+      return;
+    }
     if (event.type === 'state' && event.message === 'paused') {
       // native 侧 mpv "pause" 属性变为 true（如调用 pause() 或用户在其他入口暂停），
       // 转译为公开的 paused 状态，使 play()/pause() 的状态机校验能正确匹配。

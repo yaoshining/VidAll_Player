@@ -323,6 +323,96 @@ class Tests(unittest.TestCase):
         device.prepare_signed=prepared
         return device
 
+    def window_cleanup_adapter(self,windows):
+        d=self.adapter();d.install();d.process={'pid':4321,'startTicks':123456};d.app_cleanup=True
+        d.evidence=M.SmokeEvidence(self.root/'window-evidence',{'nonce':d.nonce,'bundle':BUNDLE,'unsignedHapSHA256':sha(b'package')})
+        base=d.command;self.window_reads=0;self.after_stop=False
+        def command(args,timeout):
+            if 'force-stop' in args:self.after_stop=True;return good('force stop process successfully')
+            if args[-3:]==['shell','pidof',BUNDLE]:return good('')
+            if args[-3:]==['aa','dump','-a']:return good('AbilityManagerService current mission lists')
+            if 'WindowManagerService' in args:
+                self.window_reads+=1;return windows[min(self.window_reads-1,len(windows)-1)]
+            if args[-2:]==['uninstall',BUNDLE]:self.present=False;return good('uninstall bundle successfully')
+            return base(args,timeout)
+        d.command=command;return d
+
+    def incomplete_window_42_41(self):
+        raw=self.actual_window();row=raw.splitlines()[2]
+        rows='\n'.join(row.replace(' 22 ',' '+str(22+i)+' ') for i in range(41))
+        return raw.replace(row,rows).replace('Total window num: 1','Total window num: 42')
+
+    def test_window_count_retry_strict_success_keeps_failed_attempt(self):
+        d=self.window_cleanup_adapter([good(self.incomplete_window_42_41()),good(self.actual_window())])
+        with patch.object(M.time,'sleep'):result=d.cleanup()
+        self.assertTrue(result['confirmed']);self.assertEqual(self.window_reads,2)
+        data=json.loads(d.evidence.path.read_text());attempts=data['cleanupWindowAttempts']
+        self.assertEqual(attempts[0]['windowEvidence']['code'],'window-table-incomplete');self.assertEqual(attempts[0]['windowEvidence']['reportedTotal'],42);self.assertEqual(attempts[0]['windowEvidence']['observedRows'],41)
+        self.assertEqual(attempts[1]['windowEvidence']['code'],'ok')
+        self.assertGreaterEqual(data['cleanupCommandOrder'].count('identity'),2)
+        self.assertGreaterEqual(data['cleanupCommandOrder'].count('ability'),2)
+
+    def test_window_permanent_count_failure_is_bounded_and_preserved(self):
+        d=self.window_cleanup_adapter([good(self.incomplete_window_42_41())])
+        with patch.object(M.time,'sleep'):result=d.cleanup()
+        self.assertFalse(result['confirmed']);self.assertEqual(self.window_reads,3)
+        data=json.loads(d.evidence.path.read_text())
+        self.assertEqual(len(data['cleanupWindowAttempts']),3)
+        self.assertEqual(len(data['cleanupCommandHistory']),len(data['cleanupCommandOrder']))
+        self.assertLessEqual(len(data['cleanupCommandHistory']),32)
+        for name in ['device-id','ability','window']:self.assertEqual(sum(row['name']==name for row in data['cleanupCommandHistory']),3)
+        self.assertEqual(data['cleanupCommandHistory'][-1]['name'],'connection')
+
+    def test_window_retry_never_hides_target_or_bad_rows(self):
+        original=self.incomplete_window_42_41()
+        for raw in [original.replace(' 7654 ',' 4321 ',1),original.replace('SyntheticWindow',BUNDLE,1),original.replace(' 7654 ',' bad ',1),self.actual_window().replace('Focus window:','Unknown:')]:
+            with self.subTest(raw=raw):
+                d=self.window_cleanup_adapter([good(raw),good(self.actual_window())])
+                with patch.object(M.time,'sleep'):result=d.cleanup()
+                self.assertFalse(result['confirmed']);self.assertEqual(self.window_reads,1)
+                self.root.joinpath('window-evidence','smoke-'+d.nonce+'.json').unlink()
+                import shutil;shutil.rmtree(self.root/'session')
+
+    def test_window_retry_identity_or_process_change_stops(self):
+        d=self.window_cleanup_adapter([good(self.incomplete_window_42_41()),good(self.actual_window())]);base=d.command
+        def changed(args,timeout):
+            if self.window_reads and args[-4:]==['bm','dump','-n',BUNDLE]:self.install_time=2000
+            return base(args,timeout)
+        d.command=changed
+        with patch.object(M.time,'sleep'),self.assertRaisesRegex(ContractError,'installed-lifecycle-changed'):d.cleanup()
+        self.assertEqual(self.window_reads,1);self.assertTrue(self.present)
+
+    def test_window_retry_deadline_rejects_late_complete_snapshot(self):
+        d=self.window_cleanup_adapter([good(self.actual_window())]);base=d.command;clock=[0.0]
+        def slow(args,timeout):
+            result=base(args,timeout)
+            if 'WindowManagerService' in args:clock[0]=6.0
+            return result
+        d.command=slow
+        with patch.object(M.time,'monotonic',side_effect=lambda:clock[0]),self.assertRaisesRegex(ContractError,'cleanup-window-deadline'):d.cleanup()
+        self.assertTrue(self.present);self.assertEqual(len(json.loads(d.evidence.path.read_text())['cleanupWindowAttempts']),1)
+
+    def test_window_retry_guard_failures_cannot_be_hidden(self):
+        for failure in ['connection','udid','pid','ability','ability-error']:
+            with self.subTest(failure=failure):
+                d=self.window_cleanup_adapter([good(self.incomplete_window_42_41()),good(self.actual_window())]);base=d.command
+                def broken(args,timeout):
+                    if self.window_reads:
+                        if failure=='connection' and args[-3:]==['list','targets','-v']:return good('192.168.3.85:5555 TCP Offline')
+                        if failure=='udid' and args[-3:]==['bm','get','-u']:return good('udid of current device is: OTHERDEVICE')
+                        if failure=='pid' and args[-3:]==['shell','pidof',BUNDLE]:return good('4321\n')
+                        if failure.startswith('ability') and args[-3:]==['aa','dump','-a']:return good('AbilityManagerService '+BUNDLE,2 if failure=='ability-error' else 0)
+                    return base(args,timeout)
+                d.command=broken
+                with patch.object(M.time,'sleep'),self.assertRaises(ContractError):d.cleanup()
+                self.assertEqual(self.window_reads,1);self.assertTrue(self.present)
+                import shutil;shutil.rmtree(self.root/'session');(self.root/'window-evidence'/('smoke-'+d.nonce+'.json')).unlink()
+
+    def test_window_retry_rejects_duplicate_ids_and_stderr(self):
+        raw=self.incomplete_window_42_41().replace(' 23 1 1 1',' 22 1 1 1')
+        for response in [good(raw),{**good(self.incomplete_window_42_41()),'stderr':'unknown-error'},good(self.incomplete_window_42_41(),2)]:
+            self.assertFalse(M.window_resample_allowed(response,{'pid':4321}))
+
     def test_fixed_adapter_connection_and_install(self):
         d=self.adapter();self.assertTrue(d.connected());self.assertTrue(d.package_absent());self.assertTrue(d.install()['installedPayloadVerified'])
         self.assertTrue(all('shell' not in str(a[0]) for a in self.calls))

@@ -85,6 +85,23 @@ Round9 对账、签名/验签/安装已完成；短测在440ms首帧前以DIAGNO
 
 - [x] T044 stale有界重采样/取消与terminal真实函数TDD、窗口精确脱敏诊断TDD及根审完成；session25/platform11/imac60/executor45/controller28/reconciliation28通过。窗口真实失配根因仍待新鲜证据。
 - [x] T045 真实ArkTS unsigned编译与16文本文件提交范围整理完成；精确提交clean回放及推送预览结果保存在仓外绑定最终SHA的 publication，未通过不得提出推送。
-- [ ] T046 用户另行批准后才推送该精确提交及核对新CI；旧cleanup-unknown对账、重新签名/设备执行需新预览批准，真机通过仍待验。
+- [x] T046 精确提交f2288b69已获批准推送；run40536674072 attempt2组合CI通过。随后Round11已单独批准执行并保留失败；这不表示真机通过。
 
 Round10本地目标验证：DevEco26锁定工具与空signingConfigs独立工程实际clean/build通过。首次ArkTS拒绝未声明类型的throw已留失败日志，最小改为Error类型断言后通过；消费保留HAR ef9e196b…，不冒充当前提交同源云端HAP。现有host job仅新增独立reconciliation.test.py一条命令及工作流变异断言，无新增设备workflow、runner或权限。
+
+## Round12：EOF 交付与严格窗口收尾（本地实施中）
+
+Round10 f2288b69已按精确批准推送，run40536674072 attempt2云端组合通过；Round11新HAP签名/完整验签/安装通过，但40.804s记录DIAGNOSTIC_UNAVAILABLE，无EOF。首帧/暂停恢复/seek/重开已有证据；窗口严格门禁实际42总数/41行失败。旧封存和cleanup-unknown不改。
+
+已确认产品已有completed类型但正常MPV END_FILE未交付到公开状态；仅补正常EOF的精确媒体身份事件链，不改变公开API/诊断新鲜度。loadfile reply_userdata及返回playlist_entry_id绑定epoch/generation，旧reply/EOF、stop/quit/redirect/error、terminal/release拒绝；EventLoop不取lifecycleMutex以免与Release join死锁。fixture采样期间EOF竞态只允许同cycle有效近尾诊断与真实completed事件组合，不用诊断失效或时间推测完成。
+
+窗口不放宽现有解析。仅计数不完整且已观察行无目标的情况允许最多3次、总5秒重新查询；每次连接/包生命周期/进程/Ability仍严格核对，非计数错误或目标存在立即失败。每次快照/守卫结果先持久化，最终必须完整严格快照才能确认；永久42/41仍失败。原失败的系统快照成因尚不确定。
+
+先真实函数RED/GREEN及交错/取消/错误边界，再真实ArkTS/native目标构建。无推送/远端配置/签名/设备执行，本地精确预览交根审；TV/候选/八库/SDK不变。
+
+- [x] T047 EOF身份交付与fixture竞态真实TDD、严格窗口有界采样证据闭环；根审匹配宿主回归通过，真实设备仍待验。
+- [ ] T048 同源native/ETS HAR→独立unsigned HAP本地clean编译已通过，八核心/API与锁定输入不变；最终证据/提交范围等待根审。提交/推送/再次执行分别按授权推进，当前未执行。
+
+Round12本地构建使用明确逐字节源码清单和空签名隔离副本：先构建当前native/ETS HAR，再由同一快照fixture消费该HAR。首次准备因评估器要求副本Git元数据失败，未到编译，已保留；仓外脚本以新副本无旧产物及源码清单替代该本地前置后，真实clean/build通过。未修改CI源码身份规则，不把未提交快照称为云端精确提交。两个专属daemon均已停止，重复产物待证据核验后精确清理。
+
+新native测试编译实际Load/Stop/COMMAND_REPLY/END_FILE/DispatchCompletion，NAPI投递使用替身，Release仅核真实源码失效早于released/join顺序；删除三处生产接线的变异均被拒绝。不是设备强并发或真实TSFN验收。现有host job仅追加一条completion-event.test.py，配套工作流删除变异，无新job/权限/手动设备workflow。

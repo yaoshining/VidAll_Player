@@ -116,7 +116,7 @@ export class SessionStateMachine {
     if (this.state === 'idle') { return next === 'preparing' || next === 'error'; }
     if (this.state === 'preparing') { return next === 'playing' || next === 'error' || next === 'idle'; }
     if (this.state === 'playing' || this.state === 'paused') { return next === 'playing' || next === 'paused' || next === 'buffering' || next === 'completed' || next === 'error' || next === 'idle'; }
-    if (this.state === 'buffering') { return next === 'playing' || next === 'paused' || next === 'error' || next === 'idle'; }
+    if (this.state === 'buffering') { return next === 'playing' || next === 'paused' || next === 'completed' || next === 'error' || next === 'idle'; }
     if (this.state === 'completed' || this.state === 'error') { return next === 'preparing' || next === 'idle'; }
     return false;
   }

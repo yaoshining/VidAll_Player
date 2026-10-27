@@ -46,3 +46,17 @@ Round9 对账、签名/验签/安装已完成；短测在440ms首帧前以DIAGNO
 本轮仅本地实现/验证和精确提交预览；推送、配置、签名及再次设备执行分别待批准。手动workflow仍不接入。
 
 Round10本地目标验证：DevEco26锁定工具与空signingConfigs独立工程实际clean/build通过。首次ArkTS拒绝未声明类型的throw已留失败日志，最小改为Error类型断言后通过；消费保留HAR ef9e196b…，不冒充当前提交同源云端HAP。现有host job仅新增独立reconciliation.test.py一条命令及工作流变异断言，无新增设备workflow、runner或权限。
+
+## Round12：EOF 交付与严格窗口收尾（本地实施中）
+
+Round10 f2288b69已按精确批准推送，run40536674072 attempt2云端组合通过；Round11新HAP签名/完整验签/安装通过，但40.804s记录DIAGNOSTIC_UNAVAILABLE，无EOF。首帧/暂停恢复/seek/重开已有证据；窗口严格门禁实际42总数/41行失败。旧封存和cleanup-unknown不改。
+
+已确认产品已有completed类型但正常MPV END_FILE未交付到公开状态；仅补正常EOF的精确媒体身份事件链，不改变公开API/诊断新鲜度。loadfile reply_userdata及返回playlist_entry_id绑定epoch/generation，旧reply/EOF、stop/quit/redirect/error、terminal/release拒绝；EventLoop不取lifecycleMutex以免与Release join死锁。fixture采样期间EOF竞态只允许同cycle有效近尾诊断与真实completed事件组合，不用诊断失效或时间推测完成。
+
+窗口不放宽现有解析。仅计数不完整且已观察行无目标的情况允许最多3次、总5秒重新查询；每次连接/包生命周期/进程/Ability仍严格核对，非计数错误或目标存在立即失败。每次快照/守卫结果先持久化，最终必须完整严格快照才能确认；永久42/41仍失败。原失败的系统快照成因尚不确定。
+
+先真实函数RED/GREEN及交错/取消/错误边界，再真实ArkTS/native目标构建。无推送/远端配置/签名/设备执行，本地精确预览交根审；TV/候选/八库/SDK不变。
+
+Round12验证边界：已证正常EOF事件交付存在源码缺口；旧Round11未保留MPV结束reason，不能断言当次失败完全由这一缺口造成。正常EOF仅在loadfile reply_userdata和playlist_entry_id闭合后投递，reply晚到END_FILE不补判成功；同URI重载仍以独立entry区分。buffering使用既有completed状态合法边，公开类型与诊断新鲜度不变。窗口上游实现存在总数包括被过滤session的机制线索，但尚未证实目标TV版本相同或当次具体原因；严格42/41原输出仍不通过，不做总数容错。
+
+本轮本地同源码HAR与独立unsigned HAP已实际构建，未签名、未设备执行。窗口三轮各项白名单命令摘要/结构证据均持久化（32条总上限内），最终检查仍调用原始window_pids，其AST与本轮基线一致。新增重采资格不会改写原输出或接受不完整快照；最后一次慢返回超过5秒同样拒绝。源码/日志/输入清单及清理记录置于Round12隔离证据，旧封存不回写。

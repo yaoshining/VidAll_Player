@@ -161,6 +161,19 @@ def window_evidence(response,process=None):
     detail['absenceConfirmed']=detail['code']=='ok' and detail['parsePassed'] and detail['commandPassed']
     return safe_window_evidence(detail)
 
+def window_resample_allowed(response,process):
+    # 只决定是否允许再查询，绝不把修正计数后的副本作为通过证据。
+    detail=window_evidence(response,process)
+    if not detail['commandPassed'] or detail['code']!='window-table-incomplete':return False
+    raw=response['stdout']
+    if BUNDLE in raw or detail.get('observedRows') is None or detail.get('reportedTotal')==detail['observedRows']:return False
+    try:
+        # 计数失配可能掩盖坏行/重复ID/目标窗口；仍用原严格解析验证完整行结构。
+        structural=re.sub(r'(?m)^([ \t]*Total window num:[ \t]*)[0-9]+[ \t]*$',lambda m:m[1]+str(detail['observedRows']),raw)
+        pids=window_pids(structural)
+        return process is not None and process['pid'] not in pids
+    except (ContractError,ValueError,KeyError,TypeError):return False
+
 def cleanup_proof(records,serial,process=None):
     # 各项保持原严格判定，但不再吞掉具体哪项证据失效。
     checks={};failed=[]
@@ -438,10 +451,34 @@ class FixedDevice:
         else:require(p['stdout']=='','cleanup-prestop-pid-format')
         ownership(processMatched=True)
         records={}
-        commands=[('stop',['shell','aa','force-stop',BUNDLE],15),('pid',['shell','pidof',BUNDLE],15),
-            ('ability',['shell','aa','dump','-a'],15),('window',['shell','hidumper','-s','WindowManagerService','-a','-a'],15),
-            ('uninstall',['uninstall',BUNDLE],30),('packages',['shell','bm','dump','-a'],15)]
-        for name,command,timeout in commands:records[name]=observe(name,lambda command=command,timeout=timeout:self.hdc(command,timeout))
+        records['stop']=observe('stop',lambda:self.hdc(['shell','aa','force-stop',BUNDLE],15))
+        deadline=time.monotonic()+5
+        def bounded_query(name,command,global_command=False):
+            remaining=deadline-time.monotonic();require(remaining>0,'cleanup-window-deadline')
+            result=observe(name,lambda:self.call(command,remaining) if global_command else self.hdc(command,remaining))
+            require(time.monotonic()<deadline,'cleanup-window-deadline')
+            return result
+        for attempt in range(3):
+            # 每份窗口快照前独立确认连接、UDID、安装生命周期、PID和Ability；任何失败不重试掩盖。
+            records['connection']=bounded_query('connection',[self.tools['hdc'],'list','targets','-v'],True)
+            require(connected_output(records['connection'],self.serial),'cleanup-device-offline')
+            device=bounded_query('device-id',['shell','bm','get','-u'])
+            require(command_ok(device) and not device.get('stderr'),'device-id-query-failed')
+            match=re.fullmatch(r'\s*udid of current device is[ \t]*:\s*([A-Za-z0-9_-]{8,256})\s*',device['stdout']);require(match is not None,'device-id-format')
+            require(digest(match.group(1).encode())==self.approval['deviceIdSHA256'],'device-id-mismatch')
+            identity=package_identity(bounded_query('identity',['shell','bm','dump','-n',BUNDLE]),self.signing['certificateDER_SHA256'],self.version)
+            require(identity==self.installed_identity,'installed-lifecycle-changed')
+            records['pid']=bounded_query('pid',['shell','pidof',BUNDLE])
+            require(cleanup_proof({'pid':records['pid']},self.serial,self.process)['checks']['pid-absent'],'cleanup-pid-reused-or-unknown')
+            records['ability']=bounded_query('ability',['shell','aa','dump','-a'])
+            ability_checks=cleanup_proof({'ability':records['ability']},self.serial,self.process)['checks']
+            require(ability_checks['ability-command-success'] and ability_checks['ability-absent'],'cleanup-ability-present-or-unknown')
+            records['window']=bounded_query('window',['shell','hidumper','-s','WindowManagerService','-a','-a'])
+            if attempt==2 or not window_resample_allowed(records['window'],self.process):break
+            require('force stop process successfully' in records['stop'].get('stdout','') and command_ok(records['stop']) and not records['stop'].get('stderr'),'cleanup-stop-unconfirmed')
+            time.sleep(min(0.1,max(0,deadline-time.monotonic())))
+        for name,command,timeout in [('uninstall',['uninstall',BUNDLE],30),('packages',['shell','bm','dump','-a'],15)]:
+            records[name]=observe(name,lambda command=command,timeout=timeout:self.hdc(command,timeout))
         records['connection']=observe('connection',lambda:self.command([self.tools['hdc'],'list','targets','-v'],15))
         result=cleanup_proof(records,self.serial,self.process)
         result['appSelfCleanup']='confirmed' if self.app_cleanup else 'unconfirmed'

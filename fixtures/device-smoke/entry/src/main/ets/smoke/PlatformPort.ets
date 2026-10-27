@@ -59,20 +59,27 @@ export class PlatformPort implements SmokePort {
     if (snapshot.freshness === 'cached-terminal') throw new Error('PLAYER_TERMINAL');
     return snapshot;
   }
+  private completedSample(): SmokeSample {
+    if (this.measuredCycle !== this.cycle || !Number.isFinite(this.lastPosition) ||
+      !Number.isFinite(this.duration) || Math.abs(this.duration - 30000) > 100 ||
+      this.lastPosition < 28000 || this.lastPosition > this.duration + 100) throw new Error('EOF_WITHOUT_CYCLE_DIAGNOSTIC');
+    return { positionMs: this.lastPosition, durationMs: this.duration, paused: false, completed: true, frames: this.frames, errors: this.errors };
+  }
   async sample(checkActive?: () => void): Promise<SmokeSample> {
     checkActive?.();
     if (getPlayerRuntimeStatus().state === 'terminal') throw new Error('PLAYER_TERMINAL');
     const player = this.requirePlayer(); const cycle = this.cycle;
     this.sampleGuard(player, cycle, checkActive);
-    if (this.state === 'completed' && this.measuredCycle !== this.cycle) throw new Error('EOF_WITHOUT_CYCLE_DIAGNOSTIC');
-    if (this.state === 'completed') return { positionMs: this.lastPosition, durationMs: this.duration, paused: false, completed: true, frames: this.frames, errors: this.errors };
+    if (this.state === 'completed') return this.completedSample();
     let snapshot: PlayerDiagnosticsSnapshot = await this.diagnostics(player, cycle, checkActive);
     this.sampleGuard(player, cycle, checkActive);
+    if (this.state === 'completed') return this.completedSample();
     for (let i = 0; i < 50 && (snapshot.fields.positionMs.status !== 'available' || snapshot.fields.durationMs.status !== 'available'); i++) {
       this.sampleGuard(player, cycle, checkActive);
       try { await this.sleep(100); } finally { this.sampleGuard(player, cycle, checkActive); }
       snapshot = await this.diagnostics(player, cycle, checkActive);
       this.sampleGuard(player, cycle, checkActive);
+      if (this.state === 'completed') return this.completedSample();
     }
     if (snapshot.fields.positionMs.status !== 'available' || snapshot.fields.positionMs.value === undefined || snapshot.fields.durationMs.status !== 'available' || snapshot.fields.durationMs.value === undefined || snapshot.fields.paused.status !== 'available' || snapshot.fields.paused.value === undefined) throw new Error('DIAGNOSTIC_UNAVAILABLE');
     this.measuredCycle = this.cycle; this.lastPosition = snapshot.fields.positionMs.value; this.duration = snapshot.fields.durationMs.value;
