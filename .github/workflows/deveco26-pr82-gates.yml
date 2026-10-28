@@ -47,7 +47,8 @@ jobs:
           set -euo pipefail
           {
             sudo apt-get update
-            sudo apt-get install -y clang llvm cmake
+            sudo apt-get install -y clang llvm cmake ripgrep
+            rg --version
             npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
           } 2>&1 | tee "$CI_OUT/work/dependencies.log"
       - name: CI 事件、失败路径与工作流回归
@@ -168,6 +169,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          {
+            if ! command -v rg >/dev/null 2>&1; then brew install ripgrep; fi
+            rg --version
+          } 2>&1 | tee "$CI_OUT/work/packaging-dependencies.log"
           export DEVECO26_SDK="$CI_OUT/environment/mounted/DevEco-Studio.app/Contents/sdk/default/openharmony/native"
           export DEVECO26_CMAKE="$DEVECO26_SDK/build-tools/cmake/bin/cmake"
           python3 -B scripts/test/deveco26/runtime.test.py 2>&1 | tee "$CI_OUT/work/runtime-tests.log"

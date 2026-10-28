@@ -1,0 +1,42 @@
+{
+  "scope": "仅Ubuntu/macOS打包门禁宿主rg依赖声明",
+  "failedRun": 40671557712,
+  "failedJob": 122759323013,
+  "head": "54fa42b129eca9e2de6f38e3bbbedd5901e786c3",
+  "merge": "f3336adc877bf6dada97b827875a0528abdf6bbd",
+  "artifact": 12808079073,
+  "artifactSHA256": "34259bf2777bffa3c3a23dd2d2a759f3b2d66194b5d8ccc75f2239905e5dd2b3",
+  "artifactIndexVerified": true,
+  "failure": "native/tests/har-native-packaging.test.sh: line 8: rg: command not found",
+  "runtimeTestsPassed": 4,
+  "packaging": {
+    "tests": 8,
+    "failures": 1,
+    "cause": "Ubuntu dependencies漏声明ripgrep，静态gate无法执行；后续47宿主检查跳过"
+  },
+  "workflowTests": 26,
+  "targetPreparationCases": [
+    {
+      "case": "existing",
+      "exit": 0,
+      "passed": true,
+      "scope": "真实workflow bash片段/隔离命令替身，不运行brew安装"
+    },
+    {
+      "case": "install-missing",
+      "exit": 0,
+      "passed": true,
+      "scope": "真实workflow bash片段/隔离命令替身，不运行brew安装"
+    },
+    {
+      "case": "install-failure",
+      "exit": 7,
+      "passed": true,
+      "scope": "真实workflow bash片段/隔离命令替身，不运行brew安装"
+    }
+  ],
+  "limits": "macOS同一shell入口明确准备rg；未以本地替身测试冒充云端安装通过。无需重编HAR/核心八库，产品源码与工具链锁不改。",
+  "remoteCIReexecuted": false,
+  "deviceExecuted": false,
+  "formalArtifactAllowed": false
+}

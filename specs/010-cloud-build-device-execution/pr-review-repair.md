@@ -11,3 +11,9 @@
 未推送、未运行新远端 CI、未签名或真机执行。TV、候选、八库及系统不改，formalArtifactAllowed=false。
 
 本地修复和匹配验证已完成，证据见 evidence/pr-review-repair/summary.json。精确提交预览在仓外生成，推送须另批；远端 CI、合并与真机不在本轮完成声明内。
+
+## 自然 CI 的宿主依赖返修
+
+已批准的 54fa42b 推送后，run40671557712 的 Ubuntu runtime4项通过；打包静态入口因缺少 rg 失败，后续47项跳过，原失败完整保留。先增加依赖缺失断言（真实 RED），再在同一工作流补齐 Ubuntu apt ripgrep 与 macOS 缺失时 brew ripgrep，均记录版本；原工具链锁、产品与检查保持。26项工作流变异通过，实际 target bash 条件在隔离命令替身下覆盖已存在、缺失安装、安装失败三分支。
+
+证据见 [依赖返修摘要](evidence/ci-ripgrep/summary.json)。这是宿主依赖准备修复，未重跑云端/目标构建/设备；新精确提交须批准后才推送，新 merge 的目标授权仍另批。
