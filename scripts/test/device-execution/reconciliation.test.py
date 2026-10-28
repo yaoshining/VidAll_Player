@@ -176,6 +176,75 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(self.calls,[])
 
 
+class PreinstallSignFailureTests(unittest.TestCase):
+    """真实快照链；仅官方签名失败且尚无安装/进程身份可进入无 PID 对账。"""
+    def setUp(self):
+        AdapterTests.setUp(self)
+        self.old={'status':'cleanup-unknown','binding':{'nonce':'a'*32,'bundle':BUNDLE,'unsignedHapSHA256':'1'*64},'installed':{},
+                  'failure':{'code':'official-sign-failed','errorType':'ContractError','stage':'install'},
+                  'cleanup':{'confirmed':False},'cleanupFailure':{'code':'command-timeout','errorType':'TimeoutError','stage':'cleanup'}}
+    command=AdapterTests.command
+    snapshot=AdapterTests.snapshot
+    def test_preinstall_sign_failure_real_snapshot(self):
+        proof=self.snapshot();R.safe_proof(proof,999,1000)
+        self.assertTrue(all(proof['checks'].values()))
+        self.assertTrue(any('hidumper' in args for args in self.calls))
+        self.assertEqual(set(proof['commands']),set(R.COMMANDS))
+    def test_preinstall_sign_failure_real_archive_and_cas(self):
+        raw=encode(self.old);ledger=encode({'nonces':['a'*32]})
+        (self.state/'journal.json').write_bytes(raw);(self.state/'used-nonces.json').write_bytes(ledger)
+        a={**self.a,'nonce':'b'*32,'oldNonce':'a'*32,'oldJournalSHA256':digest(raw),'oldLedgerSHA256':digest(ledger),'expiresAt':1100,'issuedAt':900}
+        with patch.object(self.device,'guard'):
+            result=R.reconcile(self.state,a,'f'*64,self.device,clock=lambda:1000)
+        self.assertTrue(result['reconciled']);self.assertFalse(result['scenarioPassed'])
+        self.assertEqual((self.state/('reconciliation-'+a['nonce']+'.original.json')).read_bytes(),raw)
+        self.assertEqual((self.state/'used-nonces.json').read_bytes(),ledger)
+        head=json.loads((self.state/'journal.json').read_bytes());self.assertEqual(head['failure'],self.old['failure']);self.assertEqual(head['cleanupFailure'],self.old['cleanupFailure']);self.assertFalse(head['cleanup']['confirmed']);self.assertNotIn('pid',head['binding'])
+    def test_missing_pid_other_states_refused(self):
+        changes=[('status','active'),('installed',{'installedPayloadVerified':True}),('installed',{'unknown':False}),
+                 ('failure',{'code':'signature-not-verified','errorType':'ContractError','stage':'install'}),
+                 ('failure',{'code':'official-sign-failed','errorType':'TimeoutError','stage':'install'}),
+                 ('failure',{'code':'official-sign-failed','errorType':'ContractError','stage':'play'}),('failure',{}),
+                 ('binding',{**self.old['binding'],'processStartTicks':123}),('binding',{**self.old['binding'],'startedAtMs':1000}),
+                 ('binding',{**self.old['binding'],'pid':None}),('binding',{**self.old['binding'],'pid':0}),('binding',{**self.old['binding'],'pid':False}),
+                 ('binding',{**self.old['binding'],'bundle':'com.other.app'}),('binding',{**self.old['binding'],'nonce':'bad'}),
+                 ('binding',{**self.old['binding'],'unsignedHapSHA256':'bad'})]
+        original=copy.deepcopy(self.old)
+        for key,value in changes:
+            with self.subTest(key=key,value=value):
+                self.old=copy.deepcopy(original);self.old[key]=value
+                with self.assertRaises(ContractError):self.snapshot()
+        self.old=original
+    def test_no_pid_still_rejects_incomplete_or_malformed_window(self):
+        for raw in ['WindowManagerService\nWindowName WindowId PID\nTotal window num: 1',
+                    'WindowManagerService\nWindowName WindowId PID\nbad row\nTotal window num: 1',
+                    'WindowManagerService\nWindowName WindowId PID\n'+BUNDLE+' 1 52\nTotal window num: 1']:
+            with self.subTest(raw=raw):
+                self.override={'window':{'returncode':0,'stdout':raw,'stderr':''}}
+                with self.assertRaises(ContractError):R.safe_proof(self.snapshot(),999,1000)
+    def test_no_pid_residue_identity_and_unknown_queries_refused(self):
+        cases=[('packages','ID: 100:\n'+BUNDLE),('pid','99'),('ability','AbilityManagerService '+BUNDLE),
+               ('host','52 /safe/imac.py --execute'),('identity','udid of current device is : OTHER_DEVICE_123'),
+               ('connection','192.168.3.85:5555 TCP Offline'),
+               ('window','WindowManagerService\nWindowName WindowId PID\n'+''.join('other'+str(i)+' '+str(i)+' 99\n' for i in range(41))+'Total window num: 42')]
+        for key,raw in cases:
+            with self.subTest(key=key):
+                self.override={key:{'returncode':0,'stdout':raw,'stderr':''}}
+                with self.assertRaises(ContractError):R.safe_proof(self.snapshot(),999,1000)
+        for key in ['cli','connection','identity','packages','pid','ability','window','host']:
+            self.override={key:{'returncode':1,'stdout':'','stderr':'synthetic failure'}}
+            with self.subTest(failedQuery=key),self.assertRaises(ContractError):R.safe_proof(self.snapshot(),999,1000)
+        self.override={};(self.state/'session-old').mkdir()
+        with self.assertRaises(ContractError):R.safe_proof(self.snapshot(),999,1000)
+    def test_no_pid_query_timeout_refused(self):
+        actual=self.command
+        def command(args,timeout):
+            if 'hidumper' in args:raise TimeoutError('synthetic-timeout')
+            return actual(args,timeout)
+        self.device.command=command
+        with self.assertRaises((ContractError,TimeoutError)):self.snapshot()
+
+
 class ApprovalTests(unittest.TestCase):
     def setUp(self):
         self.tools=b'locked-tools'

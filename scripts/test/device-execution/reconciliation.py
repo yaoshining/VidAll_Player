@@ -124,11 +124,20 @@ class ReadOnlyDevice:
         identity('')
         checks['packageAbsent']=BUNDLE not in M.package_list(self.call('packages',prefix+['bm','dump','-a']))
         pid=self.call('pid',prefix+['pidof',BUNDLE]);checks['processAbsent']=type(pid.get('returncode')) is int and pid['returncode'] in (0,1) and not pid.get('timedOut') and pid.get('stdout')=='' and not pid.get('stderr')
-        old_pid=old['binding'].get('pid');require(type(old_pid) is int and old_pid>0,'reconciliation-old-process')
+        binding=old['binding'];old_pid=binding.get('pid')
+        if not (type(old_pid) is int and old_pid>0):
+            # 此错误仅发生在 prepare_signed 的官方进程返回非零、hdc install 之前。
+            # 不推断未知缺 PID 状态；原始三字段绑定中也不能含空 PID 或启动身份。
+            require(old.get('status')=='cleanup-unknown' and old.get('installed')=={} and
+                    old.get('failure')=={'code':'official-sign-failed','errorType':'ContractError','stage':'install'} and
+                    set(binding)=={'nonce','bundle','unsignedHapSHA256'} and binding['bundle']==BUNDLE and
+                    isinstance(binding['nonce'],str) and re.fullmatch('[0-9a-f]{32}',binding['nonce']) and
+                    is_hash(binding['unsignedHapSHA256']),'reconciliation-old-process')
         ability=self.call('ability',prefix+['aa','dump','-a']);text=ability.get('stdout','')
-        checks['abilityAbsent']=M.command_ok(ability) and not ability.get('stderr') and any(v in text for v in ['AbilityManagerService','current mission lists','AbilityRecord']) and BUNDLE not in text and not re.search(r'(?<!\d)'+str(old_pid)+r'(?!\d)',text)
+        checks['abilityAbsent']=M.command_ok(ability) and not ability.get('stderr') and any(v in text for v in ['AbilityManagerService','current mission lists','AbilityRecord']) and BUNDLE not in text and (old_pid is None or not re.search(r'(?<!\d)'+str(old_pid)+r'(?!\d)',text))
         window=self.call('window',prefix+['hidumper','-s','WindowManagerService','-a','-a']);text=window.get('stdout','')
-        checks['windowAbsent']=M.command_ok(window) and not window.get('stderr') and BUNDLE not in text and old_pid not in M.window_pids(text)
+        window_ids=M.window_pids(text)
+        checks['windowAbsent']=M.command_ok(window) and not window.get('stderr') and BUNDLE not in text and (old_pid is None or old_pid not in window_ids)
         host=self.call('host',[a['ps']['path'],'-axo','pid=,command=']);require(M.command_ok(host) and not host.get('stderr'),'reconciliation-host-query')
         active=False
         for line in host['stdout'].splitlines():

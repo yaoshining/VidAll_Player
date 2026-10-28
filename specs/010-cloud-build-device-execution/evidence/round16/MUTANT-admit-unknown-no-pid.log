@@ -1,0 +1,140 @@
+FFFFFFFFFFFFFFF.....
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='status', value='active')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='installed', value={'installedPayloadVerified': True})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='installed', value={'unknown': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='failure', value={'code': 'signature-not-verified', 'errorType': 'ContractError', 'stage': 'install'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='failure', value={'code': 'official-sign-failed', 'errorType': 'TimeoutError', 'stage': 'install'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='failure', value={'code': 'official-sign-failed', 'errorType': 'ContractError', 'stage': 'play'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='failure', value={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='binding', value={'nonce': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bundle': 'com.yaoshining.vidalldeviceprobe', 'unsignedHapSHA256': '1111111111111111111111111111111111111111111111111111111111111111', 'processStartTicks': 123})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='binding', value={'nonce': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bundle': 'com.yaoshining.vidalldeviceprobe', 'unsignedHapSHA256': '1111111111111111111111111111111111111111111111111111111111111111', 'startedAtMs': 1000})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='binding', value={'nonce': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bundle': 'com.yaoshining.vidalldeviceprobe', 'unsignedHapSHA256': '1111111111111111111111111111111111111111111111111111111111111111', 'pid': None})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='binding', value={'nonce': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bundle': 'com.yaoshining.vidalldeviceprobe', 'unsignedHapSHA256': '1111111111111111111111111111111111111111111111111111111111111111', 'pid': 0})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='binding', value={'nonce': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bundle': 'com.yaoshining.vidalldeviceprobe', 'unsignedHapSHA256': '1111111111111111111111111111111111111111111111111111111111111111', 'pid': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='binding', value={'nonce': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bundle': 'com.other.app', 'unsignedHapSHA256': '1111111111111111111111111111111111111111111111111111111111111111'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='binding', value={'nonce': 'bad', 'bundle': 'com.yaoshining.vidalldeviceprobe', 'unsignedHapSHA256': '1111111111111111111111111111111111111111111111111111111111111111'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_missing_pid_other_states_refused (__main__.PreinstallSignFailureTests.test_missing_pid_other_states_refused) (key='binding', value={'nonce': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bundle': 'com.yaoshining.vidalldeviceprobe', 'unsignedHapSHA256': 'bad'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 216, in test_missing_pid_other_states_refused
+    with self.assertRaises(ContractError):self.snapshot()
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.018s
+
+FAILED (failures=15)
