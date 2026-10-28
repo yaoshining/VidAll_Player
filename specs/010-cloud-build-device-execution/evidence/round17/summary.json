@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "scope": "手动prepare与只读collect本地实现，尚未远端启用",
+  "baseHead": "e6bc29b4116274359e261b70bdfe4a40df2313fd",
+  "cloud": {
+    "runId": 40628969507,
+    "runAttempt": 2,
+    "mergeSHA": "35ceb5f96777b4ea91d4e835f044aedc5228ede7",
+    "deviceArtifactId": 12792377361,
+    "zipSHA256": "9c922c3b2da7c9d5b04db970f79703e4b6b49603bb28f7c09478041e9f3d70db",
+    "unsignedHAP_SHA256": "1e38b8594186100f0aa731ff3c14ff868f914609533f151c471565cdfdb84945",
+    "rootChecks": 203,
+    "newDeviceExecuted": false
+  },
+  "tests": {
+    "pythonMethods": 15,
+    "workflowMutationsRejected": 9,
+    "cloudMigrationMutationsRejected": 11,
+    "existingDevecoWorkflowMutationsRejected": 21,
+    "controllerTests": 28,
+    "pythonSemanticMutantsRejected": 3,
+    "redMeaning": "新增入口/工作流缺失RED；已有云端迁移门禁拒绝新只读collect；三语义变异独立证明关键断言不被吞掉。"
+  },
+  "localEvidenceDigests": [
+    {
+      "name": "RED.log",
+      "bytes": 1413,
+      "sha256": "c7d39fce379c56fff565e1d65463e3d9e6a7f7e5499304bdd50b182059035467"
+    },
+    {
+      "name": "RED-workflow.log",
+      "bytes": 1471,
+      "sha256": "f64bbbc544c56517a14b27d2229ce16fedaf7ccf3844b42660118b8e82af8e3e"
+    },
+    {
+      "name": "RED-existing-cloud-workflow.log",
+      "bytes": 1221,
+      "sha256": "19ba6321dcb92fd345281e72e7e69a2ecfec7982cf6b797e8a16188910b3cbdb"
+    },
+    {
+      "name": "GREEN-final.log",
+      "bytes": 264,
+      "sha256": "e5371bef54e25244e5b955912f147d31e97e86bccf50559c17f0124b876bec70"
+    },
+    {
+      "name": "GREEN-workflow-final.log",
+      "bytes": 106,
+      "sha256": "9dd977abfce901ef2d12fa511e667cdc4f3b0c5522c7ff4b221559776b25d48a"
+    },
+    {
+      "name": "GREEN-existing-cloud-workflow.log",
+      "bytes": 145,
+      "sha256": "dfde437e62257b12e82d2d0888e548967381a7776fb1c5b7a28acc55ae2fe677"
+    },
+    {
+      "name": "REGRESSION-controller.log",
+      "bytes": 127,
+      "sha256": "4ce4d15bb1cbb94ceb6d55854ee518dcbd6cd12ac1de64167fdb1e88b20997c0"
+    },
+    {
+      "name": "REGRESSION-existing-workflow.log",
+      "bytes": 113,
+      "sha256": "684a347df61079b913d669332603e7fdedff3e6bc9514e329e760b0d5fcd2f31"
+    },
+    {
+      "name": "MUTATIONS.json",
+      "bytes": 731,
+      "sha256": "02793c4d15f2c32a0aa0b80e5865bc562ddcd56337a3d40b8f66a871b24f7e86"
+    }
+  ],
+  "rootOfflineReplayDigests": [
+    {
+      "name": "ROOT-REAL-ARTIFACT-PREPARE-REPLAY.json",
+      "bytes": 1735,
+      "sha256": "efab4422fdb353d54d291d2b99427e84f8896a92d0a3bb46b436dc4f212be149"
+    },
+    {
+      "name": "ROOT-OLD-RECORD-COLLECT-REPLAY.json",
+      "bytes": 2425,
+      "sha256": "63f1834cbddd02c169dd96a0c737b98659b251975281ed2bcb8926fe9926e9a8"
+    }
+  ],
+  "oldRecordReplayBoundary": "Round16旧包真实已审smoke的只读摘要复核，prepared为旧批准来源重建测试输入，不是真部署receipt；20事件/35.364秒/29历史/43行，不代表新包真机运行。",
+  "deployment": {
+    "enabled": false,
+    "runnerInventoryRefreshed": false,
+    "trustedEntrypointDeployed": false,
+    "receiptDeployed": false,
+    "configurationApproved": false,
+    "defaultBranchMerged": false
+  },
+  "unchanged": [
+    "controller.py",
+    "imac.py",
+    "executor.py",
+    "reconciliation.py",
+    "旧锁",
+    "API",
+    "八库",
+    "TV",
+    "候选",
+    "人走屏灭开启状态"
+  ],
+  "formalArtifactAllowed": false
+}

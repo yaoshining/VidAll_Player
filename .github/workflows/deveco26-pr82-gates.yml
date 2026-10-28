@@ -64,6 +64,8 @@ jobs:
           python3 -B scripts/test/device-execution/executor.test.py 2>&1 | tee "$CI_OUT/work/device-executor-tests.log"
           python3 -B scripts/test/device-execution/reconciliation.test.py 2>&1 | tee "$CI_OUT/work/device-reconciliation-tests.log"
           python3 -B scripts/test/device-execution/imac.test.py 2>&1 | tee "$CI_OUT/work/device-imac-tests.log"
+          python3 -B scripts/test/device-execution/manual-workflow.test.py 2>&1 | tee "$CI_OUT/work/device-manual-tests.log"
+          node scripts/test/device-execution/manual-workflow.test.cjs 2>&1 | tee "$CI_OUT/work/device-manual-workflow-tests.log"
           python3 -B scripts/test/device-execution/controller.test.py 2>&1 | tee "$CI_OUT/work/device-preflight-tests.log"
           python3 -B scripts/test/cloud-build/host.test.py 2>&1 | tee "$CI_OUT/work/legacy-host-tests.log"
           python3 -B scripts/test/cloud-build/producer-input.test.py 2>&1 | tee "$CI_OUT/work/producer-input-tests.log"

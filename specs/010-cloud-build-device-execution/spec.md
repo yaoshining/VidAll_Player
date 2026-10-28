@@ -1,16 +1,16 @@
 # 010：GitHub 云端构建与 iMac 真机执行分工
 
-## 当前验收矩阵（2026-10-28，Round16 后）
+## 当前验收矩阵（Round17 本地工作流实现）
 
 | 范围 | 当前结果 | 未覆盖边界 |
 |---|---|---|
-| 云端宿主/目标构建 | b16d490a、实际merge d688e99c、run40570621495 attempt2通过；HAR/consumer/Hypium编译/unsigned设备包已独立核验 | 不覆盖本轮未提交的reconciliation分支；Hypium不等于真机运行 |
-| Round16本地修复 | 对账器34、imac79、executor47；真实RED及两语义变异通过、根审通过 | 精确新提交推送及对应新CI待批准 |
+| 云端宿主/目标构建 | e6bc29b4、实际merge 35ceb5f9、run40628969507 attempt2通过；三ZIP、115+53索引和unsigned HAP通过203项独立核验 | 不覆盖本轮新增手动工作流；Hypium不等于真机运行 |
+| Round16本地修复 | 对账器34、imac79、executor47；真实RED及两语义变异通过、e6bc29b4已推送且对应云端CI通过 | 不覆盖新增手动入口的远端部署/运行 |
 | 独立真机链 | Round16签名/完整验签/安装、35.364秒短测、保屏false、卸载后六查询43/43与材料清理通过 | 仅既有专用短场景，不扩产品/物理HDR/未确认声画/旧未覆盖故障 |
 | 窗口修复 | 前置三次44/43拒绝并保留，卸载后一次新43/43严格通过 | 非旧42/41原样重现，系统漏行对象仍未知，旧失败不改写 |
-| GitHub手动真机工作流 | 尚未实现、尚未配置或启用 | 交互密码、默认分支入口和iMac执行权限需后续独立方案/批准 |
+| GitHub手动证据工作流 | prepare/collect本地实现及宿主测试通过；未推送、未配置或启用 | 不含签名/安装/播放；用户官方TTY执行保持独立，默认分支合并及固定可信入口部署另批 |
 
-旧SDK锁、产品API、八库、TV和候选不变；formalArtifactAllowed=false。以下早期“当前/待验”文字是对应日期或阶段的历史记录，当前验收以本矩阵及Round16证据为准，不能据旧阶段状态否认已完成范围，也不能将本轮成功外推为全部验收。
+旧SDK锁、产品API、八库、TV和候选不变；formalArtifactAllowed=false。以下早期“当前/待验”文字是对应日期或阶段的历史记录，当前验收以本矩阵及Round16/17证据为准，不能据旧阶段状态否认已完成范围，也不能将本轮成功外推为全部验收。
 
 ## 场景与边界
 
@@ -85,3 +85,13 @@ Round13 正常 EOF 及应用自清理事件已实测；原事务因窗口门禁�
 ## Round16：签名前失败的只读对账边界（本地 TDD）
 
 只为 official-sign-failed/ContractError/install、初始三字段 binding、installed={} 的精确未启动状态增加无 PID 对账分支；不放宽已启动进程的 PID 门禁。所有设备/包/进程/Ability/完整窗口/宿主/锁与摘要/CAS 验证保留，旧失败和 nonce 不改。窗口缺行、未知失败或疑似已启动均拒绝。不改产品或云端；新对账及密码重试另需精确预览批准。
+
+## Round17 手动准备与只读收证（本地、未启用）
+
+新增 `device-evidence-manual.yml`，只允许 `workflow_dispatch`、固定仓库和默认分支。prepare 在云端核验精确 run/attempt、真实 merge/tree、artifact ID/摘要、manifest/HAP及无签名块，输出“等待本地执行”。该记录不授予签名或安装权限，也不生成执行批准。
+
+collect 不 checkout PR、不读取 Secret、不访问电视，只通过固定已审部署路径和外部入口摘要读取已完成事务。已有进程/session/锁冲突、记录摘要变化、非 complete、清理失败或终态窗口不完整均拒绝。只上传固定脱敏 result.json；不会递归上传 state、原始设备输出、nonce、证书或Profile。它复核既有精确已审smoke摘要，不独立重放播放器事件，也不宣称本轮再次访问设备。
+
+新增入口默认关闭。专用 `vidall-device-evidence` 标签、`device-evidence-read` 环境、可信入口/receipt部署、三个启用变量均尚未配置；不得将标签或路径写入代码等同部署已完成。workflow_dispatch必须先存在默认分支，合并仍须单独授权。官方TTY密码输入保持原机制，Actions不承担交互签名。
+
+本轮TDD：新增入口缺失RED保留，Python 15项与真实YAML/9个变异通过，包括精确attempt、仓库/merge/摘要、真实ZIP额外块、CLI上下文、无令牌collect、锁/session、后验窗口、记录CAS和白名单。只运行宿主验证，无新构建/签名/安装/播放。旧库、API、SDK锁、TV/候选及人走屏灭开启状态不变。推送、配置及再次设备执行分别需要精确批准。

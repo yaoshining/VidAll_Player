@@ -3,7 +3,13 @@ const fs=require('fs'),path=require('path'),assert=require('assert');
 const yaml=require('../normal-core/node_modules/yaml');
 const root=path.resolve(__dirname,'../../..');
 function verify(all){
- for(const w of Object.values(all))for(const j of Object.values(w.jobs))assert(!JSON.stringify(j['runs-on']).includes('self-hosted'),'构建仍派发self-hosted');
+ for(const [file,w] of Object.entries(all))for(const [id,j] of Object.entries(w.jobs)){
+  if(JSON.stringify(j['runs-on']).includes('self-hosted')){
+   assert(file==='device-evidence-manual.yml'&&id==='collect','构建仍派发self-hosted');
+   // 唯一手动只读收证入口必须满足完整专用契约；不豁免整个workflow。
+   require('../device-execution/manual-workflow.test.cjs').verify(w);
+  }
+ }
  const old=all['normal-core.yml'];assert.deepEqual(Object.keys(old.on),['workflow_dispatch']);assert(!old.jobs['target-har']&&!old.jobs['normal-core-result']);
  const source=all['build-libmpv.yml'];assert(!source.jobs['build-libmpv-external-ffmpeg']&&!source.jobs['cross-build-prerequisites']);
  assert(source.jobs['native-contracts']&&source.jobs['clean-environment']);assert(JSON.stringify(source).includes('cloud-build/producer-input.py'));
@@ -17,6 +23,6 @@ function verify(all){
 }
 const all=Object.fromEntries(fs.readdirSync(root+'/.github/workflows').filter(n=>n.endsWith('.yml')).map(n=>[n,yaml.parse(fs.readFileSync(root+'/.github/workflows/'+n,'utf8'))]));
 verify(all);
-const mutants=[a=>a['normal-core.yml'].on.pull_request={},a=>a['test-player.yml'].jobs[Object.keys(a['test-player.yml'].jobs)[0]]['runs-on']=['self-hosted','macos','deveco'],a=>delete a['build-libmpv.yml'].jobs['native-contracts'],a=>delete a['build-libmpv.yml'].jobs['clean-environment'],a=>a['deveco26-pr82-gates.yml'].jobs['host-contracts'].steps=a['deveco26-pr82-gates.yml'].jobs['host-contracts'].steps.filter(s=>s.id!=='native_legacy'),a=>a['deveco26-pr82-gates.yml'].jobs['host-contracts'].steps=a['deveco26-pr82-gates.yml'].jobs['host-contracts'].steps.filter(s=>s.id!=='producer_input'),a=>a['deveco26-pr82-gates.yml'].jobs['target-har'].steps.find(s=>s.id==='hypium').if='false',a=>a['deveco26-pr82-gates.yml'].jobs['target-har'].steps.find(s=>s.id==='hypium')['continue-on-error']=true];
+const mutants=[a=>a['device-evidence-manual.yml'].jobs.prepare['runs-on']=['self-hosted'],a=>a['deveco26-pr82-gates.yml'].jobs['target-har']['runs-on']=['self-hosted'],a=>a['device-evidence-manual.yml'].jobs.collect.steps[0].run+='\nnpm run build\n',a=>a['normal-core.yml'].on.pull_request={},a=>a['test-player.yml'].jobs[Object.keys(a['test-player.yml'].jobs)[0]]['runs-on']=['self-hosted','macos','deveco'],a=>delete a['build-libmpv.yml'].jobs['native-contracts'],a=>delete a['build-libmpv.yml'].jobs['clean-environment'],a=>a['deveco26-pr82-gates.yml'].jobs['host-contracts'].steps=a['deveco26-pr82-gates.yml'].jobs['host-contracts'].steps.filter(s=>s.id!=='native_legacy'),a=>a['deveco26-pr82-gates.yml'].jobs['host-contracts'].steps=a['deveco26-pr82-gates.yml'].jobs['host-contracts'].steps.filter(s=>s.id!=='producer_input'),a=>a['deveco26-pr82-gates.yml'].jobs['target-har'].steps.find(s=>s.id==='hypium').if='false',a=>a['deveco26-pr82-gates.yml'].jobs['target-har'].steps.find(s=>s.id==='hypium')['continue-on-error']=true];
 for(const change of mutants){const a=structuredClone(all);change(a);assert.throws(()=>verify(a));}
 console.log(JSON.stringify({passed:true,rejectedMutations:mutants.length}));
