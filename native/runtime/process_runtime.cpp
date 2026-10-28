@@ -32,7 +32,7 @@ void Observe(){
  record=r;firstAt.store(Now(),std::memory_order_release);state.store(4,std::memory_order_release);
 }
 void Receiver(const mpv_ohcodec_terminal_record*,void*){}
-void Monitor(){for(;;){Observe();auto first=firstAt.load(std::memory_order_acquire);if(first&&Now()-first>=deadline.load())std::_Exit(86);std::this_thread::sleep_for(std::chrono::milliseconds(10));}}
+void Monitor(){for(;;){if(state.load(std::memory_order_acquire)==3)return;Observe();auto first=firstAt.load(std::memory_order_acquire);if(first&&Now()-first>=deadline.load())std::_Exit(86);std::this_thread::sleep_for(std::chrono::milliseconds(10));}}
 bool Directory(const std::string&p,bool create){
  struct stat s{};
  if(lstat(p.c_str(),&s)){if(!create||mkdir(p.c_str(),0700))return false;if(lstat(p.c_str(),&s))return false;}

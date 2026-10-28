@@ -1,0 +1,1 @@
+测试失败：$PLAYER/packages/vidall-player/src/main/cpp/types/libvidall_player_native/index.d.ts 缺少：createSession(fontsDir?: string, hwdec?: string, toneMapping?: string, hdrComputePeak?: string): NativeSessionResult;

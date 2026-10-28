@@ -1,0 +1,149 @@
+{
+  "formalArtifactAllowed": false,
+  "newRemoteCI": false,
+  "deviceVerified": false,
+  "pushed": false,
+  "candidateReplaced": false,
+  "scope": "PR82 三项限定返修",
+  "baseline": "e3218aa28de8523034e8d3befb058c789a9193fa",
+  "red": {
+    "runtime": "真实 Monitor 不返回；同步 terminal 重放未交付用户 listener",
+    "packaging": "旧静态入口同步 API 断言失败；新 helper 缺失仅属于入口未实现，不称八项语义失败",
+    "workflow": "缺少宿主及实际 HAR/consumer artifact 检查"
+  },
+  "green": {
+    "runtime": 4,
+    "packaging": 8,
+    "workflowMutations": 24,
+    "fullHostChecks": 47
+  },
+  "intermediateFailures": {
+    "logs": [
+      "player-runtime-green.log",
+      "player-runtime-green2.log"
+    ],
+    "facts": "两次 3 秒 Monitor 子进程超时；具体原因未确定，记录保留。最终预算为 10 秒，旧版在同一预算中真实进入 Monitor 后仍挂起；当前版独立复放通过。deadline 用 native TERMINAL_AT 起点，不计启动耗时。"
+  },
+  "mutations": {
+    "passed": true,
+    "temporaryCopyRemoved": true,
+    "cases": [
+      {
+        "exit": "timeout",
+        "stdout": "",
+        "stderr": "NATIVE_ENTRY 14818025\nBEFORE 3\n",
+        "name": "baseline-monitor-ten-second-budget",
+        "passed": true,
+        "seconds": 10.035016416999497
+      },
+      {
+        "name": "skip-input-set",
+        "exit": 1,
+        "passed": true
+      },
+      {
+        "name": "skip-fixed-core-digest",
+        "exit": 1,
+        "passed": true
+      }
+    ]
+  },
+  "target": {
+    "scope": "本地隔离单次 clean HAR→独立 unsigned consumer；非CI/真机",
+    "toolchainVersion": "26.0.0.851",
+    "api": {
+      "compileSdkVersion": "26.0.0.105",
+      "minAPIVersion": 50003015,
+      "targetAPIVersion": 60002022
+    },
+    "harSHA256": "5aee50c5e594fe08c9d46e0abbf2db1dde9446b6aab302fe552a570af9a0d49d",
+    "hapSHA256": "782c54cca931c0c45d9f3897f133b396cbf3a3f10a3933d218b1f453ad1a802b",
+    "libraries": {
+      "libavcodec.so.62": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
+      "libavfilter.so.11": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
+      "libavformat.so.62": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+      "libavutil.so.60": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libmpv.so": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
+      "libswresample.so.6": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
+      "libswscale.so.9": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
+      "libvidall_player_native.so": "ebfdb69022ef5062692e01378a0e4aa26c678cfea781aede37bbc224e7a9a800"
+    },
+    "coreEightUnchanged": true,
+    "productsSHA256": {
+      "native/runtime/process_runtime.cpp": "f61571c12384b134d7d99e257b5afe53064fbadafa0d448fb56a166be4a30b37",
+      "packages/vidall-player/src/main/ets/internal/playerSession.ets": "741764e052d15044d9b4275a2040bb7cdb08d201cbcaa63d1371c4acd1d03c84"
+    },
+    "productsMatchBuiltInputs": true,
+    "rootIndependentReviewPassed": true,
+    "postBuildChanges": "仅 workflow、workflow测试、Monitor测试TU与测试runner四文件变化；产品与构建输入不变"
+  },
+  "logs": [
+    {
+      "path": "logs/player-runtime-red.log",
+      "bytes": 2898,
+      "sha256": "cea29f5190d0dd0d0c474a2643dc558c8c4ee98c54a4ab6a72751c836a3c119a",
+      "originalSHA256": "9cbdb80e2f7fb46ae4ab2980b4aee8f935ea896170d89f83ce7f6593084aa32c"
+    },
+    {
+      "path": "logs/player-runtime-green.log",
+      "bytes": 2272,
+      "sha256": "c1e41ac861e4cf30e7ea4e660177a2da786aaeaa1729d80143aea43313bb96e8",
+      "originalSHA256": "032fbb3ae202beb363e0279c002cbd617b46656ae0ad2eb437cd26604a861a33"
+    },
+    {
+      "path": "logs/player-runtime-green2.log",
+      "bytes": 2272,
+      "sha256": "d1b39079be8ce19beaf678962c1fd93273e9e3bc690b9c7fe08e91b1a8bee4e8",
+      "originalSHA256": "56fa35485e8c8f55f6c1f4bcf643b72e550f54a3f0bc8ded1289c3e5e41c0f04"
+    },
+    {
+      "path": "logs/player-runtime-final.log",
+      "bytes": 102,
+      "sha256": "2f39e795c6c613dac900f8d2aa0dfeda1280b7d1812a3ab93d15a179f2216a7e",
+      "originalSHA256": "2f39e795c6c613dac900f8d2aa0dfeda1280b7d1812a3ab93d15a179f2216a7e"
+    },
+    {
+      "path": "logs/packaging-red.log",
+      "bytes": 227,
+      "sha256": "4a901248549fbcaf6e74a61960773311888a33decd90129a533a69b737bd7edf",
+      "originalSHA256": "8213ff61f69aa8f99c2547b109a758ef7c475062a2092eb505bc6791fee9490e"
+    },
+    {
+      "path": "logs/packaging-green.log",
+      "bytes": 106,
+      "sha256": "ba508e25ef902856f685a4c26ef786d7060d3c7c11b431b2cb813eb6c9e8d2b1",
+      "originalSHA256": "ba508e25ef902856f685a4c26ef786d7060d3c7c11b431b2cb813eb6c9e8d2b1"
+    },
+    {
+      "path": "logs/packaging-mutant.log",
+      "bytes": 4133,
+      "sha256": "0699d0ddf22ebf8d977180c46cfe7d2600bb8778bb18f5dcf2b29a76ff7f548a",
+      "originalSHA256": "0699d0ddf22ebf8d977180c46cfe7d2600bb8778bb18f5dcf2b29a76ff7f548a"
+    },
+    {
+      "path": "logs/workflow-red.log",
+      "bytes": 887,
+      "sha256": "c01a304b1812f860286c713ed50284a17c4211998560d4651284751dbf739ac6",
+      "originalSHA256": "3dff87e1505e40d537db458662c137f3cd353c75026244a974a33310670a8af3"
+    },
+    {
+      "path": "logs/artifact-workflow-red.log",
+      "bytes": 938,
+      "sha256": "7cce248f29c28e0902e6f0bc32ac5d8d78facf7972a897ca48ea6af4a4a747e1",
+      "originalSHA256": "96a1a257049c58a834b01fbd10f74657b91697a6af831228fa30b5ab0fcb67f4"
+    },
+    {
+      "path": "logs/workflow-final.log",
+      "bytes": 113,
+      "sha256": "cf40c39b83a0ea04640717e51c32377d2400c5fb41e9b68d94eb2b3979f4d227",
+      "originalSHA256": "cf40c39b83a0ea04640717e51c32377d2400c5fb41e9b68d94eb2b3979f4d227"
+    },
+    {
+      "path": "logs/actual-packaging-cli.log",
+      "bytes": 886,
+      "sha256": "785f4ab2033d14be21640a251b09f23e5763b028b1aafad552e019b9993dd734",
+      "originalSHA256": "785f4ab2033d14be21640a251b09f23e5763b028b1aafad552e019b9993dd734"
+    }
+  ]
+}

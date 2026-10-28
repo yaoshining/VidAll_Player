@@ -61,6 +61,18 @@ async function main(){
     await assert.rejects(runtime.initializePlayerRuntime(context,options),/RUNTIME_RESOURCE_FAILED/);
     assert.equal(runtime.getPlayerRuntimeStatus().state,'failed');
     await assert.rejects(runtime.initializePlayerRuntime(context,options),/RUNTIME_RESOURCE_FAILED/);assert.equal(configurations,0);
+  } else if(which==='constructor-terminal-replay') {
+    state='ready';let reads=0;const events=[];
+    // 首次 native 状态读取发生在 onPlayerTerminal 注册内，必须同步重放给调用方。
+    const original=native.getRuntimeStatus;
+    native.getRuntimeStatus=()=>{reads++;state='terminal';return original();};
+    const bridge=new Proxy({subscribe:()=>()=>{}},{get:(o,k)=>o[k]||(()=>Promise.resolve())});
+    const player=new PlayerSession({eventListener:e=>events.push(e)},bridge);
+    assert.equal(reads,1);assert.equal(player.stateMachine.getState(),'error');
+    assert.deepEqual(events.map(e=>e.type),['state','error']);
+    assert.equal(events[0].state,'error');assert.equal(events[1].error.code,'PLAYER_TERMINAL');
+    runtime.getPlayerRuntimeStatus();runtime.getPlayerRuntimeStatus();assert.equal(events.length,2);
+    const noListener=new PlayerSession(undefined,bridge);assert.equal(noListener.stateMachine.getState(),'error');
   } else if(which==='notifications') {
     state='ready';let a=0,b=0,c=0;runtime.onPlayerTerminal(()=>{a++;throw Error('listener');});runtime.onPlayerTerminal(()=>b++);
     state='terminal';const first=runtime.getPlayerRuntimeStatus().terminal;runtime.getPlayerRuntimeStatus();runtime.onPlayerTerminal(info=>{c++;assert.equal(info,first);});

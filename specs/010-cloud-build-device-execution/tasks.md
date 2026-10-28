@@ -153,5 +153,14 @@ Round16 仅覆盖本轮独立短测与窗口清理修复；旧42/41、Round15官
 
 - [x] T058 补齐run40628969507 attempt2 unsigned包下载及203项独立核验；保留旧传输失败。
 - [x] T059 先建立prepare/collect与workflow缺失RED，再实现最小只读入口；Python15项及YAML9变异通过。
-- [ ] T060 根审、本地精确提交及clean重放后给出推送预览；未推送。
+- [x] T060 根审、本地精确提交与clean重放完成；e3218aa 已获批推送，run40639568379 attempt2 云端组合及独立包内核验通过。此为历史 Round17 状态，手动工作流仍未启用。
 - [ ] T061 默认分支入口、iMac标签/环境/固定入口与外部receipt配置仍待精确批准；不进行自动签名或设备执行。
+
+## Round20 合并前限定返修
+
+- [x] T062 Monitor enable 失败返回及同步 terminal listener 顺序：真实 RED、最小实现、4 项匹配测试通过；正常终局 deadline 86 保留。
+- [x] T063 原 HAR 静态门禁对齐异步 API；固定 ARM64 八库加 NAPI 的实际 HAR/consumer 验证与 8 项包夹具、24 项工作流变异通过；接入既有宿主与目标 CI 步骤。
+- [x] T064 本地 47 项宿主回归与单次隔离 clean HAR→unsigned consumer 完成；固定八库未变，产品源码与构建输入一致，根审通过。
+- [ ] T065 两仓精确提交推送及新 CI 另批；未合并，不替换候选，不进行设备测试。
+
+详见 [本轮范围与证据](pr-review-repair.md)。首次两次 Monitor 3 秒超时及旧缺陷 RED 保留，不将本地验证写成新远端 CI 或真机通过。

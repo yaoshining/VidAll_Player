@@ -1,0 +1,48 @@
+E..F
+======================================================================
+ERROR: test_enable_failure_returns_from_real_monitor (__main__.Tests.test_enable_failure_returns_from_real_monitor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "$PLAYER/native/tests/pr-review-runtime.test.py", line 15, in test_enable_failure_returns_from_real_monitor
+    r,_=self.run_mode('enable-failed');self.assertEqual(r.returncode,0,r.stderr);self.assertIn('MONITOR_RETURNED',r.stdout)
+        ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "$PLAYER/native/tests/pr-review-runtime.test.py", line 13, in run_mode
+    root=self.base/mode;root.mkdir();start=time.monotonic();r=subprocess.run([str(self.bin),mode,str(root)],capture_output=True,text=True,timeout=3);return r,time.monotonic()-start
+                                                              ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 557, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1221, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 2154, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1268, in _check_timeout
+    raise TimeoutExpired(
+    ...<2 lines>...
+            stderr=b''.join(stderr_seq) if stderr_seq else None)
+subprocess.TimeoutExpired: Command '['$TMP', 'enable-failed', '$TMP']' timed out after 3 seconds
+
+======================================================================
+FAIL: test_synchronous_terminal_listener (__main__.Tests.test_synchronous_terminal_listener)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "$PLAYER/native/tests/pr-review-runtime.test.py", line 23, in test_synchronous_terminal_listener
+    self.assertEqual(r.returncode,0,r.stdout+r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Expected values to be strictly deep-equal:
++ actual - expected
+
++ []
+- [
+-   'state',
+-   'error'
+- ]
+
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 6.288s
+
+FAILED (failures=1, errors=1)

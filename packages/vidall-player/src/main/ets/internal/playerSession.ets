@@ -81,13 +81,13 @@ export class PlayerSession implements VidAllPlayer {
       options?.subtitleFontsDir, options?.hardwareDecoding,
       options?.hdrToneMapping, options?.hdrComputePeak);
     this.nativeBridge.subscribe((event) => this.handleNativeBridgeEvent(event));
+    if (options?.eventListener !== undefined) {
+      this.stateMachine.subscribe(options.eventListener);
+    }
     this.unsubscribeTerminal = onPlayerTerminal(() => {
       if (this.stateMachine.getReleasePhase() === 'closed') return;
       this.terminal = true; this.diagnosticsRevision++; this.queue.close(); this.stateMachine.enterTerminal();
     });
-    if (options?.eventListener !== undefined) {
-      this.stateMachine.subscribe(options.eventListener);
-    }
   }
 
   attachSurface(surface: PlayerSurface): Promise<void> {

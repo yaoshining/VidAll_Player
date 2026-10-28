@@ -61,6 +61,8 @@ jobs:
           python3 -B scripts/test/device-package/package.test.py 2>&1 | tee "$CI_OUT/work/device-package-tests.log"
           node scripts/test/device-package/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/device-package-workflow-tests.log"
           python3 -B native/tests/completion-event.test.py 2>&1 | tee "$CI_OUT/work/native-completion-tests.log"
+          python3 -B native/tests/pr-review-runtime.test.py 2>&1 | tee "$CI_OUT/work/pr-review-runtime-tests.log"
+          python3 -B native/tests/har-native-packaging.test.py 2>&1 | tee "$CI_OUT/work/har-packaging-tests.log"
           python3 -B scripts/test/device-execution/executor.test.py 2>&1 | tee "$CI_OUT/work/device-executor-tests.log"
           python3 -B scripts/test/device-execution/reconciliation.test.py 2>&1 | tee "$CI_OUT/work/device-reconciliation-tests.log"
           python3 -B scripts/test/device-execution/imac.test.py 2>&1 | tee "$CI_OUT/work/device-imac-tests.log"
@@ -186,10 +188,17 @@ jobs:
       - name: 同一HAR的独立unsigned消费者构建与九库核验
         id: consumer
         run: |
+          set -euo pipefail
           python3 -B scripts/test/deveco26-gates/consumer.py --out "$CI_OUT" \
             --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
             --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
             --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"
+          shopt -s nullglob
+          hars=(packages/vidall-player/build/default/outputs/deveco26/*.har)
+          haps=("$CI_OUT"/consumer/project/entry/build/default/outputs/default/*-unsigned.hap)
+          [[ ${#hars[@]} -eq 1 && ${#haps[@]} -eq 1 ]]
+          LLVM_READELF="$CI_OUT/environment/mounted/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/llvm-readelf" \
+            bash native/tests/har-native-packaging.test.sh --artifacts "${hars[0]}" "${haps[0]}" 2>&1 | tee "$CI_OUT/work/har-packaging-artifacts.log"
       - name: 完整九套Hypium无签名实际编译（不执行）
         id: hypium
         run: |
