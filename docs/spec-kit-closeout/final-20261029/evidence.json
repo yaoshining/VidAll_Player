@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-29",
+  "purpose": "纯文档收尾；证据针对下列已合并源码，文档新提交的CI未执行",
+  "merged": [
+    {
+      "repository": "ohos_ijkplayer",
+      "number": 7,
+      "merged": true,
+      "mergeCommit": "c5828aeac29adae93b5a5f799ec8459a4cd025f9",
+      "head": "f45aa559d556b7714ef8da227f09310d48bee880",
+      "branch": "codex/docs-pr1-speckit-closeout",
+      "url": "https://github.com/yaoshining/ohos_ijkplayer/pull/7"
+    },
+    {
+      "repository": "ohos_ijkplayer",
+      "number": 8,
+      "merged": true,
+      "mergeCommit": "55e51ead4196117a9d22785576b647bd3497297c",
+      "head": "20419168e23e50c951f808241beb18d353f36003",
+      "branch": "codex/docs-pr2-speckit-closeout",
+      "url": "https://github.com/yaoshining/ohos_ijkplayer/pull/8"
+    },
+    {
+      "repository": "ohos_ijkplayer",
+      "number": 9,
+      "merged": true,
+      "mergeCommit": "33165069ce02718b63689e7c1f4a4256dcba31ae",
+      "head": "8f31a6485b6c53745b77989f1244d6845363162d",
+      "branch": "codex/docs-pr3-speckit-closeout",
+      "url": "https://github.com/yaoshining/ohos_ijkplayer/pull/9"
+    },
+    {
+      "repository": "VidAll_Player",
+      "number": 82,
+      "merged": true,
+      "mergeCommit": "a3d4812f32597f0458d758f82e10578b93208243",
+      "head": "98de2b7d09f97bcb58cd149a5161caf0b9932219",
+      "branch": "codex/docs-pr4-speckit-closeout",
+      "url": "https://github.com/yaoshining/VidAll_Player/pull/82"
+    }
+  ],
+  "defaultBranchChecks": {
+    "producer": {
+      "branch": "33165069ce02718b63689e7c1f4a4256dcba31ae",
+      "runs": [
+        {
+          "id": 40865855069,
+          "headSHA": "33165069ce02718b63689e7c1f4a4256dcba31ae",
+          "event": "push",
+          "attempt": 1,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 40865855095,
+          "headSHA": "33165069ce02718b63689e7c1f4a4256dcba31ae",
+          "event": "push",
+          "attempt": 1,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 123420338621,
+          "name": "contracts (27)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339002,
+          "name": "contracts (31)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339031,
+          "name": "contracts (28)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339039,
+          "name": "contracts (30)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339043,
+          "name": "contracts (21)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339058,
+          "name": "contracts (24)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339081,
+          "name": "contracts (parent)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339106,
+          "name": "contracts (29)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339164,
+          "name": "contracts (22)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339195,
+          "name": "contracts (23)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339270,
+          "name": "contracts (26)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123421056534,
+          "name": "required",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420339086,
+          "name": "contracts",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 123420528480,
+          "name": "ohcodec-source-producer",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    "player": {
+      "branch": "a3d4812f32597f0458d758f82e10578b93208243",
+      "runs": [
+        {
+          "id": 40867431403,
+          "headSHA": "a3d4812f32597f0458d758f82e10578b93208243",
+          "event": "push",
+          "attempt": 1,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 40867431224,
+          "headSHA": "a3d4812f32597f0458d758f82e10578b93208243",
+          "event": "push",
+          "attempt": 1,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 40867431269,
+          "headSHA": "a3d4812f32597f0458d758f82e10578b93208243",
+          "event": "push",
+          "attempt": 2,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  },
+  "independentArtifactReview": {
+    "player": {
+      "runId": 40867431269,
+      "attempt": 2,
+      "sourceSHA": "a3d4812f32597f0458d758f82e10578b93208243",
+      "hostIndexedFiles": 119,
+      "targetIndexedFiles": 55,
+      "reviewChecks": 216,
+      "artifacts": [
+        {
+          "id": 12896318120,
+          "bytes": 44219,
+          "sha256": "660905ba84ca931b4496f4fb618db2978ab543b85c33bf72b810b0794f61271a"
+        },
+        {
+          "id": 12896578138,
+          "bytes": 259202,
+          "sha256": "16908fe3d8bf9a5add219f9d92fac81baad960a6b5e2228628d86169771bd61a"
+        },
+        {
+          "id": 12896353562,
+          "bytes": 22670569,
+          "sha256": "c21a819b2aa8ba4c5b5d2fbe8891b05b5c8c5973d9f164fe9ee1fed3a6ffef7f"
+        }
+      ],
+      "harSHA256": "ea0493cdbbecec2b1fe0d35755bcb3b7a4d11dd25c4ad42ace88ed173d03b048",
+      "unsignedHAP": {
+        "bytes": 55351530,
+        "sha256": "14fab2ea66dcf034d9d8daa6ae2e2354df13ae42860e3f1b95ef117c54ecf12d",
+        "signed": false,
+        "deviceVerified": false
+      },
+      "nineARM64LibrariesVerified": true,
+      "fixedEightMatched": true,
+      "targetCleanupPassed": true
+    },
+    "producer": {
+      "reviewedTestMerge": "9fe9ee1024c4f5f95cc803f003308d171e25ed14",
+      "tree": "f581ab6b5d94e1979f464c4f2df876ca9599490e",
+      "matchesMergedMasterTree": true,
+      "hostRun": 40844320305,
+      "sourceRun": 40844320318,
+      "downloadedZIPs": 15,
+      "outerIndexEntries": 598,
+      "postMergeRunsReadBackOnly": true,
+      "postMergeArtifactsRedownloadedThisCloseout": false
+    }
+  },
+  "validationBoundary": {
+    "formalArtifactAllowed": false,
+    "currentUnsignedHAPDeviceVerified": false,
+    "hypium": "compile-only",
+    "manualIMacWorkflow": "source-merged; configuration-and-enablement-pending",
+    "producerLatestNormalFullCloudRebuildVerified": false,
+    "oldFailuresPreserved": true,
+    "oldSealsChanged": false
+  },
+  "thisCloseout": {
+    "codeChanged": false,
+    "workflowsChanged": false,
+    "buildsRerun": false,
+    "deviceExecuted": false,
+    "remoteConfigurationChanged": false,
+    "pushed": false
+  },
+  "evidenceRetention": "原始下载ZIP、失败日志、审批与设备事务记录保留在本会话交接档案；本JSON为脱敏索引，不能代替原始日志。GitHub artifact有有效期。"
+}
