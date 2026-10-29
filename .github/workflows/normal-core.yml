@@ -1,0 +1,80 @@
+name: 历史正常核心宿主契约（手动，无目标构建）
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  host-contracts:
+    name: 当前组合宿主契约
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: 默认检出事件提交（PR 为 merge SHA）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 初始化失败证据目录
+        shell: bash
+        run: |
+          set -euo pipefail
+          CI_OUT="$RUNNER_TEMP/normal-core-host-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf '%s\n' "CI_OUT=$CI_OUT" >> "$GITHUB_ENV"
+          python3 -B scripts/test/normal-core/ci-evidence.py prepare --out "$CI_OUT"
+      - name: 绑定事件与实际 checkout
+        id: context
+        run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
+      - name: 配置 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/test/normal-core/package-lock.json
+      - name: 安装锁定宿主依赖
+        id: dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            sudo apt-get update
+            sudo apt-get install -y clang llvm
+            npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
+          } 2>&1 | tee "$CI_OUT/work/dependencies.log"
+      - name: CI 事件、失败路径与工作流回归
+        id: contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B scripts/test/normal-core/ci-schema.test.py 2>&1 | tee "$CI_OUT/work/schema-archive-tests.log"
+          python3 -B scripts/test/normal-core/ci-schema.py --out "$CI_OUT" 2>&1 | tee "$CI_OUT/work/schema.log"
+          node scripts/test/normal-core/ci-workflow.test.cjs 2>&1 | tee "$CI_OUT/work/workflow.log"
+          node scripts/test/normal-core/ci-workflow-mutations.cjs 2>&1 | tee "$CI_OUT/work/workflow-mutations.log"
+          python3 -B scripts/test/normal-core/ci-contract.test.py 2>&1 | tee "$CI_OUT/work/contracts.log"
+      - name: 全量宿主真实函数与负例门禁
+        id: host
+        env:
+          LLVM_NM: llvm-nm
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B scripts/test/normal-core/run.py --out "$CI_OUT/suite" 2>&1 | tee "$CI_OUT/work/host.log"
+      - name: 收集失败记录并核对公开边界
+        id: public_gate
+        if: always()
+        env:
+          CI_STEPS: ${{ toJSON(steps) }}
+        run: python3 -B scripts/test/normal-core/ci-evidence.py finish --out "$CI_OUT" --mode host
+      - name: 保存公开文本（成功和失败均保留）
+        if: always() && steps.public_gate.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: normal-core-host-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ env.CI_OUT }}/public/
+          if-no-files-found: error
+          retention-days: 14
+      - name: 缺失或失败证据禁止绿色
+        if: always()
+        run: python3 -B scripts/test/normal-core/ci-evidence.py assess --out "$CI_OUT"

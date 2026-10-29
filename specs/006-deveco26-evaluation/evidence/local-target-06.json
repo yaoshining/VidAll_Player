@@ -1,0 +1,131 @@
+{
+  "scope": "DevEco26独立target本地隔离构建；不是GitHub运行或真机验收",
+  "source": {
+    "checkoutSHA": "3baeac926d51cb820e1ecc9d7e3a774bbd56c082",
+    "treeSHA": "d05bf411ef704595652c81c6a9c7cb50a8e7d78b",
+    "trackedBytesSHA256": "7c8c8307d19b77e0aabde7ee81474915b8543b37b409ee9b7e9876a6196947c5"
+  },
+  "har": {
+    "passed": true,
+    "harSHA256": "2cb0a4accebcd87f98bf86966bfddf0d8a877440ed3d44c53133a0617c5d3e54",
+    "libraries": {
+      "libavcodec.so.62": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
+      "libavfilter.so.11": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
+      "libavformat.so.62": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+      "libavutil.so.60": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libmpv.so": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
+      "libswresample.so.6": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
+      "libswscale.so.9": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
+      "libvidall_player_native.so": "983d03052568edf7e48b5a60fc6a348e2ea3752fb2fb8bae5af0bd7474fa26e7"
+    },
+    "formalArtifactAllowed": false
+  },
+  "api": {
+    "compileSdkVersion": "26.0.0.105",
+    "minAPIVersion": 50003015,
+    "targetAPIVersion": 60002022
+  },
+  "cppMissingProviders": [],
+  "commands": [
+    {
+      "name": "cli-resolution",
+      "exit": 0,
+      "seconds": 0.039,
+      "passed": true
+    },
+    {
+      "name": "node-version",
+      "exit": 0,
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "cli-version",
+      "exit": 0,
+      "seconds": 0.373,
+      "passed": true
+    },
+    {
+      "name": "clean",
+      "exit": 0,
+      "seconds": 1.747,
+      "passed": true
+    },
+    {
+      "name": "input-audit",
+      "exit": 0,
+      "seconds": 0.142,
+      "passed": true
+    },
+    {
+      "name": "har-build",
+      "exit": 0,
+      "seconds": 9.555,
+      "passed": true
+    },
+    {
+      "name": "bridge-dynamic",
+      "exit": 0,
+      "seconds": 0.091,
+      "passed": true
+    },
+    {
+      "name": "bridge-undefined",
+      "exit": 0,
+      "seconds": 0.014,
+      "passed": true
+    },
+    {
+      "name": "exports-libavcodec.so.62",
+      "exit": 0,
+      "seconds": 0.014,
+      "passed": true
+    },
+    {
+      "name": "exports-libavfilter.so.11",
+      "exit": 0,
+      "seconds": 0.014,
+      "passed": true
+    },
+    {
+      "name": "exports-libavformat.so.62",
+      "exit": 0,
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "exports-libavutil.so.60",
+      "exit": 0,
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "exports-libc++_shared.so",
+      "exit": 0,
+      "seconds": 0.017,
+      "passed": true
+    },
+    {
+      "name": "exports-libmpv.so",
+      "exit": 0,
+      "seconds": 0.043,
+      "passed": true
+    },
+    {
+      "name": "exports-libswresample.so.6",
+      "exit": 0,
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "exports-libswscale.so.9",
+      "exit": 0,
+      "seconds": 0.013,
+      "passed": true
+    }
+  ],
+  "rawResultSHA256": "9da02bcd6871c2cb11e6bbc12bfeba90b659481174a5110fafd4b8eae3d6ebb9",
+  "bootstrapResultSHA256": "16095e16df115b4b2a85e1d0d92973c2ddda34805ee5b2572390272e1ab8e662",
+  "formalArtifactAllowed": false
+}

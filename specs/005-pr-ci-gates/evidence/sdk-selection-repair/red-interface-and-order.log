@@ -1,0 +1,30 @@
+EF.
+======================================================================
+ERROR: test_discover_uses_real_clean_output_not_docs_catalog (__main__.Contracts.test_discover_uses_real_clean_output_not_docs_catalog)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 164, in test_discover_uses_real_clean_output_not_docs_catalog
+    with patch.object(m,'command',side_effect=execute):child,found=m.discover_sdk(self.root,dict(os.environ),work,rows,lock,clean)
+                                                                   ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: discover_sdk() takes 5 positional arguments but 6 were given
+
+======================================================================
+FAIL: test_clean_then_identity_failure_stops_build (__main__.Contracts.test_clean_then_identity_failure_stops_build)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 175, in test_clean_then_identity_failure_stops_build
+    self.assertFalse(r['passed']);self.assertEqual([c['name'] for c in r['commands']],['clean']);self.assertEqual(r['commands'][0]['exit'],0)
+                                  ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != ['clean']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'clean'
+
+- []
++ ['clean']
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.461s
+
+FAILED (failures=1, errors=1)

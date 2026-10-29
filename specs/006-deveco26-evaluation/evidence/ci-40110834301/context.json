@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "event": "push",
+  "eventSHA": "610dd1f6e83fa844a7096de20ce591b72e48e9da",
+  "checkoutSHA": "610dd1f6e83fa844a7096de20ce591b72e48e9da",
+  "treeSHA": "431e66cffeae5edc2dd377595af2f89ba48471ed",
+  "ref": "refs/heads/codex/deveco26-evaluation",
+  "repository": "yaoshining/VidAll_Player",
+  "parents": [
+    "99b2c967675bada272bfa1c982a180ea7b2c7f66"
+  ],
+  "trustedTarget": true,
+  "formalArtifactAllowed": false,
+  "trackedBytesSHA256": "b2472c80414457ae6ec2c010ba27bec3c374e3b094628360cc5854adaedcda75"
+}

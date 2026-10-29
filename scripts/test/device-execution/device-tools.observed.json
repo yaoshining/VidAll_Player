@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "status": "observed-only-needs-external-execution-approval",
+  "observedAtUTC": "2026-10-25T05:44:25Z",
+  "architecture": "x86_64",
+  "deviceSerial": "192.168.3.85:5555",
+  "cliClosure": {
+    "packageRoot": "/Users/shiningyao/.nvm/versions/node/v24.14.0/lib/node_modules/@deveco/deveco-cli",
+    "package": "@deveco/deveco-cli",
+    "version": "1.2.0",
+    "files": 4620,
+    "bytes": 76899574,
+    "treeSHA256": "8504afe583d779f1d6c118acd4deedc8b9fe69d9d15e237c45b0ec307c98ae77",
+    "scope": "完整已安装包含node_modules；1.2.0无独立common包，不只锁cli.js"
+  },
+  "tools": {
+    "java": {"path": "/Applications/DevEco-Studio.app/Contents/jbr/Contents/Home/bin/java", "sha256": "b936ed4ba6c5ecd142673270229317535d9fe80846c89bd91f0103801fe1ee30"},
+    "signTool": {"path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/lib/hap-sign-tool.jar", "sha256": "a434b6747e6c5d0b14e73837a46b39f4816ab25b42d1833d6f767bf867cf616d"},
+    "hdc": {"path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/hdc", "sha256": "ae849a571227166700f543f24ee2f16ef4124a66f2cb6ee7b48c8c06f4aeafb4"},
+    "node": {"path": "/Users/shiningyao/.nvm/versions/node/v24.14.0/bin/node", "sha256": "50a3ba85f9a2445591012eb9932966acf313c86712847e5c2ef19774636e681f"},
+    "cli": {"path": "/Users/shiningyao/.nvm/versions/node/v24.14.0/lib/node_modules/@deveco/deveco-cli/dist/cli.js", "sha256": "b7dee194077491e62f8ec17de74f355eec2a1ac8ab5114cc05f936ac91ed3e38"}
+  },
+  "deviceVerified": false,
+  "formalArtifactAllowed": false
+}

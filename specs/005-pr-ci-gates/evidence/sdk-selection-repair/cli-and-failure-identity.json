@@ -1,0 +1,32 @@
+{
+  "cliCommonVersion": "1.3.4",
+  "cliDistSHA256": "6d4f2da40169142245438c888588eb5bfbbfc6b694bf6a0ef3ed69f8f7cf7c85",
+  "sourceInspection": {
+    "build": "async function lE 使用 await k.new() 后传递同一ToolProvider给ohpm/hvigor",
+    "clean": "async function dE 使用 await k.new() 后执行hvigor clean/stopDaemon",
+    "debugSwitch": "DEVECO_CLI_DEBUG",
+    "autoSelectionFormat": "[ToolProvider] Using auto → <Studio> (<version>)",
+    "explicitStudioVariables": [
+      "DEVECO_CLI_STUDIO_PATH",
+      "DEVECO_HOME",
+      "DEVECO_PATH"
+    ],
+    "standaloneCLT": "不作为本门禁支持的Studio路径；不能推导匹配的内置API24时拒绝"
+  },
+  "privateSourceNotCopied": true,
+  "remoteFailure": {
+    "pushRun": 39998312068,
+    "pullRequestRun": 39998322892,
+    "head": "715d3a8a6c0d37c70505bc3ebd73acc1d52f314b",
+    "merge": "ad1e256d021fb4d5e6f87034f9757f533214dbcc",
+    "artifact": 12521800000,
+    "artifactZipSHA256": "5d57caf7a36f9dfba933a0d3233c57c9ce64c8bb37d573218f212241ee362450",
+    "probeExit": 0,
+    "toolProviderSelectionPresent": false,
+    "hostPassed": true,
+    "targetPassed": false,
+    "aggregatePassed": false,
+    "remoteSDKIdentity": "尚未到达核验，未知"
+  },
+  "formalArtifactAllowed": false
+}

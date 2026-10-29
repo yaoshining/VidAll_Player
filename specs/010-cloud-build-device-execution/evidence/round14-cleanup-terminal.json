@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "scope": "Round14：卸载后的严格最终清理证据",
+  "baselineCommit": "4f9d8706f1490c6db9f4ae967d2dd9b02d5e4dc7",
+  "reviewedSourceSHA256": {
+    "scripts/test/device-execution/imac.py": "bd7b22914c1837b7d78ae96b42b5fe4915918ad50b7b9e67d2648c100752f8d3",
+    "scripts/test/device-execution/executor.py": "340d698b2e22120996302df821d2a3c119d78be210ea98cb839ce501fe32eec5",
+    "scripts/test/device-execution/imac.test.py": "79eb9db212552c690660b1feb1f7157809a598ed868f51eef4f4a5fd22912d8d",
+    "scripts/test/device-execution/executor.test.py": "db1cb6b3ad4e89acec168d56840aa9d8cb4a2b9695ce13b55ec65c3998f80898"
+  },
+  "rootReviewPassed": true,
+  "hostTests": {
+    "imac": 79,
+    "executor": 47,
+    "controller": 28,
+    "reconciliation": 28
+  },
+  "red": {
+    "frozenBaseline": true,
+    "cases": 8,
+    "semanticAssertionsFailed": 16,
+    "setupErrors": 0
+  },
+  "mutations": [
+    {
+      "name": "MUTANT-reuse-pre-window",
+      "semanticFailure": true,
+      "logSHA256": "d3e75bca16e129d7ad140d653ad9310768ac30a5dc7b8df1a940008eec559f71"
+    },
+    {
+      "name": "MUTANT-erase-hard-failure",
+      "semanticFailure": true,
+      "logSHA256": "4672d745b933122d61e69c5958d195ff50e3c67ca1220d0d498117c95fb43161"
+    },
+    {
+      "name": "MUTANT-no-final-deadline",
+      "semanticFailure": true,
+      "logSHA256": "bdff8f9e936aa7fa2e78f17d966dfcb60c4bf83396f04b241cd3d71f577de01a"
+    },
+    {
+      "name": "MUTANT-skip-last-owner",
+      "semanticFailure": true,
+      "logSHA256": "783ca69b81698739e7363bc747f87e2ffaac401e5d49c80174293071d57c9ef1"
+    }
+  ],
+  "windowParserByteIdentical": true,
+  "windowParserSHA256": "1061eb1864e056f08e68c737ade0f5635731014d4cf948be0f8d6ec89bc8c3a4",
+  "history": {
+    "previousActual": 24,
+    "worstCase": 29,
+    "limit": 32
+  },
+  "finalSnapshot": {
+    "after": "successful-owned-uninstall",
+    "commands": [
+      "connection",
+      "device-id",
+      "packages",
+      "pid",
+      "ability",
+      "window"
+    ],
+    "attempts": 1,
+    "deadlineSeconds": 5,
+    "checksBeforeAndAfterEachCall": true,
+    "preHardFailuresRemainFailed": true
+  },
+  "signCliContract": {
+    "schemaVersion": 1,
+    "jarSHA256": "a434b6747e6c5d0b14e73837a46b39f4816ab25b42d1833d6f767bf867cf616d",
+    "actualProductionArguments": {
+      "exitCode": 0,
+      "accepted": true
+    },
+    "invalidAlignmentOption": {
+      "exitCode": 2,
+      "accepted": false
+    },
+    "unknownOption": {
+      "exitCode": 2,
+      "accepted": false
+    },
+    "signCode": "1",
+    "signingInvoked": false,
+    "realMaterialsRead": false,
+    "temporaryFilesRemovedOnExit": true
+  },
+  "upstreamClue": {
+    "repo": "openharmony/window_window_manager",
+    "commit": "8b0d8fe1b973d865904c942c286b3d2a3b9b08e7",
+    "blobSHA1": "a8302de35899b1691e6f9523ef81a22ba763af38",
+    "fileSHA256": "2bc2ba8e66c3e32a9abb64f169cc8c04baa16ded090cb56d7e7aec73cb7313fd",
+    "path": "window_scene/session_manager/src/scene_session_manager.cpp",
+    "lines": [
+      9087,
+      9137
+    ],
+    "exactBlobAndSnippetVerified": true,
+    "targetTvImplementationBound": false,
+    "omittedSessionIdentified": false
+  },
+  "oldRound13Transaction": "failed, retained unchanged",
+  "newCI": "pending",
+  "newDeviceExecution": "pending",
+  "formalArtifactAllowed": false
+}

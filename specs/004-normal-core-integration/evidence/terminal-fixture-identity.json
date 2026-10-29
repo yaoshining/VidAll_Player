@@ -1,0 +1,17 @@
+{
+  "harSHA256": "e9d22a6bf04743f03a1078f5067b446e407c73c84f471e1f09eb13c9c1a1f5d9",
+  "libs": {
+    "package/libs/arm64-v8a/libavcodec.so.62": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
+    "package/libs/arm64-v8a/libavfilter.so.11": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
+    "package/libs/arm64-v8a/libavformat.so.62": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+    "package/libs/arm64-v8a/libavutil.so.60": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43",
+    "package/libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "package/libs/arm64-v8a/libmpv.so": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
+    "package/libs/arm64-v8a/libswresample.so.6": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
+    "package/libs/arm64-v8a/libswscale.so.9": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
+    "package/libs/arm64-v8a/libvidall_player_native.so": "446847e818288355550498d951cc07501bdf4440d06524db6ceb5f573944b4ce"
+  },
+  "normalEightIdentical": true,
+  "purpose": "仅独立宿主终局接管，非真实GPU故障",
+  "formalArtifactAllowed": false
+}

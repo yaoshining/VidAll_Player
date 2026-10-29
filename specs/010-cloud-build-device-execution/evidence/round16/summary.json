@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "scope": "Round16：精确签名前失败对账分支与独立窗口清理验证",
+  "baselineCommit": "b16d490a92e7a05c28d98385f2f4a8324cb68269",
+  "source": {
+    "reconciliationSHA256": "a2dd687d5970fadbdcafff14f86ec811022cbf2159aee2ac5f724f24dbbb1968",
+    "testSHA256": "f883b0340d0fba34780aff6bc280dd5878216af62c96e10fefc46ec48442d082",
+    "controllerExecutorImacByteIdenticalToBaseline": true,
+    "strictWindowParserUnchanged": true
+  },
+  "tdd": {
+    "red": {
+      "tests": 6,
+      "positiveSemanticErrors": 2,
+      "error": "reconciliation-old-process",
+      "productionSourceUnchanged": true
+    },
+    "green": {
+      "reconciliation": 34,
+      "imac": 79,
+      "executor": 47
+    },
+    "mutations": [
+      {
+        "name": "skip-window-parser",
+        "exitCode": 1,
+        "semanticRejection": true
+      },
+      {
+        "name": "admit-unknown-no-pid",
+        "exitCode": 1,
+        "semanticRejection": true
+      }
+    ],
+    "logs": [
+      {
+        "path": "RED.log",
+        "bytes": 2538,
+        "sha256": "3943c0b349a79666309fbed64a68d0ae57ecffdf6f7be98e96009b268d4b40fc",
+        "originalLogSHA256": "2688778b4f2ac0491a032c360ea8b5d04d90e6043f4279396ba8080d42f78d2e",
+        "sanitization": "仅将traceback宿主绝对路径映射为仓库相对源码路径；保留断言、退出/错误事实与测试计数"
+      },
+      {
+        "path": "GREEN-reconciliation.log",
+        "bytes": 133,
+        "sha256": "093f52b63529c21475d25ae8c2a9c963676fe8008ab75d6dd47a8d38c89a7190",
+        "originalLogSHA256": "093f52b63529c21475d25ae8c2a9c963676fe8008ab75d6dd47a8d38c89a7190",
+        "sanitization": "仅将traceback宿主绝对路径映射为仓库相对源码路径；保留断言、退出/错误事实与测试计数"
+      },
+      {
+        "path": "GREEN-imac.log",
+        "bytes": 178,
+        "sha256": "b6937cc69c814e7bc413099ad1a655c800c2288b85705a8202b3e90dc8675a0b",
+        "originalLogSHA256": "b6937cc69c814e7bc413099ad1a655c800c2288b85705a8202b3e90dc8675a0b",
+        "sanitization": "仅将traceback宿主绝对路径映射为仓库相对源码路径；保留断言、退出/错误事实与测试计数"
+      },
+      {
+        "path": "GREEN-executor.log",
+        "bytes": 146,
+        "sha256": "191eb83e64006d567358ebcf95ea3add320dc69093a31d275a72d6a51ad82656",
+        "originalLogSHA256": "191eb83e64006d567358ebcf95ea3add320dc69093a31d275a72d6a51ad82656",
+        "sanitization": "仅将traceback宿主绝对路径映射为仓库相对源码路径；保留断言、退出/错误事实与测试计数"
+      },
+      {
+        "path": "MUTANT-skip-window-parser.log",
+        "bytes": 2195,
+        "sha256": "844447a5d6869d478e6a25c8b1ecaceb4fa190ffd89bf5cc0ba673b5a33b0b76",
+        "originalLogSHA256": "64060455f259dd094a70b5b9fcdb41ab9ac3989d21d0361dff85530634821b21",
+        "sanitization": "仅将traceback宿主绝对路径映射为仓库相对源码路径；保留断言、退出/错误事实与测试计数"
+      },
+      {
+        "path": "MUTANT-admit-unknown-no-pid.log",
+        "bytes": 10515,
+        "sha256": "cb0bd66bc331f27414dcf9c39cf077371e9321555e4b44e3e7c80e18e03a79d7",
+        "originalLogSHA256": "19008641ceba8a5ff40c5fd4b01dfd491de3604ff40c28a3d299f48aca55f30a",
+        "sanitization": "仅将traceback宿主绝对路径映射为仓库相对源码路径；保留断言、退出/错误事实与测试计数"
+      }
+    ]
+  },
+  "oldRound15": {
+    "status": "failed",
+    "signatureFailure": "official-sign-failed",
+    "officialTTYCaptured": false,
+    "passwordMistakeReportedByUser": true,
+    "cleanupFailure": "command-timeout",
+    "installed": false,
+    "signatureVerified": false,
+    "originalFailurePreserved": true,
+    "journalBytes": 531,
+    "journalSHA256": "ed666f5db324efa0b831c9fcfbf960ab2a6da224ddaf1fa26ea7bb699c811212",
+    "smokeBytes": 967,
+    "smokeSHA256": "898e1d6f161ee51c6cdf87d80c73ff4e954889b2c16645fe7032e8ed23fa8fe5",
+    "usedNonceCount": 11
+  },
+  "reconciliation": {
+    "exactPreinstallFailureOnly": true,
+    "oldFailureAndCleanupFailureRetained": true,
+    "noPidInvented": true,
+    "deviceMutation": false,
+    "archiveMatchesOriginal": true,
+    "ledgerUnchangedBeforeNextExecution": true
+  },
+  "cloudInput": {
+    "runId": 40570621495,
+    "attempt": 2,
+    "artifactId": 12767420498,
+    "headSHA": "b16d490a92e7a05c28d98385f2f4a8324cb68269",
+    "eventMergeSHA": "d688e99ca1a6c5ed9cf0da28d3d7e88d9e10b3fa",
+    "zipSHA256": "9e54277ae0675db88518041bb4364b345da028028ca77b9ba7f5f463247883e1",
+    "unsignedHAP_SHA256": "82cefdf9e10fd7d5ac8cc31ae9e6f5db2db2c7e202cb9d85d90d90a7f73ab59a"
+  },
+  "round16": {
+    "status": "passed",
+    "signatureVerified": true,
+    "payloadEqual": true,
+    "membersCompared": 19,
+    "derivedPagesVerified": true,
+    "signedHAP_SHA256": "4e19e8da18d4624c3d78ee46437b736e271ef4869243d1da80a66d8f3ea478af",
+    "installedPayloadVerified": true,
+    "runtimeMappedLibraryHashVerified": false,
+    "scenarioDurationMs": 35364,
+    "eventCount": 20,
+    "appKeepScreenReleased": true,
+    "preUninstallWindowSamples": [
+      {
+        "reportedTotal": 44,
+        "observedRows": 43,
+        "sha256": "00172a6dcdf33995f6dbaf3cb77364650d41d5698b7b125fa092faade7128ce6",
+        "acceptedAsComplete": false
+      },
+      {
+        "reportedTotal": 44,
+        "observedRows": 43,
+        "sha256": "00172a6dcdf33995f6dbaf3cb77364650d41d5698b7b125fa092faade7128ce6",
+        "acceptedAsComplete": false
+      },
+      {
+        "reportedTotal": 44,
+        "observedRows": 43,
+        "sha256": "00172a6dcdf33995f6dbaf3cb77364650d41d5698b7b125fa092faade7128ce6",
+        "acceptedAsComplete": false
+      }
+    ],
+    "postUninstallWindow": {
+      "reportedTotal": 43,
+      "observedRows": 43,
+      "strictParsePassed": true,
+      "targetAbsent": true,
+      "sha256": "33a7261c69a983a5627795ee8c160f3db91f956c91ef845a163061c0a758c4b8"
+    },
+    "postUninstallQueries": [
+      "connection",
+      "device-id",
+      "packages",
+      "pid",
+      "ability",
+      "window"
+    ],
+    "historyCount": 29,
+    "historyLimit": 32,
+    "actualSameClassCountMismatchCovered": true,
+    "exactOld42vs41Reproduced": false,
+    "osOmittedObjectProven": false,
+    "cleanupConfirmed": true,
+    "uninstalled": true,
+    "journalStatus": "complete",
+    "ledgerCount": 12,
+    "smokeSHA256": "b502ad301c0b8e51f1b726f9e125e6994aca0fc490891d9f4a4531383e2a0951"
+  },
+  "independentReview": {
+    "resultPassed": true,
+    "hostCleanupPassed": true,
+    "temporaryRootAbsent": true,
+    "launcherAbsent": true,
+    "sessionCount": 0,
+    "stateEvidenceHashesPreserved": true
+  },
+  "cleanup": {
+    "temporaryFilesRemoved": 15,
+    "temporaryBytesRemoved": 22821478,
+    "onlyApprovedTemporaryCopies": true,
+    "originalMaterialsRetained": true,
+    "allOldFailuresAndNoncesRetained": true
+  },
+  "boundaries": {
+    "tvUnchanged": true,
+    "candidateNotReplaced": true,
+    "systemSettingsChanged": false,
+    "presenceSleepRemainedEnabled": true,
+    "longPlayRepeated": false,
+    "newCI": false,
+    "manualDeviceWorkflowEnabled": false,
+    "formalArtifactAllowed": false
+  },
+  "pending": [
+    "物理HDR及未确认主观声画",
+    "其他历史未覆盖真机项目",
+    "手动触发iMac工作流尚未实现/配置",
+    "本轮精确提交推送及对应新CI另批"
+  ]
+}

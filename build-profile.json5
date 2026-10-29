@@ -102,6 +102,10 @@
             "default",
             "ci"
           ]
+        },
+        {
+          "name": "deveco26",
+          "applyToProducts": ["default"]
         }
       ]
     },

@@ -1,0 +1,59 @@
+..F.F..F........E..EF...
+======================================================================
+ERROR: test_sdk_compile_command_drift (__main__.Contracts.test_sdk_compile_command_drift)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 115, in test_sdk_compile_command_drift
+    cc.write_text(json.dumps([{'file':str(source),'command':command,'directory':str(self.root)}]));self.assertTrue(m.compiled_sources(self.root,cc,native))
+                                                                                                                   ^^^^^^^^^^^^^^^^^^
+AttributeError: module 'ci-target' has no attribute 'compiled_sources'
+
+======================================================================
+ERROR: test_snapshot_detects_post_build_drift (__main__.Contracts.test_snapshot_detects_post_build_drift)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 111, in test_snapshot_detects_post_build_drift
+    m=module('ci-context');self.repo();before=m.snapshot(self.root);(self.root/'a').write_text('changed')
+                                              ^^^^^^^^^^
+AttributeError: module 'ci-context' has no attribute 'snapshot'
+
+======================================================================
+FAIL: test_full_runner_failures (__main__.Contracts.test_full_runner_failures)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 130, in test_full_runner_failures
+    self.assertFalse(r['passed'],mode);self.assertTrue((out/'work/target-result.json').is_file());self.assertIn('fake-cli-run',(out/'work/clean.log').read_text())
+                                                                                                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'fake-cli-run' not found in ''
+
+======================================================================
+FAIL: test_full_runner_stale_compile_or_bridge_rejected (__main__.Contracts.test_full_runner_stale_compile_or_bridge_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 138, in test_full_runner_stale_compile_or_bridge_rejected
+    self.assertFalse(r['passed']);self.assertIn('clean后',r['error']);self.assertNotIn('har-build',[c['name'] for c in r['commands']]);p.unlink()
+                                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'clean后' not found in '构建未产生唯一HAR'
+
+======================================================================
+FAIL: test_host_evidence_requires_suite_and_context (__main__.Contracts.test_host_evidence_requires_suite_and_context)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 144, in test_host_evidence_requires_suite_and_context
+    m=module('ci-evidence');out=self.root/'evidence';r=m.finish(out,{s:{'outcome':'success'} for s in ['context','dependencies','contracts','host']},'host');self.assertFalse(r['stepsPassed'])
+                                                                                                                                                             ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_tracked_dirty_rejected (__main__.Contracts.test_tracked_dirty_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 109, in test_tracked_dirty_rejected
+    with self.assertRaises(ValueError):m.verify(self.root,env,event)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 24 tests in 5.496s
+
+FAILED (failures=4, errors=2)

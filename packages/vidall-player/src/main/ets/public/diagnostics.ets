@@ -78,6 +78,7 @@ export interface PlayerDiagnosticsFields {
   surfaceHeight: DiagnosticField<number>;
 }
 export interface PlayerDiagnosticsSnapshot {
+  freshness?: 'live' | 'cached-terminal';
   schemaVersion: number;
   sampledAtMs: number;
   collectionDurationMs: number;

@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "run": 40110834301,
+  "head": "610dd1f6e83fa844a7096de20ce591b72e48e9da",
+  "artifact": 12566429056,
+  "zipSHA256": "01bf591e8dec7cc14c80e0a13c70c8d55e19c5feaba21d7333356455c751e179",
+  "indexedFiles": 33,
+  "actualHostedImage": "macos-26-arm64",
+  "allStepsSuccess": true,
+  "archiveAndToolchainMatched": true,
+  "fixedLibrariesMatched": 8,
+  "api": {
+    "compileSdkVersion": "26.0.0.105",
+    "minAPIVersion": 50003015,
+    "targetAPIVersion": 60002022
+  },
+  "cleanup": {
+    "passed": true,
+    "stoppedOwnedPids": [
+      12686
+    ],
+    "mountAbsent": true,
+    "hvigorHomeIsolated": true,
+    "userHOMEChanged": false,
+    "formalArtifactAllowed": false
+  },
+  "temporarySecretAbsent": true,
+  "harSHA256": "ea898f2f735e88ba49fdda5e7e4a4231db4d292d9117c8d0c9590bb6b7e6b8d6",
+  "bridgeSHA256": "175a239fd049d265f6cae07d69813c3001113e7de4dc7338924581606d1a7d7a",
+  "crossHostByteReproducibility": "not established; new bridge and HAR differ from local",
+  "formalArtifactAllowed": false,
+  "pending": [
+    "persistent download source",
+    "consumer integration and device compatibility",
+    "original PR82 required gate remains unchanged"
+  ]
+}

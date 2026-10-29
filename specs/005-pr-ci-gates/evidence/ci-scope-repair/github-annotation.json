@@ -1,0 +1,9 @@
+{
+  "runId": 39995258720,
+  "url": "https://github.com/yaoshining/VidAll_Player/actions/runs/39995258720",
+  "headSHA": "2e73691345642723b88c224b67834f264f96d8af",
+  "conclusion": "failure",
+  "jobs": 0,
+  "message": "(Line: 21, Col: 15): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp, (Line: 89, Col: 15): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp",
+  "pageSHA256": "3bcd79f7b3379d5fbfe505274678ad2d9817e3999dbe83eb36696c3f820ac351"
+}

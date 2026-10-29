@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "version": "1.7.12",
+  "platform": "darwin_arm64",
+  "commands": [
+    {
+      "name": "schema-version",
+      "exit": 0,
+      "seconds": 1.169,
+      "passed": true
+    },
+    {
+      "name": "schema-all",
+      "exit": 0,
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "schema-job-env-runner",
+      "exit": 1,
+      "seconds": 0.006,
+      "passed": false,
+      "expectedExit": 1,
+      "acceptedAsNegative": true
+    },
+    {
+      "name": "schema-job-if-steps",
+      "exit": 1,
+      "seconds": 0.006,
+      "passed": false,
+      "expectedExit": 1,
+      "acceptedAsNegative": true
+    }
+  ],
+  "formalArtifactAllowed": false,
+  "archiveSHA256": "aba9ced2dee8d27fecca3dc7feb1a7f9a52caefa1eb46f3271ea66b6e0e6953f",
+  "binarySHA256": "8db11704dc296f096216db4db65d86cd7f0ebfdf4c38453a1da276b137b88388",
+  "workflows": {
+    ".github/workflows/build-libmpv.yml": "7a6e121a449cd32a8536d8277c41835496ffd556347df735b52345551cccda99",
+    ".github/workflows/deveco26-evaluation.yml": "5947281e13a05a8e99759e6389c2bca2a0e8243863afe6f8d1abe4d9f17a63f2",
+    ".github/workflows/deveco26-pr82-gates.yml": "b76e32f8f9b42cafff5e4c22cf7ce4f4490f8e621be87289dcaffcb5d3a1f750",
+    ".github/workflows/normal-core.yml": "0463e8889c3578da35fc5c51d518fba321aa5263dc6007dd5c93bde6b619cacb",
+    ".github/workflows/test-player.yml": "d8d62ab57af9dcd04ce266634334caa5683f3e3d384373c4300293ff9ac07f84"
+  },
+  "configSHA256": "8feb754bde7f8c605dc660239fc8cdbb07dea0fc0dab174b5cfb6a33ec81ad83",
+  "scopeMutations": [
+    {
+      "name": "job-env-runner",
+      "rejectedForExpectedContext": true
+    },
+    {
+      "name": "job-if-steps",
+      "rejectedForExpectedContext": true
+    }
+  ]
+}

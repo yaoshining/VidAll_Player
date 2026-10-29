@@ -1,0 +1,384 @@
+{
+  "passed": true,
+  "memberPayloadsEqual": true,
+  "archiveBytesEqual": true,
+  "leftSHA256": "e8fa9afb6c0594d44ac380eb41fe7dff48ea3bc4ba82f279c0ae2e78a4127af4",
+  "rightSHA256": "e8fa9afb6c0594d44ac380eb41fe7dff48ea3bc4ba82f279c0ae2e78a4127af4",
+  "leftMembers": 53,
+  "rightMembers": 53,
+  "changedMembers": [],
+  "members": [
+    {
+      "path": "package/CHANGELOG.md",
+      "type": "file",
+      "mode": 420,
+      "size": 1940,
+      "sha256": "2fe9160f0a7b6f9f57ec9eaa082b9621e71674e4bcf3f683ef9385b4debe373e"
+    },
+    {
+      "path": "package/Index.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 783,
+      "sha256": "42299c6f2a12ef713e75e7ef2224c904357b1864164b5d9e6730b8a1adcfcbc6"
+    },
+    {
+      "path": "package/LICENSE",
+      "type": "file",
+      "mode": 420,
+      "size": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "path": "package/README-CN.md",
+      "type": "file",
+      "mode": 420,
+      "size": 3582,
+      "sha256": "2d3528cd43ecd6dd2320887beebc00b60f19a53d17c709328cbf7253ec4ce239"
+    },
+    {
+      "path": "package/README.md",
+      "type": "file",
+      "mode": 420,
+      "size": 3129,
+      "sha256": "7aa1d2489e3db9223cc0347c5c11349430a1883c85997d5fe657ce4804394aab"
+    },
+    {
+      "path": "package/ResourceTable.txt",
+      "type": "file",
+      "mode": 420,
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "package/ets",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/ets/modules.abc",
+      "type": "file",
+      "mode": 420,
+      "size": 134676,
+      "sha256": "7d038dd81ff5110cf66a3e86e041501fbcf7ec8da46c1ff70108af04664dbc69"
+    },
+    {
+      "path": "package/ets/sourceMaps.map",
+      "type": "file",
+      "mode": 420,
+      "size": 102824,
+      "sha256": "b03949ac4db5aa991cd5ad5bcb868931261802330da72e35e8fefb22aab2915c"
+    },
+    {
+      "path": "package/libs",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/libs/arm64-v8a",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/libs/arm64-v8a/libavcodec.so.62",
+      "type": "file",
+      "mode": 420,
+      "size": 12306216,
+      "sha256": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a"
+    },
+    {
+      "path": "package/libs/arm64-v8a/libavfilter.so.11",
+      "type": "file",
+      "mode": 420,
+      "size": 3943016,
+      "sha256": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a"
+    },
+    {
+      "path": "package/libs/arm64-v8a/libavformat.so.62",
+      "type": "file",
+      "mode": 420,
+      "size": 19264368,
+      "sha256": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839"
+    },
+    {
+      "path": "package/libs/arm64-v8a/libavutil.so.60",
+      "type": "file",
+      "mode": 420,
+      "size": 683384,
+      "sha256": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43"
+    },
+    {
+      "path": "package/libs/arm64-v8a/libc++_shared.so",
+      "type": "file",
+      "mode": 484,
+      "size": 1262504,
+      "sha256": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042"
+    },
+    {
+      "path": "package/libs/arm64-v8a/libmpv.so",
+      "type": "file",
+      "mode": 420,
+      "size": 15715544,
+      "sha256": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31"
+    },
+    {
+      "path": "package/libs/arm64-v8a/libswresample.so.6",
+      "type": "file",
+      "mode": 420,
+      "size": 91736,
+      "sha256": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810"
+    },
+    {
+      "path": "package/libs/arm64-v8a/libswscale.so.9",
+      "type": "file",
+      "mode": 420,
+      "size": 738688,
+      "sha256": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec"
+    },
+    {
+      "path": "package/libs/arm64-v8a/libvidall_player_native.so",
+      "type": "file",
+      "mode": 493,
+      "size": 479448,
+      "sha256": "266c7c44300a536a59d2e40d74b84650123a0c1f61601add06678a26e905c331"
+    },
+    {
+      "path": "package/libs/x86_64",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/libs/x86_64/libc++_shared.so",
+      "type": "file",
+      "mode": 484,
+      "size": 1294904,
+      "sha256": "c65b4e92e52bdbf170d0c11a02c2e3b280fd140c4b8a764e40d8d4875e5ce944"
+    },
+    {
+      "path": "package/libs/x86_64/libvidall_player_native.so",
+      "type": "file",
+      "mode": 493,
+      "size": 108896,
+      "sha256": "b7654631f77a0e6e605ea896b9fc2f75773f9384361afed09cfea564c6228029"
+    },
+    {
+      "path": "package/oh-package.json5",
+      "type": "file",
+      "mode": 420,
+      "size": 988,
+      "sha256": "02302799838a63e050f2a0b7d7c21eed1389bcb2ccd3941ff0e9683986e68e85"
+    },
+    {
+      "path": "package/src",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main/ets",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main/ets/internal",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main/ets/internal/capabilities.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 565,
+      "sha256": "5be88e5f50b37742cd5759879a7f7323362734bc13fb38ca7ea5fca1e9bee216"
+    },
+    {
+      "path": "package/src/main/ets/internal/commandQueue.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 164,
+      "sha256": "061faf156b07f1f6834a52c835c02d6029704fde9e9093ffd84bfbf9270c0535"
+    },
+    {
+      "path": "package/src/main/ets/internal/inputValidator.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 745,
+      "sha256": "e535ba75486b73deff5ef579c877831b8a168312f2998349404fc517068150d6"
+    },
+    {
+      "path": "package/src/main/ets/internal/networkRecovery.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 412,
+      "sha256": "a533ffbad2b2797d63e64970399f74cc24724e46ef2997378cbc1c5f6b14fadd"
+    },
+    {
+      "path": "package/src/main/ets/internal/playerFailure.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 276,
+      "sha256": "8c27effebc90bd26aaf990420dfa300e3f77a9ea4f8132c0dbf95c03327938f2"
+    },
+    {
+      "path": "package/src/main/ets/internal/playerSession.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 3179,
+      "sha256": "5d5c732f3b98cecf9fc15bd1f8bd6bdd4798ec494f3c7e5db4348c663e4f3ed8"
+    },
+    {
+      "path": "package/src/main/ets/internal/proxyLeaseRegistry.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 929,
+      "sha256": "f060156ba4a6d6caf880a07e3ff30ade5f646e85b81ee2fa3cdd83b12d82ccac"
+    },
+    {
+      "path": "package/src/main/ets/internal/redaction.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 314,
+      "sha256": "de11ca3bcdce202d93c70a8af3ffcacfbae6196bce04916281a9c58e0a25cd21"
+    },
+    {
+      "path": "package/src/main/ets/internal/stateMachine.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 1022,
+      "sha256": "f5aef38fefeb15abef4f8493ac3a7709c4f22d07c6de2218700beec5a7f0262a"
+    },
+    {
+      "path": "package/src/main/ets/native",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main/ets/native/harNativePackagingProbe.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 171,
+      "sha256": "1faf582c7ad2735fe77c1e7f91669176019115674893b5f4c9a92c9b9323c3dc"
+    },
+    {
+      "path": "package/src/main/ets/native/nativeBridge.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 2300,
+      "sha256": "a76f5bc24c01afb14ff001beacd0ec11214ebf0220fa7f45788a539b00eb549a"
+    },
+    {
+      "path": "package/src/main/ets/public",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main/ets/public/diagnostics.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 3884,
+      "sha256": "d803cb0e584459ca86d73a0127573ec47af0aee9a26ccbdccfe36febabcf7424"
+    },
+    {
+      "path": "package/src/main/ets/public/player.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 220,
+      "sha256": "0692bd93e76596cdac3be8878138d03bb1903d4b2f829c91e0758a748cae00da"
+    },
+    {
+      "path": "package/src/main/ets/public/playerContract.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 1390,
+      "sha256": "1d15942a072b307f83ab912087638d924542690a2b801946ddb4446f7e23db86"
+    },
+    {
+      "path": "package/src/main/ets/public/runtime.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 921,
+      "sha256": "3592be86325c010c5ed4a4eba7cbad8747a57ef2d94527e659e56e465b20dfd4"
+    },
+    {
+      "path": "package/src/main/ets/public/types.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 4098,
+      "sha256": "96eeb622a96dc9b08a7a73b0f0b6c0dc51152f9d7409f59b5df5628bce640930"
+    },
+    {
+      "path": "package/src/main/ets/xcomponent",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main/ets/xcomponent/surfaceAdapter.d.ets",
+      "type": "file",
+      "mode": 420,
+      "size": 1232,
+      "sha256": "f134e9cf9c43b6a5045ffba5c8486ba55f808f23657379622d616ab3d9ee9e00"
+    },
+    {
+      "path": "package/src/main/module.json",
+      "type": "file",
+      "mode": 420,
+      "size": 677,
+      "sha256": "52447962a584dc267afddfe79dcbaa85027e3b3445fd26f39af74ace7a8d1b19"
+    },
+    {
+      "path": "package/src/main/resources",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main/resources/rawfile",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main/resources/rawfile/vidall-runtime",
+      "type": "directory",
+      "mode": 493,
+      "size": 0,
+      "sha256": null
+    },
+    {
+      "path": "package/src/main/resources/rawfile/vidall-runtime/smb.conf",
+      "type": "file",
+      "mode": 420,
+      "size": 39,
+      "sha256": "e1b3daca2b984bb7ee03a1191206505b66f5d8bc7e25dd0bb474b25b581dd1d7"
+    }
+  ],
+  "formalArtifactAllowed": false
+}

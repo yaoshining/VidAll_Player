@@ -1,0 +1,32 @@
+..FFF..
+======================================================================
+FAIL: test_no_pid_residue_identity_and_unknown_queries_refused (__main__.PreinstallSignFailureTests.test_no_pid_residue_identity_and_unknown_queries_refused) (key='window')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 233, in test_no_pid_residue_identity_and_unknown_queries_refused
+    with self.assertRaises(ContractError):R.safe_proof(self.snapshot(),999,1000)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_no_pid_still_rejects_incomplete_or_malformed_window (__main__.PreinstallSignFailureTests.test_no_pid_still_rejects_incomplete_or_malformed_window) (raw='WindowManagerService\nWindowName WindowId PID\nTotal window num: 1')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 224, in test_no_pid_still_rejects_incomplete_or_malformed_window
+    with self.assertRaises(ContractError):R.safe_proof(self.snapshot(),999,1000)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+======================================================================
+FAIL: test_no_pid_still_rejects_incomplete_or_malformed_window (__main__.PreinstallSignFailureTests.test_no_pid_still_rejects_incomplete_or_malformed_window) (raw='WindowManagerService\nWindowName WindowId PID\nbad row\nTotal window num: 1')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 224, in test_no_pid_still_rejects_incomplete_or_malformed_window
+    with self.assertRaises(ContractError):R.safe_proof(self.snapshot(),999,1000)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: ContractError not raised
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.014s
+
+FAILED (failures=3)

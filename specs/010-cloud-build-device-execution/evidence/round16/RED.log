@@ -1,0 +1,37 @@
+....EE
+======================================================================
+ERROR: test_preinstall_sign_failure_real_archive_and_cas (__main__.PreinstallSignFailureTests.test_preinstall_sign_failure_real_archive_and_cas)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 198, in test_preinstall_sign_failure_real_archive_and_cas
+    result=R.reconcile(self.state,a,'f'*64,self.device,clock=lambda:1000)
+  File "scripts/test/device-execution/reconciliation.py", line 88, in reconcile
+    proof=safe_proof(device.snapshot(old),started,int(clock()));require(int(clock())<a['expiresAt'],'reconciliation-expired')
+                     ~~~~~~~~~~~~~~~^^^^^
+  File "scripts/test/device-execution/reconciliation.py", line 127, in snapshot
+    old_pid=old['binding'].get('pid');require(type(old_pid) is int and old_pid>0,'reconciliation-old-process')
+                                      ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "scripts/test/device-execution/controller.py", line 32, in require
+    raise ContractError(code)
+controller.ContractError: reconciliation-old-process
+
+======================================================================
+ERROR: test_preinstall_sign_failure_real_snapshot (__main__.PreinstallSignFailureTests.test_preinstall_sign_failure_real_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "scripts/test/device-execution/reconciliation.test.py", line 189, in test_preinstall_sign_failure_real_snapshot
+    proof=self.snapshot();R.safe_proof(proof,999,1000)
+  File "scripts/test/device-execution/reconciliation.test.py", line 136, in snapshot
+    with patch.object(self.device,'guard'):return self.device.snapshot(self.old)
+                                                  ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "scripts/test/device-execution/reconciliation.py", line 127, in snapshot
+    old_pid=old['binding'].get('pid');require(type(old_pid) is int and old_pid>0,'reconciliation-old-process')
+                                      ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "scripts/test/device-execution/controller.py", line 32, in require
+    raise ContractError(code)
+controller.ContractError: reconciliation-old-process
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.012s
+
+FAILED (errors=2)

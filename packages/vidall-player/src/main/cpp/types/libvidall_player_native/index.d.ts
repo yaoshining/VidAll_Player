@@ -1,6 +1,6 @@
 export type NativeResultCode =
   'OK' | 'RELEASED' | 'ALREADY_RELEASED' | 'FEATURE_UNSUPPORTED' |
-  'NATIVE_PLAYBACK_FAILED' | 'SURFACE_UNAVAILABLE' | 'RENDER_BACKEND_UNAVAILABLE' | 'INPUT_INVALID';
+  'PLAYER_TERMINAL' | 'RUNTIME_NOT_READY' | 'RUNTIME_CONFIG_INVALID' | 'RUNTIME_CONFIG_CONFLICT' | 'RUNTIME_RESOURCE_FAILED' | 'RUNTIME_ABI_MISMATCH' | 'RUNTIME_SMB_FAILED' | 'RUNTIME_TERMINAL_REGISTER_FAILED' | 'RUNTIME_TERMINAL_ENABLE_FAILED' | 'RUNTIME_MONITOR_FAILED' | 'NATIVE_WORK_CANCELLED' | 'NATIVE_WORK_QUEUE_FAILED' | 'NATIVE_PLAYBACK_FAILED' | 'SURFACE_UNAVAILABLE' | 'RENDER_BACKEND_UNAVAILABLE' | 'INPUT_INVALID';
 
 export interface NativeSessionResult {
   ok: boolean;
@@ -35,24 +35,27 @@ export interface NativeFrameData {
 }
 
 export interface NativeSessionModule {
-  createSession(fontsDir?: string, hwdec?: string, toneMapping?: string, hdrComputePeak?: string): NativeSessionResult;
-  releaseSession(handle: number): NativeSessionResult;
-  attachSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
-  resizeSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): NativeSessionResult;
-  detachSurface(handle: number, generation: number): NativeSessionResult;
-  load(handle: number, uri: string, headerFields: string, smbUsername: string, smbPassword: string): NativeSessionResult;
-  play(handle: number): NativeSessionResult;
-  pause(handle: number): NativeSessionResult;
-  stop(handle: number): NativeSessionResult;
-  seekRelative(handle: number, seconds: number): NativeSessionResult;
-  seekPercent(handle: number, percent: number): NativeSessionResult;
-  setRate(handle: number, rate: number): NativeSessionResult;
-  setPropertyString(handle: number, property: string, value: string): NativeSessionResult;
-  setAudioFilter(handle: number, filter: string): NativeSessionResult;
-  setVolume(handle: number, volume: number): NativeSessionResult;
-  selectTrack(handle: number, kind: string, trackId: number): NativeSessionResult;
-  addExternalAudio(handle: number, uri: string): NativeSessionResult;
-  addExternalSubtitle(handle: number, uri: string): NativeSessionResult;
+  configureRuntime(filesDir: string, config: string, deadlineMs: number): Promise<NativeSessionResult>;
+  getRuntimeStatus(): string;
+  rejectRuntimeResources(): NativeSessionResult;
+  createSession(fontsDir?: string, hwdec?: string, toneMapping?: string, hdrComputePeak?: string): Promise<NativeSessionResult>;
+  releaseSession(handle: number): Promise<NativeSessionResult>;
+  attachSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): Promise<NativeSessionResult>;
+  resizeSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): Promise<NativeSessionResult>;
+  detachSurface(handle: number, generation: number): Promise<NativeSessionResult>;
+  load(handle: number, uri: string, headerFields: string, smbUsername: string, smbPassword: string): Promise<NativeSessionResult>;
+  play(handle: number): Promise<NativeSessionResult>;
+  pause(handle: number): Promise<NativeSessionResult>;
+  stop(handle: number): Promise<NativeSessionResult>;
+  seekRelative(handle: number, seconds: number): Promise<NativeSessionResult>;
+  seekPercent(handle: number, percent: number): Promise<NativeSessionResult>;
+  setRate(handle: number, rate: number): Promise<NativeSessionResult>;
+  setPropertyString(handle: number, property: string, value: string): Promise<NativeSessionResult>;
+  setAudioFilter(handle: number, filter: string): Promise<NativeSessionResult>;
+  setVolume(handle: number, volume: number): Promise<NativeSessionResult>;
+  selectTrack(handle: number, kind: string, trackId: number): Promise<NativeSessionResult>;
+  addExternalAudio(handle: number, uri: string): Promise<NativeSessionResult>;
+  addExternalSubtitle(handle: number, uri: string): Promise<NativeSessionResult>;
   setEventCallback(handle: number, callback: (event: NativePlayerEvent) => void): NativeSessionResult;
   getDiagnostics(handle: number): Promise<string>;
   getFrameData(handle: number): NativeFrameData | null;

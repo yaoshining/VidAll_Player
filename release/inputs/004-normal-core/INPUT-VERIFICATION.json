@@ -1,0 +1,33 @@
+{
+  "formalArtifactAllowed": false,
+  "inputManifestSHA256": "97d5030fe0ac0420bcf489508db6ead92defa7e71d4c85922ce9f5c81c762d2f",
+  "red": {
+    "case": "BindingTests.test_actual_current_inputs",
+    "result": "语义失败：清单缺失",
+    "logSHA256": "be80ef5138590b0091f2859a0149471cfda46d64cff362206126c23f08b64441"
+  },
+  "green": {
+    "cases": 15,
+    "passed": 15,
+    "logSHA256": "36094095f5934bd01a601ba387becff06dff638fb600f3e360fda0aa133cf4c5"
+  },
+  "externalSources": {
+    "count": 10776,
+    "passed": true,
+    "resultSHA256": "76aa3b58148d89cc797ae408eba304f008308b708476e2db124fcf4e5d1c7a2e"
+  },
+  "limits": [
+    "初次全组运行其余变异测试因清单不存在发生6个FileNotFoundError，不计为语义RED；原日志保留",
+    "首轮GREEN暴露版本化ELF符号规范化问题；保留失败记录，现按@版本分离比较基础ABI名",
+    "本目录不包含producer全部源码和工具链；source-lock精确引用用于重建来源验证",
+    "产品/目标构建/实际HAR消费/真机仍由主实施流程验收"
+  ],
+  "resourceReview": {
+    "redCase": "无关README资源不能替代必需smb.conf",
+    "redLogSHA256": "0d736fa7a4225a37b935e5573b4cf77a34daef5cd8f7b464211a5e243b3a7e3b",
+    "greenCases": 16,
+    "greenLogSHA256": "ce418c7b523fa19ee41429b59abb35da5d0ca2da7bcaaa3e66d3cd03a7bf2e9a",
+    "externalVerificationSHA256": "76aa3b58148d89cc797ae408eba304f008308b708476e2db124fcf4e5d1c7a2e",
+    "caseTables": "当前avformat两张完整内嵌表均精确匹配源码字节，不添加多余.dat"
+  }
+}

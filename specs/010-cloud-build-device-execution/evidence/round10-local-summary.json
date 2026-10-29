@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "scope": "Round9失败保留与Round10本地最小修复",
+  "formalArtifactAllowed": false,
+  "deviceVerified": false,
+  "round9": {
+    "signatureVerified": true,
+    "installedPayloadVerified": true,
+    "scenarioPassed": false,
+    "failure": "DIAGNOSTICS_STALE",
+    "failureElapsedMs": 440,
+    "windowGate": "window-evidence-invalid",
+    "windowRootCauseKnown": false,
+    "postRunAbsenceVerified": true,
+    "sealedEvidence": {
+      "RESULT.md": {
+        "bytes": 2299,
+        "sha256": "1a80f0d057fa4c197db89440ec81965f479d0f14d06ede8cbe3c1890011a4ed1"
+      },
+      "RESULT.json": {
+        "bytes": 5606,
+        "sha256": "f2a174ab7503033ddbf5ea95458fe19ca826d5d1386169f90bf89417dfebc552"
+      },
+      "POST-RUN-READBACK.json": {
+        "bytes": 13407,
+        "sha256": "c4209a6088026f767ef1b72911078da4d09c64f55988c887ee8142a75488aca4"
+      },
+      "ROOT-SMOKE-READBACK.json": {
+        "bytes": 13392,
+        "sha256": "7b1b2fd9bc5ae9b7668a77136bc21ea9c4693a5f4c56ca877ef212c9f57bbf81"
+      },
+      "APPROVED-HOST-CLEANUP-RESULT.json": {
+        "bytes": 907,
+        "sha256": "c31cd0b80a0ca30d0c4b5ed38e41a60b0df6c95456c683126d2390873f045072"
+      },
+      "A-ORIGINAL-JOURNAL.json": {
+        "bytes": 811,
+        "sha256": "39adc1fc0409bd99aa0f4177faa6eaf2fc1c5b2c0fb2bc3fcdfa902ab6739119"
+      }
+    }
+  },
+  "changes": [
+    "独立fixture仅精确STALE有界重采样",
+    "terminal/released/cycle/取消优先拒绝",
+    "窗口原解析不变，固定原因与有界结构先于卸载持久化",
+    "独立cleanup-only工具累计纳入源码及既有host测试"
+  ],
+  "tests": {
+    "session": 25,
+    "platform": 11,
+    "imac": 60,
+    "executor": 45,
+    "controller": 28,
+    "reconciliation": 28,
+    "workflowMutations": 21
+  },
+  "red": {
+    "session": "6个新增语义失败；其余新增3项与旧15项通过",
+    "platform": "7个新增生命周期失败；旧3项通过",
+    "window": "新接口/固定码缺失；共享session RED使原trace用例连带失败",
+    "reviewEdges": "非字符串code/format、超长总数、晚到成功各真实失败",
+    "arkts": "2处throw任意类型被目标编译拒绝；Error类型断言后通过"
+  },
+  "localArkTS": {
+    "passed": true,
+    "signed": false,
+    "sameSourceCloudArtifact": false,
+    "inputHAR_SHA256": "ef9e196bde879a9117bc928e49497fd322b7673ded736b444c96ea6b9e6a3a24",
+    "artifact": {
+      "passed": true,
+      "hapSHA256": "7f5188a6863896b7f262843a0400fe1e3d100e60c6e3d1b374e9358afd95d57e",
+      "libraries": {
+        "libavfilter.so.11": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
+        "libavformat.so.62": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+        "libswscale.so.9": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
+        "libavcodec.so.62": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
+        "libmpv.so": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libvidall_player_native.so": "48988042ef07f1672b0aaeb49b4d444795722428be77abda0a1f1317507ef9ac",
+        "libswresample.so.6": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
+        "libavutil.so.60": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43"
+      },
+      "api": {
+        "compileSdkVersion": "26.0.0.105",
+        "minAPIVersion": 50003015,
+        "targetAPIVersion": 60002022
+      },
+      "signed": false,
+      "deviceVerified": false
+    }
+  },
+  "pending": [
+    "新精确提交推送及新CI",
+    "新源码云端unsigned制品",
+    "旧cleanup-unknown新鲜对账及新的精确执行批准",
+    "真机STALE恢复效果和窗口具体失配原因",
+    "物理HDR/主观声画"
+  ]
+}

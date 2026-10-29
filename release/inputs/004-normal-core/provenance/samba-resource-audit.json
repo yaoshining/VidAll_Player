@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "formalArtifactAllowed": false,
+  "librarySHA256": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+  "archive": {
+    "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase20/local-v3/origin-a/dependencies/sysroot/lib/libsmbclient.a",
+    "logical": "out/phase20/local-v3/origin-a/dependencies/sysroot/lib/libsmbclient.a",
+    "size": 46081524,
+    "sha256": "30d07a2cc1026c218e63d653b5e1d885399f8b1d7fc430c17c96f5edce8d346a"
+  },
+  "tables": [
+    {
+      "name": "upcase_table",
+      "entries": 65536,
+      "bytes": 131072,
+      "sha256": "19442bdd7623101de9e217a943b103283406ff96d332f6e7ca4e1fe06e111a53",
+      "exactBytesInCurrentAvformatAtOffset": 4127160
+    },
+    {
+      "name": "lowcase_table",
+      "entries": 65536,
+      "bytes": 131072,
+      "sha256": "677e114a5ae036d630fdc52e87a4b3a923c940cce9b7da52a5ccb4e1d17af316",
+      "exactBytesInCurrentAvformatAtOffset": 4258232
+    }
+  ],
+  "sources": [
+    {
+      "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase20/local-v3/origin-a/dependencies/work/samba/lib/util/charset/codepoints.c",
+      "sha256": "2c3934eab972dc4c3d6f242078f1f5032335d44c7ba9cab771c16574b71a70c0",
+      "lines": [
+        40,
+        8235,
+        16443,
+        16459
+      ],
+      "role": "两张完整字符转换表内嵌，转换函数直接索引"
+    },
+    {
+      "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase20/local-v3/origin-a/dependencies/work/samba/source3/smbd/mangle_hash.c",
+      "sha256": "8f00997b823b25d19e0391cfc6dacc7f79870e92b6c503efc2704ebf20e5fe24",
+      "lines": [
+        75,
+        422,
+        438
+      ],
+      "role": "服务端8.3文件名合法表内嵌；valid.dat仅历史再生成注释"
+    },
+    {
+      "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase20/local-v3/origin-a/dependencies/work/samba/dynconfig/smb_runtime.c",
+      "sha256": "3cd90b505226b0a4e753eeeabdb0e215004891556c099bc25e78e17147a669e8",
+      "lines": [
+        19,
+        21,
+        87,
+        97,
+        110
+      ],
+      "role": "runtime只检查配置文件、根目录及state三子目录，不检查外部字符表"
+    },
+    {
+      "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase20/local-v3/origin-a/dependencies/work/samba/source3/libsmb/namequery.c",
+      "sha256": "e77ce4abb0fe98f5de779a75bec93b6bde89685bb79f321bb49154156cc34daa",
+      "lines": [
+        980
+      ],
+      "role": "LMHOSTSFILE是可选名字解析资源"
+    },
+    {
+      "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase30-consumer-handoff/target-input-locks/ffmpeg-input/dependency-pins.json",
+      "sha256": "e69061500e84d8100bd7fd7f5d2d5b7ac097f29a25529710d9f674eb28e56cf2",
+      "lines": [],
+      "role": "当前FFmpeg依赖archive精确锁"
+    }
+  ],
+  "requiredExternalFiles": [
+    {
+      "input": "resources/smb.conf",
+      "runtimeRole": "config_file",
+      "sha256": "e1b3daca2b984bb7ee03a1191206505b66f5d8bc7e25dd0bb474b25b581dd1d7"
+    }
+  ],
+  "requiredDirectories": [
+    "state_root",
+    "state_root/private",
+    "state_root/state",
+    "state_root/lock",
+    "cache_root",
+    "resource_root"
+  ],
+  "optionalResourceMappings": {
+    "resource_root/codepages": "当前case转换直接内嵌表，不是必需dat目录",
+    "resource_root/etc/lmhosts": "可选静态名字解析；本轮IP直连NAS未使用",
+    "resource_root/modules": "扩展模块目录；不保证本轮支持未随包静态绑定的额外认证/协议插件"
+  },
+  "notRequired": [
+    "upcase.dat",
+    "lowcase.dat",
+    "valid.dat"
+  ],
+  "limits": [
+    "结论基于精确archive依赖锁和当前avformat内的完整表字节匹配，不以曾经空目录播放成功作为来源证明",
+    "只覆盖当前SMB客户端和配置；不代表Samba服务端或任意可选动态模块都无需资源",
+    "独立初始化必须验证实际smb.conf内容和目录权限，不能只检查路径字符串"
+  ]
+}

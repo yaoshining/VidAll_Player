@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "formalArtifactAllowed": false,
+  "persistentSourceVerified": false,
+  "diskBefore": {
+    "free": 103057461248,
+    "total": 343073095680,
+    "reserveBytes": 3221225472
+  },
+  "physicalMemoryBytes": 7516192768,
+  "archive": {
+    "urlWithoutQuery": "https://contentcenter-vali-drcn.dbankcdn.cn/pvt_2/DeveloperAlliance_package_901_9/91/v3/alFdm-GZSLSESSqWDeGw4g/devecostudio-mac-arm-26.0.0.851.zip",
+    "bytes": 4078480294,
+    "sha256": "86289edeb2e8e30eb1adf80cba0fc55f0e57cdd4f6dc4ec9c59985a0bc4b8524",
+    "sha256Provenance": "完整官方HTTPS归档计算值；未取得独立厂商发布摘要",
+    "persistentSourceVerified": false
+  },
+  "stage": "cli-identity",
+  "dmg": {
+    "member": "devecostudio-mac-arm-26.0.0.851/deveco-studio-26.0.0.851-aarch64.dmg",
+    "bytes": 4103833155,
+    "sha256": "13efc1cdeb65d217051831648f7a47b52eb84fe27edf6510e0a9f0200d7bb37c"
+  },
+  "diskAfterExtractFree": 95103123456,
+  "cliLockSHA256": "dc3f28d0ae84b02706aaf6d5c4dd31a20d7e0ec0fafdc71c457e99fe48c56654",
+  "diskReadyFree": 98984230912,
+  "elapsedSeconds": 500.755
+}

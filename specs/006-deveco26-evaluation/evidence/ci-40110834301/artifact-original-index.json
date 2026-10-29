@@ -1,0 +1,170 @@
+{
+  "files": [
+    {
+      "path": "bootstrap-result.json",
+      "bytes": 1092,
+      "sha256": "66c0f6e897b21af7878d5d15a40caa5cd77653c29ef412c64b9c6466d597eaec"
+    },
+    {
+      "path": "bootstrap-tests.log",
+      "bytes": 373,
+      "sha256": "06e7ba33d3527f73d85cc62d381161702570c1273cf19a99369ded8e6637e89a"
+    },
+    {
+      "path": "bridge-dynamic.log",
+      "bytes": 2372,
+      "sha256": "c44a8f2f0d7c5ee0a327566ddf7461b116fa5cb734243a183ab676ab28aa7091"
+    },
+    {
+      "path": "bridge-undefined.log",
+      "bytes": 7517,
+      "sha256": "8429765c466fc98947c2c33db4d373b578edb6520aa8fd4ba0c3ebc0631d1148"
+    },
+    {
+      "path": "clean.log",
+      "bytes": 1757,
+      "sha256": "0d8ba56921dc056a03a0850628716f4ee2eb4c52f0108de6fb1f8087d0690b3d"
+    },
+    {
+      "path": "cleanup-result.json",
+      "bytes": 153,
+      "sha256": "f22901fe68329db7b7850315436b74a0145363b4833fe93083fdd0d25aed5e72"
+    },
+    {
+      "path": "cli-resolution.log",
+      "bytes": 50,
+      "sha256": "6f4ca4a869afbc54ba6fd765cde8b53fe40d6df7b61926227e9c44c47cdca824"
+    },
+    {
+      "path": "cli-version.log",
+      "bytes": 74,
+      "sha256": "fea674a9efdbb1fa76dc25a9ede42bdf6d47b7ce9b151045ead362086684ab21"
+    },
+    {
+      "path": "context.json",
+      "bytes": 527,
+      "sha256": "c7745ffd7f643362afb66f6084ea17360a3f89822de95364ba6a84dfe4c4d68d"
+    },
+    {
+      "path": "contracts.log",
+      "bytes": 140,
+      "sha256": "201a268a58888f87321bfef387a099adfbc27dba21873532f3f21a83e31c739b"
+    },
+    {
+      "path": "evaluation-result.json",
+      "bytes": 22725,
+      "sha256": "b03efaaff9c0de985bfeb0c9c8cd5f7de70f18822abc69971a65f85652885168"
+    },
+    {
+      "path": "evaluation-status.json",
+      "bytes": 78,
+      "sha256": "80e66ee8d5341604326b0c73468f4210ef08b86a2d7333f915b8ed770e841f3c"
+    },
+    {
+      "path": "exports-libavcodec.so.62.log",
+      "bytes": 8268,
+      "sha256": "a971cebc0ab1e7716a0422849afd3330985aa8ea1c226b3134878ef89dae4cfb"
+    },
+    {
+      "path": "exports-libavfilter.so.11.log",
+      "bytes": 3473,
+      "sha256": "1c665fee19d8049d1b99f64b92cb2865c65cd17027b648a9863273b7c730ec16"
+    },
+    {
+      "path": "exports-libavformat.so.62.log",
+      "bytes": 7277,
+      "sha256": "b1159fdda99dc443d186f99cc92af6134b5ded2f3ebecdaf3dd5ebd0af358cb8"
+    },
+    {
+      "path": "exports-libavutil.so.60.log",
+      "bytes": 28069,
+      "sha256": "23933d58b7f811d99853f8fa368abf9dce58f66394ca72ea20c338c34bd90891"
+    },
+    {
+      "path": "exports-libc++_shared.so.log",
+      "bytes": 140242,
+      "sha256": "ce371c458e2aa8e0bef0d1ddad1e3c3ac2ca861ddfb5613fe7e3c9337fe6cb35"
+    },
+    {
+      "path": "exports-libmpv.so.log",
+      "bytes": 957227,
+      "sha256": "232d677b103e3ebf1fa49d19fa18d05662b8523c4f5bbe30b3a64d782d55ed36"
+    },
+    {
+      "path": "exports-libswresample.so.6.log",
+      "bytes": 1018,
+      "sha256": "30c3caf96df20b1386be453f7d21f8e7120a661d090d92bf58be4646eda8514a"
+    },
+    {
+      "path": "exports-libswscale.so.9.log",
+      "bytes": 1706,
+      "sha256": "9a4fd5c968a8b9cfc43ccb045a1f1280ac7877fdd511f05d82db8abcb12dc504"
+    },
+    {
+      "path": "har-build.log",
+      "bytes": 8435,
+      "sha256": "6c942d12113aae371b8efff93a0cee8068306dc5838c9d1d3ead67be6d7f3538"
+    },
+    {
+      "path": "input-audit.log",
+      "bytes": 37,
+      "sha256": "76aa3b58148d89cc797ae408eba304f008308b708476e2db124fcf4e5d1c7a2e"
+    },
+    {
+      "path": "mount.json",
+      "bytes": 29,
+      "sha256": "58b9bc11ef275f2ddfa418733ebffce78f8c0fd5f345c2db1287476d3d5bf593"
+    },
+    {
+      "path": "mount.log",
+      "bytes": 1323,
+      "sha256": "30f7932714b9e482314aa43a57bc1a906c388eeef49bed99f780b5d989aa5051"
+    },
+    {
+      "path": "node-version.log",
+      "bytes": 9,
+      "sha256": "50956a2c27b1a442408131f86103ff1df8a7f4a29502df81d216ba19e2c2f4a6"
+    },
+    {
+      "path": "npm-ci.json",
+      "bytes": 30,
+      "sha256": "1cf8e54a26f3b8bf1ffeee6fc49ce13ef5c28394525f0293d337ce6f4aa93d5f"
+    },
+    {
+      "path": "npm-ci.log",
+      "bytes": 26,
+      "sha256": "9526f09a73638a433857ed33689e41999221475eb1f113b6cef69d8b03e4ed37"
+    },
+    {
+      "path": "runtime-tests.log",
+      "bytes": 104,
+      "sha256": "72e9a921e17eba08525244ec168847a408ebbf4a6b5b5f8f0dead996616318eb"
+    },
+    {
+      "path": "stop-daemon.json",
+      "bytes": 35,
+      "sha256": "017f1e95fc33c0afdf02c04751468f1177c1ed05a1bb516b9831fbc22bc6b0c1"
+    },
+    {
+      "path": "stop-daemon.log",
+      "bytes": 91,
+      "sha256": "150ef3e6d5d25582fa6cab6d5fc00cee39edd637337faf17be1af566f947fde8"
+    },
+    {
+      "path": "unmount-01.json",
+      "bytes": 34,
+      "sha256": "1ab013ae272f9bbe981fabed06b0d9b273200a1a461959a5ad96cfd90d71cf9f"
+    },
+    {
+      "path": "unmount-01.log",
+      "bytes": 17,
+      "sha256": "e2e7e4de75aa32d2268acd6fb9074177fbb16c94025e0b863e444f72f183a2e4"
+    },
+    {
+      "path": "workflow-tests.log",
+      "bytes": 61,
+      "sha256": "4b2751ba483b6e5d14beb6ef0435f3e6cd7aac152e1c0634e8d566af8868a415"
+    }
+  ],
+  "formalArtifactAllowed": false
+}

@@ -1,0 +1,93 @@
+name: 独立真机证据手动准备与收证
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 仅准备云端包或收集已完成的本地执行证据
+        required: true
+        type: choice
+        options: [prepare, collect]
+      request:
+        description: 已审查的精确 JSON 请求（不包含密码或签名材料）
+        required: true
+        type: string
+      request_sha256:
+        description: 已审查请求原始 UTF-8 字节 SHA256
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  prepare:
+    if: github.repository == 'yaoshining/VidAll_Player' && github.ref == 'refs/heads/main' && inputs.mode == 'prepare'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: 核验精确云端包并生成待执行记录
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MANUAL_REQUEST: ${{ inputs.request }}
+          MANUAL_REQUEST_SHA256: ${{ inputs.request_sha256 }}
+        run: |
+          set -euo pipefail
+          umask 077
+          root="$RUNNER_TEMP/vidall-manual-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          mkdir "$root"
+          python3 -I -B scripts/test/device-execution/manual-workflow.py prepare --out "$root/public"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: device-prepare-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vidall-manual-${{ github.run_id }}-${{ github.run_attempt }}/public/result.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: 清理本轮公开临时目录
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf -- "$RUNNER_TEMP/vidall-manual-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+  collect:
+    if: github.repository == 'yaoshining/VidAll_Player' && github.ref == 'refs/heads/main' && inputs.mode == 'collect' && vars.VIDALL_DEVICE_COLLECT_ENABLED == 'true' && vars.VIDALL_DEVICE_COLLECT_WORKFLOW_SHA == github.sha
+    # 专用标签和可信入口尚未部署；启用前需要单独批准精确配置。
+    runs-on: [self-hosted, macOS, X64, vidall-device-evidence]
+    environment: device-evidence-read
+    concurrency:
+      group: device-evidence-read
+      cancel-in-progress: false
+    timeout-minutes: 5
+    steps:
+      - name: 通过固定可信入口只读收证
+        id: collect
+        shell: bash
+        env:
+          MANUAL_REQUEST: ${{ inputs.request }}
+          MANUAL_REQUEST_SHA256: ${{ inputs.request_sha256 }}
+          VIDALL_DEVICE_COLLECTOR_SHA256: ${{ vars.VIDALL_DEVICE_COLLECTOR_SHA256 }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trusted="$HOME/Library/Application Support/VidAllDeviceExecution/trusted/manual-workflow"
+          [[ "$VIDALL_DEVICE_COLLECTOR_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ -f "$trusted/manual-workflow.py" && ! -L "$trusted/manual-workflow.py" ]]
+          actual=$(/usr/bin/shasum -a 256 "$trusted/manual-workflow.py")
+          [[ "${actual%% *}" == "$VIDALL_DEVICE_COLLECTOR_SHA256" ]]
+          root="$RUNNER_TEMP/vidall-manual-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          mkdir "$root"
+          /Library/Developer/CommandLineTools/usr/bin/python3 -I -B "$trusted/manual-workflow.py" collect --out "$root/public"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: device-collected-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vidall-manual-${{ github.run_id }}-${{ github.run_attempt }}/public/result.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: 清理本轮公开临时目录
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf -- "$RUNNER_TEMP/vidall-manual-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"

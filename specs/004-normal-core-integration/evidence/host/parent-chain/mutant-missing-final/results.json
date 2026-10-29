@@ -1,0 +1,30 @@
+{
+  "passed": false,
+  "cases": [
+    {
+      "case": "terminal-callback-delivery-blocked",
+      "exit": "timeout",
+      "seconds": 4.011,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 3372.19,
+      "deadlineValid": false,
+      "passed": false
+    },
+    {
+      "case": "terminal-logger-blocked",
+      "exit": "timeout",
+      "seconds": 4.004,
+      "forbiddenEvents": [],
+      "deadlineElapsedMs": 3998.83,
+      "deadlineValid": false,
+      "passed": false
+    }
+  ],
+  "sourceBindingSHA256": "dad585ce84f703b4842b2189f1d0460be7ff7318afcca4bcaad71efca7dd89cd",
+  "limits": [
+    "平台API被替身覆盖，不是GPU真实故障注入",
+    "std::thread、shared_ptr/unique_ptr、真实父级函数和process_runtime均实际编译执行",
+    "Start/render线程主体是最小调度替身；未逐字编译完整RenderLoop",
+    "callback场景阻塞生产者通知交付线程；logger场景堵塞独立审计pipe写线程，不冒称真实平台logger挂死"
+  ]
+}

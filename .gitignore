@@ -56,3 +56,8 @@ signing/*
 examples/consumer-smoke/oh_modules/
 examples/consumer-smoke/oh-package-lock.json5
 fixtures/libmpv-player-consumer/oh-package-lock.json5
+
+# 本轮隔离输入闭包，旧候选仍保持原样
+!release/inputs/004-normal-core/**
+scripts/test/normal-core/node_modules/
+fixtures/normal-core-consumer/entry/libs/

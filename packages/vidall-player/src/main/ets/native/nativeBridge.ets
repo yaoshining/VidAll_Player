@@ -1,3 +1,4 @@
+import { assertPlayerRuntimeReady, playerTerminalError } from '../public/runtime';
 import { PlayerDiagnosticsSnapshot } from '../public/diagnostics';
 import { util } from '@kit.ArkTS';
 import nativeSession, { NativeFrameData, NativePlayerEvent, NativeSessionResult } from 'libvidall_player_native.so';
@@ -133,24 +134,31 @@ export function extractSmbCredentials(source: MediaSource): SmbCredentials {
 }
 
 class HarNativePlayerBridge implements NativePlayerBridge {
-  private readonly handle: number;
+  private handle: number = 0;
+  private readonly ready: Promise<number>;
   private released: boolean = false;
   private readonly listeners: Array<(event: NativeBridgeEvent) => void> = [];
 
-  constructor(result: NativeSessionResult) {
-    if (!result.ok || result.handle <= 0) {
-      throw nativeFailure(result);
-    }
-    this.handle = result.handle;
-    this.requireResult(nativeSession.setEventCallback(this.handle, (event: NativePlayerEvent): void => {
-      if (this.released) {
-        return;
+  constructor(result: Promise<NativeSessionResult>) {
+    this.ready = result.then(async (created: NativeSessionResult): Promise<number> => {
+      assertPlayerRuntimeReady();
+      if (!created.ok || created.handle <= 0) throw nativeFailure(created);
+      this.handle = created.handle;
+      try {
+        this.requireResult(nativeSession.setEventCallback(this.handle, (event: NativePlayerEvent): void => {
+        if (this.released || playerTerminalError() !== undefined) return;
+        const listeners = this.listeners.slice();
+        for (let index = 0; index < listeners.length; index++) listeners[index](event);
+        }));
+      } catch (error) {
+        // 非终局的半创建失败由真正的 native release 回收；终局保留整个对象。
+        if (playerTerminalError() === undefined) await nativeSession.releaseSession(this.handle);
+        throw error as Error;
       }
-      const listeners = this.listeners.slice();
-      for (let index = 0; index < listeners.length; index++) {
-        listeners[index](event);
-      }
-    }));
+      return this.handle;
+    });
+    // 保留原始拒绝给后续命令消费，同时防止尚未发命令时出现未处理拒绝。
+    this.ready.catch(() => {});
   }
 
   getDirectSmbCapability(): Promise<DirectSmbCapability> {
@@ -159,83 +167,83 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 
   attachSurface(surface: PlayerSurface): Promise<void> {
-    return this.complete(nativeSession.attachSurface(this.handle, surface.componentId, surface.generation, surface.width, surface.height));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.attachSurface(handle, surface.componentId, surface.generation, surface.width, surface.height));
   }
 
   resizeSurface(surface: PlayerSurface): Promise<void> {
-    return this.complete(nativeSession.resizeSurface(this.handle, surface.componentId, surface.generation, surface.width, surface.height));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.resizeSurface(handle, surface.componentId, surface.generation, surface.width, surface.height));
   }
 
   detachSurface(generation: number): Promise<void> {
-    return this.complete(nativeSession.detachSurface(this.handle, generation));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.detachSurface(handle, generation));
   }
 
   load(source: MediaSource): Promise<void> {
     const credentials = extractSmbCredentials(source);
-    return this.complete(nativeSession.load(
-      this.handle, source.uri, buildHttpHeaderFieldsOption(source.headers),
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.load(
+      handle, source.uri, buildHttpHeaderFieldsOption(source.headers),
       credentials.username, credentials.password));
   }
 
   play(): Promise<void> {
-    return this.complete(nativeSession.play(this.handle));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.play(handle));
   }
 
   pause(): Promise<void> {
-    return this.complete(nativeSession.pause(this.handle));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.pause(handle));
   }
 
   stop(): Promise<void> {
-    return this.complete(nativeSession.stop(this.handle));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.stop(handle));
   }
 
   seekRelative(seconds: number): Promise<void> {
-    return this.complete(nativeSession.seekRelative(this.handle, seconds));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.seekRelative(handle, seconds));
   }
 
   seekPercent(percent: number): Promise<void> {
-    return this.complete(nativeSession.seekPercent(this.handle, percent));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.seekPercent(handle, percent));
   }
 
   setRate(rate: number): Promise<void> {
-    return this.complete(nativeSession.setRate(this.handle, rate));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.setRate(handle, rate));
   }
 
   setPropertyString(property: string, value: string): Promise<void> {
-    return this.complete(nativeSession.setPropertyString(this.handle, property, value));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.setPropertyString(handle, property, value));
   }
 
   setAudioFilter(filter: string): Promise<void> {
-    return this.complete(nativeSession.setAudioFilter(this.handle, filter));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.setAudioFilter(handle, filter));
   }
 
   setVolume(volume: number): Promise<void> {
-    return this.complete(nativeSession.setVolume(this.handle, volume));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.setVolume(handle, volume));
   }
 
   selectTrack(kind: 'audio' | 'subtitle', trackId: number): Promise<void> {
-    return this.complete(nativeSession.selectTrack(this.handle, kind, trackId));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.selectTrack(handle, kind, trackId));
   }
 
   addExternalAudio(uri: string): Promise<void> {
-    return this.complete(nativeSession.addExternalAudio(this.handle, uri));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.addExternalAudio(handle, uri));
   }
 
   addExternalSubtitle(uri: string): Promise<void> {
-    return this.complete(nativeSession.addExternalSubtitle(this.handle, uri));
+    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.addExternalSubtitle(handle, uri));
   }
 
-  release(): Promise<void> {
-    if (this.released) {
-      return Promise.resolve();
-    }
-    const result: NativeSessionResult = nativeSession.releaseSession(this.handle);
-    if (!result.ok && result.code !== 'ALREADY_RELEASED') {
-      return Promise.reject(nativeFailure(result));
-    }
+  async release(): Promise<void> {
+    const fatal = playerTerminalError();
+    if (fatal !== undefined) throw fatal;
+    if (this.released) return;
+    const handle = await this.ready;
+    assertPlayerRuntimeReady();
+    const result: NativeSessionResult = await nativeSession.releaseSession(handle);
+    assertPlayerRuntimeReady();
+    if (!result.ok && result.code !== 'ALREADY_RELEASED') throw nativeFailure(result);
     this.released = true;
     this.listeners.splice(0, this.listeners.length);
-    return Promise.resolve();
   }
 
   subscribe(listener: (event: NativeBridgeEvent) => void): () => void {
@@ -249,12 +257,16 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 
   async getDiagnostics(): Promise<PlayerDiagnosticsSnapshot> {
+    assertPlayerRuntimeReady();
+    await this.ready;
+    assertPlayerRuntimeReady();
     if (this.released) throw new Error('DIAGNOSTICS_RELEASED');
     const encoded: string = await nativeSession.getDiagnostics(this.handle);
     return JSON.parse(encoded) as PlayerDiagnosticsSnapshot;
   }
 
   getFrameData(): FrameData | null {
+    if (playerTerminalError() !== undefined || this.handle === 0 || this.released) return null;
     const result: NativeFrameData | null = nativeSession.getFrameData(this.handle);
     if (result === null || result === undefined) {
       return null;
@@ -267,14 +279,14 @@ class HarNativePlayerBridge implements NativePlayerBridge {
     return frameData;
   }
 
-  private complete(result: NativeSessionResult): Promise<void> {
-    if (this.released) {
-      return Promise.reject(nativeFailure({ ok: false, handle: this.handle, code: 'RELEASED' }));
-    }
-    if (!result.ok) {
-      return Promise.reject(nativeFailure(result));
-    }
-    return Promise.resolve();
+  private async run(operation: (handle: number) => Promise<NativeSessionResult>): Promise<void> {
+    assertPlayerRuntimeReady();
+    const handle = await this.ready;
+    assertPlayerRuntimeReady();
+    if (this.released) throw nativeFailure({ ok: false, handle, code: 'RELEASED' });
+    const result: NativeSessionResult = await operation(handle);
+    assertPlayerRuntimeReady();
+    if (!result.ok) throw nativeFailure(result);
   }
 
   private requireResult(result: NativeSessionResult): void {
@@ -326,6 +338,7 @@ export function resolveHdrComputePeak(mode: string | undefined): string {
 export function createNativePlayerBridge(subtitleFontsDir?: string, hardwareDecoding?: 'auto' | 'disabled',
   hdrToneMapping?: 'auto' | 'bt.2390' | 'mobius' | 'reinhard' | 'hable' | 'gamma' | 'linear' | 'clip',
   hdrComputePeak?: 'auto' | 'enabled' | 'disabled'): NativePlayerBridge {
+  assertPlayerRuntimeReady();
   return new HarNativePlayerBridge(nativeSession.createSession(
     subtitleFontsDir ?? '', resolveHardwareDecoding(hardwareDecoding),
     resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak)));

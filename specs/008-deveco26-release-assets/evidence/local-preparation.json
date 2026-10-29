@@ -1,0 +1,82 @@
+{
+  "scope": "仅本地分片及上传预览；未执行远端写入",
+  "assets": {
+    "observedUTC": "2026-10-24T18:40:47.882265+00:00",
+    "passed": true,
+    "files": [
+      {
+        "name": "studio26.zip.part001",
+        "bytes": 2097152000,
+        "sha256": "681dcb89ccc9b407547455a859addacf95cd3736a79c6428a40c09b4b1624316"
+      },
+      {
+        "name": "studio26.zip.part002",
+        "bytes": 1981328294,
+        "sha256": "bc97ea0d2ea8c92a0b34f5c0d89f07a4419b9723324d575575ea0ad2f1e9ea4c"
+      },
+      {
+        "name": "deveco26-archive-manifest.json",
+        "bytes": 947,
+        "sha256": "cacb509b4c24403869b40b7cf8a1f4526e6ae734529ad185a92499e0917595e4"
+      }
+    ],
+    "reassembledBytes": 4078480294,
+    "reassembledSHA256": "86289edeb2e8e30eb1adf80cba0fc55f0e57cdd4f6dc4ec9c59985a0bc4b8524",
+    "originalAfterSHA256": "86289edeb2e8e30eb1adf80cba0fc55f0e57cdd4f6dc4ec9c59985a0bc4b8524",
+    "originalMetadataUnchanged": true,
+    "reassembledZipWritten": false,
+    "remoteWrites": false,
+    "formalArtifactAllowed": false
+  },
+  "tests": {
+    "initialSemanticRed": {
+      "cases": 6,
+      "failures": 14,
+      "positiveCasePassed": true,
+      "initialSourceSHA256": "4d17b8c3dde28e05f8554176caf24beffa10d2e53b50cd5d0ac334e6ea607ca0"
+    },
+    "reviewSemanticRed": {
+      "cases": 1,
+      "failures": 2,
+      "scope": "manifest/前一分片在读片期间被替换"
+    },
+    "green": {
+      "exit": 0,
+      "tests": 13,
+      "toolSHA256": "ca3ab0f6439c4e9fe8f5c991a903ffc32126e765570f356b64f6a9ba1b4cad2e",
+      "testSHA256": "03e425cb514228dff253500d3463e7ec60a1895f5ce94c439fdd9229c507ffa5"
+    }
+  },
+  "metadata": {
+    "metadataCommit": "6a237314ddb37cb4edb61c375de11fcd4eb2c15a",
+    "proposedPrivateRepository": "yaoshining/vidall-toolchain-cache",
+    "proposedBranch": "main",
+    "proposedReleaseTag": "deveco-mac-arm-26.0.0.851-86289edeb2e8",
+    "tagTarget": "6a237314ddb37cb4edb61c375de11fcd4eb2c15a",
+    "files": [
+      {
+        "path": "README.md",
+        "bytes": 1430,
+        "sha256": "2003132502d83c5b2cc1c0cda4978c9270fb3e383936b306104c4efcda7e086c"
+      },
+      {
+        "path": "SOURCE.json",
+        "bytes": 1016,
+        "sha256": "89f15bda09c3fa11f0472143a71cb0d798245bfa59b55608e7eb2f3f2105b9cf"
+      },
+      {
+        "path": "deveco26-archive-manifest.json",
+        "bytes": 947,
+        "sha256": "cacb509b4c24403869b40b7cf8a1f4526e6ae734529ad185a92499e0917595e4"
+      }
+    ],
+    "totalBytes": 3393,
+    "remoteCreated": false
+  },
+  "rootIndependentReview": {
+    "unitCases": 13,
+    "partsAndWholeSHA256": "独立流式读取通过",
+    "historicalBoundary": "TV HEAD 外部漂移，原保护产物未变；不声明旧历史边界全绿"
+  },
+  "formalArtifactAllowed": false
+}

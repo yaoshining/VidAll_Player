@@ -1,0 +1,49 @@
+{
+  "passed": false,
+  "results": [
+    {
+      "name": "pr-main",
+      "passed": false,
+      "error": "The expression evaluated to a falsy value:\n\n  assert(w.on.pull_request)\n"
+    },
+    {
+      "name": "push-main-head",
+      "passed": false,
+      "error": "The expression evaluated to a falsy value:\n\n  assert(w.on.push.branches.includes(b))\n"
+    },
+    {
+      "name": "merge-group",
+      "passed": false,
+      "error": "Cannot read properties of undefined (reading 'types')"
+    },
+    {
+      "name": "manual",
+      "passed": true
+    },
+    {
+      "name": "checkout-event-sha",
+      "passed": false,
+      "error": "undefined == 0"
+    },
+    {
+      "name": "real-host-and-context",
+      "passed": false,
+      "error": "The expression evaluated to a falsy value:\n\n  assert(s.some(x=>x.run?.includes('ci-context.py')))\n"
+    },
+    {
+      "name": "real-target-no-signing",
+      "passed": false,
+      "error": "Cannot read properties of undefined (reading 'runs-on')"
+    },
+    {
+      "name": "failure-evidence",
+      "passed": false,
+      "error": "The expression evaluated to a falsy value:\n\n  assert(s.some(x=>x.if==='always()'&&x.run?.includes('ci-evidence.py')))\n"
+    },
+    {
+      "name": "aggregate-not-skip-success",
+      "passed": false,
+      "error": "Cannot read properties of undefined (reading 'if')"
+    }
+  ]
+}

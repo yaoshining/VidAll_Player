@@ -1,0 +1,169 @@
+{
+  "source": {
+    "checkoutSHA": "53e413c730d771598b9610c4a11e0d2a47e7499f",
+    "treeSHA": "e687179d548ee42a95aaf817b1690ec55d72d4bb",
+    "trackedBytesSHA256": "0ba9c1bfb78ecc8911641cbe4e44d81ed6668a908aeea94873e2bda5c755f043"
+  },
+  "execution": "local checkpoint; not GitHub PR or remote Environment approval",
+  "bootstrapMode": "explicit verified local archive; npm ci integrity checked with same-source cache",
+  "targetPassed": true,
+  "HAR": "2e2172a807a29fbe822ebf69c3b6274b1505913ad5035dfd18e89bc90ce740aa",
+  "consumerPassed": true,
+  "HAP": {
+    "passed": true,
+    "hapSHA256": "52a2e3c107e8ca93a972fa6afba7ee1b6c931f19b9c5976751ffaac039adfe37",
+    "libraries": {
+      "libavfilter.so.11": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
+      "libavformat.so.62": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+      "libswscale.so.9": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
+      "libavcodec.so.62": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
+      "libmpv.so": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libvidall_player_native.so": "dc47ed6bb2a3c1b5f50cc2482a0124cbdeb6d5e2b9b91f868bd81483417e2ab6",
+      "libswresample.so.6": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
+      "libavutil.so.60": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43"
+    },
+    "api": {
+      "compileSdkVersion": "26.0.0.105",
+      "minAPIVersion": 50003015,
+      "targetAPIVersion": 60002022
+    },
+    "signed": false,
+    "deviceVerified": false
+  },
+  "inputHAR": "2e2172a807a29fbe822ebf69c3b6274b1505913ad5035dfd18e89bc90ce740aa",
+  "dependency": {
+    "passed": true,
+    "resolved": "entry/libs/current.har",
+    "registryType": "local",
+    "lockSHA256": "3e6685c9a3c68b90e41b666386c6f07b9690ebc6204225718a52a8958ff8f9c1",
+    "installedRootInsideProject": true,
+    "installedLibraries": {
+      "libavfilter.so.11": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
+      "libavformat.so.62": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+      "libswscale.so.9": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
+      "libavcodec.so.62": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
+      "libmpv.so": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libvidall_player_native.so": "dc47ed6bb2a3c1b5f50cc2482a0124cbdeb6d5e2b9b91f868bd81483417e2ab6",
+      "libswresample.so.6": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
+      "libavutil.so.60": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43"
+    },
+    "publicDeclarationSHA256": "42299c6f2a12ef713e75e7ef2224c904357b1864164b5d9e6730b8a1adcfcbc6"
+  },
+  "consumerCleanup": {
+    "passed": true,
+    "stoppedOwnedPids": [
+      96823
+    ],
+    "registryProjectMatched": true,
+    "hvigorHomeIsolated": true,
+    "userHOMEChanged": false
+  },
+  "negative": {
+    "passed": true,
+    "mutation": {
+      "originalHAR": "2e2172a807a29fbe822ebf69c3b6274b1505913ad5035dfd18e89bc90ce740aa",
+      "mutantHAR": "4a2af0837a4829987268f0d44133693ba0bba895802db694fb3f543959e75b15",
+      "changedMembers": [
+        "package/Index.d.ets"
+      ],
+      "removedPublicAPI": "initializePlayerRuntime"
+    },
+    "specificArkTSDiagnostic": true,
+    "cleanup": {
+      "passed": true,
+      "stoppedOwnedPids": [
+        95570
+      ],
+      "registryProjectMatched": true,
+      "hvigorHomeIsolated": true,
+      "userHOMEChanged": false
+    }
+  },
+  "SDKCleanup": {
+    "passed": true,
+    "stoppedOwnedPids": [
+      93866
+    ],
+    "mountAbsent": true,
+    "hvigorHomeIsolated": true,
+    "userHOMEChanged": false,
+    "formalArtifactAllowed": false
+  },
+  "unitTests": {
+    "gates": 6,
+    "consumer": 9,
+    "workflowMutations": 15
+  },
+  "host": {
+    "passed": true,
+    "checks": 47,
+    "allExpectedExits": true
+  },
+  "boundaries": {
+    "contentPassed": true,
+    "protectedArtifacts": 12,
+    "preservedSeals": 7
+  },
+  "rootIndependentArtifactReview": true,
+  "formalArtifactAllowed": false,
+  "rawEvidenceDigests": [
+    {
+      "record": "local-01/actual-steps.json",
+      "bytes": 1179,
+      "sha256": "e7cc8ebaec796c5b4bfe15fde580c032776e84010248bb775a2f4cf89fa2fcc9"
+    },
+    {
+      "record": "local-01/work/evaluation-result.json",
+      "bytes": 24091,
+      "sha256": "17f9040697b0940473aa0fd040ef673fb62cee214c37b72f9db9a6cbb03f2183"
+    },
+    {
+      "record": "local-01/work/consumer-result.json",
+      "bytes": 7459,
+      "sha256": "c2d2b3490c200387ce525ecf03024cc104b6fc1ab94af509ad102403cf66a044"
+    },
+    {
+      "record": "local-01/work/consumer-negative-result.json",
+      "bytes": 1426,
+      "sha256": "9316dab3f99cbf127b3f356efbf8d7f02298db4ff5cc5de7931368b360129ede"
+    },
+    {
+      "record": "local-01/work/consumer-negative-build.log",
+      "bytes": 11432,
+      "sha256": "4b51eab78f01be3182e7d3d7a9cefea79b42a206552fd98c1d2d34cd87935211"
+    },
+    {
+      "record": "ROOT-LOCAL-01-ARTIFACT-REVIEW.json",
+      "bytes": 376,
+      "sha256": "a41b92c6084b5ca962f39b1af2873041b05a3482d0a233a97db53c981ccef5b8"
+    },
+    {
+      "record": "ROOT-BOUNDARY.json",
+      "bytes": 4730,
+      "sha256": "dd8ba1b9ee575982a2302113bf18ce305c5f38f4ff1ee7cb236405dee487e727"
+    },
+    {
+      "record": "host-01/public/summary.json",
+      "bytes": 6866,
+      "sha256": "3de199fc1dd84a9f38b083eb0ffa3ccbc3fee891f13cb55b297f9426b040423e"
+    },
+    {
+      "record": "red/legacy-verdict.log",
+      "bytes": 710,
+      "sha256": "188d4c29eef89726cfa5c8a4f6e2a5fd65e38d26032e85a8a70c4b1c14e1da13"
+    },
+    {
+      "record": "red/old-fixture-api.log",
+      "bytes": 789,
+      "sha256": "2362a6756896cba3077c63bcfcd9f9f7b07698ce228abd2df0fcd5a6ac3ec5c3"
+    }
+  ],
+  "schema": {
+    "passed": true,
+    "actionlintVersion": "1.7.12",
+    "workflowSHA256": "6fe7f8794d88dc06b8aee6d54c1592a5b07cbeb71298701282b75b121777c92b",
+    "scopeNegativesPassed": true
+  }
+}

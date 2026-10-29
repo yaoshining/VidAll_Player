@@ -1,0 +1,31 @@
+10-23 23:09:18.792 38226 38226 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state paused
+10-23 23:09:19.446 38226 38226 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 pause-verified {"before":880,"after":880}
+10-23 23:09:19.465 38226 38226 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 23:09:20.374 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 runtime ready
+10-23 23:09:20.377 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 keepScreen true
+10-23 23:09:20.397 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state preparing
+10-23 23:09:20.569 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 23:09:20.569 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 firstFrame 1
+10-23 23:09:22.153 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state paused
+10-23 23:09:22.809 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 pause-verified {"before":880,"after":880}
+10-23 23:09:22.819 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 23:09:23.522 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 resume-verified 1600
+10-23 23:09:23.605 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 seek-target {"target":20000,"reached":20040}
+10-23 23:09:24.307 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 seek-verified {"target":20000,"before":1600,"reached":20040,"after":20600}
+10-23 23:09:24.308 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 diagnostics {"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":20600},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+10-23 23:09:24.490 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state released
+10-23 23:09:24.490 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 release-ok 
+10-23 23:09:24.500 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state preparing
+10-23 23:09:24.637 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 23:09:24.637 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 firstFrame 2
+10-23 23:09:26.200 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state idle
+10-23 23:09:26.201 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state preparing
+10-23 23:09:26.323 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state playing
+10-23 23:09:26.324 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 firstFrame 2
+10-23 23:09:27.828 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 smb-fields {"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":83.33333333333333},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+10-23 23:09:28.833 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 smb-short-verified {"before":83.33333333333333,"after":958.3333333333333,"decoder":"ohcodec"}
+10-23 23:09:29.024 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state released
+10-23 23:09:29.025 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 reopen-release-ok 
+10-23 23:09:29.025 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 summary {"firstFrames":3,"errors":0}
+10-23 23:09:29.026 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 keepScreen false
+10-23 23:09:29.026 38512 38512 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 session-end 

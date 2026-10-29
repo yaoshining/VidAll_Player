@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_host_finish_rejects_post_context_change (__main__.Contracts.test_host_finish_rejects_post_context_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/test/normal-core/ci-contract.test.py", line 154, in test_host_finish_rejects_post_context_change
+    (self.root/'a').write_text('dirty');self.assertFalse(m.finish(out,steps,'host')['stepsPassed']);self.git('checkout','--','a');self.git('commit','--allow-empty','-m','same tree new commit');self.assertFalse(m.finish(out,steps,'host')['stepsPassed'])
+                                        ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 1 test in 0.636s
+
+FAILED (failures=1)

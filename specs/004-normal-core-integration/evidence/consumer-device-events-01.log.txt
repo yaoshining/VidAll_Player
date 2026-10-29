@@ -1,0 +1,5 @@
+10-23 22:55:59.049 28663 28663 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 failed Play requires prepared, paused, or buffering media.
+10-23 22:55:59.049 28663 28663 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state preparing
+10-23 22:55:59.068 28663 28663 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 state released
+10-23 22:55:59.069 28663 28663 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 keepScreen false
+10-23 22:55:59.069 28663 28663 I A03D00/com.yaoshining.phase22probe/JSAPP: P32 session-end 
