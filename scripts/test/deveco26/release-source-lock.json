@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "repository": {
+    "fullName": "yaoshining/vidall-toolchain-cache",
+    "id": 1432495522,
+    "private": true
+  },
+  "release": {
+    "id": 422920456,
+    "tag": "deveco-mac-arm-26.0.0.851-86289edeb2e8",
+    "targetCommit": "6a237314ddb37cb4edb61c375de11fcd4eb2c15a",
+    "immutable": true
+  },
+  "archiveLockSHA256": "d23bde03648bc6d8e05751c23d8c057d5e8194d54e313d858b373149629c0067",
+  "chunkBytes": 2097152000,
+  "cdnHost": "release-assets.githubusercontent.com",
+  "buildReserveBytes": 2147483648,
+  "manifest": {
+    "id": 673043876,
+    "name": "deveco26-archive-manifest.json",
+    "bytes": 947,
+    "sha256": "cacb509b4c24403869b40b7cf8a1f4526e6ae734529ad185a92499e0917595e4"
+  },
+  "parts": [
+    {
+      "id": 673044556,
+      "ordinal": 1,
+      "name": "studio26.zip.part001",
+      "offset": 0,
+      "bytes": 2097152000,
+      "sha256": "681dcb89ccc9b407547455a859addacf95cd3736a79c6428a40c09b4b1624316"
+    },
+    {
+      "id": 673058766,
+      "ordinal": 2,
+      "name": "studio26.zip.part002",
+      "offset": 2097152000,
+      "bytes": 1981328294,
+      "sha256": "bc97ea0d2ea8c92a0b34f5c0d89f07a4419b9723324d575575ea0ad2f1e9ea4c"
+    }
+  ],
+  "formalArtifactAllowed": false
+}

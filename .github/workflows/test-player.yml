@@ -1,4 +1,4 @@
-name: 旧基线 Vulkan 修复 HAR（CI 交付）
+name: 旧基线 Vulkan 修复 HAR（云端 Mac CI）
 
 on:
   push:
@@ -15,32 +15,37 @@ concurrency:
 jobs:
   legacy-har:
     name: 旧基线回归、完整 HAR 与依赖校验
-    runs-on: [self-hosted, macOS, deveco]
-    timeout-minutes: 30
+    runs-on: macos-26
+    environment: deveco26-build
+    timeout-minutes: 60
+    env:
+      RUNNER_ENVIRONMENT: ${{ runner.environment }}
     steps:
       - name: 检出本次事件提交
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          fetch-depth: 1
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: 初始化隔离构建目录与现有工具链
+      - name: 初始化隔离云端构建目录
         shell: bash
         run: |
           set -euo pipefail
           CI_WORK_DIR="$RUNNER_TEMP/legacy83-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          mkdir -p "$CI_WORK_DIR/logs" "$CI_WORK_DIR/artifact"
+          mkdir -p "$CI_WORK_DIR/logs" "$CI_WORK_DIR/artifact" "$CI_WORK_DIR/work"
           echo "CI_WORK_DIR=$CI_WORK_DIR" >> "$GITHUB_ENV"
-          echo "HVIGOR_USER_HOME=$CI_WORK_DIR/hvigor" >> "$GITHUB_ENV"
-          echo "DEVECO_CLI_STUDIO_PATH=/Applications/DevEco-Studio.app" >> "$GITHUB_ENV"
+          echo "HVIGOR_USER_HOME=$CI_WORK_DIR/hvigor-home" >> "$GITHUB_ENV"
+          echo "DEVECO_CLI_STUDIO_PATH=$CI_WORK_DIR/environment/mounted/DevEco-Studio.app" >> "$GITHUB_ENV"
           echo "DEVECO_CLI_SKIP_VERSION_CHECK=1" >> "$GITHUB_ENV"
           echo "TYPESCRIPT_PATH=$GITHUB_WORKSPACE/scripts/test/legacy83-ci/node_modules/typescript" >> "$GITHUB_ENV"
-          test -x /Applications/DevEco-Studio.app/Contents/tools/node/bin/node
           git diff --exit-code HEAD --
+
+      - name: 绑定实际事件与源码
+        run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_WORK_DIR/work"
 
       - name: 安装固定 CLI 与主机测试依赖
         run: npm ci --prefix scripts/test/legacy83-ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
@@ -51,6 +56,8 @@ jobs:
         run: |
           set -euo pipefail
           {
+            python3 -B scripts/test/deveco26/bootstrap.test.py
+            python3 -B scripts/test/deveco26/release-source.test.py
             python3 -B scripts/test/legacy83-ci/audit.test.py
             node scripts/test/legacy83-ci/workflow.test.cjs
             python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
@@ -62,13 +69,25 @@ jobs:
             node native/tests/diagnostics-device.test.cjs
           } 2>&1 | tee "$CI_WORK_DIR/logs/tests.log"
 
+      - name: 核验本轮已审查的精确提交
+        id: trust
+        env:
+          APPROVED_SHA: ${{ vars.LEGACY83_APPROVED_EVENT_SHA }}
+        run: test -n "$APPROVED_SHA" && test "$APPROVED_SHA" = "$GITHUB_SHA"
+
+      - name: 从既有固定私有归档准备云端 SDK
+        id: bootstrap
+        env:
+          DEVECO26_RELEASE_READ_TOKEN: ${{ secrets.DEVECO26_RELEASE_READ_TOKEN }}
+        run: python3 -B scripts/test/deveco26/release-source.py --out "$CI_WORK_DIR"
+
       - name: 完整构建 Player HAR
         id: build
         shell: bash
         run: |
           set -euo pipefail
           NODE="$DEVECO_CLI_STUDIO_PATH/Contents/tools/node/bin/node"
-          CLI="$GITHUB_WORKSPACE/scripts/test/legacy83-ci/node_modules/@deveco/deveco-cli/cli.js"
+          CLI="$CI_WORK_DIR/environment/cli/node_modules/@deveco/deveco-cli/cli.js"
           "$NODE" "$CLI" build clean 2>&1 | tee "$CI_WORK_DIR/logs/clean.log"
           "$NODE" "$CLI" build --modules vidall_player@default 2>&1 | tee "$CI_WORK_DIR/logs/build.log"
 
@@ -79,12 +98,17 @@ jobs:
           set -euo pipefail
           python3 -B scripts/test/legacy83-ci/audit.py --out "$CI_WORK_DIR/artifact" --studio "$DEVECO_CLI_STUDIO_PATH" 2>&1 | tee "$CI_WORK_DIR/logs/audit.log"
 
+      - name: 停止本轮 daemon 并卸载只读 SDK
+        id: cleanup
+        if: always()
+        run: python3 -B scripts/test/deveco26/bootstrap.py cleanup --out "$CI_WORK_DIR"
+
       - name: 上传通过校验的 CI HAR
         id: har
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: legacy83-ci-har-${{ github.sha }}-${{ github.run_attempt }}
+          name: legacy83-cloud-har-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ env.CI_WORK_DIR }}/artifact/
           if-no-files-found: error
           retention-days: 30
@@ -93,7 +117,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: legacy83-ci-logs-${{ github.sha }}-${{ github.run_attempt }}
-          path: ${{ env.CI_WORK_DIR }}/logs/
+          name: legacy83-cloud-logs-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.CI_WORK_DIR }}/logs/
+            ${{ env.CI_WORK_DIR }}/work/*result.json
+            ${{ env.CI_WORK_DIR }}/work/context.json
           if-no-files-found: warn
           retention-days: 14

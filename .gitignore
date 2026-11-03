@@ -60,3 +60,7 @@ fixtures/libmpv-player-consumer/oh-package-lock.json5
 # 旧基线 CI 的本地依赖及 Python 缓存
 scripts/test/legacy83-ci/node_modules/
 scripts/test/legacy83-ci/__pycache__/
+
+scripts/test/deveco26/__pycache__/
+scripts/test/deveco26-assets/__pycache__/
+scripts/test/normal-core/__pycache__/

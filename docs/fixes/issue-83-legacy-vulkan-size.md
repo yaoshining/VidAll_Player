@@ -55,6 +55,6 @@ node native/tests/diagnostics-device.test.cjs
 
 ## 最终 CI 交付要求（2026-11-03 补充）
 
-上述本地构建仅用于提前验证，最终交付必须使用本分支 GitHub Actions `test-player.yml` 生成的 `legacy83-ci-har-<提交>-<尝试>` 附件。该流程在受控 DevEco 运行器完整编译 Player HAR，不编译 FFmpeg、不触发其他项目。CI 实际 Studio/SDK/编译器版本、源码提交、run URL、库哈希和 ABI 核对结果写入附件 `manifest.json`，不能用本地预验证工具链记录代替。
+上述本地构建仅用于提前验证，最终交付必须使用本分支 GitHub Actions `test-player.yml` 生成的 `legacy83-cloud-har-<提交>-<尝试>` 附件。该流程在 GitHub 托管 `macos-26` 云端 Mac 完整编译 Player HAR，不编译 FFmpeg、不触发其他项目。CI 实际 Studio/SDK/编译器版本、源码提交、run URL、库哈希和 ABI 核对结果写入附件 `manifest.json`，不能用本地预验证工具链记录代替。
 
 CI 依次完成主机测试、完整构建、当前提交身份及旧核心/运行库校验，成功后才上传 HAR。设备验收仍由消费方使用该 CI 产物重新执行。若后续发现 FFmpeg 变更需求，只向用户说明职责边界，由用户安排 `ohos_ijkplayer` 流程。

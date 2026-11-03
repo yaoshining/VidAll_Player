@@ -1,0 +1,43 @@
+{
+  "profile": "deveco26-evaluation",
+  "formalArtifactAllowed": false,
+  "studioVersion": "26.0.0.851",
+  "architecture": "arm64",
+  "nodeVersion": "v24.14.1",
+  "studioFiles": {
+    "Resources/product-info.json": "0f278b301d7f9d922218832faab41e6dd2b25f4c2ceaeaabbe95fa602f410763",
+    "sdk/default/openharmony/native/oh-uni-package.json": "3dbc4a06ffd3b1be6b45c3c346a7900ca42f8a81a5b0454dc7f5cc1e5a9509a8",
+    "sdk/default/openharmony/ets/oh-uni-package.json": "250b53f383be634ada496cfb4a1cbebd1e7ad6f14f44fd136ca55d2d9a35acab",
+    "tools/hvigor/hvigor/package.json": "838492829af55e328082fc4a14bd801a6afc301569b5c77170c1424307d86d09",
+    "tools/hvigor/hvigor-ohos-plugin/package.json": "663fca60dcd8f23bf4717c1bd96d3e54ccf01d5e3ed5957e08738f8c51e747d9",
+    "tools/ohpm/package.json": "cc161917f39e30b9b0e7b05049f7d69355cdc93f9d5e411aa0e30843284ce223",
+    "tools/node/bin/node": "35d4bc736bbe4161f0c074aa140ddb74586e46969bc2ad63d32c838bec4463ff",
+    "sdk/default/openharmony/native/llvm/bin/clang": "b9a36b6a434fd245460ddfa9abedefbfafe83b1f87749fe00491ee90d039d723",
+    "sdk/default/openharmony/native/llvm/bin/llvm-nm": "e6127c6da61349c9f46d67822ac70fb440a0239edc011d429450511f7721498c",
+    "sdk/default/openharmony/native/llvm/bin/llvm-readelf": "512d1c07be253b7ccf761769857466a437ba07397b62a6d402c7293371817dfb",
+    "sdk/default/openharmony/native/build-tools/cmake/bin/cmake": "b8bb3aa84c923512487c4f62057f477cdc33622f81dd6f715475263de6832c4b",
+    "tools/hvigor/bin/hvigorw.js": "468c9cdbb1dc43799a2024fea63c6c5f60993e3837b4a4d131b14680aac1aa05",
+    "tools/ohpm/bin/pm-cli.js": "55e585b3706790bc2a2b1e98ae375fc999113f8ad9a108aa1b10ed6c27a6effb",
+    "tools/hvigor/hvigor-ohos-plugin/src/sdk/hmos-sdk-loader.js": "8b18836e70d6ebe67f8d70191b9b452328387d64063356bb4ea9d830d4c6830a",
+    "sdk/default/openharmony/native/build/cmake/ohos.toolchain.cmake": "0584729091676af239535182d9133761217cfff0f8599acf2ea2c9e394025731",
+    "tools/node/lib/node_modules/npm/bin/npm-cli.js": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+    "tools/node/lib/node_modules/npm/package.json": "0087ac054e319ac461ae4e05020c1241ae2925eeb7630a771ac5a94145ac9cc3",
+    "sdk/default/openharmony/native/llvm/include/libcxx-ohos/include/c++/v1/__config_site": "9c36886ad0a669b1341429adedcb2ae14b9f6916b1e0a5c128d66de50b0a31ee",
+    "sdk/default/openharmony/native/llvm/include/libcxx-ohos/include/c++/v1/__config": "7c03d6ea7c9dc32f5f56d771145f9738ab650844f0f21448f017e70cba9f0996"
+  },
+  "native": {
+    "apiVersion": "26",
+    "version": "26.0.0.105",
+    "files": {
+      "oh-uni-package.json": "3dbc4a06ffd3b1be6b45c3c346a7900ca42f8a81a5b0454dc7f5cc1e5a9509a8",
+      "llvm/bin/clang": "b9a36b6a434fd245460ddfa9abedefbfafe83b1f87749fe00491ee90d039d723",
+      "llvm/bin/llvm-nm": "e6127c6da61349c9f46d67822ac70fb440a0239edc011d429450511f7721498c",
+      "llvm/bin/llvm-readelf": "512d1c07be253b7ccf761769857466a437ba07397b62a6d402c7293371817dfb"
+    }
+  },
+  "cli": {
+    "version": "1.3.4",
+    "wrapperSHA256": "cb5fa7641419f1311cd92f0cabdd9c93125122b2b10d234b01daa7ac8008c2fd",
+    "commonSHA256": "6d4f2da40169142245438c888588eb5bfbbfc6b694bf6a0ef3ed69f8f7cf7c85"
+  }
+}
