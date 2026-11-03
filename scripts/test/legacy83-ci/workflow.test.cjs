@@ -10,6 +10,9 @@ assert.equal(job['runs-on'], 'macos-26');
 assert.equal(job.environment, 'deveco26-build');
 const steps = job.steps;
 const at = name => steps.findIndex(s => s.id === name);
+// GitHub 只在步骤环境中提供 runner 上下文，作业环境不支持它。
+assert(!JSON.stringify(job.env || {}).includes('runner.'));
+assert.equal(steps[at('audit')].env.RUNNER_ENVIRONMENT, '${{ runner.environment }}');
 assert(at('trust') >= 0 && at('trust') < at('bootstrap'));
 assert.match(steps[at('trust')].run, /APPROVED_SHA.*GITHUB_SHA/);
 assert(at('bootstrap') >= 0 && at('bootstrap') < at('build'));

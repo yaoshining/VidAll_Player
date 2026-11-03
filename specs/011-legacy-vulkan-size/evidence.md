@@ -32,3 +32,10 @@
 T009/T010 是历史临时 CI 记录；云端 T014/T015 和设备 T011/T012 保持未完成。CI 成功不等于 #83 设备验收或发布完成；#84 尚不能继续实施。
 
 本记录是构建后的证据补记；后续仅修改本记录和任务状态不会改变上述 CI 构建提交或产物身份。
+
+## 2026-11-04 云端工作流启动检查
+
+- 云端尝试 [41645063258](https://github.com/yaoshining/VidAll_Player/actions/runs/41645063258) 在任务创建前失败，未生成 HAR。不能作为云端构建通过证据。
+- 查出作业级 `env` 错误使用 `runner.environment`，按 [GitHub 上下文适用范围](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability) 移至审计步骤的 `env`。
+- 先添加回归断言，原工作流失败；修正后 `workflow.test.cjs` 通过。播放器源码未改动。
+- 受保护环境新增精确分支及本轮提交校验变量仍等待用户授权，未修改环境权限；不将此等待视为云端不可用，也不回退 iMac。
