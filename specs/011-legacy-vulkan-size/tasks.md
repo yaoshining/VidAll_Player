@@ -18,8 +18,8 @@
 
 - [x] T007 [US2] 先增加 `scripts/test/legacy83-ci/audit.test.py`、`workflow.test.cjs` 的正常/漂移/缺失/非 CI 身份/额外库失败断言，再实现 `audit.py` 和 `.github/workflows/test-player.yml`（FR-004/005，SC-002/003）。
 - [x] T008 [US2] 将最终 CI 交付与 FFmpeg 职责写入 `AGENTS.md`，固定 `scripts/test/legacy83-ci/package-lock.json`（FR-004/005）。
-- [ ] T009 [US2] 推送本修复分支，取得同一提交的 CI 测试、完整 HAR 构建与审计成功结果（SC-002/003）。
-- [ ] T010 [US2] 下载 CI 附件复核 run/commit/HAR/库哈希，保存 `evidence.md`，通知 TV 会话用最终 CI 包验收（FR-004/007）。
+- [x] T009 [US2] 推送本修复分支，取得同一提交的 CI 测试、完整 HAR 构建与审计成功结果（SC-002/003）。
+- [x] T010 [US2] 下载 CI 附件复核 run/commit/HAR/库哈希，保存 `evidence.md`，通知 TV 会话用最终 CI 包验收（FR-004/007）。
 
 ## 阶段 4：消费端验收与后续
 
