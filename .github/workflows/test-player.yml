@@ -110,6 +110,8 @@ jobs:
           cmake -S native/tests -B /tmp/vidall-native-tests
           cmake --build /tmp/vidall-native-tests -j 4
           ctest --test-dir /tmp/vidall-native-tests --output-on-failure
+          python3 native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
+          python3 native/tests/legacy-runtime.test.py
           node native/tests/diagnostics-session.test.cjs
           node native/tests/diagnostics-device.test.cjs
 

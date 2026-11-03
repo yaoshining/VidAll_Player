@@ -1,8 +1,11 @@
 # G2 加载边界：arm64-v8a 绑定 libmpv 原生产物（VIDALL_MPV_AVAILABLE=1），
 # x86_64 仅 NAPI probe（VIDALL_MPV_AVAILABLE=0），不表述为真实播放能力。
-# libmpv.so SHA-256=594994e42785dbad01c468e6013be56f0fe40a3b5883d301a9cd9e91b3c6c0ac
+# libmpv.so SHA-256=3ae9969ac13a58aaa5827520a44e56461f566aff66b9bdd7fe4b78f0da31b076
 # 详细边界见 release/manifests/candidate-003-libmpv-player-har.json
 cmake_minimum_required(VERSION 3.4.1)
+set(LEGACY_RUNTIME "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../entry/libs/${OHOS_ARCH}/libc++_shared.so")
+include("${CMAKE_CURRENT_SOURCE_DIR}/../../../../../native/cmake/legacy-cxx-runtime.cmake")
+vidall_check_legacy_runtime("${LEGACY_RUNTIME}" "${OHOS_ARCH}" "${OHOS_STL}")
 project(vidall_player_native)
 
 set(CMAKE_SKIP_RPATH TRUE)
@@ -25,3 +28,9 @@ if(OHOS_ARCH STREQUAL "arm64-v8a")
 else()
   target_compile_definitions(vidall_player_native PRIVATE VIDALL_MPV_AVAILABLE=0)
 endif()
+
+# SDK 只提供编译器和头文件；最终链接、打包使用已核对的旧运行库。
+add_library(vidall_legacy_cxx SHARED IMPORTED)
+set_target_properties(vidall_legacy_cxx PROPERTIES IMPORTED_LOCATION "${LEGACY_RUNTIME}")
+target_include_directories(vidall_player_native SYSTEM PRIVATE "${OHOS_SDK_NATIVE}/llvm/include/libcxx-ohos/include/c++/v1")
+target_link_libraries(vidall_player_native PRIVATE vidall_legacy_cxx)

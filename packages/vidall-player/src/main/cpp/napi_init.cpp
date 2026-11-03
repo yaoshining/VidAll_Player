@@ -444,6 +444,48 @@ public:
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         if (released_) return {false, handle, "RELEASED"};
         if (generation != generation_ || width <= 0 || height <= 0 || !rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        // Vulkan 的本地循环已返回，由 mpv core → VO 线程更新 swapchain。
+        // 此处只持有 lifecycleMutex_，不持 rendererMutex_；Detach/Release 不能销毁窗口。
+        if (renderBackend_ == vidall::render::RenderBackend::Vulkan) {
+            if (window_ == nullptr) return {false, handle, "SURFACE_UNAVAILABLE"};
+            int geometryRc = OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width, height);
+            if (geometryRc != 0) {
+                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                    "SurfaceResize session=%{public}llu generation=%{public}llu backend=vulkan requested=%{public}dx%{public}d geometryRc=%{public}d",
+                    static_cast<unsigned long long>(handle), static_cast<unsigned long long>(generation), width, height, geometryRc);
+                return {false, handle, "SURFACE_UNAVAILABLE"};
+            }
+            std::string size = std::to_string(width) + "x" + std::to_string(height);
+            int resizeRc = mpv_set_property_string(player_.get(), "ohos-surface-size", size.c_str());
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                "SurfaceResize session=%{public}llu generation=%{public}llu backend=vulkan requested=%{public}dx%{public}d geometryRc=%{public}d propertyRc=%{public}d actual=unavailable",
+                static_cast<unsigned long long>(handle), static_cast<unsigned long long>(generation), width, height, geometryRc, resizeRc);
+            if (resizeRc < 0) {
+                // 部分成功须恢复窗口；回滚失败则禁止后续播放/resize，交由重新 Attach 恢复。
+                int rollbackRc = OH_NativeWindow_NativeWindowHandleOpt(
+                    window_, SET_BUFFER_GEOMETRY, width_.load(), height_.load());
+                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                    "SurfaceResize session=%{public}llu generation=%{public}llu backend=vulkan rollbackRc=%{public}d",
+                    static_cast<unsigned long long>(handle), static_cast<unsigned long long>(generation), rollbackRc);
+                if (rollbackRc != 0) {
+                    std::lock_guard<std::mutex> renderLock(rendererMutex_);
+                    rendererReady_ = false;
+                }
+                return {false, handle, "SURFACE_UNAVAILABLE"};
+            }
+            width_ = width;
+            height_ = height;
+            // VO 报告的输出尺寸可与期望值对照；0/失败表示尚无已配置的视频输出。
+            // 该读回不是 GPU 完成栅栏，不能据此宣称新帧已显示。
+            int64_t outputWidth = 0, outputHeight = 0;
+            int widthRc = mpv_get_property(player_.get(), "osd-width", MPV_FORMAT_INT64, &outputWidth);
+            int heightRc = mpv_get_property(player_.get(), "osd-height", MPV_FORMAT_INT64, &outputHeight);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                "SurfaceResize session=%{public}llu generation=%{public}llu backend=vulkan voReported=%{public}lldx%{public}lld readbackRc=%{public}d/%{public}d",
+                static_cast<unsigned long long>(handle), static_cast<unsigned long long>(generation),
+                static_cast<long long>(outputWidth), static_cast<long long>(outputHeight), widthRc, heightRc);
+            return {true, handle, "OK"};
+        }
         width_ = width;
         height_ = height;
         geometryDirty_ = true;
