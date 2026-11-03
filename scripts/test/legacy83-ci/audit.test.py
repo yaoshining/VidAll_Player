@@ -22,8 +22,9 @@ class Audit(unittest.TestCase):
  def test_duplicate_member_rejected(self):
   with self.assertRaises(ValueError):audit.inspect_har(self.archive([('libs/arm64-v8a/libmpv.so',b'core')]*2),self.required,set(self.required))
  def test_ci_identity(self):
-  env={'GITHUB_ACTIONS':'true','GITHUB_SHA':'a'*40,'GITHUB_REPOSITORY':'yaoshining/VidAll_Player','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'1','RUNNER_ENVIRONMENT':'github-hosted','RUNNER_OS':'macOS','RUNNER_ARCH':'ARM64'}
+  env={'GITHUB_ACTIONS':'true','GITHUB_SHA':'a'*40,'GITHUB_REPOSITORY':'yaoshining/VidAll_Player','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'1','RUNNER_ENVIRONMENT':'self-hosted','RUNNER_OS':'macOS','RUNNER_ARCH':'ARM64'}
   self.assertEqual(audit.ci_identity(env,'a'*40)['sourceCommit'],'a'*40)
-  for change in [{'GITHUB_ACTIONS':'false'},{'GITHUB_SHA':'b'*40},{'GITHUB_RUN_ID':''},{'GITHUB_REPOSITORY':'other/repo'},{'RUNNER_ENVIRONMENT':'self-hosted'},{'RUNNER_OS':'Linux'},{'RUNNER_ARCH':'X64'}]:
+  self.assertEqual(audit.ci_identity({**env,'RUNNER_ARCH':'X64'},'a'*40)['runner']['architecture'],'X64')
+  for change in [{'GITHUB_ACTIONS':'false'},{'GITHUB_SHA':'b'*40},{'GITHUB_RUN_ID':''},{'GITHUB_REPOSITORY':'other/repo'},{'RUNNER_ENVIRONMENT':'github-hosted'},{'RUNNER_OS':'Linux'},{'RUNNER_ARCH':'unknown'}]:
    with self.assertRaises(ValueError):audit.ci_identity({**env,**change},'a'*40)
 if __name__=='__main__':unittest.main()

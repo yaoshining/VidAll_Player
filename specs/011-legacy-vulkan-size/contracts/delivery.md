@@ -6,7 +6,7 @@
 
 ## CI
 
-默认交付要求 `runner.environment=github-hosted`、`macOS`、`ARM64`，工作流固定 `macos-26`；实际 runner 名称进入 manifest。iMac 回退须以云端不可用为前提并单独明确告知，不得借“Actions 触发”冒充云端来源。
+本修复分支使用 iMac GitHub Actions，要求 `runner.environment=self-hosted`、`macOS`，工作流标签为 `[self-hosted, macOS, deveco]`；后续构建实际 runner 名称进入 manifest。既有 run 的 runner 来源由 Actions 记录及交付说明补充，不改写原始 manifest。明确区分 iMac CI 与云端 Mac。
 
 提交必须等于 GitHub Actions 的事件 SHA，repository 必须是 `yaoshining/VidAll_Player`，run 与 attempt 必须有效。完成测试、完整工程构建、库哈希及 ABI 检查后才能上传 `vidall_player-issue83-ci.har`、`manifest.json` 和 `SHA256SUMS`。不得以脚本替换归档成员或上传本地包冒充 CI 输出。
 

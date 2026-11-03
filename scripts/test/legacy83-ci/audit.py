@@ -19,7 +19,7 @@ def inspect_har(path,required,allowed):
   if row['path'] in required and row['sha256']!=required[row['path']]:raise ValueError('旧核心/运行库发生漂移')
  return {'harSHA256':sha(path.read_bytes()),'harBytes':path.stat().st_size,'libraries':sorted(rows,key=lambda r:r['path'])}
 def ci_identity(env,commit):
- if env.get('RUNNER_ENVIRONMENT')!='github-hosted' or env.get('RUNNER_OS')!='macOS' or env.get('RUNNER_ARCH')!='ARM64':raise ValueError('最终云端候选必须来自 GitHub 托管 ARM64 Mac；iMac 回退须单独记录并告知')
+ if env.get('RUNNER_ENVIRONMENT')!='self-hosted' or env.get('RUNNER_OS')!='macOS' or env.get('RUNNER_ARCH') not in {'ARM64','X64'}:raise ValueError('普通分支候选必须来自 iMac 自托管 macOS GitHub Actions，并记录实际运行器')
  if env.get('GITHUB_ACTIONS')!='true' or env.get('GITHUB_SHA')!=commit or env.get('GITHUB_REPOSITORY')!='yaoshining/VidAll_Player' or not re.fullmatch('[0-9a-f]{40}',commit):raise ValueError('不是真实当前 CI 提交')
  if not all(re.fullmatch('[1-9][0-9]*',env.get(k,'')) for k in ['GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT']):raise ValueError('缺少 CI run 身份')
  return {'sourceCommit':commit,'repository':env['GITHUB_REPOSITORY'],'runId':env['GITHUB_RUN_ID'],'runAttempt':env['GITHUB_RUN_ATTEMPT'],'runner':{'environment':env['RUNNER_ENVIRONMENT'],'os':env['RUNNER_OS'],'architecture':env['RUNNER_ARCH'],'name':env.get('RUNNER_NAME','')},'runURL':f"https://github.com/{env['GITHUB_REPOSITORY']}/actions/runs/{env['GITHUB_RUN_ID']}"}
