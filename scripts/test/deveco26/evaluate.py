@@ -3,6 +3,14 @@
 import shlex,subprocess,argparse,hashlib,importlib.util,json,os,platform,re,sys,tarfile,shutil
 from pathlib import Path
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[2]
+def toolchain_lock_path():
+ # 云端和 iMac 使用同版本 SDK，但宿主程序分别是 ARM64 和 Intel。
+ if os.environ.get('VIDALL_IMAC_GATE') == '1':
+  if os.environ.get('RUNNER_ENVIRONMENT') != 'self-hosted' or platform.machine() != 'x86_64':
+   raise ValueError('iMac 工具链只用于 Intel 自托管运行器')
+  return HERE / 'toolchain-imac.json'
+ return HERE / 'toolchain-lock.json'
+
 def load(name):
  p=HERE.parent/'normal-core'/(name+'.py');s=importlib.util.spec_from_file_location(name,p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 TARGET=load('ci-target');CONTEXT=load('ci-context')
@@ -107,9 +115,9 @@ def execute(root,out,studio,wrapper,common,env,timeout=1200):
  work=out/'work';work.mkdir(parents=True,exist_ok=True);rows=[];result={'passed':False,'profile':'deveco26-evaluation','commands':rows,'formalArtifactAllowed':False}
  try:
   before=CONTEXT.snapshot(root);result['sourceBefore']=before
-  lock=json.loads((HERE/'toolchain-lock.json').read_text());studio=studio.resolve();native=studio/'Contents/sdk/default/openharmony/native';node=studio/'Contents/tools/node/bin/node'
+  lock=json.loads(toolchain_lock_path().read_text());studio=studio.resolve();native=studio/'Contents/sdk/default/openharmony/native';node=studio/'Contents/tools/node/bin/node'
   identity=preflight(studio,wrapper,common,lock,platform.machine());TARGET.sdk_identity(native,lock['native'])
-  result['toolchain']=identity;result['lockSHA256']=sha(HERE/'toolchain-lock.json')
+  result['toolchain']=identity;result['lockSHA256']=sha(toolchain_lock_path())
   child={**child_environment(env,node,studio,out),'LLVM_NM':str(native/'llvm/bin/llvm-nm')}
   result['environmentIsolation']={'hvigorHomeIsolated':child['HVIGOR_USER_HOME']==str(out.resolve()/'hvigor-home'),'userHomePreserved':child.get('HOME')==env.get('HOME')}
   if Path(shutil.which('node',path=child['PATH']) or '').resolve()!=node.resolve():raise ValueError('子进程PATH选择非锁定Node')

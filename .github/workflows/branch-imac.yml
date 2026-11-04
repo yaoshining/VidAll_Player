@@ -1,0 +1,71 @@
+name: 分支构建与消费验证（iMac）
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: iMac 构建 HAR 并验证独立消费工程
+    if: github.repository == 'yaoshining/VidAll_Player' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, macOS, X64, deveco]
+    timeout-minutes: 60
+    env:
+      VIDALL_IMAC_GATE: '1'
+      STUDIO: /Applications/DevEco-Studio.app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 初始化本次构建目录和固定 CLI
+        env:
+          ACTUAL_RUNNER: ${{ runner.environment }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ACTUAL_RUNNER" == self-hosted ]]
+          echo "RUNNER_ENVIRONMENT=$ACTUAL_RUNNER" >> "$GITHUB_ENV"
+          out="$(mktemp -d "$RUNNER_TEMP/vidall-imac.XXXXXX")"
+          mkdir -p "$out/cli" "$out/work"
+          cp scripts/test/deveco26/cli/package*.json "$out/cli/"
+          echo "CI_OUT=$out" >> "$GITHUB_ENV"
+          echo "WRAPPER=$out/cli/node_modules/@deveco/deveco-cli/cli.js" >> "$GITHUB_ENV"
+          echo "COMMON=$out/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js" >> "$GITHUB_ENV"
+          "$STUDIO/Contents/tools/node/bin/node" "$STUDIO/Contents/tools/node/lib/node_modules/npm/bin/npm-cli.js" ci --prefix "$out/cli" --ignore-scripts --no-audit --no-fund
+      - name: 绑定分支提交或 PR 合并预览提交
+        id: context
+        run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
+      - name: SDK 头文件和运行库契约
+        run: |
+          export DEVECO26_SDK="$STUDIO/Contents/sdk/default/openharmony/native"
+          export DEVECO26_CMAKE="$DEVECO26_SDK/build-tools/cmake/bin/cmake"
+          python3 -B scripts/test/deveco26/runtime.test.py
+      - name: 完整构建与审计 HAR
+        id: target
+        run: python3 -B scripts/test/deveco26/evaluate.py build --out "$CI_OUT" --studio "$STUDIO" --wrapper "$WRAPPER" --common "$COMMON"
+      - name: 验证缺失公共 API 的消费端编译失败
+        id: negative
+        run: python3 -B scripts/test/deveco26-gates/consumer.py --negative-api --out "$CI_OUT" --studio "$STUDIO" --wrapper "$WRAPPER" --common "$COMMON"
+      - name: 使用同一 HAR 构建独立消费者并验证九库
+        id: consumer
+        run: python3 -B scripts/test/deveco26-gates/consumer.py --out "$CI_OUT" --studio "$STUDIO" --wrapper "$WRAPPER" --common "$COMMON"
+      - name: 使用同一 HAR 编译 Hypium 套件
+        id: hypium
+        run: python3 -B scripts/test/cloud-build/hypium.py --out "$CI_OUT" --studio "$STUDIO" --wrapper "$WRAPPER" --common "$COMMON"
+      - name: 停止本轮工程的 daemon
+        id: cleanup
+        if: always() && env.CI_OUT != ''
+        run: python3 -B scripts/test/branch-ci/stop-project.py --project . --studio "$STUDIO" --out "$CI_OUT"
+      - name: 上传通过验证的分支 HAR
+        id: har
+        uses: actions/upload-artifact@v4
+        with:
+          name: imac-har-${{ github.sha }}-${{ github.run_attempt }}
+          path: packages/vidall-player/build/default/outputs/deveco26/*.har
+          if-no-files-found: error
+          retention-days: 14

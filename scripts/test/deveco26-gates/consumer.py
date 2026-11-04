@@ -95,7 +95,7 @@ def execute(root,out,studio,wrapper,common):
   files=list((root/'packages/vidall-player/build/default/outputs/deveco26').glob('*.har'))
   if len(files)!=1:raise ValueError('不是唯一deveco26产出HAR')
   har=files[0];verify_har_digest(har,target['artifact']['harSHA256']);result['inputHAR']=target['artifact']['harSHA256'];result['libraries']=target['artifact']['libraries']
-  lock=json.loads((HERE.parent/'deveco26/toolchain-lock.json').read_text());result['toolchain']=verify_consumer_toolchain(studio,wrapper,common,lock);node=studio/'Contents/tools/node/bin/node';child=E.child_environment(dict(os.environ),node,studio,out/'consumer')
+  lock=json.loads(E.toolchain_lock_path().read_text());result['toolchain']=verify_consumer_toolchain(studio,wrapper,common,lock);node=studio/'Contents/tools/node/bin/node';child=E.child_environment(dict(os.environ),node,studio,out/'consumer')
   dest=prepare_project(root,project,har);verify_har_digest(dest,result['inputHAR'])
   result['fixtureSourceSHA256']=E.sha(project/'entry/src/main/ets/pages/Index.ets');result['fixture']='fixtures/normal-core-consumer/entry/src/main';result['publicRootAPIs']=APIS
   for name,args in [('consumer-clean',['build','clean']),('consumer-build',['build','--modules','entry@default'])]:
@@ -128,7 +128,7 @@ def negative_api(root,out,studio,wrapper,common):
   hars=list((root/'packages/vidall-player/build/default/outputs/deveco26').glob('*.har'))
   if len(hars)!=1:raise ValueError('负例缺少唯一当前HAR')
   har=hars[0];verify_har_digest(har,target['artifact']['harSHA256']);dest=prepare_project(root,project,har);before=E.sha(dest)
-  lock=json.loads((HERE.parent/'deveco26/toolchain-lock.json').read_text());verify_consumer_toolchain(studio,wrapper,common,lock);node=studio/'Contents/tools/node/bin/node';child=E.child_environment(dict(os.environ),node,studio,out/'consumer-negative')
+  lock=json.loads(E.toolchain_lock_path().read_text());verify_consumer_toolchain(studio,wrapper,common,lock);node=studio/'Contents/tools/node/bin/node';child=E.child_environment(dict(os.environ),node,studio,out/'consumer-negative')
   mutated=dest.with_suffix('.mutated.har');changes=[]
   with tarfile.open(dest) as original,tarfile.open(mutated,'w:gz') as output:
    for item in original.getmembers():

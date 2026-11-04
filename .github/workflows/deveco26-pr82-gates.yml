@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, codex/deveco26-pr82-gates]
+    branches: [main]
   merge_group:
     types: [checks_requested]
 
@@ -121,7 +121,7 @@ jobs:
 
   target-har:
     name: DevEco26 当前HAR与独立消费者
-    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.DEVECO26_APPROVED_EVENT_SHA != '' && vars.DEVECO26_APPROVED_EVENT_SHA == github.sha
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEVECO26_APPROVED_EVENT_SHA != '' && vars.DEVECO26_APPROVED_EVENT_SHA == github.sha
     environment: deveco26-build
     runs-on: macos-26
     timeout-minutes: 60
@@ -254,7 +254,7 @@ jobs:
 
   deveco26-result:
     name: 正常核心 DevEco26 组合结果
-    if: always()
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [host-contracts, target-har]
     runs-on: ubuntu-24.04
     steps:
