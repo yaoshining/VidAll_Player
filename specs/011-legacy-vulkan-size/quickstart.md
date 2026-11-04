@@ -1,9 +1,19 @@
-# 验证步骤
+# 验证 #83
 
-1. 执行 `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks`，确认当前 feature 是 `011-legacy-vulkan-size`。
-2. `npm ci --prefix scripts/test/legacy83-ci --ignore-scripts --no-audit --no-fund`。
-3. 执行 `python3 -B scripts/test/legacy83-ci/audit.test.py`、`node scripts/test/legacy83-ci/workflow.test.cjs`、`python3 native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp`、`python3 native/tests/legacy-runtime.test.py`。原有 CTest 和 ArkTS 命令见 `docs/fixes/issue-83-legacy-vulkan-size.md`。
-4. 本地预验证可通过 `devecocli build --modules vidall_player@default`；其产物仅供预验证。
-5. 推送 `codex/legacy-vulkan-size-83`，等待 iMac 自托管的 `旧基线 Vulkan 修复 HAR（iMac CI）`；失败时查日志，不交付失败包。
-6. 从该 run 下载 `legacy83-cloud-har-<提交>-<尝试>`，验证 manifest 提交/run 与 SHA256SUMS。向 TV 会话交付该 CI 包。
-7. 消费端以相同哈希完成模拟器→云平板/TV 回归，记录 Vulkan 尺寸变化、连续操作、退出/重进。失败时记录现象，保持 #84 未开始。
+## 主线集成
+
+在主线 PR 的检出目录运行以下命令。尺寸测试覆盖 Vulkan 更新、失败回滚、并发分离以及主线的运行时准入检查。
+
+```sh
+bash .specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks
+python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
+```
+
+## 旧基线 HAR
+
+需要重现 TV 消费端使用的兼容构建时，先检出[兼容分支归档](https://github.com/yaoshining/VidAll_Player/tree/32bb822)。在该归档的仓库根目录执行以下步骤。
+
+1. 安装审计和测试依赖，执行 `npm ci --prefix scripts/test/legacy83-ci --ignore-scripts --no-audit --no-fund`。
+2. 执行 `python3 -B scripts/test/legacy83-ci/audit.test.py`、`node scripts/test/legacy83-ci/workflow.test.cjs`、`python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp` 和 `python3 -B native/tests/legacy-runtime.test.py`。原有 CTest 和 ArkTS 命令见归档中的 `docs/fixes/issue-83-legacy-vulkan-size.md`。
+3. 本地可用 `devecocli build --modules vidall_player@default` 预验证。兼容分支的 GitHub Actions 在 iMac 自托管运行器上完整构建并上传 HAR。
+4. 从[已验收包的构建记录](https://github.com/yaoshining/VidAll_Player/actions/runs/41640263079)获取 `legacy83-ci-har-2808387bca4f6f7bf2b2d2057e547f6708dd9035-1`。核对附件中的 manifest 和 SHA256SUMS，再对照[设备回执](evidence.md#最终设备回执)中的 HAR 与 HAP 哈希。
