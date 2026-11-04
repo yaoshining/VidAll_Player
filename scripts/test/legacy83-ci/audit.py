@@ -43,16 +43,19 @@ def main():
   for architecture in ['arm64-v8a','x86_64']:
    bridge=extracted[f'libs/{architecture}/libvidall_player_native.so'];runtime=extracted[f'libs/{architecture}/libc++_shared.so']
    imports=symbols(llvm/'llvm-nm',bridge);deps=needed(llvm/'llvm-readelf',bridge);baseline=lock['abi'][architecture]
-   if imports!=baseline['imports'] or deps!=baseline['needed']:raise ValueError('桥接库依赖/导入集合变化：'+architecture)
+   added=sorted(set(imports)-set(baseline['imports']))
+   removed=sorted(set(baseline['imports'])-set(imports))
+   expected=['eglGetError','eglQuerySurface'] if architecture=='arm64-v8a' else []
+   if added!=expected or removed or deps!=baseline['needed']:raise ValueError(f'{architecture} 桥接库依赖/导入变化：新增 {added}，删除 {removed}，依赖 {deps}')
    exports=set(symbols(llvm/'llvm-nm',runtime,True));cpp={s for s in imports if s.startswith(('_ZNSt','_ZNKSt','_ZT','__cxa','_Unwind','_Zdl','_Zda','_Znw','_Zna'))}
    missing=sorted(cpp-exports-{'__cxa_atexit','__cxa_finalize'})
    if missing:raise ValueError('固定运行库不满足 C++ 导入')
-   abi[architecture]={'imports':imports,'needed':deps,'missingCxxImports':missing,'matchesOriginalHar':True}
+   abi[architecture]={'imports':imports,'needed':deps,'missingCxxImports':missing,'addedImports':added,'removedImports':removed,'matchesOriginalHar':not added}
   module=next(m for m in archive.getmembers() if m.name.endswith('src/main/module.json'));result['module']=json.loads(archive.extractfile(module).read())
  result['abi']=abi
  contents=args.studio/'Contents';studio=json.loads((contents/'Resources/product-info.json').read_text());sdk=json.loads((native/'oh-uni-package.json').read_text())
  result['toolchain']={'studioVersion':studio.get('version'),'nativeSdk':sdk,'node':command([contents/'tools/node/bin/node','--version']),'compiler':command([llvm/'clang','--version']),'cli':json.loads((HERE/'node_modules/@deveco/deveco-cli/package.json').read_text())['version'],'hashes':{str(p.relative_to(contents)):sha(p.read_bytes()) for p in [contents/'Resources/product-info.json',native/'oh-uni-package.json',llvm/'clang',llvm/'llvm-nm',llvm/'llvm-readelf']}}
  result['validation']={'devicePlayback':False,'ffmpegBuilt':False,'otherProjectTriggered':False,'artifactOrigin':'GitHub Actions 完整 Player 工程构建'}
- shutil.copyfile(har,out/'vidall_player-issue83-ci.har');(out/'manifest.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(out/'SHA256SUMS').write_text(result['harSHA256']+'  vidall_player-issue83-ci.har\n')
+ shutil.copyfile(har,out/'vidall_player-issue84-ci.har');(out/'manifest.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(out/'SHA256SUMS').write_text(result['harSHA256']+'  vidall_player-issue84-ci.har\n')
  print(json.dumps({'sourceCommit':commit,'runURL':result['runURL'],'harSHA256':result['harSHA256'],'bytes':result['harBytes']},ensure_ascii=False))
 if __name__=='__main__':main()
