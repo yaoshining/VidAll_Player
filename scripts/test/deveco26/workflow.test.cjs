@@ -1,34 +1,31 @@
-// 使用已锁定YAML解析器检查每个步骤，全文token不能证明失败证据路径。
-const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const YAML=require('../normal-core/node_modules/yaml');
-const root=path.resolve(__dirname,'../../..');
-function verify(text){
- try{
- const doc=YAML.parse(text),jobs=doc.jobs,job=jobs.evaluation;
- assert.deepEqual(Object.keys(jobs),['evaluation']);
- assert.deepEqual(doc.on,{push:{branches:['codex/deveco26-evaluation']}});
- assert.equal(job['runs-on'],'macos-26');assert.equal(doc.permissions.contents,'read');
- const steps=job.steps,ids=Object.fromEntries(steps.filter(x=>x.id).map(x=>[x.id,x]));
- for(const id of ['context','contracts','bootstrap','runtime','target','cleanup','public_gate','upload','assess'])assert.ok(ids[id]);
- for(const id of ['cleanup','public_gate','assess'])assert.equal(ids[id].if,'always()');
- assert.equal(ids.upload.if,"always() && steps.public_gate.outcome == 'success'");
- assert.equal(ids.upload.uses,'actions/upload-artifact@v4');assert.equal(ids.upload.with['if-no-files-found'],'error');
- assert.match(ids.context.run,/ci-context\.py/);assert.match(ids.target.run,/evaluate\.py build/);assert.match(ids.public_gate.run,/evaluate\.py finish/);assert.match(ids.assess.run,/evaluate\.py assess/);assert.match(ids.cleanup.run,/bootstrap\.py cleanup/);
- assert.match(ids.runtime.run,/runtime\.test\.py/);assert.match(ids.runtime.run,/export DEVECO26_SDK=/);assert.match(ids.runtime.run,/export DEVECO26_CMAKE=/);
- assert.ok(steps.indexOf(ids.bootstrap)<steps.indexOf(ids.runtime));assert.ok(steps.indexOf(ids.runtime)<steps.indexOf(ids.target));
- assert.equal(ids.bootstrap.env.DEVECO26_ARCHIVE_URL,'${{ secrets.DEVECO26_ARCHIVE_URL }}');
- for(const step of steps)if(step!==ids.bootstrap)assert.ok(!JSON.stringify(step).includes('secrets.'));
- const checkout=steps.find(x=>x.uses==='actions/checkout@v4');assert.equal(checkout.with['persist-credentials'],false);assert.ok(!checkout.with.ref);
- return true;
- }catch{return false;}
+// 手动云构建从 main 固定控制脚本和 SDK，再检出用户选择的仓内提交。
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const yaml = require('../normal-core/node_modules/yaml');
+const workflow = yaml.parse(fs.readFileSync(path.resolve(__dirname, '../../../.github/workflows/deveco26-evaluation.yml'), 'utf8'));
+function verify(w) {
+  assert.deepEqual(Object.keys(w.on), ['workflow_dispatch']);
+  assert(w.on.workflow_dispatch.inputs.branch.required);
+  assert.equal(w.jobs.resolve.if, "github.ref == 'refs/heads/main'");
+  const job = w.jobs.evaluation;
+  assert.equal(job.needs, 'resolve');
+  assert.equal(job.environment, 'deveco26-build');
+  assert.equal(job['runs-on'], 'macos-26');
+  const steps = job.steps;
+  const prepare = steps.findIndex(s => s.id === 'bootstrap');
+  const source = steps.findIndex(s => s.id === 'source');
+  assert(prepare > 0 && source > prepare);
+  assert.equal(steps[source].with.ref, '${{ needs.resolve.outputs.commit }}');
+  assert.equal(steps[source].with['persist-credentials'], false);
+  assert.equal(steps[prepare].env.DEVECO26_RELEASE_READ_TOKEN, '${{ secrets.DEVECO26_RELEASE_READ_TOKEN }}');
+  for (const step of steps.filter(s => s.id !== 'bootstrap')) assert(!JSON.stringify(step).includes('secrets.'));
+  assert.equal(steps.find(s => s.id === 'cleanup').if, 'always()');
+  assert(steps.findIndex(s => s.id === 'upload') > steps.findIndex(s => s.id === 'cleanup'));
 }
-const original=fs.readFileSync(path.join(root,'.github/workflows/deveco26-evaluation.yml'),'utf8');
-assert.ok(verify(original),'当前独立工作流不满足门禁');
-let rejected=0;
-for(const id of ['cleanup','public_gate','upload','assess']){
- const doc=YAML.parse(original);doc.jobs.evaluation.steps.find(x=>x.id===id).if='success()';assert.equal(verify(YAML.stringify(doc)),false,`${id}失败路径变异被接受`);rejected++;
+verify(workflow);
+for (const mutate of [w => w.on.push={}, w => w.jobs.resolve.if='true', w => delete w.jobs.evaluation.environment,
+  w => w.jobs.evaluation.steps.find(s => s.id === 'source').with.ref='${{ inputs.branch }}']) {
+  const changed=structuredClone(workflow); mutate(changed); assert.throws(() => verify(changed));
 }
-for(const id of ['context','contracts','bootstrap','runtime','target','cleanup','public_gate','upload','assess']){
- const doc=YAML.parse(original);doc.jobs.evaluation.steps=doc.jobs.evaluation.steps.filter(x=>x.id!==id);assert.equal(verify(YAML.stringify(doc)),false);rejected++;
-}
-console.log(JSON.stringify({passed:true,structuralChecks:true,mutantsRejected:rejected}));
+console.log('手动云构建来源、审批和分支锁定检查通过');

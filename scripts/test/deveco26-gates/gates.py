@@ -11,9 +11,14 @@ s=importlib.util.spec_from_file_location('device_package010',HERE.parent/'device
 HYP=load_cloud('hypium');HOST=load_cloud('host');PRODUCER=load_cloud('producer-input')
 def identity(data):
  return isinstance(data,dict) and set(data)=={'checkoutSHA','treeSHA','trackedBytesSHA256'} and all(isinstance(data.get(k),str) and re.fullmatch('[0-9a-f]{'+str(n)+'}',data[k]) for k,n in [('checkoutSHA',40),('treeSHA',40),('trackedBytesSHA256',64)])
-def trusted(context,approved):
- sha=context.get('checkoutSHA','')
- return bool(re.fullmatch('[0-9a-f]{40}',sha) and approved==sha==context.get('eventSHA') and context.get('passed') is True and context.get('trustedTarget') is True and context.get('repository')=='yaoshining/VidAll_Player' and context.get('event') in {'pull_request','push','merge_group'} and (context.get('event')!='pull_request' or context.get('headRepository')==context['repository']))
+def trusted(context, event_sha):
+ return (
+  re.fullmatch('[0-9a-f]{40}', event_sha) is not None
+  and event_sha == context.get('eventSHA') == context.get('checkoutSHA')
+  and context.get('passed') is True and context.get('trustedTarget') is True
+  and context.get('repository') == 'yaoshining/VidAll_Player'
+  and context.get('event') == 'push' and context.get('ref') == 'refs/heads/main'
+ )
 def verdict(needs,expected):
  try:
   if set(needs)!={'host-contracts','target-har'} or any(v.get('result')!='success' for v in needs.values()):return False
@@ -70,7 +75,10 @@ def main():
  if a.mode=='assess':return 0 if json.loads((a.out/'public/gate-summary.json').read_text()).get('passed') else 1
  context=json.loads((a.out/'work/context.json').read_text());source={k:context[k] for k in ['checkoutSHA','treeSHA','trackedBytesSHA256']};E.CONTEXT.assert_snapshot(ROOT,source)
  if a.mode=='trust':
-  good=trusted(context,os.environ.get('DEVECO26_APPROVED_EVENT_SHA',''));(a.out/'work/trust.json').write_text(json.dumps({'passed':good,'approvedSHA':os.environ.get('DEVECO26_APPROVED_EVENT_SHA',''),'eventSHA':context.get('eventSHA'),'formalArtifactAllowed':False})+'\n');return 0 if good else 1
+  good = trusted(context, os.environ.get('GITHUB_SHA', ''))
+  record = {'passed': good, 'eventSHA': context.get('eventSHA'), 'ref': context.get('ref'), 'formalArtifactAllowed': False}
+  (a.out/'work/trust.json').write_text(json.dumps(record) + '\n')
+  return 0 if good else 1
  if not json.loads((a.out/'public/ci-status.json').read_text()).get('stepsPassed') or not host_proof(a.out,source):return 1
  output('source',source);return 0
 if __name__=='__main__':raise SystemExit(main())

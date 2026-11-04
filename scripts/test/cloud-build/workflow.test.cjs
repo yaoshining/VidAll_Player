@@ -5,17 +5,27 @@ const root=path.resolve(__dirname,'../../..');
 function verify(all){
  for(const [file,w] of Object.entries(all))for(const [id,j] of Object.entries(w.jobs)){
   if(JSON.stringify(j['runs-on']).includes('self-hosted')){
+   if(file==='branch-imac.yml' && id==='verify') {
+    assert.deepEqual(j['runs-on'],['self-hosted','macOS','X64','deveco']);
+    assert.deepEqual(w.on.push,{'branches-ignore':['main']});
+    assert.deepEqual(w.on.pull_request,{branches:['main']});
+    assert(!w.on.pull_request_target && !j.environment && !JSON.stringify(w).includes('secrets.'));
+    assert.equal(j.if,"github.repository == 'yaoshining/VidAll_Player' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)");
+    for(const id of ['context','target','negative','consumer','hypium','cleanup','har']) assert(j.steps.some(step=>step.id===id));
+    continue;
+   }
    assert(file==='device-evidence-manual.yml'&&id==='collect','构建仍派发self-hosted');
    // 唯一手动只读收证入口必须满足完整专用契约；不豁免整个workflow。
    require('../device-execution/manual-workflow.test.cjs').verify(w);
   }
  }
+ assert(all['branch-imac.yml']?.jobs?.verify);
  const old=all['normal-core.yml'];assert.deepEqual(Object.keys(old.on),['workflow_dispatch']);assert(!old.jobs['target-har']&&!old.jobs['normal-core-result']);
  const source=all['build-libmpv.yml'];assert(!source.jobs['build-libmpv-external-ffmpeg']&&!source.jobs['cross-build-prerequisites']);
  assert(source.jobs['native-contracts']&&source.jobs['clean-environment']);assert(JSON.stringify(source).includes('cloud-build/producer-input.py'));
  const gate=all['deveco26-pr82-gates.yml'],host=gate.jobs['host-contracts'],target=gate.jobs['target-har'];
  assert(host.steps.some(s=>s.run?.includes('device-execution/controller.test.py')));
- assert.equal(target['runs-on'],'macos-26');assert(target.if.includes('vars.DEVECO26_APPROVED_EVENT_SHA == github.sha'));assert.equal(target.environment,'deveco26-build');
+ assert.equal(target['runs-on'],'macos-26');assert.equal(target.if,"github.event_name == 'push' && github.ref == 'refs/heads/main'");assert.equal(target.environment,'deveco26-build');
  for(const id of ['native_legacy','producer_input'])assert(host.steps.some(s=>s.id===id&&!s.if&&!s['continue-on-error']));
  assert(target.steps.some(s=>s.id==='hypium'&&s.run.includes('cloud-build/hypium.py')&&!s.if&&!s['continue-on-error']));
  assert(target.steps.find(s=>s.id==='hypium').run.indexOf('signing')<0);

@@ -98,7 +98,7 @@ def prepare(out,archive=None):
  result['elapsedSeconds']=round(time.monotonic()-start,3);(work/'bootstrap-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');return result
 
 def verify_cleanup_tools(studio):
- lock=json.loads((HERE/'toolchain-lock.json').read_text())
+ lock=json.loads(E.toolchain_lock_path().read_text())
  for rel in ['tools/node/bin/node','tools/hvigor/bin/hvigorw.js']:
   if E.sha(studio/'Contents'/rel)!=lock['studioFiles'][rel]:raise ValueError('cleanup工具身份不符')
 def owned_daemon_pids(out):

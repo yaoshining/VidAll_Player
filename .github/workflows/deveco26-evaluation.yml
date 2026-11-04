@@ -1,15 +1,44 @@
-name: DevEco26 独立评估（非原门禁替代）
-
+name: 手动云端 Mac 构建指定分支
 on:
-  push:
-    branches: [codex/deveco26-evaluation]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 仓内待构建分支（上方工作流运行分支请选择 main）
+        type: string
+        required: true
+      target:
+        description: Player 模块目标
+        type: choice
+        options: [default, deveco26]
+        default: default
 
 permissions:
   contents: read
 
 jobs:
+  resolve:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.pin.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: 在审批前锁定仓内分支提交
+        id: pin
+        env:
+          BRANCH: ${{ inputs.branch }}
+        run: |
+          set -euo pipefail
+          git check-ref-format "refs/heads/$BRANCH"
+          commit="$(git ls-remote --exit-code --refs origin "refs/heads/$BRANCH" | cut -f1)"
+          [[ "$commit" =~ ^[0-9a-f]{40}$ ]]
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
   evaluation:
-    name: 官方ARM64与固定八库评估
+    name: 云端构建 ${{ inputs.branch }}（${{ needs.resolve.outputs.commit }}）
+    needs: resolve
+    environment: deveco26-build
     runs-on: macos-26
     timeout-minutes: 60
     steps:
@@ -17,67 +46,65 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: 初始化独立证据目录
-        shell: bash
+      - name: 记录主线工作流身份并初始化
         run: |
           set -euo pipefail
-          CI_OUT="$RUNNER_TEMP/deveco26-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          mkdir -p "$CI_OUT/work"
-          printf '%s\n' "CI_OUT=$CI_OUT" >> "$GITHUB_ENV"
-      - name: 绑定实际事件提交
-        id: context
-        run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
-      - name: 契约测试（不冒充目标构建）
-        id: contracts
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -B scripts/test/deveco26/contract.test.py 2>&1 | tee "$CI_OUT/work/contracts.log"
-          python3 -B scripts/test/deveco26/bootstrap.test.py 2>&1 | tee "$CI_OUT/work/bootstrap-tests.log"
-          npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
-          node scripts/test/deveco26/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/workflow-tests.log"
-      - name: 精确归档和CLI准备（缺少一次性来源明确失败）
+          out="$RUNNER_TEMP/manual-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          mkdir -p "$out/work" "$out/source-build/work"
+          echo "CI_OUT=$out" >> "$GITHUB_ENV"
+          echo "STUDIO=$out/environment/mounted/DevEco-Studio.app" >> "$GITHUB_ENV"
+          python3 -B scripts/test/normal-core/ci-context.py --out "$out/work"
+      - name: 使用主线脚本准备已锁定的私有 SDK
         id: bootstrap
         env:
-          DEVECO26_ARCHIVE_URL: ${{ secrets.DEVECO26_ARCHIVE_URL }}
-        run: python3 -B scripts/test/deveco26/bootstrap.py prepare --out "$CI_OUT"
-      - name: 挂载SDK的真实CMake与目标头文件回归
-        id: runtime
-        shell: bash
+          DEVECO26_RELEASE_READ_TOKEN: ${{ secrets.DEVECO26_RELEASE_READ_TOKEN }}
+        run: python3 -B scripts/test/deveco26/release-source.py --out "$CI_OUT"
+      - uses: actions/checkout@v4
+        id: source
+        with:
+          ref: ${{ needs.resolve.outputs.commit }}
+          path: source
+          persist-credentials: false
+      - name: 构建审批时选定的源码和模块
+        working-directory: source
+        env:
+          SOURCE_SHA: ${{ needs.resolve.outputs.commit }}
+          TARGET: ${{ inputs.target }}
         run: |
           set -euo pipefail
-          export DEVECO26_SDK="$CI_OUT/environment/mounted/DevEco-Studio.app/Contents/sdk/default/openharmony/native"
-          export DEVECO26_CMAKE="$DEVECO26_SDK/build-tools/cmake/bin/cmake"
-          python3 -B scripts/test/deveco26/runtime.test.py 2>&1 | tee "$CI_OUT/work/runtime-tests.log"
-      - name: 显式工具身份与单次clean及unsigned HAR
-        id: target
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -B scripts/test/deveco26/evaluate.py build --out "$CI_OUT" \
-            --studio "$CI_OUT/environment/mounted/DevEco-Studio.app" \
-            --wrapper "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js" \
-            --common "$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli-common/dist/cli.js"
-      - name: 卸载本次只读挂载
+          [[ "$TARGET" == default || "$TARGET" == deveco26 ]]
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          export HVIGOR_USER_HOME="$CI_OUT/source-build/hvigor-home" DEVECO_CLI_STUDIO_PATH="$STUDIO" DEVECO_CLI_SKIP_VERSION_CHECK=1
+          node="$STUDIO/Contents/tools/node/bin/node"
+          cli="$CI_OUT/environment/cli/node_modules/@deveco/deveco-cli/cli.js"
+          "$node" "$cli" build clean
+          "$node" "$cli" build --modules "vidall_player@$TARGET"
+          shopt -s nullglob
+          files=(packages/vidall-player/build/default/outputs/"$TARGET"/*.har)
+          [[ ${#files[@]} -eq 1 ]]
+          mkdir -p "$CI_OUT/artifact"
+          cp "${files[0]}" "$CI_OUT/artifact/"
+          cd "$CI_OUT/artifact"
+          shasum -a 256 *.har > SHA256SUMS
+          printf '%s\n' "$SOURCE_SHA" > SOURCE_COMMIT
+      - name: 清理构建进程和只读挂载
         id: cleanup
         if: always()
-        run: python3 -B scripts/test/deveco26/bootstrap.py cleanup --out "$CI_OUT"
-      - name: 收集成功与失败脱敏文本
-        id: public_gate
-        if: always()
-        env:
-          CI_STEPS: ${{ toJSON(steps) }}
-        run: python3 -B scripts/test/deveco26/evaluate.py finish --out "$CI_OUT"
-      - name: 上传公开文本（不含SDK或HAR）
+        shell: bash
+        run: |
+          set -u
+          [[ -n "${CI_OUT:-}" ]] || exit 0
+          rc=0
+          if [[ -d "$CI_OUT/source-build/hvigor-home" ]]; then
+            python3 -B scripts/test/branch-ci/stop-project.py --project source --studio "$STUDIO" --out "$CI_OUT/source-build" || rc=1
+          fi
+          python3 -B scripts/test/deveco26/bootstrap.py cleanup --out "$CI_OUT" || rc=1
+          exit "$rc"
+      - name: 上传已核验的手动云构建产物
         id: upload
-        if: always() && steps.public_gate.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: deveco26-evaluation-${{ github.sha }}-${{ github.run_attempt }}
-          path: ${{ env.CI_OUT }}/public/
+          name: cloud-har-${{ needs.resolve.outputs.commit }}-${{ github.run_attempt }}
+          path: ${{ env.CI_OUT }}/artifact/
           if-no-files-found: error
           retention-days: 14
-      - name: 缺失或失败证据禁止通过
-        id: assess
-        if: always()
-        run: python3 -B scripts/test/deveco26/evaluate.py assess --out "$CI_OUT"

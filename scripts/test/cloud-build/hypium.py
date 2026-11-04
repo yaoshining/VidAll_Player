@@ -47,7 +47,7 @@ def execute(root,out,studio,wrapper,common):
   result['sourceBefore']=source;hars=list((root/'packages/vidall-player/build/default/outputs/deveco26').glob('*.har'))
   if len(hars)!=1:raise ValueError('缺少唯一当次HAR')
   har=hars[0];result['inputHAR']=target['artifact']['harSHA256'];C.verify_har_digest(har,result['inputHAR']);libraries=target['artifact']['libraries']
-  lock=json.loads((HERE.parent/'deveco26/toolchain-lock.json').read_text());result['toolchain']=C.verify_consumer_toolchain(studio,wrapper,common,lock);node=studio/'Contents/tools/node/bin/node';child=E.child_environment(dict(os.environ),node,studio,out/'hypium')
+  lock=json.loads(E.toolchain_lock_path().read_text());result['toolchain']=C.verify_consumer_toolchain(studio,wrapper,common,lock);node=studio/'Contents/tools/node/bin/node';child=E.child_environment(dict(os.environ),node,studio,out/'hypium')
   prepared=prepare_project(root,project,har);result.update(suiteNames=prepared['suites'],stagedSources=prepared['sources'],mode=prepared['mode']);dest=project/'entry/libs/current.har'
   for name,args in [('hypium-clean',['build','clean']),('hypium-build',['build','--modules','entry@ohosTest'])]:
    output=E.TARGET.command(name,[node,wrapper,*args],project,child,work,rows,1200)
