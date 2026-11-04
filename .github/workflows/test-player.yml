@@ -64,6 +64,8 @@ jobs:
           node-version: '22'
       - name: 安装锁定TypeScript
         run: npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
+      - name: Vulkan 尺寸通知与回滚回归
+        run: python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
       - name: 完整真实宿主回归
         run: python3 -B scripts/test/cloud-build/host.py --out "$RUNNER_TEMP/legacy-native"
       - name: 保存失败和成功文本

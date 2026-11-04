@@ -1,1 +1,3 @@
-{"feature_directory":"specs/010-cloud-build-device-execution"}
+{
+  "feature_directory": "specs/011-legacy-vulkan-size"
+}

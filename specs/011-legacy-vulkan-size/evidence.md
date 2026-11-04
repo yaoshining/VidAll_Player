@@ -1,0 +1,59 @@
+# #83 iMac CI 验收候选记录
+
+最新状态（2026-11-04）：TV 会话和用户确认 #83 通过。以下来源调整和待测状态按发生时间保留。
+
+## CI 身份（历史已完成）
+
+- GitHub Actions：[41640263079，attempt 1](https://github.com/yaoshining/VidAll_Player/actions/runs/41640263079)，2026-11-03，成功。
+- 构建提交：`2808387bca4f6f7bf2b2d2057e547f6708dd9035`，分支 `codex/legacy-vulkan-size-83`。
+- 产物附件：`legacy83-ci-har-2808387bca4f6f7bf2b2d2057e547f6708dd9035-1`，artifact ID `13233185847`。
+- 附件 ZIP digest：`sha256:d9fd75e212f87496486cb8592d2b7be08a6a69ec00356225a807e8b2f8d5b275`，区别于包内 HAR 哈希。
+- 文件：`vidall_player-issue83-ci.har`，7,401,421 字节。
+- HAR SHA-256：`8350234e956dd02c0d4265a79c91f1ef832755a2c7349ad2eb3fbb3f250add8e`。
+- 实际 CI 工具链：Studio 26.0.0.851、Native SDK 26.0.0.105、CLI 1.3.4。目标 API 22、最低 API 15 保持不变。
+- 主机测试、完整 Player HAR 构建、事件提交身份、库哈希/ABI 审计及上传全部通过。未安装设备、未修改或构建 FFmpeg、未触发其他项目。
+
+## 库身份（下载后复核）
+
+| 成员 | SHA-256 |
+| --- | --- |
+| ARM64 libmpv | `3ae9969ac13a58aaa5827520a44e56461f566aff66b9bdd7fe4b78f0da31b076` |
+| ARM64 libc++ | `9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042` |
+| ARM64 bridge | `1d32d08a5f4ebce5832d9ad59792b676f1fda1c2bf33d13e1a57644a3fc1fed4` |
+| x86_64 libc++ | `c65b4e92e52bdbf170d0c11a02c2e3b280fd140c4b8a764e40d8d4875e5ce944` |
+| x86_64 bridge | `a16489a43e9ea0123b23e4eda357e970316ce3ffb16b7827edf90552d27d10f6` |
+
+核心和运行库逐字节保持旧 HAR；两个 bridge 的动态库依赖与导入符号集合与原包相同。HAR 从 Actions 附件直接下载，未替换任何成员。
+
+## 消费端交接历史
+
+已通知“实施 VidAll_TV 平板适配”会话使用 `8350234e…` CI 包，取代 `36592128…` 本地预验证包。等待按模拟器→云平板/TV 顺序反馈当前包的尺寸变化、退出/重进结果。x86_64 仍仅探针。
+
+T009/T010 是历史临时 CI 记录；云端 T014/T015 和设备 T011/T012 保持未完成。CI 成功不等于 #83 设备验收或发布完成；#84 尚不能继续实施。
+
+本记录是构建后的证据补记；后续仅修改本记录和任务状态不会改变上述 CI 构建提交或产物身份。
+
+## 2026-11-04 云端工作流启动检查
+
+- 云端尝试 [41645063258](https://github.com/yaoshining/VidAll_Player/actions/runs/41645063258) 在任务创建前失败，未生成 HAR。不能作为云端构建通过证据。
+- 查出作业级 `env` 错误使用 `runner.environment`，按 [GitHub 上下文适用范围](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability) 移至审计步骤的 `env`。
+- 先添加回归断言，原工作流失败；修正后 `workflow.test.cjs` 通过。播放器源码未改动。
+- 受保护环境新增精确分支及本轮提交校验变量仍等待用户授权，未修改环境权限；不将此等待视为云端不可用，也不回退 iMac。
+
+## 2026-11-04 恢复消费端验证
+
+云端配置修正后 run `41716399238` 被环境分支准入拒绝，未生成 HAR。用户随后选择普通分支使用 iMac，故撤销扩大环境权限及新增校验变量的提案，不修改既有环境设置。
+
+已重新核对上述 HAR SHA-256 并向 TV 会话发送恢复验证通知。源包、构建提交及库身份不变，可沿用同一哈希包的既有证据，继续未完成的云平板 Vulkan 和 TV 回归；不重复构建已交付包，也不把配置调整后的分支 HEAD 冒充该 HAR 的源码提交。T014/T015 取消，T011/T012 待消费端反馈。
+
+## 最终设备回执
+
+2026-11-04，VidAll_TV 消费端及用户确认旧基线 #83 验收通过。CI HAR SHA-256 为 `8350234e956dd02c0d4265a79c91f1ef832755a2c7349ad2eb3fbb3f250add8e`，消费端 HAP SHA-256 为 `9cef53885489f6a01cc661004f2dfe40cc83d38e1440207c56539f722020d202`。
+
+| 环境 | 同包观测 |
+| --- | --- |
+| API 22 ARM 平板模拟器 | AV 与 MPV 软件渲染通过暂停、拖动、返回续播。 |
+| MatePad Air WKI-W10，API 26 | MPV Vulkan / gpu-next 从 2800×1684 转到 1840×2644。横屏暂停转竖屏保持时间码 00:00:17:23，恢复和拖动后的新帧保留完整画面，返回列表重开后续播。 |
+| EDIS-790A 家庭电视 | Vulkan 请求 3840×2160，窗口与属性返回码均为 0。暂停、快进 15 秒、返回列表后重开续播、收藏页上下焦点均通过。 |
+
+消费端档案为 VidAll_TV 的 `openspec/changes/adapt-harmonyos-tablet/player83-ci-retest-2026-11-03.md`。电视的 VO 读回为 0×0。最低 API 平板、真实音频听感与 HDR 仍属未覆盖场景。T011、T012 完成，T014、T015 按此前决定取消。后续 #84 单独跟踪。
