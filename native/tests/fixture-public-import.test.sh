@@ -10,7 +10,7 @@ readonly TEST_MODULE="$FIXTURE/src/ohosTest/module.json5"
 readonly TEST_FILE="$FIXTURE/src/ohosTest/ets/test/PublicImport.test.ets"
 
 fail() { echo "测试失败：$*" >&2; exit 1; }
-require_contains() { rg -q --fixed-strings "$2" "$1" || fail "$1 缺少：$2"; }
+require_contains() { grep -Fq -- "$2" "$1" || fail "$1 缺少：$2"; }
 
 # fixture 使用源码依赖，避免全新检出时 ohpm install 依赖尚未生成的 HAR。
 # 此静态测试只证明公开入口约束；打包后的 HAR 消费与设备装载需另行验收。
@@ -25,5 +25,5 @@ require_contains "$TEST_FILE" "from '@vidall/player'"
 require_contains "$TEST_FILE" 'createPlayer()'
 require_contains "$TEST_FILE" 'await player.release()'
 for forbidden in 'src/native' 'libvidall_player_native.so' 'libentry' 'NativeWindow' 'EGL' 'GLES' 'AVPlayer'; do
-  ! rg -q --fixed-strings "$forbidden" "$PAGE" "$PACKAGE" "$MODULE" "$TEST_FILE" || fail "fixture 泄露或依赖受限符号：$forbidden"
+  ! grep -Fq -- "$forbidden" "$PAGE" "$PACKAGE" "$MODULE" "$TEST_FILE" || fail "fixture 泄露或依赖受限符号：$forbidden"
 done
