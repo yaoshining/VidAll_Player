@@ -20,6 +20,9 @@ on:
       - 'oh-package-lock.json5'
       - '.github/workflows/test-player.yml'
       - 'scripts/test/cloud-build/**'
+      - 'scripts/release/*candidate-integrity.py'
+      - 'scripts/release/*source-consistency.py'
+      - 'fixtures/libmpv-player-consumer/**'
       - 'scripts/signing/**'
       - 'signing/README.md'
   push:
@@ -42,6 +45,9 @@ on:
       - 'oh-package-lock.json5'
       - '.github/workflows/test-player.yml'
       - 'scripts/test/cloud-build/**'
+      - 'scripts/release/*candidate-integrity.py'
+      - 'scripts/release/*source-consistency.py'
+      - 'fixtures/libmpv-player-consumer/**'
       - 'scripts/signing/**'
       - 'signing/README.md'
   workflow_dispatch:
@@ -64,6 +70,11 @@ jobs:
           node-version: '22'
       - name: 安装锁定TypeScript
         run: npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
+      - name: 校验发布审计工具和示例公开入口
+        run: |
+          python3 -B scripts/release/test-candidate-integrity.py
+          python3 -B scripts/release/test-source-consistency.py
+          bash native/tests/fixture-public-import.test.sh
       - name: Vulkan 尺寸通知与回滚回归
         run: python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
       - name: 完整真实宿主回归
