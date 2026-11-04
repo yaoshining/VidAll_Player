@@ -516,8 +516,12 @@ public:
     {
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         if (released_) return {false, handle, "RELEASED"};
-        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
-        if (uri.empty()) return {false, handle, "INPUT_INVALID"};
+        // ArkTS 对每次已验证的 load 递增代次，表面暂不可用时也要与它保持同步。
+        const auto request = BeginCompletion();
+        if (!rendererReady_ || uri.empty()) {
+            InvalidateCompletion();
+            return {false, handle, uri.empty() ? "INPUT_INVALID" : "SURFACE_UNAVAILABLE"};
+        }
         // direct smb:// 走 FFmpeg 的 demuxer-lavf-o/stream-lavf-o username=/password= 选项
         // 认证（libsmbclient 已静态进入宿主统一打包的 libavformat.so），不走 HTTP header；其余来源仍使用
         // http-header-fields 转发 WebDAV/HTTP(S) 鉴权头。每次 load 都重设两类选项，避免
@@ -530,7 +534,6 @@ public:
         mpv_set_option_string(player_.get(), "demuxer-lavf-o", smbOptions.c_str());
         mpv_set_option_string(player_.get(), "stream-lavf-o", smbOptions.c_str());
         const char* command[] = {"loadfile", uri.c_str(), "replace", nullptr};
-        const auto request = BeginCompletion();
         if (mpv_command_async(player_.get(), request, command) < 0) {
             InvalidateCompletion();
             return {false, handle, "NATIVE_PLAYBACK_FAILED"};

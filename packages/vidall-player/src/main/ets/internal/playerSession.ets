@@ -353,7 +353,7 @@ export class PlayerSession implements VidAllPlayer {
       // 因此可以安全地把首帧证据转译为公开的 playing 状态与 firstFrame 事件。
       if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
-        this.stateMachine.getState() !== 'playing') {
+        this.stateMachine.getState() !== 'playing' && this.stateMachine.getState() !== 'completed') {
         this.stateMachine.transition('playing');
         this.stateMachine.emit({ type: 'firstFrame', sequence: event.sequence, surfaceGeneration: event.surfaceGeneration });
       }
@@ -364,7 +364,7 @@ export class PlayerSession implements VidAllPlayer {
       const state = this.stateMachine.getState();
       if (this.loadedRequest === this.mediaRequest &&
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
-        (state === 'playing' || state === 'paused' || state === 'buffering') &&
+        (state === 'preparing' || state === 'playing' || state === 'paused' || state === 'buffering') &&
         this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence)) {
         this.stateMachine.transition('completed');
       }

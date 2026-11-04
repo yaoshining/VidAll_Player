@@ -17,9 +17,8 @@ end_block=source[start:i]
 fields=sorted(set(re.findall(r'\b([A-Za-z]\w*_)\s*(?:=|\.clear)',end_block)))
 fields=[f for f in fields if f not in ['completionEpoch_','eventEpoch_','generation_','released_']]
 extras='struct Field {void clear(){};template<class T> Field& operator=(T){return *this;}};'+''.join('Field '+f+';' for f in fields)
-load=source[source.index('        const char* command[] = {"loadfile"'):source.index('    NativeResult Play(')]
-load=load[:load.rfind('    }')]
-load='struct NativeResult {bool ok;uint64_t handle;const char* error;}; NativeResult load(){std::string uri="same://input";uint64_t handle=1;'+load+'}'
+load='struct NativeResult {bool ok;uint64_t handle;const char* error;};' + method('NativeResult Load(')
+load+=' NativeResult load(){return Load("same://input", "", "", "", 1);}'
 reply_line=''
 if not legacy:
     reply_line=re.search(r'if \(event->event_id == MPV_EVENT_COMMAND_REPLY\) CompletionReply\(\*event\);',source).group(0)
@@ -52,6 +51,8 @@ class Harness {
 public:
 std::mutex completionMutex_,callbackMutex_,lifecycleMutex_;void* eventTsfn_=this;bool rendererReady_=true;std::atomic<uint64_t> eventEpoch_{0},generation_{1},eventSequence_{0};std::atomic<bool> released_{false};
 uint64_t completionEpoch_=0,completionGeneration_=0;int64_t completionEntry_=-1;bool completionReplied_=false;std::vector<int64_t> completionEnded_;
+static std::string EscapeMpvOptionValue(const std::string& input){return input;}
+int mpv_set_option_string(void*,const char*,const char*){return 0;}
 Handle player_;bool diagnosticsStopped_=false,firstFrameSent_=false; EXTRAS
 std::vector<std::pair<uint64_t,uint64_t>> sent;std::mutex testMutex;std::condition_variable cv;bool block=false,entered=false,unblock=false;
 void Dispatch(const std::string& type,const std::string& message){if(type=="state"&&message=="completed")sent.push_back({eventEpoch_,generation_});}
@@ -66,6 +67,7 @@ void end(int64_t id,int reason=MPV_END_FILE_REASON_EOF){mpv_event_end_file end{}
 };
 int main(){
  {Harness h;h.load();assert(requested==h.eventEpoch_&&requested>0);h.reply(requested,10);h.end(10);assert(h.sent.size()==1);}
+ {Harness h;h.rendererReady_=false;assert(!h.load().ok);h.rendererReady_=true;assert(h.load().ok);h.reply(requested,10);h.end(10);assert(h.sent.size()==1&&h.sent[0].first==2);}
  {Harness h;submitResult=-1;h.load();submitResult=0;h.reply(requested,10);h.end(10);assert(h.sent.empty());}
  {Harness h;auto old=h.BeginCompletion();h.reply(old,10);h.block=true;std::thread eof([&]{h.end(10);});{std::unique_lock<std::mutex> lk(h.testMutex);h.cv.wait(lk,[&]{return h.entered;});}std::atomic<bool> began{false},finished{false};std::thread loading([&]{began=true;h.BeginCompletion();finished=true;});while(!began)std::this_thread::yield();assert(!finished);{std::lock_guard<std::mutex> lk(h.testMutex);h.unblock=true;}h.cv.notify_all();eof.join();loading.join();assert(h.sent.size()==1&&h.sent[0].first==old&&h.eventEpoch_!=old);}
 

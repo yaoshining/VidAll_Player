@@ -88,6 +88,20 @@ async function main() {
   bufferingNative({type:'state',message:'playing',eventEpoch:1,surfaceGeneration:1,sequence:2});bufferingPlayer.reportBuffering(true);
   bufferingNative({type:'state',message:'completed',eventEpoch:1,surfaceGeneration:1,sequence:3});
   assert.equal(bufferingEvents.filter(e=>e.state==='completed').length,1,'buffering正常EOF仍交付completed');await bufferingPlayer.release();
+  // 极短视频结束时首帧回调可能还在队列里。
+  let shortEvent;
+  const shortStates = [];
+  const shortPlayer = new PlayerSession({eventListener: event => shortStates.push(event.state)},
+    new Proxy({subscribe: cb => { shortEvent = cb; return () => {}; }},
+      {get: (target, key) => target[key] || (() => Promise.resolve())}));
+  await shortPlayer.attachSurface({componentId:'short', generation:1, width:640, height:360});
+  await shortPlayer.load({kind:'localFile', uri:'file:///short.mp4'});
+  for (const [index, message] of ['preparing', 'completed', 'playing'].entries()) {
+    shortEvent({type:'state', message, sequence:index + 1, eventEpoch:1, surfaceGeneration:1});
+  }
+  assert.equal(shortStates.filter(state => state === 'completed').length, 1);
+  assert.equal(shortStates[shortStates.length - 1], 'completed');
+  await shortPlayer.release();
   for (const action of ['stop', 'release', 'load']) {
     let notify;
     const states = [];
