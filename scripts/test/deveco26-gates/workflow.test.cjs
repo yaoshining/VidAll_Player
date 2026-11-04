@@ -5,7 +5,7 @@ const file=process.argv[2]||path.resolve(__dirname,'../../../.github/workflows/d
 function verify(w){
  assert(w.on.pull_request.branches.includes('main'));assert(!w.on.pull_request.paths);assert(w.on.merge_group.types.includes('checks_requested'));assert(w.on.push.branches.includes('main'));assert(!w.on.pull_request_target);
  const h=w.jobs['host-contracts'],t=w.jobs['target-har'],r=w.jobs['deveco26-result'];assert.equal(t['runs-on'],'macos-26');assert.equal(t.environment,'deveco26-build');
- assert.equal(t.if,"github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEVECO26_APPROVED_EVENT_SHA != '' && vars.DEVECO26_APPROVED_EVENT_SHA == github.sha");
+ assert.equal(t.if,"github.event_name == 'push' && github.ref == 'refs/heads/main'");
  assert(!JSON.stringify(h).includes('secrets.'));assert(!JSON.stringify(w.env||{}).includes('secrets.'));assert(!JSON.stringify(t.env||{}).includes('secrets.'));assert.deepEqual(w.permissions,{contents:'read'});
  const bootstrap=t.steps.find(s=>s.id==='bootstrap');assert.deepEqual(Object.keys(bootstrap.env),['DEVECO26_RELEASE_READ_TOKEN']);for(const step of t.steps)if(step!==bootstrap)assert(!JSON.stringify(step).includes('secrets.'));
  for(const j of [h,t]){assert(!j['continue-on-error']);assert(j.steps.every(s=>!s['continue-on-error']));const checkout=j.steps.find(s=>s.uses?.startsWith('actions/checkout@'));assert(checkout);assert(!checkout.with.ref);assert.equal(checkout.with['fetch-depth'],0);assert.equal(checkout.with['persist-credentials'],false);assert(j.steps.some(s=>s.run?.includes('ci-context.py')))}

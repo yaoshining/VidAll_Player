@@ -121,7 +121,7 @@ jobs:
 
   target-har:
     name: DevEco26 当前HAR与独立消费者
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEVECO26_APPROVED_EVENT_SHA != '' && vars.DEVECO26_APPROVED_EVENT_SHA == github.sha
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: deveco26-build
     runs-on: macos-26
     timeout-minutes: 60
@@ -142,10 +142,8 @@ jobs:
       - name: 绑定真实事件和源码
         id: context
         run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
-      - name: 只允许已批准的实际事件SHA
+      - name: 环境审批后核对主线推送与实际检出的提交
         id: trust
-        env:
-          DEVECO26_APPROVED_EVENT_SHA: ${{ vars.DEVECO26_APPROVED_EVENT_SHA }}
         run: python3 -B scripts/test/deveco26-gates/gates.py trust --out "$CI_OUT"
       - name: 读取固定私有Release原包并准备锁定CLI
         id: bootstrap

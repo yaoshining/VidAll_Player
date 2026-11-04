@@ -25,7 +25,7 @@ function verify(all){
  assert(source.jobs['native-contracts']&&source.jobs['clean-environment']);assert(JSON.stringify(source).includes('cloud-build/producer-input.py'));
  const gate=all['deveco26-pr82-gates.yml'],host=gate.jobs['host-contracts'],target=gate.jobs['target-har'];
  assert(host.steps.some(s=>s.run?.includes('device-execution/controller.test.py')));
- assert.equal(target['runs-on'],'macos-26');assert(target.if.includes('vars.DEVECO26_APPROVED_EVENT_SHA == github.sha'));assert.equal(target.environment,'deveco26-build');
+ assert.equal(target['runs-on'],'macos-26');assert.equal(target.if,"github.event_name == 'push' && github.ref == 'refs/heads/main'");assert.equal(target.environment,'deveco26-build');
  for(const id of ['native_legacy','producer_input'])assert(host.steps.some(s=>s.id===id&&!s.if&&!s['continue-on-error']));
  assert(target.steps.some(s=>s.id==='hypium'&&s.run.includes('cloud-build/hypium.py')&&!s.if&&!s['continue-on-error']));
  assert(target.steps.find(s=>s.id==='hypium').run.indexOf('signing')<0);

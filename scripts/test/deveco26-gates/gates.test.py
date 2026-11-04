@@ -71,8 +71,15 @@ class Gates(unittest.TestCase):
     if mode=='wrong-files':r['files']={}
     if mode=='false':r['passed']=False
     (work/'producer-input-result.json').write_text(json.dumps(r));self.assertEqual(self.m.host_proof(out,IDENTITY),mode=='pass')
- def test_trust_exact_event_and_fork(self):
-  c={**IDENTITY,'eventSHA':S,'event':'pull_request','passed':True,'trustedTarget':True,'repository':'yaoshining/VidAll_Player','headRepository':'yaoshining/VidAll_Player'}
-  self.assertTrue(self.m.trusted(c,S));self.assertFalse(self.m.trusted(c,''));self.assertFalse(self.m.trusted(c,'d'*40))
-  c['headRepository']='fork/Player';self.assertFalse(self.m.trusted(c,S))
+ def test_trust_main_push_only(self):
+  context = {**IDENTITY, 'eventSHA': S, 'event': 'push', 'ref': 'refs/heads/main',
+             'passed': True, 'trustedTarget': True, 'repository': 'yaoshining/VidAll_Player'}
+  self.assertTrue(self.m.trusted(context, S))
+  for data in [{'event': 'pull_request'}, {'event': 'merge_group'}, {'ref': 'refs/heads/topic'},
+               {'ref': 'refs/tags/main'}, {'repository': 'fork/Player'}, {'passed': False},
+               {'trustedTarget': False}, {'checkoutSHA': 'd'*40}, {'eventSHA': 'd'*40}]:
+   with self.subTest(data=data):
+    self.assertFalse(self.m.trusted({**context, **data}, S))
+  self.assertFalse(self.m.trusted(context, ''))
+  self.assertFalse(self.m.trusted(context, 'd'*40))
 if __name__=='__main__':unittest.main()
