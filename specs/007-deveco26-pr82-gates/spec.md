@@ -5,7 +5,7 @@
 ## 验收
 
 - G01：新工作流绑定PR实际merge SHA及base/head父关系；push和merge_group绑定实际事件。错误SHA/旧树/漂移拒绝。
-- G02：只有非fork且DEVECO26_APPROVED_EVENT_SHA等于实际事件SHA，才进入受审批环境deveco26-build；下载Secret仅该环境提供。缺值、skip、cancel、失败不能汇总为绿。环境保护必须远端回读，名字存在本身不是保护证据。
+- G02：实际推送到 main 时自动排队进入 deveco26-build，环境审批后核对仓库、分支和事件提交。云端目标与汇总检查均限于 main push。同仓 PR 在 iMac 验证合并预览提交及其 HAR 消费工程，其他仓内分支的 push 也使用 iMac。手动云构建从 main 发起，审批前锁定目标分支的提交。
 - G03：宿主、新target和consumer真实成功，源码身份一致，目标和consumer收尾成功，always汇总才通过。旧normal-core-result与旧API24锁不变，不做OR替代。
 - G04：在同一可信job通过显式vidall_player@deveco26构建，唯一HAR的SHA与当次target证据一致；独立工程只能从该HAR导入@vidall/player，不能改成源码路径、旧候选、已存在缓存或其他target。
 - G05：consumer真实构建unsigned HAP；解析实际OHPM依赖/编译输入，HAP恰有八固定库与当前bridge，逐字节对应当次HAR，API22/min15保持。构建通过不代表运行/真机验收。

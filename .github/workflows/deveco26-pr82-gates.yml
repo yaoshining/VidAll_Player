@@ -75,6 +75,7 @@ jobs:
           python3 -B scripts/test/cloud-build/hypium.test.py 2>&1 | tee "$CI_OUT/work/hypium-tests.log"
           node scripts/test/cloud-build/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/cloud-workflow-tests.log"
           python3 -B scripts/test/deveco26/release-source.test.py 2>&1 | tee "$CI_OUT/work/release-source-tests.log"
+          python3 -B scripts/test/branch-ci/report.test.py
           python3 -B scripts/test/deveco26-gates/gates.test.py 2>&1 | tee "$CI_OUT/work/gates-tests.log"
           python3 -B scripts/test/deveco26-gates/consumer.test.py 2>&1 | tee "$CI_OUT/work/consumer-tests.log"
           node scripts/test/deveco26-gates/workflow.test.cjs 2>&1 | tee "$CI_OUT/work/new-workflow-tests.log"

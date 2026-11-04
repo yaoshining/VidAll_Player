@@ -18,11 +18,13 @@ jobs:
       VIDALL_IMAC_GATE: '1'
       STUDIO: /Applications/DevEco-Studio.app
     steps:
-      - uses: actions/checkout@v4
+      - id: checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: 初始化本次构建目录和固定 CLI
+        id: init
         env:
           ACTUAL_RUNNER: ${{ runner.environment }}
         shell: bash
@@ -41,6 +43,7 @@ jobs:
         id: context
         run: python3 -B scripts/test/normal-core/ci-context.py --out "$CI_OUT/work"
       - name: SDK 头文件和运行库契约
+        id: runtime
         run: |
           export DEVECO26_SDK="$STUDIO/Contents/sdk/default/openharmony/native"
           export DEVECO26_CMAKE="$DEVECO26_SDK/build-tools/cmake/bin/cmake"
@@ -67,5 +70,20 @@ jobs:
         with:
           name: imac-har-${{ github.sha }}-${{ github.run_attempt }}
           path: packages/vidall-player/build/default/outputs/deveco26/*.har
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: 生成公开的步骤与失败命令摘要
+        if: always() && steps.checkout.outcome == 'success'
+        id: report
+        env:
+          CI_STEPS: ${{ toJSON(steps) }}
+        run: python3 -B scripts/test/branch-ci/report.py --output "$RUNNER_TEMP/imac-public-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+      - name: 保存本次构建诊断摘要
+        if: always() && steps.report.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: imac-checks-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/imac-public-${{ github.run_id }}-${{ github.run_attempt }}/stages.json
           if-no-files-found: error
           retention-days: 14
