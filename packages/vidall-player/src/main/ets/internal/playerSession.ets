@@ -56,6 +56,9 @@ export class PlayerSession implements VidAllPlayer {
   // 原有的本地 id 分配方式直接转发给原生层。
   private readonly nativeTrackIdMap: Map<number, number> = new Map();
   private resumeState?: 'playing' | 'paused';
+  // 串行队列执行前先撤销上一次加载的播完资格，覆盖已投递到 JS 的 EOF。
+  private mediaRequest: number = 0;
+  private loadedRequest: number = -1;
   private leaseEpoch: number = 0;
   // 上一次公开 emit 'position' 事件的时间戳（Date.now() 毫秒）。mpv time-pos 默认每帧
   // 上报，这里保证两次公开 position emit 间隔 ≥ 100ms（与 VidAll_TV IjkPlayerAdapter
@@ -119,6 +122,7 @@ export class PlayerSession implements VidAllPlayer {
 
   load(source: MediaSource): Promise<void> {
     this.diagnosticsRevision++;
+    const request = ++this.mediaRequest;
     return this.enqueue('load', () => {
       try {
         validateMediaSource(source);
@@ -138,6 +142,7 @@ export class PlayerSession implements VidAllPlayer {
       // 避免旧连接、旧租约或旧轨道泄漏到新媒体会话。
       this.abortActiveMedia('source-switch');
       this.stateMachine.advanceEventEpoch();
+      this.loadedRequest = request;
       // 重置 position 节流窗口，让新媒体的第一个 position 事件能立即下发，而不是
       // 被上一媒体最后一次 emit 的 100ms 窗口卡住。
       this.lastPositionEmitAtMs = 0;
@@ -354,6 +359,17 @@ export class PlayerSession implements VidAllPlayer {
       }
       return;
     }
+    if (event.type === 'state' && event.message === 'completed') {
+      // 仅原生同一媒体entry的正常EOF可进入既有completed状态；释放/旧上下文先拒绝。
+      const state = this.stateMachine.getState();
+      if (this.loadedRequest === this.mediaRequest &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
+        (state === 'playing' || state === 'paused' || state === 'buffering') &&
+        this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence)) {
+        this.stateMachine.transition('completed');
+      }
+      return;
+    }
     if (event.type === 'state' && event.message === 'paused') {
       // native 侧 mpv "pause" 属性变为 true（如调用 pause() 或用户在其他入口暂停），
       // 转译为公开的 paused 状态，使 play()/pause() 的状态机校验能正确匹配。
@@ -565,6 +581,7 @@ export class PlayerSession implements VidAllPlayer {
 
   stop(): Promise<void> {
     this.diagnosticsRevision++;
+    this.mediaRequest++;
     return this.enqueue('stop', () => {
       const state = this.stateMachine.getState();
       if (state === 'idle' || state === 'completed' || state === 'error') {
@@ -583,6 +600,7 @@ export class PlayerSession implements VidAllPlayer {
   release(): Promise<void> {
     this.diagnosticsRevision++;
     this.diagnosticsClosed = true;
+    this.mediaRequest++;
     if (this.stateMachine.getReleasePhase() !== 'open') {
       return Promise.resolve();
     }
