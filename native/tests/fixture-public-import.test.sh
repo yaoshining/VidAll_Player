@@ -12,7 +12,9 @@ readonly TEST_FILE="$FIXTURE/src/ohosTest/ets/test/PublicImport.test.ets"
 fail() { echo "测试失败：$*" >&2; exit 1; }
 require_contains() { rg -q --fixed-strings "$2" "$1" || fail "$1 缺少：$2"; }
 
-require_contains "$PACKAGE" '"@vidall/player": "file:../../packages/vidall-player/build/default/outputs/default/vidall_player.har"'
+# fixture 使用源码依赖，避免全新检出时 ohpm install 依赖尚未生成的 HAR。
+# 此静态测试只证明公开入口约束；打包后的 HAR 消费与设备装载需另行验收。
+require_contains "$PACKAGE" '"@vidall/player": "file:../../packages/vidall-player"'
 require_contains "$PAGE" "from '@vidall/player'"
 require_contains "$PAGE" 'createPlayer()'
 require_contains "$PAGE" 'player.release()'

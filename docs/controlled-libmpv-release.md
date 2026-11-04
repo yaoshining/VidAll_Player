@@ -1,5 +1,19 @@
 # libmpv 受控发布流程
 
+## 核对已有候选包
+
+使用 `python3 scripts/release/verify-candidate-integrity.py --root <实物根目录> --manifest <003格式清单>` 核对清单引用的源库、HAR 大小及包内唯一的 ARM64 libmpv。第 2 版清单还要求完整 HAR 的 SHA-256。根目录应包含同批次实物，清单中的库和 HAR 路径相对该目录。
+
+来源核对需提供同一批次的来源锁、声明 SBOM 和实际观察材料。根目录下放置 `native/config/sources.lock.json`，声明目录提供 `sbom.cdx.json` 和 `sbom.spdx.json`，观察清单所在目录提供 `observed-sbom.cdx.json` 和 `observed-sbom.spdx.json`。许可证材料路径相对于根目录。
+
+```sh
+python3 scripts/release/audit-source-consistency.py --root "$EVIDENCE_ROOT" \
+  --declared-dir release/audits/current-candidate \
+  --observed release/audits/source-provenance/observed-sources.json
+```
+
+两项工具默认向标准输出写 JSON，可用 `--output <新文件>` 保存。退出码 0 表示所检查的项目一致，1 表示校验未通过或材料缺失。候选完整性和来源核对分别判断，真机验收及发布审批单独记录。需要比较两次 HAR 的归档字节时，使用[已有的规范化与比较工具](../scripts/test/normal-core/README.md)。
+
 ## External FFmpeg staging
 
 `native/scripts/build-libmpv-bootstrap.sh` 不再构建或静态链接 FFmpeg。构建前必须设置：
