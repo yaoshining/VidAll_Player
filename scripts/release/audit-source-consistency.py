@@ -97,14 +97,23 @@ def audit(lock, cdx, spdx, observed, root):
             p = (root / path).resolve()
             if Path(path).is_absolute() or not p.is_relative_to(root.resolve()):
                 raise ValueError('材料路径超出项目')
-            if hashlib.sha256(p.read_bytes()).hexdigest() != m['sha256']:
+            if not p.is_file():
+                raise ValueError('材料必须是普通文件')
+            digest = hashlib.sha256()
+            with p.open('rb') as stream:
+                for block in iter(lambda: stream.read(1024 * 1024), b''):
+                    digest.update(block)
+            if digest.hexdigest() != m['sha256']:
                 raise ValueError('摘要不匹配')
         except (OSError, ValueError):
             issue('material-integrity-failed', path)
     for key, code in [('closureComplete', 'closure-incomplete'), ('sourceRebuildVerified', 'source-rebuild-unverified'), ('binaryBindingVerified', 'binary-binding-unverified')]:
         if observed.get(key) is not True:
             issue(code)
-    if observed.get('toolVersionObservation', {}).get('status') == 'mismatch':
+    tool_observation = observed.get('toolVersionObservation', {})
+    if not isinstance(tool_observation, dict):
+        issue('tool-version-observation-invalid')
+    elif tool_observation.get('status') == 'mismatch':
         issue('tool-version-mismatch')
     return {'schemaVersion': 1, 'status': 'blocked' if issues else 'passed',
             'scope': 'SBOM 对锁文件的声明核对、缓存观察差异和归档材料完整性；不授予发布或真机验收。',

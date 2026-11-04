@@ -6,6 +6,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('audit', Path(__file__).with_name('audit-source-consistency.py'))
 audit = importlib.util.module_from_spec(spec)
@@ -89,6 +90,36 @@ class SourceConsistencyTests(unittest.TestCase):
     def test_no_binary_binding_fails(self):
         self.observed['binaryBindingVerified'] = False
         self.assertIn('binary-binding-unverified', self.codes())
+
+    def test_large_material_is_hashed_with_bounded_reads(self):
+        data = b'large audit input' * 150000
+        (self.root / 'LICENSE').write_bytes(data)
+        self.record['sha256'] = hashlib.sha256(data).hexdigest()
+        original_open = Path.open
+
+        class BoundedReader:
+            def __init__(self, stream):
+                self.stream = stream
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                self.stream.close()
+
+            def read(self, size=-1):
+                if size < 0 or size > 1024 * 1024:
+                    raise AssertionError('材料摘要不能一次读取整个文件')
+                return self.stream.read(size)
+
+        with patch.object(Path, 'open', lambda p, *a, **kw: BoundedReader(original_open(p, *a, **kw))):
+            self.assertEqual(self.run_audit()['status'], 'passed')
+
+    def test_invalid_tool_observation_is_reported(self):
+        for value in (None, [], 'mismatch'):
+            with self.subTest(value=value):
+                self.observed['toolVersionObservation'] = value
+                self.assertIn('tool-version-observation-invalid', self.codes())
 
     def test_tool_version_mismatch_fails(self):
         self.observed['toolVersionObservation'] = {'status': 'mismatch'}
