@@ -1,4 +1,5 @@
 #include "process_runtime.h"
+#include "../render/render_backend_policy.h"
 #include <mpv/ohcodec_terminal.h>
 #include <libavformat/ohcodec_smb_runtime.h>
 #include <atomic>
@@ -54,11 +55,13 @@ public:
  std::unique_ptr<mpv_handle,decltype(&mpv_terminate_destroy)>player_{nullptr,mpv_terminate_destroy};
  std::mutex lifecycleMutex_,rendererMutex_,callbackMutex_,completionMutex_;
  // 与实际InvalidateCompletion读取的成员类型一致，非空初值检验Release真实清理调用。
- std::uint64_t completionEpoch_=7;std::int64_t completionEntry_=17;std::vector<std::int64_t>completionEnded_{11};
+ std::uint64_t completionEpoch_=7;std::int64_t completionEntry_=17;std::vector<mpv_event_end_file> completionEnded_{1};
  std::condition_variable renderCondition_;
  std::thread eventThread_,renderThread_;
  std::atomic<bool>stopEvents_{false};
  bool released_=false,stopRenderer_=false,rendererReady_=true;
+ vidall::render::RenderBackend renderBackend_=vidall::render::RenderBackend::OpenGles;
+ std::atomic<bool> geometryDirty_{false};
  void *renderer_=reinterpret_cast<void*>(1),*window_=reinterpret_cast<void*>(2),*eventTsfn_=reinterpret_cast<void*>(3);
  int eglDisplay_=1,eglSurface_=1,eglContext_=1;
  void Start(){

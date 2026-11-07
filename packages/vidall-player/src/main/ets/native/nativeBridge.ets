@@ -11,7 +11,7 @@ export interface DirectSmbCapability {
 }
 
 export interface NativeBridgeEvent {
-  type: 'state' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText' | 'position';
+  type: 'state' | 'fileEnd' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText' | 'position';
   message: string;
   eventEpoch: number;
   sequence: number;

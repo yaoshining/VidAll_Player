@@ -1,5 +1,5 @@
 """合并前真实 Monitor 退出、正常 deadline 和同步终局事件回归。"""
-import os,re,subprocess,tempfile,time,unittest
+import os,select,subprocess,tempfile,time,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 class Tests(unittest.TestCase):
@@ -16,7 +16,23 @@ class Tests(unittest.TestCase):
  def test_normal_remains_ready(self):
   r,_=self.run_mode('normal');self.assertEqual(r.returncode,0,r.stderr);self.assertIn('READY',r.stdout)
  def test_normal_terminal_deadline(self):
-  r,_=self.run_mode('deadline');self.assertEqual(r.returncode,86,r.stderr);match=re.search(r'TERMINAL_AT (\d+)',r.stderr);self.assertIsNotNone(match);elapsed=time.monotonic()-int(match[1])/1000;self.assertGreaterEqual(elapsed,0.95);self.assertLess(elapsed,2.5)
+  # 子进程配置完成后等触发字节，两端时间都由父进程采集。
+  root=self.base/'deadline'
+  root.mkdir()
+  with subprocess.Popen([str(self.bin),'deadline',str(root)],stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True) as proc:
+   try:
+    self.assertTrue(select.select([proc.stdout],[],[],5)[0], 'Monitor 未就绪')
+    self.assertEqual(proc.stdout.readline().strip(),'ARMED')
+    start=time.monotonic()
+    proc.stdin.write('!')
+    proc.stdin.flush()
+    self.assertEqual(proc.wait(timeout=10),86)
+    elapsed=time.monotonic()-start
+    self.assertGreaterEqual(elapsed,0.95)
+    self.assertLess(elapsed,2.5)
+   finally:
+    if proc.poll() is None: proc.kill()
  def test_synchronous_terminal_listener(self):
   env=dict(os.environ,TYPESCRIPT_PATH=str(ROOT/'scripts/test/normal-core/node_modules/typescript'))
   r=subprocess.run(['node','native/tests/normal-runtime.test.cjs','constructor-terminal-replay'],cwd=ROOT,env=env,capture_output=True,text=True,timeout=10)

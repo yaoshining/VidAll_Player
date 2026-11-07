@@ -417,6 +417,7 @@ public:
         if (const char* error = vidall::runtime::AdmissionError()) return {false, handle, error};
         if (released_) return {false, handle, "RELEASED"};
         StopRendererLocked();
+        surfaceSessionHandle_ = handle;
         surfaceId_ = surfaceId;
         generation_ = generation;
         width_ = width;
@@ -493,10 +494,15 @@ public:
                 static_cast<long long>(outputWidth), static_cast<long long>(outputHeight), widthRc, heightRc);
             return {true, handle, "OK"};
         }
-        width_ = width;
-        height_ = height;
-        geometryDirty_ = true;
-        renderRequested_ = true;
+        {
+            // 与渲染循环成对交换尺寸，避免连续旋转时混用两次回调的宽高。
+            std::lock_guard<std::mutex> renderLock(rendererMutex_);
+            if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+            width_ = width;
+            height_ = height;
+            geometryDirty_ = true;
+            renderRequested_ = true;
+        }
         renderCondition_.notify_one();
         return {true, handle, "OK"};
     }
@@ -520,8 +526,12 @@ public:
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         if (const char* error = vidall::runtime::AdmissionError()) return {false, handle, error};
         if (released_) return {false, handle, "RELEASED"};
-        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
-        if (uri.empty()) return {false, handle, "INPUT_INVALID"};
+        // ArkTS 对每次已验证的 load 递增代次，表面暂不可用时也要与它保持同步。
+        const auto request = BeginCompletion();
+        if (!rendererReady_ || uri.empty()) {
+            InvalidateCompletion();
+            return {false, handle, uri.empty() ? "INPUT_INVALID" : "SURFACE_UNAVAILABLE"};
+        }
         // direct smb:// 走 FFmpeg 的 demuxer-lavf-o/stream-lavf-o username=/password= 选项
         // 认证（libsmbclient 已静态进入宿主统一打包的 libavformat.so），不走 HTTP header；其余来源仍使用
         // http-header-fields 转发 WebDAV/HTTP(S) 鉴权头。每次 load 都重设两类选项，避免
@@ -533,11 +543,11 @@ public:
             : "";
         mpv_set_option_string(player_.get(), "demuxer-lavf-o", smbOptions.c_str());
         mpv_set_option_string(player_.get(), "stream-lavf-o", smbOptions.c_str());
+        // COMMAND_REPLY / END_FILE 必须在 preparing 入队之后才能交付。
+        std::lock_guard<std::mutex> terminalLock(completionMutex_);
         const char* command[] = {"loadfile", uri.c_str(), "replace", nullptr};
-        // 先登记新请求身份；异步reply中的entry id不能用晚到事件的当前epoch替代。
-        const auto request = BeginCompletion();
         if (mpv_command_async(player_.get(), request, command) < 0) {
-            InvalidateCompletion();
+            completionEpoch_ = 0;
             return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         }
         diagnosticsStopped_ = false;
@@ -667,11 +677,9 @@ public:
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         if (const char* error = vidall::runtime::AdmissionError()) return {false, handle, error};
         if (released_) return {false, handle, "RELEASED"};
-        // issue #73：mpv_initialize 已推迟到首次 Attach；未 Attach（mpv 尚未初始化）时
-        // 调用 mpv_command_async 会返回 MPV_ERROR_UNINITIALIZED，这里与其余播放命令一致，
-        // 用 rendererReady_ 门闩避免对未初始化 handle 下达 mpv 命令。
-        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        // 窗口分离后仍须停止已初始化的播放器，且撤销尚未交付的结束事件。
         InvalidateCompletion();
+        if (!mpvInitialized_) return {false, handle, "SURFACE_UNAVAILABLE"};
         const char* command[] = {"stop", nullptr};
         if (mpv_command_async(player_.get(), 0, command) < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         diagnosticsStopped_ = true;
@@ -821,7 +829,6 @@ private:
     {
         std::lock_guard<std::mutex> lock(completionMutex_);
         completionEpoch_ = ++eventEpoch_;
-        completionGeneration_ = generation_.load();
         completionEntry_ = -1;
         completionReplied_ = false;
         completionEnded_.clear();
@@ -845,7 +852,11 @@ private:
         const auto* command = static_cast<const mpv_event_command*>(event.data);
         int64_t entry = -1;
         int matches = 0;
-        if (event.error >= 0 && command && command->result.format == MPV_FORMAT_NODE_MAP && command->result.u.list) {
+        if (event.error < 0) {
+            DispatchCompletion(MPV_END_FILE_REASON_ERROR);
+            return;
+        }
+        if (command && command->result.format == MPV_FORMAT_NODE_MAP && command->result.u.list) {
             const auto* list = command->result.u.list;
             if (list->num >= 0 && list->num <= 64 && list->keys && list->values) {
                 for (int i = 0; i < list->num; i++) {
@@ -856,37 +867,49 @@ private:
                 }
             }
         }
-        if (matches != 1 || entry <= 0 || std::find(completionEnded_.begin(), completionEnded_.end(), entry) != completionEnded_.end()) {
-            completionEpoch_ = 0; return;
+        if (matches != 1 || entry <= 0) {
+            completionEpoch_ = 0;
+            return;
         }
         completionEntry_ = entry;
+        for (const auto& end : completionEnded_) {
+            if (end.playlist_entry_id == entry) {
+                DispatchCompletion(end.reason);
+                break;
+            }
+        }
+        completionEnded_.clear();
     }
 
     void CompleteFile(const mpv_event_end_file* end)
     {
         std::lock_guard<std::mutex> lock(completionMutex_);
         if (!end || !completionEpoch_ || end->playlist_entry_id <= 0) return;
-        if (!completionReplied_) {
-            // reply晚于END_FILE不追认成功；旧文件的END_FILE不能误伤新entry。
-            if (completionEnded_.size() >= 8) completionEpoch_ = 0;
-            else completionEnded_.push_back(end->playlist_entry_id);
+        if (completionReplied_) {
+            if (end->playlist_entry_id == completionEntry_) DispatchCompletion(end->reason);
             return;
         }
-        if (end->playlist_entry_id != completionEntry_) return;
-        const auto epoch = completionEpoch_;
-        const auto generation = completionGeneration_;
-        completionEpoch_ = 0; // 无论原因只消费一次，非EOF不能稍后补为EOF。
-        if (end->reason != MPV_END_FILE_REASON_EOF || released_ || vidall::runtime::AdmissionError() ||
-            epoch != eventEpoch_.load() || generation != generation_.load()) return;
-        DispatchCompletion(epoch, generation);
+        // 命令回复可能晚于 END_FILE。只保存各条目的首次结束原因。
+        for (const auto& seen : completionEnded_) {
+            if (seen.playlist_entry_id == end->playlist_entry_id) return;
+        }
+        if (completionEnded_.size() >= 8) {
+            completionEpoch_ = 0;
+            return;
+        }
+        completionEnded_.push_back(*end);
     }
 
-    void DispatchCompletion(std::uint64_t epoch, std::uint64_t generation)
+    // 调用方持有 completionMutex_，使切源/停止与投递有确定的先后顺序。
+    void DispatchCompletion(int reason)
     {
+        const auto epoch = completionEpoch_;
+        completionEpoch_ = 0;
+        if (reason != MPV_END_FILE_REASON_EOF && reason != MPV_END_FILE_REASON_ERROR) return;
         std::lock_guard<std::mutex> lock(callbackMutex_);
-        if (released_ || vidall::runtime::AdmissionError() || eventTsfn_ == nullptr ||
-            epoch != eventEpoch_.load() || generation != generation_.load()) return;
-        auto* event = new Event{"state", "completed", epoch, ++eventSequence_, generation};
+        if (released_ || vidall::runtime::AdmissionError() || !eventTsfn_ || epoch != eventEpoch_.load()) return;
+        auto* event = new Event{"fileEnd", reason == MPV_END_FILE_REASON_EOF ? "completed" : "error",
+            epoch, ++eventSequence_, generation_.load()};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
     }
 
@@ -971,9 +994,13 @@ private:
             msg += "}";
             Dispatch("position", msg);
         };
+        int64_t activeEntry = -1;
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
+            if (event->event_id == MPV_EVENT_START_FILE && event->data) {
+                activeEntry = static_cast<const mpv_event_start_file*>(event->data)->playlist_entry_id;
+            }
             if (event->event_id == MPV_EVENT_COMMAND_REPLY) CompletionReply(*event);
             // issue #71（vo_gpu_next 路径）：旧 vo_gpu 在 GlRenderLoop/SwRenderLoop 里首帧派发
             // "playing"；改为 vo_gpu_next 后这些循环被跳过，这里在视频输出重建（VO 出帧）时
@@ -994,7 +1021,8 @@ private:
             if (event->event_id == MPV_EVENT_END_FILE) {
                 const auto* end = static_cast<mpv_event_end_file*>(event->data);
                 CompleteFile(end);
-                if (end != nullptr && end->reason == MPV_END_FILE_REASON_ERROR) Dispatch("error", "libmpv playback failed");
+                if (!end || end->playlist_entry_id != activeEntry) continue;
+                activeEntry = -1;
                 // 重置 video-params 缓存，避免跨文件残留旧属性
                 vpPixfmt_.clear(); vpHwPixfmt_.clear(); vpBitDepth_ = 0; vpPrimaries_.clear();
                 vpTransfer_.clear(); vpMatrix_.clear(); vpVideoRange_.clear();
@@ -1272,10 +1300,20 @@ private:
             OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
                 "vo_gpu_next(ohosvk) window bind: wid=%{public}lld rc=%{public}d",
                 static_cast<long long>(wid), widRc);
+            // 再次绑定时覆盖上一个 Surface 留下的属性，不能沿用上一代宽高。
+            int width = width_.load(), height = height_.load();
+            int geometryRc = widRc < 0 ? -1 : OH_NativeWindow_NativeWindowHandleOpt(
+                window_, SET_BUFFER_GEOMETRY, width, height);
+            std::string size = std::to_string(width) + "x" + std::to_string(height);
+            int sizeRc = geometryRc != 0 ? -1 : mpv_set_property_string(
+                player_.get(), "ohos-surface-size", size.c_str());
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                "SurfaceResize session=%{public}llu generation=%{public}llu backend=vulkan bind=%{public}dx%{public}d geometryRc=%{public}d propertyRc=%{public}d actual=unavailable",
+                static_cast<unsigned long long>(surfaceSessionHandle_), static_cast<unsigned long long>(generation_), width, height, geometryRc, sizeRc);
             {
                 std::lock_guard<std::mutex> lock(rendererMutex_);
-                rendererReady_ = widRc == 0;
-                rendererFailed_ = widRc < 0;
+                rendererReady_ = widRc == 0 && geometryRc == 0 && sizeRc >= 0;
+                rendererFailed_ = !rendererReady_;
                 rendererReadyCv_.notify_one();
             }
             return;
@@ -1369,23 +1407,86 @@ private:
     {
         mpv_render_context_set_update_callback(renderer_, NotifyRender, this);
         { std::lock_guard<std::mutex> lock(rendererMutex_); rendererReady_ = true; rendererReadyCv_.notify_one(); }
+        int lastBufferWidth = 0;
+        int lastBufferHeight = 0;
 
         while (true) {
             bool geometryDirty = false;
-            { std::unique_lock<std::mutex> lock(rendererMutex_); renderCondition_.wait_for(lock, std::chrono::milliseconds(16), [this] { return stopRenderer_ || renderRequested_ || geometryDirty_; }); if (stopRenderer_) break; renderRequested_ = false; geometryDirty = geometryDirty_.exchange(false); }
-            int width = width_; int height = height_;
+            int width = 0, height = 0;
+            {
+                std::unique_lock<std::mutex> lock(rendererMutex_);
+                renderCondition_.wait_for(lock, std::chrono::milliseconds(16), [this] { return stopRenderer_ || renderRequested_ || geometryDirty_; });
+                if (stopRenderer_) break;
+                renderRequested_ = false;
+                geometryDirty = geometryDirty_.exchange(false);
+                width = width_;
+                height = height_;
+            }
+            if (width <= 0 || height <= 0) continue;
             if (geometryDirty) {
-                eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-                eglDestroySurface(eglDisplay_, eglSurface_);
+                // 更换窗口时仍保持原 GL context 当前，失败路径也能安全释放 libmpv。
+                if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_)) {
+                    const EGLint attributes[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
+                    EGLSurface parking = eglCreatePbufferSurface(eglDisplay_, eglConfig_, attributes);
+                    bool parked = parking != EGL_NO_SURFACE &&
+                        eglMakeCurrent(eglDisplay_, parking, parking, eglContext_);
+                    // EGL 会在当前表面解除绑定后完成销毁。
+                    if (parking != EGL_NO_SURFACE) eglDestroySurface(eglDisplay_, parking);
+                    if (!parked) {
+                        MarkRendererFailed();
+                        Dispatch("error", "MPV display context resize failed");
+                        break;
+                    }
+                }
+                if (!eglDestroySurface(eglDisplay_, eglSurface_)) {
+                    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                        "MpvBuffer resize detach failed egl=%{public}d", eglGetError());
+                    MarkRendererFailed();
+                    Dispatch("error", "MPV display surface resize failed");
+                    break;
+                }
                 eglSurface_ = EGL_NO_SURFACE;
-                OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width, height);
+                int geometryRc = OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width, height);
+                if (geometryRc != 0) {
+                    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                        "MpvBuffer geometry failed rc=%{public}d", geometryRc);
+                    MarkRendererFailed();
+                    Dispatch("error", "MPV display buffer resize failed");
+                    break;
+                }
                 eglSurface_ = eglCreateWindowSurface(eglDisplay_, eglConfig_, reinterpret_cast<EGLNativeWindowType>(window_), nullptr);
-                eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_);
+                if (eglSurface_ == EGL_NO_SURFACE ||
+                    !eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_)) {
+                    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                        "MpvBuffer resize bind failed egl=%{public}d", eglGetError());
+                    MarkRendererFailed();
+                    Dispatch("error", "MPV display surface creation failed");
+                    break;
+                }
             }
             uint64_t updateFlags = mpv_render_context_update(renderer_);
-            if ((updateFlags & MPV_RENDER_UPDATE_FRAME) == 0) continue;
-            if (width <= 0 || height <= 0) continue;
-            mpv_opengl_fbo fbo{ 0, width, height, 0 };
+            // 暂停时也重绘最后一帧；尺寸变更不能依赖新的解码帧到达。
+            if (!geometryDirty && (updateFlags & MPV_RENDER_UPDATE_FRAME) == 0) continue;
+            EGLint bufferWidth = 0;
+            EGLint bufferHeight = 0;
+            if (!eglQuerySurface(eglDisplay_, eglSurface_, EGL_WIDTH, &bufferWidth) ||
+                !eglQuerySurface(eglDisplay_, eglSurface_, EGL_HEIGHT, &bufferHeight) ||
+                bufferWidth <= 0 || bufferHeight <= 0) {
+                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                    "MpvBuffer query failed egl=%{public}d", eglGetError());
+                MarkRendererFailed();
+                Dispatch("error", "MPV display buffer query failed");
+                break;
+            }
+            if (geometryDirty || bufferWidth != lastBufferWidth || bufferHeight != lastBufferHeight) {
+                OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                    "SurfaceResize session=%{public}llu generation=%{public}llu backend=gl requested=%{public}dx%{public}d actual=%{public}dx%{public}d redraw=%{public}d",
+                    static_cast<unsigned long long>(surfaceSessionHandle_), static_cast<unsigned long long>(generation_), width, height, bufferWidth, bufferHeight, geometryDirty);
+                lastBufferWidth = bufferWidth;
+                lastBufferHeight = bufferHeight;
+            }
+            // libmpv 要求 FBO 尺寸是实际 framebuffer 尺寸，不能用 ArkUI 布局的期望值代替。
+            mpv_opengl_fbo fbo{ 0, bufferWidth, bufferHeight, 0 };
             int flipY = 1;
             mpv_render_param frame[] = {
                 {MPV_RENDER_PARAM_OPENGL_FBO, &fbo},
@@ -1397,7 +1498,13 @@ private:
                 OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "mpv_render_context_render failed rc=%{public}d", renderResult);
                 continue;
             }
-            eglSwapBuffers(eglDisplay_, eglSurface_);
+            if (!eglSwapBuffers(eglDisplay_, eglSurface_)) {
+                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                    "MpvBuffer swap failed egl=%{public}d", eglGetError());
+                MarkRendererFailed();
+                Dispatch("error", "MPV display buffer presentation failed");
+                break;
+            }
             if (!firstFrameSent_.exchange(true)) {
                 Dispatch("state", "playing");
             }
@@ -1428,13 +1535,34 @@ private:
         int nativeWindowFailCount = 0;
         constexpr int MAX_NATIVE_WINDOW_FAILS = 30;
 
+        bool redrawPending = false;
+        unsigned int consecutiveFlushFailures = 0;
         while (true) {
             bool geometryDirty = false;
-            { std::unique_lock<std::mutex> lock(rendererMutex_); renderCondition_.wait_for(lock, std::chrono::milliseconds(16), [this] { return stopRenderer_ || renderRequested_ || geometryDirty_; }); if (stopRenderer_) break; renderRequested_ = false; geometryDirty = geometryDirty_.exchange(false); }
-            int width = width_; int height = height_;
-            if (geometryDirty && useNativeWindow) OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width, height);
+            int width = 0, height = 0;
+            {
+                std::unique_lock<std::mutex> lock(rendererMutex_);
+                renderCondition_.wait_for(lock, std::chrono::milliseconds(16), [this] { return stopRenderer_ || renderRequested_ || geometryDirty_; });
+                if (stopRenderer_) break;
+                renderRequested_ = false;
+                geometryDirty = geometryDirty_.exchange(false);
+                width = width_;
+                height = height_;
+            }
+            if (geometryDirty && useNativeWindow) {
+                int rc = OH_NativeWindow_NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, width, height);
+                OH_LOG_Print(LOG_APP, rc == 0 ? LOG_INFO : LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                    "SurfaceResize session=%{public}llu generation=%{public}llu backend=sw requested=%{public}dx%{public}d geometryRc=%{public}d",
+                    static_cast<unsigned long long>(surfaceSessionHandle_), static_cast<unsigned long long>(generation_), width, height, rc);
+                if (rc != 0) {
+                    MarkRendererFailed();
+                    Dispatch("error", "MPV display buffer resize failed");
+                    break;
+                }
+            }
             uint64_t updateFlags = mpv_render_context_update(renderer_);
-            if ((updateFlags & MPV_RENDER_UPDATE_FRAME) == 0) continue;
+            redrawPending = redrawPending || geometryDirty;
+            if (!redrawPending && (updateFlags & MPV_RENDER_UPDATE_FRAME) == 0) continue;
             if (width <= 0 || height <= 0) continue;
             size_t stride = static_cast<size_t>(width) * 4;
             pixels.resize(stride * static_cast<size_t>(height));
@@ -1477,10 +1605,20 @@ private:
                         "target invalid target=%{public}d virAddr=%{public}d fd=%{public}d size=%{public}d stride=%{public}d needStride=%{public}d bufHeight=%{public}d needHeight=%{public}d",
                         target != nullptr, virAddr != nullptr, target != nullptr ? target->fd : -1, target != nullptr ? target->size : -1,
                         target != nullptr ? target->stride : -1, width * 4, target != nullptr ? target->height : -1, height);
-                    Region empty{};
-                    OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, empty);
                     if (ownsMapping) munmap(mappedAddr, static_cast<size_t>(target->size));
+                    if (fence >= 0) close(fence);
+                    if (OH_NativeWindow_NativeWindowAbortBuffer(window_, buffer) != 0) {
+                        MarkRendererFailed();
+                        Dispatch("error", "MPV display buffer abort failed");
+                        break;
+                    }
                     continue;
+                }
+                if (geometryDirty) {
+                    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, LOG_TAG,
+                        "SurfaceResize session=%{public}llu generation=%{public}llu backend=sw requested=%{public}dx%{public}d actual=%{public}dx%{public}d stride=%{public}d",
+                        static_cast<unsigned long long>(surfaceSessionHandle_), static_cast<unsigned long long>(generation_),
+                        width, height, target->width, target->height, target->stride);
                 }
                 for (int row = 0; row < height; ++row) {
                     memcpy(static_cast<uint8_t*>(virAddr) + static_cast<size_t>(row) * target->stride, pixels.data() + static_cast<size_t>(row) * stride, stride);
@@ -1490,7 +1628,20 @@ private:
                 Region::Rect rect = {0, 0, static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
                 region.rects = &rect;
                 region.rectNumber = 1;
-                OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, region);
+                int flushRc = OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, region);
+                if (flushRc != 0) {
+                    int abortRc = OH_NativeWindow_NativeWindowAbortBuffer(window_, buffer);
+                    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                        "MpvBuffer flush failed rc=%{public}d abortRc=%{public}d", flushRc, abortRc);
+                    if (abortRc == 0 && ++consecutiveFlushFailures == 1) {
+                        redrawPending = true;
+                        continue;
+                    }
+                    MarkRendererFailed();
+                    Dispatch("error", "MPV display buffer presentation failed");
+                    break;
+                }
+                consecutiveFlushFailures = 0;
             } else {
                 // PixelMap 回调路径：NativeWindow 不可用时的兜底方案
                 // 将帧数据存入内存，ArkTS 通过 getFrameData() 获取并显示
@@ -1506,6 +1657,7 @@ private:
                 }
             }
 
+            redrawPending = false;
             if (!firstFrameSent_.exchange(true)) {
                 Dispatch("state", "playing");
             }
@@ -1538,6 +1690,7 @@ private:
     {
         std::lock_guard<std::mutex> lock(rendererMutex_);
         rendererFailureCode_ = code;
+        rendererReady_ = false;
         rendererFailed_ = true;
         rendererReadyCv_.notify_one();
     }
@@ -1546,7 +1699,10 @@ private:
     {
         { std::lock_guard<std::mutex> lock(rendererMutex_); stopRenderer_ = true; renderCondition_.notify_one(); }
         if (renderThread_.joinable()) renderThread_.join();
+        // Vulkan 绑定线程已返回，不会像 GL/SW 循环那样释放桥持有的窗口引用。
+        if (renderBackend_ == vidall::render::RenderBackend::Vulkan) DestroyRenderer();
         rendererReady_ = false;
+        geometryDirty_ = false;
     }
 
     void DestroyRenderer()
@@ -1608,14 +1764,14 @@ private:
     std::atomic<bool> rendererFailed_{false};
     const char* rendererFailureCode_ = "SURFACE_UNAVAILABLE";
     std::atomic<bool> released_{false};
+    std::atomic<std::uint64_t> surfaceSessionHandle_{0};
     std::string surfaceId_;
     std::atomic<std::uint64_t> generation_{0};
     std::mutex completionMutex_;
     std::uint64_t completionEpoch_ = 0;
-    std::uint64_t completionGeneration_ = 0;
     int64_t completionEntry_ = -1;
     bool completionReplied_ = false;
-    std::vector<int64_t> completionEnded_;
+    std::vector<mpv_event_end_file> completionEnded_;
     std::atomic<std::uint64_t> eventEpoch_{0};
     std::atomic<std::uint64_t> eventSequence_{0};
     std::atomic<int> width_{0};

@@ -75,8 +75,12 @@ jobs:
           python3 -B scripts/release/test-candidate-integrity.py
           python3 -B scripts/release/test-source-consistency.py
           bash native/tests/fixture-public-import.test.sh
-      - name: Vulkan 尺寸通知与回滚回归
-        run: python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
+      - name: 窗口旋转、重绘与媒体结束事件回归
+        run: |
+          python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
+          python3 -B native/tests/surface-resize/gl.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
+          python3 -B native/tests/surface-resize/sw.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
+          python3 -B native/tests/completion-event.test.py
       - name: 完整真实宿主回归
         run: python3 -B scripts/test/cloud-build/host.py --out "$RUNNER_TEMP/legacy-native"
       - name: 保存失败和成功文本
