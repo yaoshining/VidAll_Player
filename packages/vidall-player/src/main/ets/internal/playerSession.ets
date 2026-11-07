@@ -70,6 +70,10 @@ export class PlayerSession implements VidAllPlayer {
   // 原有的本地 id 分配方式直接转发给原生层。
   private readonly nativeTrackIdMap: Map<number, number> = new Map();
   private resumeState?: 'playing' | 'paused';
+  // 串行队列执行前先撤销上一次加载的播完资格，覆盖已投递到 JS 的 EOF。
+  private mediaRequest: number = 0;
+  private loadedRequest: number = -1;
+  private pendingFileEnd?: NativeBridgeEvent;
   private leaseEpoch: number = 0;
   // 上一次公开 emit 'position' 事件的时间戳（Date.now() 毫秒）。mpv time-pos 默认每帧
   // 上报，这里保证两次公开 position emit 间隔 ≥ 100ms（与 VidAll_TV IjkPlayerAdapter
@@ -105,6 +109,7 @@ export class PlayerSession implements VidAllPlayer {
         if (playerTerminalError() !== undefined) throw new Error('PLAYER_TERMINAL');
         this.surface = surface;
         this.stateMachine.setSurfaceGeneration(surface.generation);
+        this.deliverPendingFileEnd();
       });
     });
   }
@@ -140,6 +145,8 @@ export class PlayerSession implements VidAllPlayer {
 
   load(source: MediaSource): Promise<void> {
     this.diagnosticsRevision++;
+    this.pendingFileEnd = undefined;
+    const request = ++this.mediaRequest;
     return this.enqueue('load', () => {
       try {
         validateMediaSource(source);
@@ -159,6 +166,7 @@ export class PlayerSession implements VidAllPlayer {
       // 避免旧连接、旧租约或旧轨道泄漏到新媒体会话。
       this.abortActiveMedia('source-switch');
       this.stateMachine.advanceEventEpoch();
+      this.loadedRequest = request;
       // 重置 position 节流窗口，让新媒体的第一个 position 事件能立即下发，而不是
       // 被上一媒体最后一次 emit 的 100ms 窗口卡住。
       this.lastPositionEmitAtMs = 0;
@@ -358,8 +366,33 @@ export class PlayerSession implements VidAllPlayer {
     return this.stateMachine.emitIncoming(event);
   }
 
+  private deliverPendingFileEnd(): void {
+    const event = this.pendingFileEnd;
+    if (event === undefined || this.surface === undefined) return;
+    this.pendingFileEnd = undefined;
+    if (this.loadedRequest !== this.mediaRequest || this.stateMachine.getReleasePhase() !== 'open') return;
+    const state = this.stateMachine.getState();
+    if (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering') return;
+    if (event.message === 'completed') {
+      this.stateMachine.transition('completed');
+    } else {
+      this.stateMachine.transition('error');
+      this.stateMachine.emit({ type: 'error', sequence: 0, error: redactError({
+        domain: 'native', code: 'NATIVE_PLAYBACK_FAILED', message: 'libmpv playback failed', retryable: false, context: {}
+      }) });
+    }
+  }
+
   private handleNativeBridgeEvent(event: NativeBridgeEvent): void {
     if (this.terminal || playerTerminalError() !== undefined) return;
+    if (event.type === 'fileEnd') {
+      if (this.loadedRequest === this.mediaRequest && this.stateMachine.getReleasePhase() === 'open' &&
+        this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence)) {
+        this.pendingFileEnd = event;
+        this.deliverPendingFileEnd();
+      }
+      return;
+    }
     if (event.type === 'state' && event.message === 'preparing') {
       if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
@@ -372,7 +405,7 @@ export class PlayerSession implements VidAllPlayer {
       // 因此可以安全地把首帧证据转译为公开的 playing 状态与 firstFrame 事件。
       if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
-        this.stateMachine.getState() !== 'playing') {
+        this.stateMachine.getState() !== 'playing' && this.stateMachine.getState() !== 'completed') {
         this.stateMachine.transition('playing');
         this.stateMachine.emit({ type: 'firstFrame', sequence: event.sequence, surfaceGeneration: event.surfaceGeneration });
       }
@@ -381,8 +414,9 @@ export class PlayerSession implements VidAllPlayer {
     if (event.type === 'state' && event.message === 'completed') {
       // 仅原生同一媒体entry的正常EOF可进入既有completed状态；释放/旧上下文先拒绝。
       const state = this.stateMachine.getState();
-      if (this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
-        (state === 'playing' || state === 'paused' || state === 'buffering') &&
+      if (this.loadedRequest === this.mediaRequest &&
+        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
+        (state === 'preparing' || state === 'playing' || state === 'paused' || state === 'buffering') &&
         this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence)) {
         this.stateMachine.transition('completed');
       }
@@ -599,9 +633,16 @@ export class PlayerSession implements VidAllPlayer {
 
   stop(): Promise<void> {
     this.diagnosticsRevision++;
+    this.mediaRequest++;
+    this.pendingFileEnd = undefined;
     return this.enqueue('stop', () => {
       const state = this.stateMachine.getState();
-      if (state === 'idle' || state === 'completed' || state === 'error') {
+      if (state === 'completed') {
+        this.abortActiveMedia('stop');
+        this.source = undefined;
+        return;
+      }
+      if (state === 'idle' || state === 'error') {
         return;
       }
       if (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering') {
@@ -620,6 +661,8 @@ export class PlayerSession implements VidAllPlayer {
     if (fatal !== undefined) return Promise.reject(fatal);
     this.diagnosticsRevision++;
     this.diagnosticsClosed = true;
+    this.mediaRequest++;
+    this.pendingFileEnd = undefined;
     if (this.stateMachine.getReleasePhase() !== 'open') {
       return Promise.resolve();
     }
