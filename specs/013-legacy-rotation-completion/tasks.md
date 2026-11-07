@@ -49,7 +49,9 @@ GitHub 因停用 macos-14 取消了元数据检查。元数据矩阵改为 macos
 ## 第二版候选
 
 - [x] 修复并验证审查指出的媒体事件、窗口重绘、代理租约及失败路径。
-- [ ] 下载第二版 iMac CI HAR 并复核身份、ABI 和消费工程。
+- [x] 下载第二版 iMac CI HAR 并复核身份、ABI 和消费工程。
 - [ ] VidAll_TV 用第二版 HAR 完成复验后合并 #87。
 
 主机回归直接运行生产 END_FILE、Load/Stop、GL/SW 循环及 ArkTS 会话。旧实现重现了旧条目错误投递给新媒体、暂停缩放首次请求缓冲失败后零次提交、GL 解绑后清理时上下文为空、窗口分离期间 EOF 未交付。第二版通过以上回归，并覆盖延迟命令回复、换源撤销、代理租约幂等清理、GL 无窗口上下文和备用 pbuffer 两条路径。
+
+第二版源码为 `b12b1c3c6c1cebe68d0aad667ee7501fd8cec0a7`。自托管 X64 iMac `yaoshiningdeiMac` 完整构建的 HAR 共 7,408,134 字节，SHA-256 为 `3c6464ba8933a5e35794fa16f206eadc469bd1c00cc1b0ce39a00dfd00a94e78`。下载后核对了全部五个原生库，相对第一版只变更两个 ABI 的 Player 桥。ARM64 相对第一版新增 eglCreatePbufferSurface 导入。独立消费 HAP 的 SHA-256 为 `ecc87354b56a7be4062518a12caf69b47644505c0d789df98bd42da259ee61ab`，五个库逐字节匹配。新版已交接 VidAll_TV。[第二版 CI](https://github.com/yaoshining/VidAll_Player/actions/runs/42396487900) · [完整附件](https://github.com/yaoshining/VidAll_Player/actions/runs/42396487900/artifacts/13584240012)
