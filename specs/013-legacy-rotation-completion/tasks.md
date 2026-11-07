@@ -50,8 +50,21 @@ GitHub 因停用 macos-14 取消了元数据检查。元数据矩阵改为 macos
 
 - [x] 修复并验证审查指出的媒体事件、窗口重绘、代理租约及失败路径。
 - [x] 下载第二版 iMac CI HAR 并复核身份、ABI 和消费工程。
-- [ ] VidAll_TV 用第二版 HAR 完成复验后合并 #87。
+- [x] VidAll_TV 使用第二版 HAR 复验并签收，达到 #87 合并条件。
 
 主机回归直接运行生产 END_FILE、Load/Stop、GL/SW 循环及 ArkTS 会话。旧实现重现了旧条目错误投递给新媒体、暂停缩放首次请求缓冲失败后零次提交、GL 解绑后清理时上下文为空、窗口分离期间 EOF 未交付。第二版通过以上回归，并覆盖延迟命令回复、换源撤销、代理租约幂等清理、GL 无窗口上下文和备用 pbuffer 两条路径。
 
 第二版源码为 `b12b1c3c6c1cebe68d0aad667ee7501fd8cec0a7`。自托管 X64 iMac `yaoshiningdeiMac` 完整构建的 HAR 共 7,408,134 字节，SHA-256 为 `3c6464ba8933a5e35794fa16f206eadc469bd1c00cc1b0ce39a00dfd00a94e78`。下载后核对了全部五个原生库，相对第一版只变更两个 ABI 的 Player 桥。ARM64 相对第一版新增 eglCreatePbufferSurface 导入。独立消费 HAP 的 SHA-256 为 `ecc87354b56a7be4062518a12caf69b47644505c0d789df98bd42da259ee61ab`，五个库逐字节匹配。新版已交接 VidAll_TV。[第二版 CI](https://github.com/yaoshining/VidAll_Player/actions/runs/42396487900) · [完整附件](https://github.com/yaoshining/VidAll_Player/actions/runs/42396487900/artifacts/13584240012)
+
+## 第二版设备复验回执
+
+2026-11-08，VidAll_TV 从消费基线 `30666a5a46` 独立构建，签收第二版 HAR `3c6464ba…`。正式入口开发签名 HAP 的 SHA-256 为 `46c369dce8cb5daed50c981cebd098efa36989b5e7d2d6ef7656877c82d3e06e`。云设备内自制样片测试 HAP 的 SHA-256 为 `d757b3dc2639bda7f6cffd0c035d002e466014af271f313d9af70b8e0cf609f0`。两份 HAP 的 Player 桥与 libmpv 一致。
+
+| 环境 | 第二版实测 |
+| --- | --- |
+| API 22 平板模拟器 | 正式文件入口正常播完一次并切到第二集，取消后停留第一集。第二集重开读取 40.600 秒并继续出画。暂停旋转和连续缩窗后恢复通过。 |
+| API 19 TV 模拟器 | 正式文件入口正常切集，取消后停留第一集，遥控焦点可返回播放根节点。第二集重开读取 42.280 秒。 |
+| API 24 家庭电视 EDIS-790A | Vulkan 3840×2160。正常播完只发一次通知，取消倒计时后停留第一集。第二集重开读取 41.280 秒，画面推进至 44.240 秒。 |
+| API 26 云平板 MatePad Air WKI-W10 | 设备内样片暂停横转竖，时间码保持 00:00:14:00，恢复后推进至 00:00:16:18。反向旋转、连续缩窗、拖动、续播、正常切集及取消均通过。 |
+
+VidAll_TV 回执为 `openspec/changes/adapt-harmonyos-tablet/player84-v2-retest.md`，SHA-256 为 `f2e34c29a2cc6cd3cbc070729f98b33a046b23dab5d54f07878cffb32e232dd9`。同目录的 `evidence/issue84-v2/package.json` 保存包及库身份。云平板正式主包已安装启动，WebDAV 录入遇到输入法首次协议，公网播放和 Koofr 冷定位未复跑。真实听感及最低 API 平板真机未覆盖。异常事件交错、重绘失败及资源释放由生产方法的主机故障注入验证。
