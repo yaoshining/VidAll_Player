@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const yaml = require('yaml');
 const text = fs.readFileSync('.github/workflows/test-player.yml', 'utf8');
 const w = yaml.parse(text);
-assert.deepEqual(w.on.push.branches, ['codex/legacy-vulkan-size-83']);
+assert.deepEqual(w.on.push.branches, ['codex/legacy-rotation-completion-84']);
 const job = w.jobs['legacy-har'];
 assert.deepEqual(job['runs-on'], ['self-hosted', 'macOS', 'deveco']);
 assert.equal(job.environment, undefined);
@@ -14,6 +14,10 @@ const at = name => steps.findIndex(s => s.id === name);
 assert(!JSON.stringify(job.env || {}).includes('runner.'));
 assert.equal(steps[at('audit')].env.RUNNER_ENVIRONMENT, '${{ runner.environment }}');
 assert(at('tests') >= 0 && at('tests') < at('build') && at('build') < at('audit') && at('audit') < at('har'));
+for (const suite of ['surface-resize/gl.test.py', 'surface-resize/sw.test.py', 'completion-event.test.py']) {
+  assert(steps[at('tests')].run.includes(suite));
+}
+assert.match(steps[at('har')].with.name, /^legacy84-ci-har-/);
 assert.equal(steps[at('har')].if, 'success()');
 assert.match(steps[at('build')].run, /build --modules vidall_player@default/);
 assert.match(steps[at('audit')].run, /legacy83-ci\/audit.py/);
