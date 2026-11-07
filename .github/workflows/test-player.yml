@@ -2,7 +2,7 @@ name: 旧基线旋转与播完修复 HAR（iMac CI）
 
 on:
   push:
-    branches: [codex/legacy-rotation-completion-84]
+    branches: [codex/legacy-rotation-completion-84, codex/legacy-vulkan-size-83]
   workflow_dispatch:
 
 permissions:

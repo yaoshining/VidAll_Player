@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const yaml = require('yaml');
 const text = fs.readFileSync('.github/workflows/test-player.yml', 'utf8');
 const w = yaml.parse(text);
-assert.deepEqual(w.on.push.branches, ['codex/legacy-rotation-completion-84']);
+assert.deepEqual(w.on.push.branches, ['codex/legacy-rotation-completion-84', 'codex/legacy-vulkan-size-83']);
 const job = w.jobs['legacy-har'];
 assert.deepEqual(job['runs-on'], ['self-hosted', 'macOS', 'deveco']);
 assert.equal(job.environment, undefined);
