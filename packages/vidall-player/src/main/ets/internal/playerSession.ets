@@ -59,6 +59,7 @@ export class PlayerSession implements VidAllPlayer {
   // 串行队列执行前先撤销上一次加载的播完资格，覆盖已投递到 JS 的 EOF。
   private mediaRequest: number = 0;
   private loadedRequest: number = -1;
+  private pendingFileEnd?: NativeBridgeEvent;
   private leaseEpoch: number = 0;
   // 上一次公开 emit 'position' 事件的时间戳（Date.now() 毫秒）。mpv time-pos 默认每帧
   // 上报，这里保证两次公开 position emit 间隔 ≥ 100ms（与 VidAll_TV IjkPlayerAdapter
@@ -89,6 +90,7 @@ export class PlayerSession implements VidAllPlayer {
       return this.nativeBridge.attachSurface(surface).then(() => {
         this.surface = surface;
         this.stateMachine.setSurfaceGeneration(surface.generation);
+        this.deliverPendingFileEnd();
       });
     });
   }
@@ -122,6 +124,7 @@ export class PlayerSession implements VidAllPlayer {
 
   load(source: MediaSource): Promise<void> {
     this.diagnosticsRevision++;
+    this.pendingFileEnd = undefined;
     const request = ++this.mediaRequest;
     return this.enqueue('load', () => {
       try {
@@ -340,7 +343,32 @@ export class PlayerSession implements VidAllPlayer {
     return this.stateMachine.emitIncoming(event);
   }
 
+  private deliverPendingFileEnd(): void {
+    const event = this.pendingFileEnd;
+    if (event === undefined || this.surface === undefined) return;
+    this.pendingFileEnd = undefined;
+    if (this.loadedRequest !== this.mediaRequest || this.stateMachine.getReleasePhase() !== 'open') return;
+    const state = this.stateMachine.getState();
+    if (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering') return;
+    if (event.message === 'completed') {
+      this.stateMachine.transition('completed');
+    } else {
+      this.stateMachine.transition('error');
+      this.stateMachine.emit({ type: 'error', sequence: 0, error: redactError({
+        domain: 'native', code: 'NATIVE_PLAYBACK_FAILED', message: 'libmpv playback failed', retryable: false, context: {}
+      }) });
+    }
+  }
+
   private handleNativeBridgeEvent(event: NativeBridgeEvent): void {
+    if (event.type === 'fileEnd') {
+      if (this.loadedRequest === this.mediaRequest && this.stateMachine.getReleasePhase() === 'open' &&
+        this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence)) {
+        this.pendingFileEnd = event;
+        this.deliverPendingFileEnd();
+      }
+      return;
+    }
     if (event.type === 'state' && event.message === 'preparing') {
       if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
         this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
@@ -582,9 +610,15 @@ export class PlayerSession implements VidAllPlayer {
   stop(): Promise<void> {
     this.diagnosticsRevision++;
     this.mediaRequest++;
+    this.pendingFileEnd = undefined;
     return this.enqueue('stop', () => {
       const state = this.stateMachine.getState();
-      if (state === 'idle' || state === 'completed' || state === 'error') {
+      if (state === 'completed') {
+        this.abortActiveMedia('stop');
+        this.source = undefined;
+        return;
+      }
+      if (state === 'idle' || state === 'error') {
         return;
       }
       if (state !== 'preparing' && state !== 'playing' && state !== 'paused' && state !== 'buffering') {
@@ -601,6 +635,7 @@ export class PlayerSession implements VidAllPlayer {
     this.diagnosticsRevision++;
     this.diagnosticsClosed = true;
     this.mediaRequest++;
+    this.pendingFileEnd = undefined;
     if (this.stateMachine.getReleasePhase() !== 'open') {
       return Promise.resolve();
     }

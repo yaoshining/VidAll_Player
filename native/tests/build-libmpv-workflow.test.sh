@@ -23,5 +23,7 @@ grep -Fq 'test "$(cargo-cbuild --version)" = "cargo-c $CARGO_C_EXPECTED_VERSION"
 grep -Fq 'os: [macos-15, ubuntu-22.04]' "$WORKFLOW" || \
   fail '元数据检查须同时覆盖可用的 macOS 与 Ubuntu 运行器'
 
-grep -A 6 '^  build-libmpv-external-ffmpeg:' "$WORKFLOW" | grep -Fq "(github.event_name != 'pull_request' || github.base_ref != 'codex/legacy-vulkan-size-83')" || \
-  fail '兼容基线 PR 只消费固定库，不能自动触发外部 FFmpeg 构建'
+expected_condition="(github.event_name != 'pull_request' || github.base_ref != 'codex/legacy-vulkan-size-83') && (needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build)"
+actual_condition=$(sed -n '/^  build-libmpv-external-ffmpeg:/,/^    runs-on:/p' "$WORKFLOW" |
+  sed -n '/^    if: >-$/,/^    runs-on:/{ /^      /s/^      //p; }' | paste -sd ' ' -)
+test "$actual_condition" = "$expected_condition" || fail '外部构建条件必须排除兼容基线 PR 并检查构建输入或显式强制构建'

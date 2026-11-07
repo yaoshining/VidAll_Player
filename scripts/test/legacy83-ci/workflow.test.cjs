@@ -14,8 +14,11 @@ const at = name => steps.findIndex(s => s.id === name);
 assert(!JSON.stringify(job.env || {}).includes('runner.'));
 assert.equal(steps[at('audit')].env.RUNNER_ENVIRONMENT, '${{ runner.environment }}');
 assert(at('tests') >= 0 && at('tests') < at('build') && at('build') < at('audit') && at('audit') < at('har'));
+const testCommands = steps[at('tests')].run.split('\n').map(line => line.trim());
 for (const suite of ['surface-resize/gl.test.py', 'surface-resize/sw.test.py', 'completion-event.test.py']) {
-  assert(steps[at('tests')].run.includes(suite));
+  const source = suite.startsWith('surface-resize/') ? ' packages/vidall-player/src/main/cpp/napi_init.cpp' : '';
+  const command = 'python3 -B native/tests/' + suite + source;
+  assert(testCommands.includes(command), '缺少实际测试命令 ' + command);
 }
 assert.match(steps[at('har')].with.name, /^legacy84-ci-har-/);
 assert.equal(steps[at('har')].if, 'success()');

@@ -9,7 +9,7 @@ export interface NativeSessionResult {
 }
 
 export interface NativePlayerEvent {
-  type: 'state' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText' | 'position';
+  type: 'state' | 'fileEnd' | 'error' | 'videoParams' | 'audioParams' | 'tracks' | 'subtitleText' | 'position';
   /**
    * 事件载荷，type 不同则格式不同：
    * - videoParams：管道分隔字符串，渐进扩展（末尾新增 renderBackend，不影响既有字段顺序）：

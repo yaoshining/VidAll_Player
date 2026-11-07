@@ -27,6 +27,15 @@ def command(args):return subprocess.check_output([str(a) for a in args],cwd=ROOT
 def symbols(tool,path,defined=False):
  return sorted({l.split()[-1].split('@')[0] for l in command([tool,'-D','--defined-only' if defined else '--undefined-only',path]).splitlines() if l.split()})
 def needed(tool,path):return sorted(re.findall(r'Shared library: \[([^\]]+)\]',command([tool,'-d',path])))
+def check_bridge_abi(architecture, imports, deps, baseline):
+    """只允许兼容分支的 ARM64 渲染器按需导入三个 EGL 符号。"""
+    added = sorted(set(imports) - set(baseline['imports']))
+    removed = sorted(set(baseline['imports']) - set(imports))
+    expected = ['eglCreatePbufferSurface', 'eglGetError', 'eglQuerySurface'] if architecture == 'arm64-v8a' else []
+    if added != expected or removed or deps != baseline['needed']:
+        raise ValueError(f'{architecture} 桥接库依赖/导入变化：新增 {added}，删除 {removed}，依赖 {deps}')
+    return added
+
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,required=True);parser.add_argument('--studio',type=Path,required=True);args=parser.parse_args();out=args.out;out.mkdir(parents=True,exist_ok=True)
  commit=command(['git','rev-parse','HEAD']);result=ci_identity(os.environ,commit)
@@ -43,14 +52,11 @@ def main():
   for architecture in ['arm64-v8a','x86_64']:
    bridge=extracted[f'libs/{architecture}/libvidall_player_native.so'];runtime=extracted[f'libs/{architecture}/libc++_shared.so']
    imports=symbols(llvm/'llvm-nm',bridge);deps=needed(llvm/'llvm-readelf',bridge);baseline=lock['abi'][architecture]
-   added=sorted(set(imports)-set(baseline['imports']))
-   removed=sorted(set(baseline['imports'])-set(imports))
-   expected=['eglGetError','eglQuerySurface'] if architecture=='arm64-v8a' else []
-   if added!=expected or removed or deps!=baseline['needed']:raise ValueError(f'{architecture} 桥接库依赖/导入变化：新增 {added}，删除 {removed}，依赖 {deps}')
+   added=check_bridge_abi(architecture,imports,deps,baseline)
    exports=set(symbols(llvm/'llvm-nm',runtime,True));cpp={s for s in imports if s.startswith(('_ZNSt','_ZNKSt','_ZT','__cxa','_Unwind','_Zdl','_Zda','_Znw','_Zna'))}
    missing=sorted(cpp-exports-{'__cxa_atexit','__cxa_finalize'})
    if missing:raise ValueError('固定运行库不满足 C++ 导入')
-   abi[architecture]={'imports':imports,'needed':deps,'missingCxxImports':missing,'addedImports':added,'removedImports':removed,'matchesOriginalHar':not added}
+   abi[architecture]={'imports':imports,'needed':deps,'missingCxxImports':missing,'addedImports':added,'removedImports':[],'matchesOriginalHar':not added}
   module=next(m for m in archive.getmembers() if m.name.endswith('src/main/module.json'));result['module']=json.loads(archive.extractfile(module).read())
  result['abi']=abi
  contents=args.studio/'Contents';studio=json.loads((contents/'Resources/product-info.json').read_text());sdk=json.loads((native/'oh-uni-package.json').read_text())

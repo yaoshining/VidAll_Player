@@ -120,6 +120,33 @@ async function main() {
     assert(!states.includes('completed'), action + ' 请求后到达的 EOF 不得启动下一集');
     if (action !== 'release') await session.release();
   }
+  for (const action of ['rebind', 'stop', 'load', 'release']) {
+    let notify;
+    const events = [];
+    const bridge = new Proxy({subscribe: cb => { notify = cb; return () => {}; }},
+      {get: (target, key) => target[key] || (() => Promise.resolve())});
+    const session = new PlayerSession({eventListener: event => events.push(event)}, bridge);
+    const surface = {componentId:'first', generation:1, width:640, height:360};
+    const media = {kind:'localhostProxy', uri:'http://127.0.0.1/media.mp4', proxyLeaseId:'test-lease'};
+    await session.attachSurface(surface);
+    await session.load(media);
+    notify({type:'state', message:'preparing', sequence:1, eventEpoch:1, surfaceGeneration:1});
+    await session.detachSurface(1);
+    notify({type:'fileEnd', message:'completed', sequence:2, eventEpoch:1, surfaceGeneration:0});
+    assert(!events.some(e => e.state === 'completed'));
+    if (action === 'stop') await session.stop();
+    if (action === 'load') await session.load(media);
+    if (action === 'release') { await session.release(); continue; }
+    await session.attachSurface({...surface, generation:2});
+    const ended = events.filter(e => e.state === 'completed').length;
+    assert.equal(ended, action === 'rebind' ? 1 : 0);
+    if (ended) {
+      await session.stop();
+      await session.stop();
+      assert.equal(events.filter(e => e.lease?.state === 'releaseRequested').length, 1);
+    }
+    await session.release();
+  }
   console.log('诊断会话：并发合并、生命周期过期、释放后拒绝、错误隔离通过');
 }
 main().catch(e => {console.error(e);process.exitCode=1;});

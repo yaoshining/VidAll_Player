@@ -21,7 +21,7 @@ harness = r'''
 namespace vidall::runtime { const char* AdmissionError(){return nullptr;} }
 namespace vidall::render { enum class RenderBackend { Vulkan, OpenGles, Software }; }
 constexpr int MPV_FORMAT_INT64=1;
-int mpv_set_property(int*,const char*,int,void*){return 0;}
+int widRc=0;int mpv_set_property(int*,const char*,int,void*){return widRc;}
 constexpr int SET_BUFFER_GEOMETRY=1,LOG_APP=0,LOG_INFO=0,LOG_ERROR=0,LOG_DOMAIN=0;
 const char* LOG_TAG="test";
 int readbacks=0;
@@ -57,6 +57,12 @@ if(name=="released")s.released_=true;
 if(name=="sw")s.renderBackend_=vidall::render::RenderBackend::Software;
 if(name=="not-ready")s.rendererReady_=false;
 if(name=="gles")s.renderBackend_=vidall::render::RenderBackend::OpenGles;
+if(name=="bind-wid-failed"||name=="bind-geometry-failed"){
+ if(name=="bind-wid-failed")widRc=-1;else geometryRc=-1;
+ s.Bind();
+ bool ok=!s.rendererReady_&&s.rendererFailed_&&propertyCalls==0&&geometryCalls==(widRc<0?0:1);
+ std::cout<<name<<" "<<(ok?"PASS":"FAIL")<<"\n";return ok?0:1;
+}
 if(name=="bind"||name=="bind-failed"){
  s.width_=640;s.height_=480;if(name=="bind-failed")resizeRc=-1;
  s.Bind();bool ok=geometryCalls==1&&propertyCalls==1&&value=="640x480"&&s.rendererReady_==(name=="bind")&&s.rendererFailed_==(name=="bind-failed");
@@ -93,5 +99,5 @@ with tempfile.TemporaryDirectory(prefix='vidall-vk-test-') as td:
     p=pathlib.Path(td);(p/'test.cpp').write_text(harness)
     subprocess.run(['c++','-std=c++17','-pthread',str(p/'test.cpp'),'-o',str(p/'test')],check=True)
     failures=sum(subprocess.run([str(p/'test'),case],timeout=3).returncode != 0 for case in
-                 ['vulkan','gles','sw','zero','negative','not-ready','geometry-failed','property-failed','rollback-failed','retry','rotate-repeat','detach-race','bind','bind-failed','no-window','released','stale'])
+                 ['vulkan','gles','sw','zero','negative','not-ready','geometry-failed','property-failed','rollback-failed','retry','rotate-repeat','detach-race','bind','bind-failed','bind-wid-failed','bind-geometry-failed','no-window','released','stale'])
     sys.exit(bool(failures))

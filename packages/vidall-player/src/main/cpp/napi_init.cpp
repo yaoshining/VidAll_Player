@@ -533,9 +533,11 @@ public:
             : "";
         mpv_set_option_string(player_.get(), "demuxer-lavf-o", smbOptions.c_str());
         mpv_set_option_string(player_.get(), "stream-lavf-o", smbOptions.c_str());
+        // COMMAND_REPLY / END_FILE 必须在 preparing 入队之后才能交付。
+        std::lock_guard<std::mutex> terminalLock(completionMutex_);
         const char* command[] = {"loadfile", uri.c_str(), "replace", nullptr};
         if (mpv_command_async(player_.get(), request, command) < 0) {
-            InvalidateCompletion();
+            completionEpoch_ = 0;
             return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         }
         diagnosticsStopped_ = false;
@@ -647,11 +649,9 @@ public:
     {
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         if (released_) return {false, handle, "RELEASED"};
-        // issue #73：mpv_initialize 已推迟到首次 Attach；未 Attach（mpv 尚未初始化）时
-        // 调用 mpv_command_async 会返回 MPV_ERROR_UNINITIALIZED，这里与其余播放命令一致，
-        // 用 rendererReady_ 门闩避免对未初始化 handle 下达 mpv 命令。
-        if (!rendererReady_) return {false, handle, "SURFACE_UNAVAILABLE"};
+        // 窗口分离后仍须停止已初始化的播放器，且撤销尚未交付的结束事件。
         InvalidateCompletion();
+        if (!mpvInitialized_) return {false, handle, "SURFACE_UNAVAILABLE"};
         const char* command[] = {"stop", nullptr};
         if (mpv_command_async(player_.get(), 0, command) < 0) return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         diagnosticsStopped_ = true;
@@ -817,7 +817,11 @@ private:
         const auto* command = static_cast<const mpv_event_command*>(event.data);
         int64_t entry = -1;
         int matches = 0;
-        if (event.error >= 0 && command && command->result.format == MPV_FORMAT_NODE_MAP && command->result.u.list) {
+        if (event.error < 0) {
+            DispatchCompletion(MPV_END_FILE_REASON_ERROR);
+            return;
+        }
+        if (command && command->result.format == MPV_FORMAT_NODE_MAP && command->result.u.list) {
             const auto* list = command->result.u.list;
             if (list->num >= 0 && list->num <= 64 && list->keys && list->values) {
                 for (int i = 0; i < list->num; i++) {
@@ -828,37 +832,49 @@ private:
                 }
             }
         }
-        if (matches != 1 || entry <= 0 || std::find(completionEnded_.begin(), completionEnded_.end(), entry) != completionEnded_.end()) {
-            completionEpoch_ = 0; return;
+        if (matches != 1 || entry <= 0) {
+            completionEpoch_ = 0;
+            return;
         }
         completionEntry_ = entry;
+        for (const auto& end : completionEnded_) {
+            if (end.playlist_entry_id == entry) {
+                DispatchCompletion(end.reason);
+                break;
+            }
+        }
+        completionEnded_.clear();
     }
 
     void CompleteFile(const mpv_event_end_file* end)
     {
         std::lock_guard<std::mutex> lock(completionMutex_);
         if (!end || !completionEpoch_ || end->playlist_entry_id <= 0) return;
-        if (!completionReplied_) {
-            // reply晚于END_FILE不追认成功；旧文件的END_FILE不能误伤新entry。
-            if (completionEnded_.size() >= 8) completionEpoch_ = 0;
-            else completionEnded_.push_back(end->playlist_entry_id);
+        if (completionReplied_) {
+            if (end->playlist_entry_id == completionEntry_) DispatchCompletion(end->reason);
             return;
         }
-        if (end->playlist_entry_id != completionEntry_) return;
-        const auto epoch = completionEpoch_;
-        const auto generation = generation_.load();
-        completionEpoch_ = 0; // 无论原因只消费一次，非EOF不能稍后补为EOF。
-        if (end->reason != MPV_END_FILE_REASON_EOF || released_ ||
-            epoch != eventEpoch_.load() || generation == 0) return;
-        DispatchCompletion(epoch, generation);
+        // 命令回复可能晚于 END_FILE。只保存各条目的首次结束原因。
+        for (const auto& seen : completionEnded_) {
+            if (seen.playlist_entry_id == end->playlist_entry_id) return;
+        }
+        if (completionEnded_.size() >= 8) {
+            completionEpoch_ = 0;
+            return;
+        }
+        completionEnded_.push_back(*end);
     }
 
-    void DispatchCompletion(std::uint64_t epoch, std::uint64_t generation)
+    // 调用方持有 completionMutex_，使切源/停止与投递有确定的先后顺序。
+    void DispatchCompletion(int reason)
     {
+        const auto epoch = completionEpoch_;
+        completionEpoch_ = 0;
+        if (reason != MPV_END_FILE_REASON_EOF && reason != MPV_END_FILE_REASON_ERROR) return;
         std::lock_guard<std::mutex> lock(callbackMutex_);
-        if (released_ || eventTsfn_ == nullptr ||
-            epoch != eventEpoch_.load() || generation != generation_.load()) return;
-        auto* event = new Event{"state", "completed", epoch, ++eventSequence_, generation};
+        if (released_ || !eventTsfn_ || epoch != eventEpoch_.load()) return;
+        auto* event = new Event{"fileEnd", reason == MPV_END_FILE_REASON_EOF ? "completed" : "error",
+            epoch, ++eventSequence_, generation_.load()};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
     }
 
@@ -943,6 +959,7 @@ private:
             msg += "}";
             Dispatch("position", msg);
         };
+        int64_t activeEntry = -1;
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
@@ -962,11 +979,15 @@ private:
                         "mpv[%{public}s]: %{public}s", log->prefix != nullptr ? log->prefix : "", log->text);
                 }
             }
+            if (event->event_id == MPV_EVENT_START_FILE && event->data) {
+                activeEntry = static_cast<const mpv_event_start_file*>(event->data)->playlist_entry_id;
+            }
             if (event->event_id == MPV_EVENT_COMMAND_REPLY) CompletionReply(*event);
             if (event->event_id == MPV_EVENT_END_FILE) {
                 const auto* end = static_cast<mpv_event_end_file*>(event->data);
                 CompleteFile(end);
-                if (end != nullptr && end->reason == MPV_END_FILE_REASON_ERROR) Dispatch("error", "libmpv playback failed");
+                if (!end || end->playlist_entry_id != activeEntry) continue;
+                activeEntry = -1;
                 // 重置 video-params 缓存，避免跨文件残留旧属性
                 vpPixfmt_.clear(); vpHwPixfmt_.clear(); vpBitDepth_ = 0; vpPrimaries_.clear();
                 vpTransfer_.clear(); vpMatrix_.clear(); vpVideoRange_.clear();
@@ -1368,8 +1389,21 @@ private:
             }
             if (width <= 0 || height <= 0) continue;
             if (geometryDirty) {
-                if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) ||
-                    !eglDestroySurface(eglDisplay_, eglSurface_)) {
+                // 更换窗口时仍保持原 GL context 当前，失败路径也能安全释放 libmpv。
+                if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_)) {
+                    const EGLint attributes[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
+                    EGLSurface parking = eglCreatePbufferSurface(eglDisplay_, eglConfig_, attributes);
+                    bool parked = parking != EGL_NO_SURFACE &&
+                        eglMakeCurrent(eglDisplay_, parking, parking, eglContext_);
+                    // EGL 会在当前表面解除绑定后完成销毁。
+                    if (parking != EGL_NO_SURFACE) eglDestroySurface(eglDisplay_, parking);
+                    if (!parked) {
+                        MarkRendererFailed();
+                        Dispatch("error", "MPV display context resize failed");
+                        break;
+                    }
+                }
+                if (!eglDestroySurface(eglDisplay_, eglSurface_)) {
                     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
                         "MpvBuffer resize detach failed egl=%{public}d", eglGetError());
                     MarkRendererFailed();
@@ -1466,6 +1500,7 @@ private:
         int nativeWindowFailCount = 0;
         constexpr int MAX_NATIVE_WINDOW_FAILS = 30;
 
+        bool redrawPending = false;
         while (true) {
             bool geometryDirty = false;
             int width = 0, height = 0;
@@ -1490,7 +1525,8 @@ private:
                 }
             }
             uint64_t updateFlags = mpv_render_context_update(renderer_);
-            if (!geometryDirty && (updateFlags & MPV_RENDER_UPDATE_FRAME) == 0) continue;
+            redrawPending = redrawPending || geometryDirty;
+            if (!redrawPending && (updateFlags & MPV_RENDER_UPDATE_FRAME) == 0) continue;
             if (width <= 0 || height <= 0) continue;
             size_t stride = static_cast<size_t>(width) * 4;
             pixels.resize(stride * static_cast<size_t>(height));
@@ -1568,6 +1604,7 @@ private:
                 }
             }
 
+            redrawPending = false;
             if (!firstFrameSent_.exchange(true)) {
                 Dispatch("state", "playing");
             }
@@ -1660,7 +1697,7 @@ private:
     std::uint64_t completionEpoch_ = 0;
     int64_t completionEntry_ = -1;
     bool completionReplied_ = false;
-    std::vector<int64_t> completionEnded_;
+    std::vector<mpv_event_end_file> completionEnded_;
     std::atomic<std::uint64_t> eventEpoch_{0};
     std::atomic<std::uint64_t> eventSequence_{0};
     std::atomic<int> width_{0};

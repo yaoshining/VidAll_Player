@@ -21,6 +21,16 @@ class Audit(unittest.TestCase):
    with self.assertRaises(ValueError):audit.inspect_har(self.archive(rows),self.required,set(self.required))
  def test_duplicate_member_rejected(self):
   with self.assertRaises(ValueError):audit.inspect_har(self.archive([('libs/arm64-v8a/libmpv.so',b'core')]*2),self.required,set(self.required))
+ def test_review_candidate_abi(self):
+  baseline={'imports':['existing'],'needed':['libEGL.so']}
+  additions=['eglCreatePbufferSurface','eglGetError','eglQuerySurface']
+  arm=baseline['imports']+additions
+  self.assertEqual(audit.check_bridge_abi('arm64-v8a',arm,baseline['needed'],baseline),additions)
+  self.assertEqual(audit.check_bridge_abi('x86_64',['existing'],baseline['needed'],baseline),[])
+  for arch,imports,deps in [
+   ('arm64-v8a',arm[:-1],baseline['needed']),('arm64-v8a',arm+['unexpected'],baseline['needed']),
+   ('arm64-v8a',additions,baseline['needed']),('x86_64',arm,baseline['needed']),('arm64-v8a',arm,['new.so'])]:
+   with self.assertRaises(ValueError):audit.check_bridge_abi(arch,imports,deps,baseline)
  def test_ci_identity(self):
   env={'GITHUB_ACTIONS':'true','GITHUB_SHA':'a'*40,'GITHUB_REPOSITORY':'yaoshining/VidAll_Player','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'1','RUNNER_ENVIRONMENT':'self-hosted','RUNNER_OS':'macOS','RUNNER_ARCH':'ARM64'}
   self.assertEqual(audit.ci_identity(env,'a'*40)['sourceCommit'],'a'*40)

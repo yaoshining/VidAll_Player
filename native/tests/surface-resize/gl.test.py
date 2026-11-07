@@ -14,7 +14,7 @@ harness = r'''
 #include <iostream>
 #include <string>
 #include <vector>
-using EGLint=int;
+using EGLint=int;using EGLSurface=int;constexpr int EGL_NONE=4;
 using EGLBoolean=int;
 using EGLNativeWindowType=void*;
 constexpr int EGL_NO_SURFACE=0,EGL_NO_CONTEXT=0,EGL_WIDTH=1,EGL_HEIGHT=2;
@@ -24,14 +24,16 @@ constexpr int LOG_APP=0,LOG_INFO=0,LOG_ERROR=0,LOG_WARN=0,LOG_DOMAIN=0;
 const char* LOG_TAG="test";
 struct mpv_opengl_fbo{int fbo,w,h,format;};
 struct mpv_render_param{int type;void* data;};
-int queries=0,frames=1,renders=0,swaps=0,errors=0,destroys=0,bufferRc=0,createRc=1,bindRc=1,queryRc=1,swapRc=1;
+int queries=0,frames=1,renders=0,swaps=0,errors=0,destroys=0,bufferRc=0,createRc=2,bindRc=1,queryRc=1,swapRc=1;
+int currentContext=1,cleanupContext=0,parkingCreates=0;bool surfaceless=true,parkingAllowed=true;
 int actualW=1840,actualH=2644,renderW=0,renderH=0;
 bool* stopPtr=nullptr;
 void OH_LOG_Print(int,int,int,const char*,const char*,...){}
 void mpv_render_context_set_update_callback(void*,void(*)(void*),void*){}
-int eglMakeCurrent(int,int,int,int){return bindRc;}
+int eglMakeCurrent(int,int draw,int,int context){if((draw==0&&context==1&&!surfaceless)||(draw==2&&bindRc==0))return 0; currentContext=context;return 1;}
 int eglDestroySurface(int,int){return 1;}
 int OH_NativeWindow_NativeWindowHandleOpt(void*,int,int,int){return bufferRc;}
+int eglCreatePbufferSurface(int,int,const int*){++parkingCreates;return parkingAllowed?3:0;}
 int eglCreateWindowSurface(int,int,void*,void*){return createRc;}
 int eglGetError(){return 0x300d;}
 int eglQuerySurface(int,int,int what,int* value){++queries;*value=what==EGL_WIDTH?actualW:actualH;return queryRc;}
@@ -50,13 +52,16 @@ class Session {
  static void NotifyRender(void*){}
  void Dispatch(const char* kind,const char*){if(std::string(kind)=="error")++errors;}
  void MarkRendererFailed(){rendererReady_=false;}
- void DestroyRenderer(){++destroys;}
+ void DestroyRenderer(){++destroys;cleanupContext=currentContext;}
  METHOD
 };
 int main(int argc,char**argv){
  std::string name=argv[1]; Session s; stopPtr=&s.stopRenderer_;
  if(name=="paused-resize")frames=0;
  if(name=="actual-fbo") {actualW=2800;actualH=1684;}
+ if(name=="parking"||name=="parking-failed"||name=="parking-bind-failed")surfaceless=false;
+ if(name=="parking-failed")parkingAllowed=false;
+ if(name=="parking-bind-failed")bindRc=0;
  if(name=="set-failed")bufferRc=-1;
  if(name=="create-failed")createRc=0;
  if(name=="bind-failed")bindRc=0;
@@ -65,7 +70,7 @@ int main(int argc,char**argv){
  if(name=="swap-failed")swapRc=0;
  s.GlRenderLoop();
  bool failure=name.find("failed")!=std::string::npos||name=="zero-size";
- bool ok=destroys==1;
+ bool ok=destroys==1&&cleanupContext==1&&parkingCreates==(surfaceless?0:1);
  if(failure){ok=ok&&errors==1&&!s.rendererReady_;if(name!="swap-failed")ok=ok&&renders==0;}
  else ok=ok&&errors==0&&renders==1&&swaps==1&&renderW==actualW&&renderH==actualH;
  std::cout<<name<<" renders="<<renders<<" fbo="<<renderW<<"x"<<renderH<<" errors="<<errors<<" "<<(ok?"PASS":"FAIL")<<"\n";
@@ -76,7 +81,7 @@ with tempfile.TemporaryDirectory(prefix='vidall-gl-test-') as td:
  p=pathlib.Path(td);(p/'test.cpp').write_text(harness)
  subprocess.run(['c++','-std=c++17','-pthread',str(p/'test.cpp'),'-o',str(p/'test')],check=True)
  failed=0
- for name in ['normal','paused-resize','actual-fbo','set-failed','create-failed','bind-failed','query-failed','zero-size','swap-failed']:
+ for name in ['normal','paused-resize','actual-fbo','set-failed','create-failed','bind-failed','query-failed','zero-size','swap-failed','parking','parking-failed','parking-bind-failed']:
   try: failed+=subprocess.run([str(p/'test'),name],timeout=3).returncode!=0
   except subprocess.TimeoutExpired: print(name,'FAIL timeout');failed+=1
  sys.exit(bool(failed))

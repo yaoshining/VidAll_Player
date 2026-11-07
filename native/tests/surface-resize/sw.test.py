@@ -22,18 +22,18 @@ struct mpv_render_param{int type;void* data;};
 struct OHNativeWindowBuffer{};
 struct BufferHandle{void* virAddr;int fd,size,stride,height,width;};
 struct Region{struct Rect{int x,y;uint32_t w,h;};Rect* rects=nullptr;int rectNumber=0;};
-int frames=1,renders=0,errors=0,destroys=0,geometryCalls=0,geometryRc=0;
+int requests=0,polls=0;bool retry=false;int frames=1,renders=0,errors=0,destroys=0,geometryCalls=0,geometryRc=0;
 int renderW=0,renderH=0,flushes=0;
 char pixels[96];BufferHandle buffer{pixels,-1,96,16,6,4};OHNativeWindowBuffer nativeBuffer;
 bool* stopPtr=nullptr;
 void OH_LOG_Print(int,int,int,const char*,const char*,...){}
 void mpv_render_context_set_update_callback(void*,void(*)(void*),void*){}
 int OH_NativeWindow_NativeWindowHandleOpt(void*,int op,...){if(op==SET_BUFFER_GEOMETRY){++geometryCalls;return geometryCalls>1?geometryRc:0;}return 0;}
-int OH_NativeWindow_NativeWindowRequestBuffer(void*,OHNativeWindowBuffer** b,int*){*b=&nativeBuffer;return 0;}
+int OH_NativeWindow_NativeWindowRequestBuffer(void*,OHNativeWindowBuffer** b,int*){++requests;if(retry&&requests==1)return -1;*b=&nativeBuffer;return 0;}
 BufferHandle* OH_NativeWindow_GetBufferHandleFromNative(OHNativeWindowBuffer*){return &buffer;}
-int OH_NativeWindow_NativeWindowFlushBuffer(void*,OHNativeWindowBuffer*,int,Region){++flushes;return 0;}
-uint64_t mpv_render_context_update(void*){if(!frames)*stopPtr=true;return frames;}
-int mpv_render_context_render(void*,mpv_render_param* p){auto size=static_cast<int*>(p[0].data);++renders;renderW=size[0];renderH=size[1];*stopPtr=true;return 0;}
+int OH_NativeWindow_NativeWindowFlushBuffer(void*,OHNativeWindowBuffer*,int,Region){++flushes;if(retry)*stopPtr=true;return 0;}
+uint64_t mpv_render_context_update(void*){if(retry){if(++polls>5)*stopPtr=true;}else if(!frames)*stopPtr=true;return frames;}
+int mpv_render_context_render(void*,mpv_render_param* p){auto size=static_cast<int*>(p[0].data);++renders;renderW=size[0];renderH=size[1];if(!retry)*stopPtr=true;return 0;}
 class Session{public:
 std::mutex rendererMutex_,frameMutex_;std::condition_variable rendererReadyCv_,renderCondition_;
 bool rendererReady_=false,stopRenderer_=false,renderRequested_=true,frameReady_=false;
@@ -49,12 +49,14 @@ METHOD
 };
 int main(int argc,char**argv){
 std::string name=argv[1];Session s;stopPtr=&s.stopRenderer_;
+if(name=="retry"){retry=true;frames=0;}
 if(name=="paused-resize"||name=="paused-idle")frames=0;
 if(name=="paused-idle")s.geometryDirty_=false;
 if(name=="geometry-failed")geometryRc=-1;
 s.SwRenderLoop();
 bool ok=destroys==1;
 if(name=="geometry-failed")ok=ok&&errors==1&&renders==0&&!s.rendererReady_;
+else if(name=="retry")ok=ok&&errors==0&&requests==2&&flushes==1;
 else if(name=="paused-idle")ok=ok&&errors==0&&renders==0;
 else ok=ok&&errors==0&&renders==1&&renderW==4&&renderH==6&&flushes==1;
 std::cout<<name<<" "<<(ok?"PASS":"FAIL")<<"\n";return ok?0:1;
@@ -63,5 +65,5 @@ std::cout<<name<<" "<<(ok?"PASS":"FAIL")<<"\n";return ok?0:1;
 with tempfile.TemporaryDirectory(prefix='vidall-sw-test-') as td:
  p=pathlib.Path(td);(p/'test.cpp').write_text(harness)
  subprocess.run(['c++','-std=c++17','-pthread',str(p/'test.cpp'),'-o',str(p/'test')],check=True)
- failed=sum(subprocess.run([str(p/'test'),case],timeout=3).returncode!=0 for case in ['normal','paused-resize','paused-idle','geometry-failed'])
+ failed=sum(subprocess.run([str(p/'test'),case],timeout=3).returncode!=0 for case in ['normal','paused-resize','paused-idle','geometry-failed','retry'])
  sys.exit(bool(failed))
