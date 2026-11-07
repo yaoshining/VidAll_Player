@@ -39,3 +39,7 @@ VidAll_TV 已签收本轮 HAR，消费端 OpenSpec 任务 6.2 已完成。开发
 消费端最终回执为 VidAll_TV 的 `openspec/changes/adapt-harmonyos-tablet/player84-acceptance-2026-11-08.md`（SHA-256 `cc88640388b1c30436782de918dce6bae52fd0f5318165f630645537ba16f436`）。同目录的 `evidence/issue84/final/package.json` 记录签名 HAP 和原生库哈希。
 
 Koofr 首次远距离定位偶发超时在直接打开第二集时也能复现，消费端已列为独立待办。最低实测 API 19 来自 TV 模拟器，API 15 安装下限、API 19 实体平板和独立扬声器听感未作本轮验证。
+
+## 合并前检查
+
+GitHub 因停用 macos-14 取消了元数据检查。元数据矩阵改为 macos-15 和 ubuntu-22.04。面向兼容基线的 PR 使用固定核心，调整此工作流时也只进行元数据验证和既有 HAR 回归。两项工作流约束均先在修改前复现失败，修复后通过。播放器源码和验收产物仍对应上文的提交及哈希。

@@ -19,3 +19,9 @@ grep -Fq 'CARGO_C_EXPECTED_VERSION: 0.10.13+cargo-0.88.0' "$WORKFLOW" || \
 
 grep -Fq 'test "$(cargo-cbuild --version)" = "cargo-c $CARGO_C_EXPECTED_VERSION"' "$WORKFLOW" || \
   fail '安装后必须验证 cargo-c 的完整版本'
+
+grep -Fq 'os: [macos-15, ubuntu-22.04]' "$WORKFLOW" || \
+  fail '元数据检查须同时覆盖可用的 macOS 与 Ubuntu 运行器'
+
+grep -A 6 '^  build-libmpv-external-ffmpeg:' "$WORKFLOW" | grep -Fq "(github.event_name != 'pull_request' || github.base_ref != 'codex/legacy-vulkan-size-83')" || \
+  fail '兼容基线 PR 只消费固定库，不能自动触发外部 FFmpeg 构建'

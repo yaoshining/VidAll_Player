@@ -105,7 +105,10 @@ jobs:
   build-libmpv-external-ffmpeg:
     name: 从锁定源码构建 OHCodec FFmpeg 8 与 libmpv
     needs: [native-contracts, detect-build-changes]
-    if: ${{ needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build }}
+    # 兼容分支的 PR 使用固定的核心和运行库，包括只修改 CI 配置的情况。
+    if: >-
+      (github.event_name != 'pull_request' || github.base_ref != 'codex/legacy-vulkan-size-83') &&
+      (needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build)
     runs-on: [self-hosted, macos, deveco]
     env:
       # 仅此作业使用局域网镜像；保留上游来源锁，不修改 runner 全局 Git 配置。
@@ -331,7 +334,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14, ubuntu-22.04]
+        os: [macos-15, ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     steps:
       - name: 检出项目
