@@ -93,16 +93,22 @@ async function main() {
   // 极短视频结束时首帧回调可能还在队列里。
   let shortEvent;
   const shortStates = [];
-  const shortPlayer = new PlayerSession({eventListener: event => shortStates.push(event.state)},
+  const shortFrames = [];
+  const shortPlayer = new PlayerSession({eventListener: event => {
+    if (event.type === 'state') shortStates.push(event.state);
+    if (event.type === 'firstFrame') shortFrames.push(event);
+  }},
     new Proxy({subscribe: cb => { shortEvent = cb; return () => {}; }},
       {get: (target, key) => target[key] || (() => Promise.resolve())}));
   await shortPlayer.attachSurface({componentId:'short', generation:1, width:640, height:360});
   await shortPlayer.load({kind:'localFile', uri:'file:///short.mp4'});
-  for (const [index, message] of ['preparing', 'completed', 'playing'].entries()) {
+  for (const [index, message] of ['preparing', 'completed', 'playing', 'playing'].entries()) {
     shortEvent({type:'state', message, sequence:index + 1, eventEpoch:1, surfaceGeneration:1});
   }
   assert.equal(shortStates.filter(state => state === 'completed').length, 1);
   assert.equal(shortStates[shortStates.length - 1], 'completed');
+  assert.equal(shortFrames.length, 1, '片尾之后送达的真实首帧应交付一次');
+  assert.equal(shortFrames[0].surfaceGeneration, 1);
   await shortPlayer.release();
   for (const action of ['stop', 'release', 'load']) {
     let notify;
@@ -122,7 +128,7 @@ async function main() {
     assert(!states.includes('completed'), action + ' 请求后到达的 EOF 不得启动下一集');
     if (action !== 'release') await session.release();
   }
-  for (const action of ['rebind', 'stop', 'load', 'release']) {
+  for (const action of ['rebind', 'stop', 'load', 'release', 'stopBeforeRebind']) {
     let notify;
     const events = [];
     const bridge = new Proxy({subscribe: cb => { notify = cb; return () => {}; }},
@@ -139,7 +145,9 @@ async function main() {
     if (action === 'stop') await session.stop();
     if (action === 'load') await session.load(media);
     if (action === 'release') { await session.release(); continue; }
-    await session.attachSurface({...surface, generation:2});
+    const rebinding = session.attachSurface({...surface, generation:2});
+    const stopping = action === 'stopBeforeRebind' ? session.stop() : Promise.resolve();
+    await Promise.all([rebinding, stopping]);
     const ended = events.filter(e => e.state === 'completed').length;
     assert.equal(ended, action === 'rebind' ? 1 : 0);
     if (ended) {

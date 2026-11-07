@@ -1,5 +1,5 @@
 """合并前真实 Monitor 退出、正常 deadline 和同步终局事件回归。"""
-import os,subprocess,tempfile,threading,time,unittest
+import os,select,subprocess,tempfile,time,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 class Tests(unittest.TestCase):
@@ -16,26 +16,23 @@ class Tests(unittest.TestCase):
  def test_normal_remains_ready(self):
   r,_=self.run_mode('normal');self.assertEqual(r.returncode,0,r.stderr);self.assertIn('READY',r.stdout)
  def test_normal_terminal_deadline(self):
-  # 在父进程的同一个单调时钟上测量，Darwin 的 C++ 与 Python 时钟原点可能不同。
+  # 子进程配置完成后等触发字节，两端时间都由父进程采集。
   root=self.base/'deadline'
   root.mkdir()
-  with subprocess.Popen([str(self.bin),'deadline',str(root)],stderr=subprocess.PIPE,text=True) as proc:
-   observed=[]
-   def read_marker():
-    for line in proc.stderr:
-     if line.startswith('TERMINAL_AT '): observed.append(time.monotonic())
-   reader=threading.Thread(target=read_marker)
-   reader.start()
+  with subprocess.Popen([str(self.bin),'deadline',str(root)],stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True) as proc:
    try:
-    rc=proc.wait(timeout=10)
-    exited=time.monotonic()
+    self.assertTrue(select.select([proc.stdout],[],[],5)[0], 'Monitor 未就绪')
+    self.assertEqual(proc.stdout.readline().strip(),'ARMED')
+    start=time.monotonic()
+    proc.stdin.write('!')
+    proc.stdin.flush()
+    self.assertEqual(proc.wait(timeout=10),86)
+    elapsed=time.monotonic()-start
+    self.assertGreaterEqual(elapsed,0.95)
+    self.assertLess(elapsed,2.5)
    finally:
     if proc.poll() is None: proc.kill()
-    reader.join()
-   self.assertEqual(rc,86)
-   self.assertEqual(len(observed),1)
-   self.assertGreaterEqual(exited-observed[0],0.95)
-   self.assertLess(exited-observed[0],2.5)
  def test_synchronous_terminal_listener(self):
   env=dict(os.environ,TYPESCRIPT_PATH=str(ROOT/'scripts/test/normal-core/node_modules/typescript'))
   r=subprocess.run(['node','native/tests/normal-runtime.test.cjs','constructor-terminal-replay'],cwd=ROOT,env=env,capture_output=True,text=True,timeout=10)

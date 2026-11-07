@@ -74,6 +74,7 @@ export class PlayerSession implements VidAllPlayer {
   private mediaRequest: number = 0;
   private loadedRequest: number = -1;
   private pendingFileEnd?: NativeBridgeEvent;
+  private firstFrameDelivered: boolean = false;
   private leaseEpoch: number = 0;
   // 上一次公开 emit 'position' 事件的时间戳（Date.now() 毫秒）。mpv time-pos 默认每帧
   // 上报，这里保证两次公开 position emit 间隔 ≥ 100ms（与 VidAll_TV IjkPlayerAdapter
@@ -167,6 +168,7 @@ export class PlayerSession implements VidAllPlayer {
       this.abortActiveMedia('source-switch');
       this.stateMachine.advanceEventEpoch();
       this.loadedRequest = request;
+      this.firstFrameDelivered = false;
       // 重置 position 节流窗口，让新媒体的第一个 position 事件能立即下发，而不是
       // 被上一媒体最后一次 emit 的 100ms 窗口卡住。
       this.lastPositionEmitAtMs = 0;
@@ -401,14 +403,15 @@ export class PlayerSession implements VidAllPlayer {
       return;
     }
     if (event.type === 'state' && event.message === 'playing') {
-      // 仅当 native RenderLoop 真正成功提交过一次解码帧后才会到达这里，
-      // 因此可以安全地把首帧证据转译为公开的 playing 状态与 firstFrame 事件。
-      if (this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence) &&
-        this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) &&
-        this.stateMachine.getState() !== 'playing' && this.stateMachine.getState() !== 'completed') {
-        this.stateMachine.transition('playing');
-        this.stateMachine.emit({ type: 'firstFrame', sequence: event.sequence, surfaceGeneration: event.surfaceGeneration });
-      }
+      const state = this.stateMachine.getState();
+      if (this.loadedRequest !== this.mediaRequest || this.firstFrameDelivered ||
+        state === 'idle' || state === 'error' || state === 'released' ||
+        !this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration) ||
+        !this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence)) return;
+      this.firstFrameDelivered = true;
+      // 极短媒体可在首帧消息送达前播完。交付真实首帧，同时保留已完成状态。
+      if (state !== 'completed') this.stateMachine.transition('playing');
+      this.stateMachine.emit({ type: 'firstFrame', sequence: event.sequence, surfaceGeneration: event.surfaceGeneration });
       return;
     }
     if (event.type === 'state' && event.message === 'completed') {

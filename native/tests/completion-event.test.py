@@ -24,8 +24,6 @@ if not legacy:
     reply_line=re.search(r'if \(event->event_id == MPV_EVENT_COMMAND_REPLY\) CompletionReply\(\*event\);',source).group(0)
     stop=method('NativeResult Stop(')
     release=method('void Release()')
-    submit=method('NativeResult Load(')
-    assert submit.index('terminalLock(completionMutex_)') < submit.index('mpv_command_async(') < submit.index('Dispatch("state", "preparing")')
     assert stop.index('InvalidateCompletion();') < stop.index('mpv_command_async(')
     assert release.index('InvalidateCompletion();') < release.index('released_ = true;') < release.index('eventThread_.join()')
 
@@ -39,13 +37,16 @@ code=r'''
 #include <cstring>
 #include <cassert>
 #include <thread>
+#include <future>
+#include <functional>
 #include <condition_variable>
 #include <chrono>
 struct Handle {void* get(){return nullptr;}};
 struct Event {std::string type,message;uint64_t epoch,sequence,generation;};
 static constexpr int napi_tsfn_nonblocking=0,napi_ok=0;
 static uint64_t requested=0;static int submitResult=0;
-static int test_command_async(void*,uint64_t userdata,const char**){requested=userdata;return submitResult;}
+static std::function<void()> onSubmit;
+static int test_command_async(void*,uint64_t userdata,const char**){requested=userdata;if(onSubmit)onSubmit();return submitResult;}
 #define mpv_command_async test_command_async
 #include <mpv/client.h>
 namespace vidall { namespace runtime { std::atomic<bool> terminal{false};const char* AdmissionError(){return terminal?"terminal":nullptr;} } }
@@ -57,18 +58,27 @@ static std::string EscapeMpvOptionValue(const std::string& input){return input;}
 int mpv_set_option_string(void*,const char*,const char*){return 0;}
 Handle player_;bool diagnosticsStopped_=false,firstFrameSent_=false; EXTRAS
 std::vector<uint64_t> errors;std::vector<std::pair<uint64_t,uint64_t>> sent;std::mutex testMutex;std::condition_variable cv;bool block=false,entered=false,unblock=false;
-void Dispatch(const std::string& type,const std::string& message){if(type=="error")errors.push_back(eventEpoch_); if(type=="state"&&message=="completed")sent.push_back({eventEpoch_,generation_});}
+bool verifyOrder=false;std::atomic<bool> preparing{false};
+void Dispatch(const std::string& type,const std::string& message){if(type=="state"&&message=="preparing")preparing=true;if(type=="error")errors.push_back(eventEpoch_); if(type=="state"&&message=="completed")sent.push_back({eventEpoch_,generation_});}
 LOAD
 @@STOP@@
 void process(mpv_event* event){do { @@REPLY@@ @@END_BLOCK@@ } while(false);}
 
-int napi_call_threadsafe_function(void*,Event* event,int){std::unique_lock<std::mutex> lk(testMutex);if(block){entered=true;cv.notify_all();cv.wait(lk,[&]{return unblock;});}if(event->message=="completed")sent.push_back({event->epoch,event->generation});else errors.push_back(event->epoch);delete event;return napi_ok;}
+int napi_call_threadsafe_function(void*,Event* event,int){std::unique_lock<std::mutex> lk(testMutex);if(block){entered=true;cv.notify_all();cv.wait(lk,[&]{return unblock;});}if(verifyOrder)assert(preparing);if(event->message=="completed")sent.push_back({event->epoch,event->generation});else errors.push_back(event->epoch);delete event;return napi_ok;}
 METHODS
 void reply(uint64_t request,int64_t id,int error=0){mpv_node value{};value.format=MPV_FORMAT_INT64;value.u.int64=id;char key[]="playlist_entry_id";char* keys[]={key};mpv_node_list list{1,&value,keys};mpv_event_command command{};command.result.format=MPV_FORMAT_NODE_MAP;command.result.u.list=&list;mpv_event event{};event.event_id=MPV_EVENT_COMMAND_REPLY;event.reply_userdata=request;event.error=error;event.data=&command;process(&event);}
 void end(int64_t id,int reason=MPV_END_FILE_REASON_EOF){mpv_event_end_file end{};end.reason=static_cast<mpv_end_file_reason>(reason);end.playlist_entry_id=id;mpv_event event{};event.event_id=MPV_EVENT_END_FILE;event.data=&end;process(&event);}
 };
 int main(){
  {Harness h;h.load();assert(requested==h.eventEpoch_&&requested>0);h.reply(requested,10);h.end(10);assert(h.sent.size()==1);}
+ {Harness h;h.verifyOrder=true;std::future<void> processing;std::promise<void> entered;
+  onSubmit=[&]{auto request=requested;
+   processing=std::async(std::launch::async,[&,request]{entered.set_value();h.reply(request,10);h.end(10);});
+   entered.get_future().wait();
+   assert(processing.wait_for(std::chrono::milliseconds(30))==std::future_status::timeout);
+  };
+  assert(h.load().ok);processing.get();onSubmit={};assert(h.sent.size()==1);
+ }
  {Harness h;h.rendererReady_=false;assert(!h.load().ok);h.rendererReady_=true;assert(h.load().ok);h.reply(requested,10);h.end(10);assert(h.sent.size()==1&&h.sent[0].first==2);}
  {Harness h;submitResult=-1;h.load();submitResult=0;h.reply(requested,10);h.end(10);assert(h.sent.empty());}
  {Harness h;auto old=h.BeginCompletion();h.reply(old,10);auto next=h.BeginCompletion();h.reply(next,11);h.end(10,MPV_END_FILE_REASON_ERROR);assert(h.errors.empty());h.end(11,MPV_END_FILE_REASON_ERROR);h.end(11);assert(h.sent.empty()&&h.errors.size()==1&&h.errors[0]==next);}

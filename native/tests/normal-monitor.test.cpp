@@ -16,5 +16,10 @@ int main(int argc,char**argv){
  if(enableFails){assert(error&&std::string(error)=="RUNTIME_TERMINAL_ENABLE_FAILED");fprintf(stderr,"BEFORE %d\n",vidall::runtime::state.load());vidall::runtime::Monitor();fprintf(stderr,"AFTER\n");puts("MONITOR_RETURNED");return 0;}
  assert(!error);
  if(mode=="normal"){std::this_thread::sleep_for(std::chrono::milliseconds(30));assert(vidall::runtime::Snapshot().state==2);puts("READY");return 0;}
- assert(mode=="deadline");fprintf(stderr,"TERMINAL_AT %lld\n",(long long)vidall::runtime::Now());fatal=true;for(;;)std::this_thread::sleep_for(std::chrono::milliseconds(10));
+ assert(mode=="deadline");
+ puts("ARMED");
+ fflush(stdout);
+ if(getchar()!='!')return 1;
+ fatal=true;
+ for(;;)std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }

@@ -1536,6 +1536,7 @@ private:
         constexpr int MAX_NATIVE_WINDOW_FAILS = 30;
 
         bool redrawPending = false;
+        unsigned int consecutiveFlushFailures = 0;
         while (true) {
             bool geometryDirty = false;
             int width = 0, height = 0;
@@ -1604,9 +1605,13 @@ private:
                         "target invalid target=%{public}d virAddr=%{public}d fd=%{public}d size=%{public}d stride=%{public}d needStride=%{public}d bufHeight=%{public}d needHeight=%{public}d",
                         target != nullptr, virAddr != nullptr, target != nullptr ? target->fd : -1, target != nullptr ? target->size : -1,
                         target != nullptr ? target->stride : -1, width * 4, target != nullptr ? target->height : -1, height);
-                    Region empty{};
-                    OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, empty);
                     if (ownsMapping) munmap(mappedAddr, static_cast<size_t>(target->size));
+                    if (fence >= 0) close(fence);
+                    if (OH_NativeWindow_NativeWindowAbortBuffer(window_, buffer) != 0) {
+                        MarkRendererFailed();
+                        Dispatch("error", "MPV display buffer abort failed");
+                        break;
+                    }
                     continue;
                 }
                 if (geometryDirty) {
@@ -1623,7 +1628,20 @@ private:
                 Region::Rect rect = {0, 0, static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
                 region.rects = &rect;
                 region.rectNumber = 1;
-                OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, region);
+                int flushRc = OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, region);
+                if (flushRc != 0) {
+                    int abortRc = OH_NativeWindow_NativeWindowAbortBuffer(window_, buffer);
+                    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                        "MpvBuffer flush failed rc=%{public}d abortRc=%{public}d", flushRc, abortRc);
+                    if (abortRc == 0 && ++consecutiveFlushFailures == 1) {
+                        redrawPending = true;
+                        continue;
+                    }
+                    MarkRendererFailed();
+                    Dispatch("error", "MPV display buffer presentation failed");
+                    break;
+                }
+                consecutiveFlushFailures = 0;
             } else {
                 // PixelMap 回调路径：NativeWindow 不可用时的兜底方案
                 // 将帧数据存入内存，ArkTS 通过 getFrameData() 获取并显示
