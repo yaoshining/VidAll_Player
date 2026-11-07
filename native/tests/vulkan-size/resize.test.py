@@ -4,6 +4,9 @@ import pathlib, subprocess, sys, tempfile
 source = pathlib.Path(sys.argv[1]).read_text()
 method = source[source.index('    NativeResult Resize('):source.index('    NativeResult Load(')]
 method += source[source.index('    void StopRendererLocked()'):source.index('    void DestroyRenderer()')]
+start=source.index('        if (renderBackend_', source.index('    void RenderLoop()'))
+end=source.index('        // 安全降级策略',start)
+method += '    void Bind() { uint64_t id=1;\n'+source[start:end]+'    }\n'
 harness = r'''
 #include <atomic>
 #include <mutex>
@@ -15,9 +18,10 @@ harness = r'''
 #include <thread>
 #include <future>
 #include <chrono>
+namespace vidall::runtime { const char* AdmissionError(){return nullptr;} }
 namespace vidall::render { enum class RenderBackend { Vulkan, OpenGles, Software }; }
 constexpr int MPV_FORMAT_INT64=1;
-int mpv_set_property(int*,const char*,int,void*){return 0;}
+int widRc=0;int mpv_set_property(int*,const char*,int,void*){return widRc;}
 constexpr int SET_BUFFER_GEOMETRY=1,LOG_APP=0,LOG_INFO=0,LOG_ERROR=0,LOG_DOMAIN=0;
 const char* LOG_TAG="test";
 int readbacks=0;
@@ -32,7 +36,7 @@ void OH_LOG_Print(int,int,int,const char*,const char*,...){}
 struct NativeResult{bool ok;std::uint64_t handle;const char* code;};
 class Session { public:
 std::mutex lifecycleMutex_,rendererMutex_;bool released_=false,rendererReady_=true;
-std::uint64_t generation_=1;
+std::uint64_t generation_=1;std::atomic<uint64_t> surfaceSessionHandle_{9};
 vidall::render::RenderBackend renderBackend_=vidall::render::RenderBackend::Vulkan;
 void* window_=reinterpret_cast<void*>(1);std::unique_ptr<int> player_{new int(0)};
 std::atomic<int> width_{2800},height_{1684};
@@ -53,14 +57,25 @@ if(name=="released")s.released_=true;
 if(name=="sw")s.renderBackend_=vidall::render::RenderBackend::Software;
 if(name=="not-ready")s.rendererReady_=false;
 if(name=="gles")s.renderBackend_=vidall::render::RenderBackend::OpenGles;
+if(name=="bind-wid-failed"||name=="bind-geometry-failed"){
+ if(name=="bind-wid-failed")widRc=-1;else geometryRc=-1;
+ s.Bind();
+ bool ok=!s.rendererReady_&&s.rendererFailed_&&propertyCalls==0&&geometryCalls==(widRc<0?0:1);
+ std::cout<<name<<" "<<(ok?"PASS":"FAIL")<<"\n";return ok?0:1;
+}
+if(name=="bind"||name=="bind-failed"){
+ s.width_=640;s.height_=480;if(name=="bind-failed")resizeRc=-1;
+ s.Bind();bool ok=geometryCalls==1&&propertyCalls==1&&value=="640x480"&&s.rendererReady_==(name=="bind")&&s.rendererFailed_==(name=="bind-failed");
+ std::cout<<name<<" "<<(ok?"PASS":"FAIL")<<"\n";return ok?0:1;
+}
 if(name=="detach-race"){
  blockProperty=true;
  auto resizing=std::async(std::launch::async,[&]{return s.Resize(1,1840,2644,9);});
- {std::unique_lock<std::mutex> l(propertyMutex);if(!propertyCv.wait_for(l,std::chrono::milliseconds(300),[]{return propertyEntered;})){std::cout<<"detach-race FAIL no resize notification\n";return 1;}}
+ {std::unique_lock<std::mutex> l(propertyMutex);propertyCv.wait(l,[]{return propertyEntered;});}
  std::promise<void> started;auto detach=std::async(std::launch::async,[&]{started.set_value();return s.Detach(1,9);});started.get_future().wait();
  bool waited=detach.wait_for(std::chrono::milliseconds(30))==std::future_status::timeout;
  {std::lock_guard<std::mutex> l(propertyMutex);allowProperty=true;propertyCv.notify_all();}
- bool ok=waited&&resizing.get().ok&&detach.get().ok&&s.generation_==0&&!s.Resize(1,640,480,9).ok;
+ bool ok=waited&&resizing.get().ok&&detach.get().ok&&s.destroys==1&&s.window_==nullptr&&!s.Resize(1,640,480,9).ok;
  std::cout<<name<<" "<<(ok?"PASS":"FAIL")<<"\n";return ok?0:1;
 }
 auto r=s.Resize(name=="stale"?2:1,name=="zero"?0:1840, name=="negative"?-1:2644,9);
@@ -84,5 +99,5 @@ with tempfile.TemporaryDirectory(prefix='vidall-vk-test-') as td:
     p=pathlib.Path(td);(p/'test.cpp').write_text(harness)
     subprocess.run(['c++','-std=c++17','-pthread',str(p/'test.cpp'),'-o',str(p/'test')],check=True)
     failures=sum(subprocess.run([str(p/'test'),case],timeout=3).returncode != 0 for case in
-                 ['vulkan','gles','sw','zero','negative','not-ready','geometry-failed','property-failed','rollback-failed','retry','rotate-repeat','detach-race','no-window','released','stale'])
+                 ['vulkan','gles','sw','zero','negative','not-ready','geometry-failed','property-failed','rollback-failed','retry','rotate-repeat','detach-race','bind','bind-failed','bind-wid-failed','bind-geometry-failed','no-window','released','stale'])
     sys.exit(bool(failures))

@@ -1,15 +1,15 @@
-name: 旧基线 Vulkan 修复 HAR（iMac CI）
+name: 旧基线旋转与播完修复 HAR（iMac CI）
 
 on:
   push:
-    branches: [codex/legacy-vulkan-size-83]
+    branches: [codex/legacy-rotation-completion-84, codex/legacy-vulkan-size-83]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: legacy83-har-${{ github.ref }}
+  group: legacy84-har-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          CI_WORK_DIR="$RUNNER_TEMP/legacy83-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          CI_WORK_DIR="$RUNNER_TEMP/legacy84-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           mkdir -p "$CI_WORK_DIR/logs" "$CI_WORK_DIR/artifact"
           echo "CI_WORK_DIR=$CI_WORK_DIR" >> "$GITHUB_ENV"
           echo "HVIGOR_USER_HOME=$CI_WORK_DIR/hvigor" >> "$GITHUB_ENV"
@@ -54,6 +54,9 @@ jobs:
             python3 -B scripts/test/legacy83-ci/audit.test.py
             node scripts/test/legacy83-ci/workflow.test.cjs
             python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
+            python3 -B native/tests/surface-resize/gl.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
+            python3 -B native/tests/surface-resize/sw.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
+            python3 -B native/tests/completion-event.test.py
             python3 -B native/tests/legacy-runtime.test.py
             cmake -S native/tests -B "$CI_WORK_DIR/native-tests"
             cmake --build "$CI_WORK_DIR/native-tests" -j 4
@@ -86,7 +89,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: legacy83-ci-har-${{ github.sha }}-${{ github.run_attempt }}
+          name: legacy84-ci-har-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ env.CI_WORK_DIR }}/artifact/
           if-no-files-found: error
           retention-days: 30
@@ -95,7 +98,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: legacy83-ci-logs-${{ github.sha }}-${{ github.run_attempt }}
+          name: legacy84-ci-logs-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ env.CI_WORK_DIR }}/logs/
           if-no-files-found: warn
           retention-days: 14
