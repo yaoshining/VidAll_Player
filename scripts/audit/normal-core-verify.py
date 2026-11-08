@@ -3,12 +3,13 @@
 import hashlib,json,os,subprocess,sys
 from pathlib import Path
 # 固定已审查生产者证据的身份，不能只信任待验清单自报。
-BINDING_SHA='80dfb01bb7a2bcd2897296492527519dab57e443835fe939138bd14ee23de194'
-COMPILE_SHA='0159d5095df9eacd8beaf331a401120ed68f167b4d99a9af4525da60f5557b57'
-SOURCE_LOCK_SHA='e09d5473e57e26474e0a0cd3177f7a9d3871e9e1c7bb9a0fd83516ee959c3e7a'
+BINDING_SHA='b8b4941f426224b64ac8a7d1cef7c34c5ad051accd8f50f58d04baf91020fd8b'
+COMPILE_SHA='89180ca415d70f56ad31e162c813ce63d2eff6c46074b1bed4d8fd692e54065a'
+SOURCE_LOCK_SHA='15b26fac5ed4e2e7bed452423eed148b81754e7616d2f09acf00250172b70fe7'
 RESOURCE_AUDIT_SHA='9417458d3d308e6b601ce2b408dc82596528d4a471052548cd45735b7106955c'
 MIN_EXPORTS={'libmpv.so':{'mpv_create','mpv_initialize','mpv_client_api_version','mpv_ohcodec_terminal_api_version','mpv_ohcodec_terminal_register','mpv_ohcodec_terminal_enable','mpv_ohcodec_terminal_snapshot'},'libavformat.so.62':{'ohcodec_smb_runtime_configure_v1'}}
 NAMES={'libmpv.so','libavcodec.so.62','libavfilter.so.11','libavformat.so.62','libavutil.so.60','libswresample.so.6','libswscale.so.9','libc++_shared.so'}
+ROOT=Path(__file__).resolve().parents[2]
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def verify(base,manifest=None,verify_external=False):
  if manifest is None:
@@ -35,6 +36,13 @@ def verify(base,manifest=None,verify_external=False):
   except (OSError,subprocess.CalledProcessError):errors.append('ABI 工具失败 '+name);continue
   for symbol in symbols:
    if symbol not in actual:errors.append('ABI 缺失 '+symbol)
+ mpv=base/'arm64-v8a/libmpv.so'
+ if mpv.is_file():
+  try:
+   names={line.split()[-1].split('@')[0] for line in subprocess.check_output([nm,'-D','--undefined-only',str(mpv)],text=True).splitlines() if line.split()}
+   if not {'OH_AudioStreamBuilder_SetRendererCallback','OH_GetSdkApiVersion'}.issubset(names):errors.append('缺少旧系统中断注册接口')
+   if 'OH_AudioStreamBuilder_SetRendererInterruptCallback' in names:errors.append('引入了 API 20 专用中断接口')
+  except (OSError,subprocess.CalledProcessError):errors.append('无法读取 mpv 导入')
  for library,minimum in MIN_EXPORTS.items():
   if not minimum.issubset(set(manifest.get('requiredExports',{}).get(library,[]))):errors.append('最低 ABI 集合缺失 '+library)
  for key,expected in [('producerBinding',BINDING_SHA),('compileEvidence',COMPILE_SHA)]:
@@ -54,10 +62,17 @@ def verify(base,manifest=None,verify_external=False):
   if c.get('mpvLibrarySHA256')!={Path(r['path']).name:r['sha256'] for r in libs}.get('libmpv.so'):errors.append('编译产物绑定错误')
  source=base/'provenance/source-lock.json'
  if not source.is_file() or sha(source)!=SOURCE_LOCK_SHA:errors.append('来源锁身份不匹配')
- elif verify_external:
-  for row in json.loads(source.read_text()).get('exactReferences',[]):
-   p=Path(row['path'])
-   if not p.is_file() or sha(p)!=row['sha256']:errors.append('外部来源不匹配 '+row['path'])
+ else:
+  lock=json.loads(source.read_text())
+  update=lock['mpvUpdate'];patch=ROOT/update['patch']
+  if not patch.is_file() or sha(patch)!=update['patchSHA256']:errors.append('主线 mpv 补丁与来源锁不匹配')
+  if verify_external:
+   for row in lock['exactReferences']:
+    p=Path(row['path'])
+    if not p.is_file() or sha(p)!=row['sha256']:errors.append('外部来源不匹配 '+row['path'])
+   build_root=os.environ.get('VIDALL_MPV_BUILD_ROOT') or json.loads((base/'provenance/mpv-run-summary.json').read_text())['runRoot']
+   archive=Path(build_root)/lock['staticLibplacebo']['path'].removeprefix('run/')
+   if not archive.is_file() or sha(archive)!=lock['staticLibplacebo']['sha256']:errors.append('静态 libplacebo 与来源锁不匹配，请设置 VIDALL_MPV_BUILD_ROOT')
  resource_audit=base/'provenance/samba-resource-audit.json'
  if not resource_audit.is_file() or sha(resource_audit)!=RESOURCE_AUDIT_SHA:errors.append('资源来源证据身份不匹配')
  else:

@@ -12,7 +12,7 @@ class Tests(unittest.TestCase):
   m=mod()
   with tempfile.TemporaryDirectory() as d:
    root=Path(d);base=root/'release/inputs/004-normal-core';(base/'arm64-v8a').mkdir(parents=True);(base/'manifest.json').write_text('{}');(base/'arm64-v8a/libx.so').write_bytes(b'abc')
-   files=['manifest.json','arm64-v8a/libx.so'];lock={'files':{n:m.sha(base/n) for n in files}}
+   files=['manifest.json','arm64-v8a/libx.so'];lock={'acceptedDelivery':'test','files':{n:m.sha(base/n) for n in files}}
    self.assertTrue(m.verify(root,lock)['passed'])
    for target in files:
     p=base/target;old=p.read_bytes();p.write_bytes(old+b'changed')

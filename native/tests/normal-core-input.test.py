@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """对实际接入清单运行正例及篡改/遗漏负例。"""
-import importlib.util,json,tempfile,unittest,copy,shutil,os
+import importlib.util,json,tempfile,unittest,copy,shutil,os,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('audit',ROOT/'scripts/audit/normal-core-verify.py')
@@ -13,6 +13,17 @@ class BindingTests(unittest.TestCase):
   return audit.verify(BASE,d)
  def test_missing_manifest(self):
   with tempfile.TemporaryDirectory() as t:self.assertIn('清单缺失',audit.verify(Path(t)))
+ def test_legacy_interrupt_imports(self):
+  # 模拟核心可用但只注册写入回调的旧版本。
+  from unittest.mock import patch
+  check_output=subprocess.check_output
+  def without_interrupt(args, **kwargs):
+   output=check_output(args, **kwargs)
+   if '--undefined-only' in args:
+    return '\n'.join(line for line in output.splitlines() if 'OH_AudioStreamBuilder_SetRendererCallback' not in line)
+   return output
+  with patch.object(audit.subprocess, 'check_output', side_effect=without_interrupt):
+   self.assertIn('缺少旧系统中断注册接口',audit.verify(BASE))
  def test_wrong_library(self):self.assertTrue(self.mutated(lambda d:d['libraries'][0].update(sha256='0'*64)))
  def test_missing_library(self):self.assertTrue(self.mutated(lambda d:d['libraries'].pop()))
  def test_fault_macro(self):self.assertTrue(self.mutated(lambda d:d['compileDefinitions'].append('MP_OHCODEC_DIAGNOSTIC=1')))

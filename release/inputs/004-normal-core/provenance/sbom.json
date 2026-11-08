@@ -24,8 +24,8 @@
     },
     {
       "path": "arm64-v8a/libmpv.so",
-      "sha256": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
-      "size": 15715544
+      "sha256": "a312afe7a1775103e45c121904a7557390d3b6e219b213d347573b82467c7f92",
+      "size": 15716216
     },
     {
       "path": "arm64-v8a/libc++_shared.so",
@@ -86,7 +86,7 @@
     },
     {
       "path": "run/libplacebo/install/lib/libplacebo.a",
-      "sha256": "4124ab8e1d7a64beeda1419b7ddc99c309cef4c0ad9e2b44c4928ada1c1ff1d4"
+      "sha256": "a0c1e102b3403e84ca464dea4573fa16180b9b654c6f07325635e7370f808d57"
     }
   ],
   "licenseIndex": "../licenses/index.json",

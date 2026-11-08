@@ -15,6 +15,7 @@ on:
       - 'packages/vidall-player/**'
       - 'native/diagnostics/**'
       - 'native/tests/**'
+      - 'native/patches/mpv/**'
       - 'build-profile.json5'
       - 'oh-package.json5'
       - 'oh-package-lock.json5'
@@ -40,6 +41,7 @@ on:
       - 'packages/vidall-player/**'
       - 'native/diagnostics/**'
       - 'native/tests/**'
+      - 'native/patches/mpv/**'
       - 'build-profile.json5'
       - 'oh-package.json5'
       - 'oh-package-lock.json5'
@@ -75,6 +77,17 @@ jobs:
           python3 -B scripts/release/test-candidate-integrity.py
           python3 -B scripts/release/test-source-consistency.py
           bash native/tests/fixture-public-import.test.sh
+      - name: 检出锁定的 mpv 音频源
+        uses: actions/checkout@v4
+        with:
+          repository: ErBWs/mpv
+          ref: 6edeee00a07b9b76f197aa71eee3d029fb090de4
+          path: .cache/mpv-interrupt
+          persist-credentials: false
+      - name: 音频中断回调与换集隔离回归
+        run: |
+          git -C .cache/mpv-interrupt apply "$GITHUB_WORKSPACE/native/patches/mpv/0001-ohaudio-legacy-interrupt.patch"
+          python3 -B native/tests/audio-interrupt/interrupt.test.py .cache/mpv-interrupt
       - name: 窗口旋转、重绘与媒体结束事件回归
         run: |
           python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp

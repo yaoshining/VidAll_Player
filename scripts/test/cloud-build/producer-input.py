@@ -19,7 +19,7 @@ def verify(root,lock):
    p=p/part
    if p.is_symlink():raise ValueError('producer输入符号链接拒绝')
   if not p.is_file() or sha(p)!=expected:raise ValueError('当前核心输入已变，必须提供经审查的producer新目标交付，不能借历史云端绿灯放行')
- return {'passed':True,'acceptedDelivery':'004-normal-core-phase30-a','futureCoreUpdates':'blocked-until-separate-producer-target-evidence-review','producerLatestNormalFullCloudRebuildVerified':False,'files':lock['files'],'formalArtifactAllowed':False}
+ return {'passed':True,'acceptedDelivery':lock['acceptedDelivery'],'futureCoreUpdates':'blocked-until-separate-producer-target-evidence-review','producerLatestNormalFullCloudRebuildVerified':False,'files':lock['files'],'formalArtifactAllowed':False}
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--out',type=Path,required=True);a=p.parse_args();work=a.out/'work';work.mkdir(parents=True,exist_ok=True)
  try:
