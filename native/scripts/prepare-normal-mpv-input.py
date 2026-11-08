@@ -2,20 +2,24 @@
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 
-BASE_PACKAGE_SHA = 'ba6747a77f6d4a18d2cd004f0301b2cb6f1aa940be1fa2bad0b1bd38bcd78fc4'
 ROOT = Path(__file__).resolve().parents[2]
-PATCH = ROOT / 'native/patches/mpv/0001-ohaudio-legacy-interrupt.patch'
+SOURCE_LOCK = ROOT / 'release/inputs/004-normal-core/provenance/source-lock.json'
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def prepare(source, output):
-    if digest(source / 'package.json') != BASE_PACKAGE_SHA:
+    update = json.loads(SOURCE_LOCK.read_text())['mpvUpdate']
+    patch = ROOT / update['patch']
+    if digest(patch) != update['patchSHA256']:
+        raise ValueError('mpv 补丁与来源锁不匹配')
+    if digest(source / 'package.json') != update['baselineInputSHA256']:
         raise ValueError('输入须为封存的 Phase30 A package.json')
     if output.resolve().is_relative_to(source.resolve()):
         raise ValueError('构建副本必须位于输入目录外')
@@ -30,12 +34,16 @@ def prepare(source, output):
             shutil.copyfile(source / row['path'], dest)
             if digest(dest) != row['sha256']:
                 raise ValueError('封存输入不匹配：' + row['path'])
-        subprocess.run(['git', 'apply', '--directory=sources/mpv', str(PATCH)], cwd=work, check=True)
+        # 副本可位于另一个 checkout 内；禁止 git 发现父仓库后静默跳过补丁。
+        subprocess.run(['git', 'apply', '--directory=sources/mpv', str(patch)], cwd=work, check=True,
+                       env={**os.environ, 'GIT_CEILING_DIRECTORIES': str(work.resolve().parent)})
         for row in manifest['files']:
             if row['path'].startswith('sources/mpv/'):
                 path = work / row['path']
                 row.update(size=path.stat().st_size, sha256=digest(path))
         (work / 'package.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
+        if digest(work / 'package.json') != update['patchedInputSHA256']:
+            raise ValueError('派生输入清单与已验证的 mpv 构建不匹配')
         work.rename(output)
 
 if __name__ == '__main__':

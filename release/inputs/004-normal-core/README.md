@@ -10,7 +10,7 @@
 
 ## 输入门禁与 TDD
 
-`python3 -B native/tests/normal-core-input.test.py` 执行 15 个实际输入正例与篡改负例；`python3 -B scripts/audit/normal-core-verify.py --verify-external` 另核验本机生产者精确来源引用和本次重建的静态 libplacebo。重建目录迁移时设置 VIDALL_MPV_BUILD_ROOT。前者不要求将生产者源码复制到消费仓库，后者要求原封存可读。首次 RED 是输入未接入的实际清单缺失；实现后完整门禁通过。详细阶段和保留失败界限见 `INPUT-VERIFICATION.json`。
+`python3 -B native/tests/normal-core-input.test.py` 执行 17 个实际输入正例与篡改负例；`python3 -B scripts/audit/normal-core-verify.py --verify-external` 另核验本机生产者精确来源引用和本次重建的静态 libplacebo。重建目录迁移时设置 VIDALL_MPV_BUILD_ROOT。前者不要求将生产者源码复制到消费仓库，后者要求原封存可读。首次 RED 是输入未接入的实际清单缺失；实现后完整门禁通过。详细阶段和保留失败界限见 `INPUT-VERIFICATION.json`。
 
 可信 producer binding、实际编译证据和 source-lock 的 SHA 固定在校验器中；修改清单自报不能绕过。ABI 接受 ELF 符号版本后缀，必须包含固定最小 terminal/SMB 导出集合，空列表不通过。资源 `smb.conf` 属于输入内容校验，运行时目录与权限由 Player 初始化另行负责。
 

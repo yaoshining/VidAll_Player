@@ -86,6 +86,7 @@ jobs:
           persist-credentials: false
       - name: 音频中断回调与换集隔离回归
         run: |
+          python3 -B native/tests/audio-interrupt/prepare.test.py
           git -C .cache/mpv-interrupt apply "$GITHUB_WORKSPACE/native/patches/mpv/0001-ohaudio-legacy-interrupt.patch"
           python3 -B native/tests/audio-interrupt/interrupt.test.py .cache/mpv-interrupt
       - name: 窗口旋转、重绘与媒体结束事件回归
