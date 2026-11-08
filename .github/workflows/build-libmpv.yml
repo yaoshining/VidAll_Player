@@ -107,7 +107,7 @@ jobs:
     needs: [native-contracts, detect-build-changes]
     # 兼容分支的 PR 使用固定的核心和运行库，包括只修改 CI 配置的情况。
     if: >-
-      (github.event_name != 'pull_request' || github.base_ref != 'codex/legacy-vulkan-size-83') &&
+      (github.event_name != 'pull_request' || (github.base_ref != 'codex/legacy-vulkan-size-83' && github.base_ref != 'codex/legacy-rotation-completion-84')) &&
       (needs.detect-build-changes.outputs.build-needed == 'true' || inputs.force_build)
     runs-on: [self-hosted, macos, deveco]
     env:

@@ -16,7 +16,7 @@ def inspect_har(path,required,allowed):
     data=archive.extractfile(member).read();rows.append({'path':name,'bytes':len(data),'sha256':sha(data)})
  if {r['path'] for r in rows}!=allowed:raise ValueError('HAR 库集合变化')
  for row in rows:
-  if row['path'] in required and row['sha256']!=required[row['path']]:raise ValueError('旧核心/运行库发生漂移')
+  if row['path'] in required and row['sha256']!=required[row['path']]:raise ValueError(f"HAR 中 {row['path']} 的 SHA-256 为 {row['sha256']}，预期 {required[row['path']]}")
  return {'harSHA256':sha(path.read_bytes()),'harBytes':path.stat().st_size,'libraries':sorted(rows,key=lambda r:r['path'])}
 def ci_identity(env,commit):
  if env.get('RUNNER_ENVIRONMENT')!='self-hosted' or env.get('RUNNER_OS')!='macOS' or env.get('RUNNER_ARCH') not in {'ARM64','X64'}:raise ValueError('普通分支候选必须来自 iMac 自托管 macOS GitHub Actions，并记录实际运行器')
