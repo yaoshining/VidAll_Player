@@ -2,7 +2,7 @@
   "oldHarSHA256": "826b667dcd315e75e71f89065c3aef4bd60ea73743916ee629469f93228c66a9",
   "fixedLibraries": {
     "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
-    "libs/arm64-v8a/libmpv.so": "3ae9969ac13a58aaa5827520a44e56461f566aff66b9bdd7fe4b78f0da31b076",
+    "libs/arm64-v8a/libmpv.so": "239ad46dd41f3f079bfe4610260e6d997c77ec779d59d2ebd27463629192367b",
     "libs/x86_64/libc++_shared.so": "c65b4e92e52bdbf170d0c11a02c2e3b280fd140c4b8a764e40d8d4875e5ce944"
   },
   "libraries": [

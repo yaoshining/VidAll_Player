@@ -1,15 +1,15 @@
-name: 旧基线旋转与播完修复 HAR（iMac CI）
+name: 兼容版音频中断修复 HAR（iMac CI）
 
 on:
   push:
-    branches: [codex/legacy-rotation-completion-84, codex/legacy-vulkan-size-83]
+    branches: [codex/legacy-rotation-completion-84, codex/legacy-vulkan-size-83, codex/legacy-audio-interrupt-89]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: legacy84-har-${{ github.ref }}
+  group: legacy89-har-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -24,6 +24,14 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
 
+      - name: 检出与兼容核心一致的 mpv 源码
+        uses: actions/checkout@v4
+        with:
+          repository: ErBWs/mpv
+          ref: 6edeee00a07b9b76f197aa71eee3d029fb090de4
+          path: .cache/mpv
+          persist-credentials: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -32,7 +40,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          CI_WORK_DIR="$RUNNER_TEMP/legacy84-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          CI_WORK_DIR="$RUNNER_TEMP/legacy89-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           mkdir -p "$CI_WORK_DIR/logs" "$CI_WORK_DIR/artifact"
           echo "CI_WORK_DIR=$CI_WORK_DIR" >> "$GITHUB_ENV"
           echo "HVIGOR_USER_HOME=$CI_WORK_DIR/hvigor" >> "$GITHUB_ENV"
@@ -51,6 +59,8 @@ jobs:
         run: |
           set -euo pipefail
           {
+            git -C .cache/mpv apply "$GITHUB_WORKSPACE/native/patches/mpv/0001-ohaudio-legacy-interrupt.patch"
+            python3 -B native/tests/audio-interrupt/interrupt.test.py "$GITHUB_WORKSPACE/.cache/mpv"
             python3 -B scripts/test/legacy83-ci/audit.test.py
             node scripts/test/legacy83-ci/workflow.test.cjs
             python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp
@@ -75,6 +85,15 @@ jobs:
           "$NODE" "$CLI" build clean 2>&1 | tee "$CI_WORK_DIR/logs/clean.log"
           "$NODE" "$CLI" build --modules vidall_player@default 2>&1 | tee "$CI_WORK_DIR/logs/build.log"
 
+      - name: 使用本次 HAR 编译独立消费工程
+        id: consumer
+        shell: bash
+        run: |
+          set -euo pipefail
+          NODE="$DEVECO_CLI_STUDIO_PATH/Contents/tools/node/bin/node"
+          CLI="$GITHUB_WORKSPACE/scripts/test/legacy83-ci/node_modules/@deveco/deveco-cli/cli.js"
+          python3 -B scripts/test/legacy83-ci/consumer.py "$CI_WORK_DIR/consumer" "$NODE" "$CLI" 2>&1 | tee "$CI_WORK_DIR/logs/consumer.log"
+
       - name: 核对当前提交、核心字节、ABI 和实际工具链
         id: audit
         env:
@@ -89,7 +108,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: legacy84-ci-har-${{ github.sha }}-${{ github.run_attempt }}
+          name: legacy89-ci-har-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ env.CI_WORK_DIR }}/artifact/
           if-no-files-found: error
           retention-days: 30
@@ -98,7 +117,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: legacy84-ci-logs-${{ github.sha }}-${{ github.run_attempt }}
+          name: legacy89-ci-logs-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ env.CI_WORK_DIR }}/logs/
           if-no-files-found: warn
           retention-days: 14

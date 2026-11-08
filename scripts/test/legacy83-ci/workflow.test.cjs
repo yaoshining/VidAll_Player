@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const yaml = require('yaml');
 const text = fs.readFileSync('.github/workflows/test-player.yml', 'utf8');
 const w = yaml.parse(text);
-assert.deepEqual(w.on.push.branches, ['codex/legacy-rotation-completion-84', 'codex/legacy-vulkan-size-83']);
+assert.deepEqual(w.on.push.branches, ['codex/legacy-rotation-completion-84', 'codex/legacy-vulkan-size-83', 'codex/legacy-audio-interrupt-89']);
 const job = w.jobs['legacy-har'];
 assert.deepEqual(job['runs-on'], ['self-hosted', 'macOS', 'deveco']);
 assert.equal(job.environment, undefined);
@@ -20,7 +20,9 @@ for (const suite of ['surface-resize/gl.test.py', 'surface-resize/sw.test.py', '
   const command = 'python3 -B native/tests/' + suite + source;
   assert(testCommands.includes(command), '缺少实际测试命令 ' + command);
 }
-assert.match(steps[at('har')].with.name, /^legacy84-ci-har-/);
+assert(testCommands.includes('python3 -B native/tests/audio-interrupt/interrupt.test.py "$GITHUB_WORKSPACE/.cache/mpv"'));
+assert(at('consumer') > at('build') && at('consumer') < at('har'));
+assert.match(steps[at('har')].with.name, /^legacy89-ci-har-/);
 assert.equal(steps[at('har')].if, 'success()');
 assert.match(steps[at('build')].run, /build --modules vidall_player@default/);
 assert.match(steps[at('audit')].run, /legacy83-ci\/audit.py/);

@@ -1,0 +1,174 @@
+diff --git a/audio/out/ao.c b/audio/out/ao.c
+index 146d9af..acbfc50 100644
+--- a/audio/out/ao.c
++++ b/audio/out/ao.c
+@@ -388,6 +388,16 @@ void ao_request_reload(struct ao *ao)
+     ao_add_events(ao, AO_EVENT_RELOAD);
+ }
+ 
++void ao_request_pause(struct ao *ao)
++{
++    ao_add_events(ao, AO_EVENT_PAUSE);
++}
++
++bool ao_is_per_file(struct ao *ao)
++{
++    return ao && ao->per_file;
++}
++
+ // Notify the player that the device list changed. Fully thread-safe.
+ void ao_hotplug_event(struct ao *ao)
+ {
+diff --git a/audio/out/ao.h b/audio/out/ao.h
+index ce044fd..105b865 100644
+--- a/audio/out/ao.h
++++ b/audio/out/ao.h
+@@ -43,6 +43,7 @@ enum aocontrol {
+ enum {
+     AO_EVENT_RELOAD = 1,
+     AO_EVENT_HOTPLUG = 2,
++    AO_EVENT_PAUSE = 4,
+ };
+ 
+ enum {
+@@ -104,6 +105,8 @@ bool ao_is_playing(struct ao *ao);
+ struct mp_async_queue;
+ struct mp_async_queue *ao_get_queue(struct ao *ao);
+ int ao_query_and_reset_events(struct ao *ao, int events);
++bool ao_is_per_file(struct ao *ao);
++void ao_request_pause(struct ao *ao);
+ void ao_request_reload(struct ao *ao);
+ void ao_hotplug_event(struct ao *ao);
+ 
+diff --git a/audio/out/ao_ohaudio.c b/audio/out/ao_ohaudio.c
+index 5010eef..63c096a 100644
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -27,6 +27,7 @@
+ #include "osdep/threads.h"
+ #include "osdep/timer.h"
+ 
++#include <deviceinfo.h>
+ #include <ohaudio/native_audiorenderer.h>
+ #include <ohaudio/native_audiostreambuilder.h>
+ 
+@@ -129,6 +130,35 @@ static OH_AudioData_Callback_Result audio_on_write_callback(
+     return AUDIO_DATA_CALLBACK_RESULT_VALID;
+ }
+ 
++static int32_t legacy_write(OH_AudioRenderer *renderer, void *user, void *data, int32_t size)
++{
++    audio_on_write_callback(renderer, user, data, size);
++    return 0;
++}
++
++static int32_t legacy_interrupt(OH_AudioRenderer *renderer, void *user,
++                                OH_AudioInterrupt_ForceType type, OH_AudioInterrupt_Hint hint)
++{
++    if (hint == AUDIOSTREAM_INTERRUPT_HINT_PAUSE || hint == AUDIOSTREAM_INTERRUPT_HINT_STOP)
++        ao_request_pause(user);
++    return 0;
++}
++
++static OH_AudioStream_Result register_callbacks(struct ao *ao)
++{
++    struct priv *p = ao->priv;
++    if (OH_GetSdkApiVersion() >= 20)
++        return OH_AudioStreamBuilder_SetRendererWriteDataCallback(p->builder, audio_on_write_callback, ao);
++
++    // 旧系统必须一次注册两种回调，分别注册可能覆盖先前的写入回调。
++    ao->per_file = true;
++    OH_AudioRenderer_Callbacks callbacks = {
++        .OH_AudioRenderer_OnWriteData = legacy_write,
++        .OH_AudioRenderer_OnInterruptEvent = legacy_interrupt,
++    };
++    return OH_AudioStreamBuilder_SetRendererCallback(p->builder, callbacks, ao);
++}
++
+ static int init(struct ao* ao)
+ {
+     struct priv* p = ao->priv;
+@@ -176,8 +206,11 @@ static int init(struct ao* ao)
+         break;
+     }
+ 
+-    OH_AudioRenderer_OnWriteDataCallback callback = audio_on_write_callback;
+-    OH_AudioStreamBuilder_SetRendererWriteDataCallback(p->builder, callback, ao);
++    res = register_callbacks(ao);
++    if (res != AUDIOSTREAM_SUCCESS) {
++        MP_ERR(ao, "Fail to register renderer callbacks: error code %d.\n", res);
++        goto error;
++    }
+ 
+     res = OH_AudioStreamBuilder_GenerateRenderer(p->builder, &p->renderer);
+ 
+diff --git a/audio/out/internal.h b/audio/out/internal.h
+index 85fa777..fdc7399 100644
+--- a/audio/out/internal.h
++++ b/audio/out/internal.h
+@@ -32,6 +32,7 @@ struct ao {
+     int sstride;                // size of a sample on each plane
+                                 // (format_size*num_channels/num_planes)
+     int num_planes;
++    bool per_file;              // 回调归属于当前文件，换源须销毁本 AO。
+     bool probing;               // if true, don't fail loudly on init
+     bool untimed;               // don't assume realtime playback
+     int device_buffer;          // device buffer in samples (guessed by
+diff --git a/meson.build b/meson.build
+index 1e9c7c4..a082053 100644
+--- a/meson.build
++++ b/meson.build
+@@ -480,6 +480,7 @@ endif
+ features += {'ohos': get_option('ohos').enabled()}
+ if features['ohos']
+     dependencies += [cc.find_library('ohaudio'),
++                     cc.find_library('deviceinfo_ndk.z'),
+                      cc.find_library('native_media_codecbase'),
+                      cc.find_library('native_media_core'),
+                      cc.find_library('native_media_vdec'),
+diff --git a/player/audio.c b/player/audio.c
+index b3e975d..2796a44 100644
+--- a/player/audio.c
++++ b/player/audio.c
+@@ -27,6 +27,7 @@
+ #include "common/msg.h"
+ #include "common/encode.h"
+ #include "options/options.h"
++#include "options/m_config_frontend.h"
+ #include "common/common.h"
+ #include "osdep/timer.h"
+ 
+@@ -866,10 +867,20 @@ void audio_start_ao(struct MPContext *mpctx)
+     mp_wakeup_core(mpctx);
+ }
+ 
++static void handle_audio_interrupt(struct MPContext *mpctx)
++{
++    if (mpctx->ao && ao_query_and_reset_events(mpctx->ao, AO_EVENT_PAUSE) && !mpctx->opts->pause) {
++        // 播放线程修改 pause，随文件卸载恢复；解除打断本身不恢复播放。
++        m_config_backup_opt(mpctx->mconfig, "pause");
++        set_pause_state(mpctx, true);
++    }
++}
++
+ void fill_audio_out_buffers(struct MPContext *mpctx)
+ {
+     struct MPOpts *opts = mpctx->opts;
+ 
++    handle_audio_interrupt(mpctx);
+     if (mpctx->ao && ao_query_and_reset_events(mpctx->ao, AO_EVENT_RELOAD))
+         reload_audio_output(mpctx);
+ 
+diff --git a/player/loadfile.c b/player/loadfile.c
+index f9b6531..c8dec96 100644
+--- a/player/loadfile.c
++++ b/player/loadfile.c
+@@ -1942,7 +1942,7 @@ terminate_playback:
+     uninit_audio_chain(mpctx);
+     uninit_video_chain(mpctx);
+     uninit_sub_all(mpctx);
+-    if (!opts->gapless_audio && !mpctx->encode_lavc_ctx)
++    if ((!opts->gapless_audio || ao_is_per_file(mpctx->ao)) && !mpctx->encode_lavc_ctx)
+         uninit_audio_out(mpctx);
+ 
+     mpctx->playback_initialized = false;

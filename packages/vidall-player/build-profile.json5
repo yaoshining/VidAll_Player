@@ -28,7 +28,7 @@
 // G2 加载边界固化说明：
 // - arm64-v8a：VIDALL_MPV_AVAILABLE=1，链接 libmpv.so + native_window + EGL + GLESv3，
 //   libmpv.so 来源 entry/src/main/cpp/third_party/libmpv/arm64-v8a/，
-//   SHA-256=3ae9969ac13a58aaa5827520a44e56461f566aff66b9bdd7fe4b78f0da31b076
+//   SHA-256 见 scripts/test/legacy83-ci/inputs.json
 // - x86_64：VIDALL_MPV_AVAILABLE=0，仅 NAPI probe，不表述为真实播放能力
 // - 详细边界见 release/manifests/candidate-003-libmpv-player-har.json
 // - GPL-3.0-or-later 材料引用见 release/licenses/NOTICE + release/licenses/license-audit.json

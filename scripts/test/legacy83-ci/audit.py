@@ -59,9 +59,13 @@ def main():
    abi[architecture]={'imports':imports,'needed':deps,'missingCxxImports':missing,'addedImports':added,'removedImports':[],'matchesOriginalHar':not added}
   module=next(m for m in archive.getmembers() if m.name.endswith('src/main/module.json'));result['module']=json.loads(archive.extractfile(module).read())
  result['abi']=abi
+ source_lock=json.loads((ROOT/'native/config/sources.lock.json').read_text())
+ patch=next(p for p in source_lock['patches'] if p['path'].startswith('native/patches/mpv/'))
+ if sha((ROOT/patch['path']).read_bytes())!=patch['sha256']:raise ValueError('mpv 补丁与来源锁不符')
+ result['mpv']={'sourceCommit':source_lock['sources']['mpv']['commit'],'patch':patch,'sha256':lock['fixedLibraries']['libs/arm64-v8a/libmpv.so']}
  contents=args.studio/'Contents';studio=json.loads((contents/'Resources/product-info.json').read_text());sdk=json.loads((native/'oh-uni-package.json').read_text())
  result['toolchain']={'studioVersion':studio.get('version'),'nativeSdk':sdk,'node':command([contents/'tools/node/bin/node','--version']),'compiler':command([llvm/'clang','--version']),'cli':json.loads((HERE/'node_modules/@deveco/deveco-cli/package.json').read_text())['version'],'hashes':{str(p.relative_to(contents)):sha(p.read_bytes()) for p in [contents/'Resources/product-info.json',native/'oh-uni-package.json',llvm/'clang',llvm/'llvm-nm',llvm/'llvm-readelf']}}
  result['validation']={'devicePlayback':False,'ffmpegBuilt':False,'otherProjectTriggered':False,'artifactOrigin':'GitHub Actions 完整 Player 工程构建'}
- shutil.copyfile(har,out/'vidall_player-issue84-ci.har');(out/'manifest.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(out/'SHA256SUMS').write_text(result['harSHA256']+'  vidall_player-issue84-ci.har\n')
+ shutil.copyfile(har,out/'vidall_player-issue89-ci.har');(out/'manifest.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(out/'SHA256SUMS').write_text(result['harSHA256']+'  vidall_player-issue89-ci.har\n')
  print(json.dumps({'sourceCommit':commit,'runURL':result['runURL'],'harSHA256':result['harSHA256'],'bytes':result['harBytes']},ensure_ascii=False))
 if __name__=='__main__':main()

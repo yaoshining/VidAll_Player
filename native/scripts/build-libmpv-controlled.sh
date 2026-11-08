@@ -80,7 +80,7 @@ fi
 "$ELF_AUDIT_TOOL" --input "$output_dir/libmpv.so" --output "$output_dir/elf-audit.json" \
   --allow libc.so --allow libm.so --allow libdl.so --allow libz.so \
   --allow libc++.so --allow libc++_shared.so --allow libhilog_ndk.z.so \
-  --allow libEGL.so --allow libvulkan.so --allow libohaudio.so \
+  --allow libEGL.so --allow libvulkan.so --allow libohaudio.so --allow libdeviceinfo_ndk.z.so \
   --allow libnative_buffer.so --allow libnative_image.so --allow libnative_window.so \
   --allow libavcodec.so.62 --allow libavformat.so.62 --allow libavutil.so.60 \
   --allow libavfilter.so.11 --allow libswresample.so.6 --allow libswscale.so.9 \

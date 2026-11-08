@@ -1,6 +1,6 @@
 # G2 加载边界：arm64-v8a 绑定 libmpv 原生产物（VIDALL_MPV_AVAILABLE=1），
 # x86_64 仅 NAPI probe（VIDALL_MPV_AVAILABLE=0），不表述为真实播放能力。
-# libmpv.so SHA-256=3ae9969ac13a58aaa5827520a44e56461f566aff66b9bdd7fe4b78f0da31b076
+# libmpv.so SHA-256 见 scripts/test/legacy83-ci/inputs.json
 # 详细边界见 release/manifests/candidate-003-libmpv-player-har.json
 cmake_minimum_required(VERSION 3.4.1)
 set(LEGACY_RUNTIME "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../entry/libs/${OHOS_ARCH}/libc++_shared.so")
