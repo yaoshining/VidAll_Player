@@ -1,11 +1,11 @@
 {
-  "runRoot": "/private/tmp/main89/review2/fixed",
+  "runRoot": "/private/tmp/main89/review3/fixed",
   "freshRootVerified": true,
   "configuration": {
     "profile": "stable-target-prefix-macro-map-origin-staging",
     "stablePrefix": "/usr/local",
     "ffmpegRelative": "mpv/source/_staged/ffmpeg",
-    "packageSHA256": "5f9a6126c4888830b791947b591a2a7f3dd9933cac7ecf3bf7b11f60690d5266",
+    "packageSHA256": "fb87b350483a083403f80e3cd42dd349887873857b3978ecefba9fd76c0c4df3",
     "toolHashes": {
       "meson": "2ac5f65bc3760309298f8cab1c8abd2773633a5c0e1470a22f7aa7940c0e2084",
       "ninja": "4e2125bd4c149186d6715a3d46ca294fc58ff9dbae8b3444c8e9330941276b57",
@@ -47,7 +47,7 @@
     "target": "aarch64-linux-ohos",
     "linkerTraceDiagnostic": true
   },
-  "artifactPath": "/private/tmp/main89/review2/fixed/install/usr/local/lib/libmpv.so",
+  "artifactPath": "/private/tmp/main89/review3/fixed/install/usr/local/lib/libmpv.so",
   "linkInputs": [
     {
       "path": "sdk/llvm/lib/aarch64-linux-ohos/libc++_shared.so",
@@ -579,7 +579,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_audio.c.o",
-      "sha256": "aaf31e194c56c14dda8e730eeca05f490205a855d7b319913e153af4189ec581"
+      "sha256": "a4a17c315b409bf35de65f6e52e410b9ac7af72cc099cf9a549beeaa49ee1e91"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_client.c.o",
@@ -1059,7 +1059,7 @@
     }
   ],
   "artifactHashes": {
-    "mpv": "51c6403a052af1e7c379cb36f6d39c30b039915aca999eefa2abb7b9565e096e",
+    "mpv": "41b56c64c0fca41f5ccb0034ff4ae7fd4737c8d17353189877c725e1b15927fb",
     "libplacebo": "a0c1e102b3403e84ca464dea4573fa16180b9b654c6f07325635e7370f808d57"
   },
   "allocatedSections": {
@@ -1077,7 +1077,7 @@
       "address": 656,
       "size": 303960,
       "allocated": true,
-      "sha256": "63ad6ccb92bf340375c2b68caa5b2eaf08ffe77e61c4edfa702f1f78f0b7e8de"
+      "sha256": "05f492dd71b928444a99f079ee81a5fba49ea17009998ec48529d6a4f0b6f95a"
     },
     ".gnu.version": {
       "type": 1879048191,
@@ -1125,7 +1125,7 @@
       "address": 1353744,
       "size": 853248,
       "allocated": true,
-      "sha256": "02bcb5d2a1b433d86b576c0e4c82cde3231582db7230c508e1a206740ca023c3"
+      "sha256": "00476ceb67dd0c7cdcae23f66bab380e2bfaf7c9e0b071761e08fc61980d157c"
     },
     ".rela.plt": {
       "type": 4,
@@ -1157,7 +1157,7 @@
       "address": 4670352,
       "size": 115012,
       "allocated": true,
-      "sha256": "f8f28fbaf6bd526c272a6901e7e78d90d71b60a290eb3200d7aea0e6ffacf903"
+      "sha256": "410f7de1e3c6e1fe364be722f3c7589cb819ff8679ea2a8b6dab187f0945f20c"
     },
     ".eh_frame": {
       "type": 1,
@@ -1165,20 +1165,20 @@
       "address": 4785368,
       "size": 522884,
       "allocated": true,
-      "sha256": "b32ecd3882b33dccfe5627c051ef02c6f9f1b8ea52fb9a48f553e7147db4ed1c"
+      "sha256": "be0cb03c5058f3fceab09a69d4ae373cf29f8ad139ed8ad40f877fa24a92d022"
     },
     ".text": {
       "type": 1,
       "flags": 6,
       "address": 5312348,
-      "size": 9723812,
+      "size": 9723820,
       "allocated": true,
-      "sha256": "0b678ad17533d449c95cad3b87c1df9b2b07c7ba374efbd0a17b200e06fb62b4"
+      "sha256": "407f4f92681fa8339f0654034bffa608481197d82680d3afadfd073c77c3f7fd"
     },
     ".init": {
       "type": 1,
       "flags": 6,
-      "address": 15036160,
+      "address": 15036168,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1186,7 +1186,7 @@
     ".fini": {
       "type": 1,
       "flags": 6,
-      "address": 15036180,
+      "address": 15036188,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1229,7 +1229,7 @@
       "address": 15672264,
       "size": 704,
       "allocated": true,
-      "sha256": "bbb8694c239c57b7d85162109720fab8f336ee8137da9459114f0df79c130526"
+      "sha256": "a98e61b86917836db6b3042d64ce5bd3894bd623f9caf49bfa062be7d831e226"
     },
     ".got": {
       "type": 1,

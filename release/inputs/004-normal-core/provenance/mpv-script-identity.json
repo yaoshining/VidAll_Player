@@ -3,9 +3,9 @@
   "sha256": "1f098c60c8836c88ecfbe6779c6e281058fa0e4746c9b9ea0e8f6140dd53c2ee",
   "arguments": [
     "--input-root",
-    "review2/fixed-package",
+    "review3/fixed-package",
     "--run-root",
-    "review2/fixed",
+    "review3/fixed",
     "--sdk",
     "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native",
     "--meson",

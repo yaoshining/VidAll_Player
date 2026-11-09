@@ -53890,9 +53890,9 @@
     "baselineInputSHA256": "ba6747a77f6d4a18d2cd004f0301b2cb6f1aa940be1fa2bad0b1bd38bcd78fc4",
     "baselineLibmpvSHA256": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
     "baselineSourceLockSHA256": "e09d5473e57e26474e0a0cd3177f7a9d3871e9e1c7bb9a0fd83516ee959c3e7a",
-    "patchedInputSHA256": "5f9a6126c4888830b791947b591a2a7f3dd9933cac7ecf3bf7b11f60690d5266",
+    "patchedInputSHA256": "fb87b350483a083403f80e3cd42dd349887873857b3978ecefba9fd76c0c4df3",
     "patch": "native/patches/mpv/0001-ohaudio-legacy-interrupt.patch",
-    "patchSHA256": "e98aabd473cd60d3fc00dd6dc5f670b56b4e0e79a467e75035191d028c02b637",
+    "patchSHA256": "8e85f960b6af3dcb21483696c0695ca43ddd828639ed051500bb218641affc53",
     "baselineStaticLibplaceboSHA256": "4124ab8e1d7a64beeda1419b7ddc99c309cef4c0ad9e2b44c4928ada1c1ff1d4"
   },
   "baselineRuntimeHap": {

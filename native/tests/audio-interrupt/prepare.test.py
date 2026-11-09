@@ -1,6 +1,8 @@
 """独立派生输入时不能静默跳过补丁，失败不能留下半成品。"""
 import importlib.util
 import json
+import os
+from unittest.mock import patch
 from pathlib import Path
 import subprocess
 import tempfile
@@ -23,10 +25,11 @@ class InputTests(unittest.TestCase):
         self.file.write_text('old\n')
         self.index = self.src / 'package.json'
         self.index.write_text(self.manifest())
-        patch = self.root / 'fix.patch'
-        patch.write_text('--- a/audio.c\n+++ b/audio.c\n@@ -1 +1 @@\n-old\n+new\n')
-        prepare.ROOT = self.root
-        prepare.SOURCE_LOCK = self.root / 'lock.json'
+        patch_file = self.root / 'fix.patch'
+        patch_file.write_text('--- a/audio.c\n+++ b/audio.c\n@@ -1 +1 @@\n-old\n+new\n')
+        paths = patch.multiple(prepare, ROOT=self.root, SOURCE_LOCK=self.root / 'lock.json')
+        paths.start()
+        self.addCleanup(paths.stop)
         base = prepare.digest(self.index)
         self.file.write_text('new\n')
         expected = self.root / 'expected.json'
@@ -34,7 +37,7 @@ class InputTests(unittest.TestCase):
         self.file.write_text('old\n')
         prepare.SOURCE_LOCK.write_text(json.dumps({'mpvUpdate': {
             'baselineInputSHA256': base, 'patchedInputSHA256': prepare.digest(expected),
-            'patch': patch.name, 'patchSHA256': prepare.digest(patch)}}))
+            'patch': patch_file.name, 'patchSHA256': prepare.digest(patch_file)}}))
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
         self.dest = self.root / 'output'
 
@@ -54,6 +57,17 @@ class InputTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '封存输入不匹配'):
             prepare.prepare(self.src, self.dest)
         self.assertFalse(self.dest.exists())
+
+class ArchivedInputTests(unittest.TestCase):
+    @unittest.skipUnless(os.environ.get('VIDALL_PHASE30_INPUT'), '未提供 Phase30 A 归档输入')
+    def test_archived_input_matches_repository_lock(self):
+        """用封存输入和仓内来源锁独立派生清单。"""
+        source = Path(os.environ['VIDALL_PHASE30_INPUT'])
+        lock = json.loads(prepare.SOURCE_LOCK.read_text())['mpvUpdate']
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / 'output'
+            prepare.prepare(source, output)
+            self.assertEqual(prepare.digest(output / 'package.json'), lock['patchedInputSHA256'])
 
 if __name__ == '__main__':
     unittest.main()

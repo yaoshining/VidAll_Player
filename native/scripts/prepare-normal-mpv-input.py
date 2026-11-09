@@ -12,9 +12,11 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE_LOCK = ROOT / 'release/inputs/004-normal-core/provenance/source-lock.json'
 
 def digest(path):
+    """按文件内容计算来源清单使用的 SHA-256。"""
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def prepare(source, output):
+    """校验 Phase30 A 归档，并在独立副本中应用锁定的 mpv 补丁。"""
     update = json.loads(SOURCE_LOCK.read_text())['mpvUpdate']
     patch = ROOT / update['patch']
     if digest(patch) != update['patchSHA256']:

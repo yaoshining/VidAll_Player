@@ -3,9 +3,9 @@
 import hashlib,json,os,subprocess,sys
 from pathlib import Path
 # 固定已审查生产者证据的身份，不能只信任待验清单自报。
-BINDING_SHA='3141258c90c552be2c4d72d72faa5d5061a05d1e99ecf30d5b353fe509babb32'
-COMPILE_SHA='aa7e5b86285045e89ae4c0ff3fbea84187808054357747fc99f280bee72b354a'
-SOURCE_LOCK_SHA='84f5b5267efb1de11773c762c2453077674cb8300a666cdc423189f6bf99a1fb'
+BINDING_SHA='aa6faffcadb1d5794369d987d52d56cc7858cec233ae53f2a9ae35fbd48ace91'
+COMPILE_SHA='cf2a0cae9a6fb0464e7a9becae63e58028a745617cf9dd8972a3f63a222af032'
+SOURCE_LOCK_SHA='05f07b09ce73119e4381a7f8d54b996d1f712b1de9d789dc02b07fac38e73ed6'
 RESOURCE_AUDIT_SHA='9417458d3d308e6b601ce2b408dc82596528d4a471052548cd45735b7106955c'
 MIN_EXPORTS={'libmpv.so':{'mpv_create','mpv_initialize','mpv_client_api_version','mpv_ohcodec_terminal_api_version','mpv_ohcodec_terminal_register','mpv_ohcodec_terminal_enable','mpv_ohcodec_terminal_snapshot'},'libavformat.so.62':{'ohcodec_smb_runtime_configure_v1'}}
 NAMES={'libmpv.so','libavcodec.so.62','libavfilter.so.11','libavformat.so.62','libavutil.so.60','libswresample.so.6','libswscale.so.9','libc++_shared.so'}

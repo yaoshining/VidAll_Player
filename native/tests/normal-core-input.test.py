@@ -52,6 +52,25 @@ class BindingTests(unittest.TestCase):
     with self.subTest(data=data):
      if data is not None:summary.write_text(data)
      self.assertIn('无效或缺失的 mpv 构建目录证据',audit.verify(target,verify_external=True))
+ def test_matching_static_archive(self):
+  """来源锁的摘要与真实 ar 文件相符时，外部审计应接受该归档。"""
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {'VIDALL_MPV_BUILD_ROOT':tmp}):
+   target=Path(tmp)/'inputs';shutil.copytree(BASE,target,copy_function=os.symlink)
+   lock_file=target/'provenance/source-lock.json'
+   lock=json.loads(lock_file.read_text())
+   archive=Path(tmp)/lock['staticLibplacebo']['path'].removeprefix('run/')
+   archive.parent.mkdir(parents=True)
+   member=Path(tmp)/'member';member.write_bytes(b'archive member')
+   subprocess.run(['ar','rcs',str(archive),str(member)],check=True)
+   lock['staticLibplacebo']['sha256']=audit.sha(archive)
+   lock_file.unlink();lock_file.write_text(json.dumps(lock))
+   digest=audit.sha(lock_file)
+   manifest=json.loads((target/'manifest.json').read_text())
+   next(row for row in manifest['evidence'] if row['path']=='provenance/source-lock.json')['sha256']=digest
+   with patch.object(audit,'SOURCE_LOCK_SHA',digest):
+    errors=audit.verify(target,manifest,verify_external=True)
+   self.assertFalse(any('静态 libplacebo' in error or '来源锁身份' in error for error in errors),errors)
  def test_archive_disappears_during_read(self):
   from unittest.mock import patch
   actual=audit.sha

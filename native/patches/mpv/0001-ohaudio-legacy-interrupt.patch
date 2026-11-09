@@ -209,7 +209,7 @@ index 1e9c7c4..a082053 100644
                       cc.find_library('native_media_core'),
                       cc.find_library('native_media_vdec'),
 diff --git a/player/audio.c b/player/audio.c
-index b3e975d..2796a44 100644
+index b3e975d..326bc56 100644
 --- a/player/audio.c
 +++ b/player/audio.c
 @@ -27,6 +27,7 @@
@@ -220,17 +220,22 @@ index b3e975d..2796a44 100644
  #include "common/common.h"
  #include "osdep/timer.h"
  
-@@ -866,10 +867,20 @@ void audio_start_ao(struct MPContext *mpctx)
+@@ -866,10 +867,25 @@ void audio_start_ao(struct MPContext *mpctx)
      mp_wakeup_core(mpctx);
  }
  
 +static void handle_audio_interrupt(struct MPContext *mpctx)
 +{
-+    if (mpctx->ao && ao_query_and_reset_events(mpctx->ao, AO_EVENT_PAUSE) && !mpctx->opts->pause) {
++    if (!mpctx->ao || !ao_query_and_reset_events(mpctx->ao, AO_EVENT_PAUSE))
++        return;
++    if (!mpctx->opts->pause) {
 +        // 播放线程修改 pause，随文件卸载恢复；解除打断本身不恢复播放。
 +        m_config_backup_opt(mpctx->mconfig, "pause");
 +        set_pause_state(mpctx, true);
 +    }
++    // 缓存暂停可能保留逐帧计数，长按逐帧也可能只留下临时静音。
++    mpctx->step_frames = 0;
++    step_frame_mute(mpctx, false);
 +}
 +
  void fill_audio_out_buffers(struct MPContext *mpctx)

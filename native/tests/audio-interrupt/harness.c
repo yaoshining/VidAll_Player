@@ -23,7 +23,19 @@ struct priv { OH_AudioStreamBuilder *builder; OH_AudioRenderer *renderer; struct
 struct ao { struct priv *priv; atomic_uint events_; bool per_file;
             void (*wakeup_cb)(void *); void *wakeup_ctx; };
 struct MPOpts { bool pause; int gapless_audio; };
-struct MPContext { struct ao *ao; struct MPOpts *opts; void *mconfig; void *encode_lavc_ctx; void *vo_chain; int step_frames; bool hrseek_active; };
+struct ao_chain { struct ao *ao; };
+struct MPContext {
+    struct ao_chain *ao_chain;
+    bool paused, paused_for_cache, osd_force_update;
+    int audio_status, osd_function;
+    double time_frame;
+    void *video_out;
+    struct ao *ao;
+    struct MPOpts *opts;
+    void *mconfig, *encode_lavc_ctx, *vo_chain;
+    int step_frames;
+    bool hrseek_active;
+};
 static int sdk = 19, result, writes, wakes, backups, pauses, modern;
 static OH_AudioRenderer_Callbacks callbacks;
 static void *user;
@@ -61,8 +73,16 @@ static void m_config_backup_opt(void *m, const char *key)
 { assert(!strcmp(key, "pause")); backups++; }
 enum { MPSEEK_FRAMESTEP, MPSEEK_VERY_EXACT };
 static void queue_seek(struct MPContext *ctx, int kind, int dir, int precision, int flags) {}
-static void update_internal_pause_state(struct MPContext *ctx)
-{ if (ctx->opts->pause) ctx->step_frames = 0; pauses++; }
+enum { STATUS_EOF = 4 };
+static float gain, configured_gain = 0.75f;
+static float audio_get_gain(struct MPContext *ctx) { return configured_gain; }
+static void ao_set_gain(struct ao *ao, float value) { gain = value; }
+static void ao_set_paused(struct ao *ao, bool paused, bool eof) {}
+static void vo_set_paused(void *vo, bool paused) {}
+static void mp_wakeup_core(struct MPContext *ctx) {}
+static double get_relative_time(struct MPContext *ctx) { return 0; }
+static void update_core_idle_state(struct MPContext *ctx) {}
+static void m_config_notify_change_opt_ptr(void *config, bool *option) { pauses++; }
 
 /* PRODUCTION */
 
@@ -166,6 +186,33 @@ int main(void)
     ao_request_pause(&step);
     handle_audio_interrupt(&ctx);
     assert(opts.pause && !ctx.step_frames);
+    // 缓存保持内部暂停时，静音逐帧仍可排队。新的系统打断应取消它并恢复用户增益。
+    struct ao_chain chain = {.ao = &step};
+    ctx.ao_chain = &chain;
+    ctx.paused_for_cache = true;
+    update_internal_pause_state(&ctx);
+    step_frame_mute(&ctx, true);
+    add_step_frame(&ctx, 1, false);
+    assert(ctx.paused && !opts.pause && ctx.step_frames == 1 && gain == 0);
+    ao_request_pause(&step);
+    update_internal_pause_state(&ctx);
+    handle_audio_interrupt(&ctx);
+    assert(opts.pause && !ctx.step_frames && gain == configured_gain);
+    ctx.paused_for_cache = false;
+    update_internal_pause_state(&ctx);
+    assert(ctx.paused && !ctx.step_frames);
+    set_user_pause_option(&ctx, false);
+    assert(!ctx.paused && !ctx.step_frames && gain == configured_gain);
+    // 长按逐帧可能只有临时静音而没有步数；取消时须尊重用户的音量或静音设置。
+    for (int muted = 0; muted <= 1; muted++) {
+        configured_gain = muted ? 0 : 0.5f;
+        step_frame_mute(&ctx, true);
+        set_pause_state(&ctx, false);
+        assert(!ctx.step_frames && !gain);
+        ao_request_pause(&step);
+        handle_audio_interrupt(&ctx);
+        assert(opts.pause && gain == configured_gain);
+    }
     sdk = 20;
     assert(register_callbacks(&next) == 0 && modern == 1 && !next.per_file);
     result = -1;
