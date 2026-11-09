@@ -241,24 +241,6 @@ index b3e975d..2796a44 100644
      if (mpctx->ao && ao_query_and_reset_events(mpctx->ao, AO_EVENT_RELOAD))
          reload_audio_output(mpctx);
  
-diff --git a/player/command.c b/player/command.c
-index 1efb810..6d6f98e 100644
---- a/player/command.c
-+++ b/player/command.c
-@@ -8066,8 +8066,12 @@ void mp_option_run_callback(struct MPContext *mpctx, struct mp_option_callback *
-     }
- #endif
- 
--    if (opt_ptr == &opts->pause)
-+    if (opt_ptr == &opts->pause) {
-+        // 用户的恢复操作取代此前排队的打断。此后到达的事件留给播放线程处理。
-+        if (!opts->pause && mpctx->ao)
-+            ao_query_and_reset_events(mpctx->ao, AO_EVENT_PAUSE);
-         set_pause_state(mpctx, opts->pause);
-+    }
- 
-     if (opt_ptr == &opts->audio_delay) {
-         if (mpctx->ao_chain) {
 diff --git a/player/loadfile.c b/player/loadfile.c
 index f9b6531..c8dec96 100644
 --- a/player/loadfile.c
@@ -272,3 +254,39 @@ index f9b6531..c8dec96 100644
          uninit_audio_out(mpctx);
  
      mpctx->playback_initialized = false;
+diff --git a/player/playloop.c b/player/playloop.c
+index f111920..3d87500 100644
+--- a/player/playloop.c
++++ b/player/playloop.c
+@@ -162,10 +162,16 @@ bool get_internal_paused(struct MPContext *mpctx)
+ // The value passed here is the new value for mpctx->opts->pause
+ void set_pause_state(struct MPContext *mpctx, bool user_pause)
+ {
+-    struct MPOpts *opts = mpctx->opts;
+-
+-    opts->pause = user_pause;
++    // 显式恢复（包括逐帧）覆盖此前排队的打断；缓存状态刷新不消费用户事件。
++    if (!user_pause && mpctx->ao)
++        ao_query_and_reset_events(mpctx->ao, AO_EVENT_PAUSE);
++    mpctx->opts->pause = user_pause;
++    update_internal_pause_state(mpctx);
++}
+ 
++void update_internal_pause_state(struct MPContext *mpctx)
++{
++    struct MPOpts *opts = mpctx->opts;
+     bool internal_paused = get_internal_paused(mpctx);
+     if (internal_paused != mpctx->paused) {
+         mpctx->paused = internal_paused;
+@@ -196,11 +202,6 @@ void set_pause_state(struct MPContext *mpctx, bool user_pause)
+     m_config_notify_change_opt_ptr(mpctx->mconfig, &opts->pause);
+ }
+ 
+-void update_internal_pause_state(struct MPContext *mpctx)
+-{
+-    set_pause_state(mpctx, mpctx->opts->pause);
+-}
+-
+ void update_screensaver_state(struct MPContext *mpctx)
+ {
+     if (!mpctx->video_out)

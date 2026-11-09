@@ -52,6 +52,17 @@ class BindingTests(unittest.TestCase):
     with self.subTest(data=data):
      if data is not None:summary.write_text(data)
      self.assertIn('无效或缺失的 mpv 构建目录证据',audit.verify(target,verify_external=True))
+ def test_archive_disappears_during_read(self):
+  from unittest.mock import patch
+  actual=audit.sha
+  def race(path):
+   if path.name=='libplacebo.a':raise FileNotFoundError('archive disappeared')
+   return actual(path)
+  with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {'VIDALL_MPV_BUILD_ROOT':tmp}):
+   archive=Path(tmp)/'libplacebo/install/lib/libplacebo.a'
+   archive.parent.mkdir(parents=True);archive.write_bytes(b'archive')
+   with patch.object(audit,'sha',side_effect=race):
+    self.assertTrue(any('静态 libplacebo' in err for err in audit.verify(BASE,verify_external=True)))
  def test_resource_hash(self):self.assertTrue(self.mutated(lambda d:d['resources'][0].update(sha256='0'*64)))
  def test_forged_source_lock(self):self.assertTrue(self.changed_file('provenance/source-lock.json',lambda d:d.update(exactReferences=[])))
  def test_missing_header(self):self.assertTrue(self.mutated(lambda d:d['headers'].clear()))

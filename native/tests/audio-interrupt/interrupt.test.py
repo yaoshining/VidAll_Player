@@ -40,7 +40,8 @@ parts = [
     function(ao, 'ao_request_pause'), function(ao, 'ao_is_per_file'), registry,
     function(driver, 'uninit'), function(driver, 'legacy_write'),
     function(driver, 'legacy_interrupt'), function(driver, 'register_callbacks'),
-    function(core, 'handle_audio_interrupt'),
+    function(source('player/playloop.c'), 'set_pause_state'),
+    function(core, 'handle_audio_interrupt'), function(source('player/playloop.c'), 'add_step_frame'),
     'static void unload(struct MPContext *mpctx) { struct MPOpts *opts = mpctx->opts; if (' + unload + '}',
     'static void set_user_pause_option(struct MPContext *mpctx, bool pause) { struct MPOpts *opts = mpctx->opts; opts->pause = pause; ' + apply_pause + '}',
 

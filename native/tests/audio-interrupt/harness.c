@@ -23,7 +23,7 @@ struct priv { OH_AudioStreamBuilder *builder; OH_AudioRenderer *renderer; struct
 struct ao { struct priv *priv; atomic_uint events_; bool per_file;
             void (*wakeup_cb)(void *); void *wakeup_ctx; };
 struct MPOpts { bool pause; int gapless_audio; };
-struct MPContext { struct ao *ao; struct MPOpts *opts; void *mconfig; void *encode_lavc_ctx; };
+struct MPContext { struct ao *ao; struct MPOpts *opts; void *mconfig; void *encode_lavc_ctx; void *vo_chain; int step_frames; bool hrseek_active; };
 static int sdk = 19, result, writes, wakes, backups, pauses, modern;
 static OH_AudioRenderer_Callbacks callbacks;
 static void *user;
@@ -59,8 +59,10 @@ static void wake(void *u) {
 }
 static void m_config_backup_opt(void *m, const char *key)
 { assert(!strcmp(key, "pause")); backups++; }
-static void set_pause_state(struct MPContext *ctx, bool value)
-{ ctx->opts->pause = value; pauses++; }
+enum { MPSEEK_FRAMESTEP, MPSEEK_VERY_EXACT };
+static void queue_seek(struct MPContext *ctx, int kind, int dir, int precision, int flags) {}
+static void update_internal_pause_state(struct MPContext *ctx)
+{ if (ctx->opts->pause) ctx->step_frames = 0; pauses++; }
 
 /* PRODUCTION */
 
@@ -152,6 +154,18 @@ int main(void)
     next.per_file = false;
     ctx.ao = &next; unload(&ctx); assert(ctx.ao == &next && unloaded == 1);
     opts.gapless_audio = 0; unload(&ctx); assert(!ctx.ao && unloaded == 2);
+    struct priv step_priv = {0};
+    struct ao step = {.priv=&step_priv, .wakeup_cb=wake};
+    ctx.ao = &step;
+    ctx.vo_chain = &ctx;
+    opts.pause = true;
+    ao_request_pause(&step);
+    add_step_frame(&ctx, 1, false);
+    handle_audio_interrupt(&ctx);
+    assert(!opts.pause && ctx.step_frames == 1);
+    ao_request_pause(&step);
+    handle_audio_interrupt(&ctx);
+    assert(opts.pause && !ctx.step_frames);
     sdk = 20;
     assert(register_callbacks(&next) == 0 && modern == 1 && !next.per_file);
     result = -1;
