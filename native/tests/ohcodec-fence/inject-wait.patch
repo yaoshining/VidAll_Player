@@ -5,12 +5,13 @@
  #include "ohcodec_terminal.h"
  #include <stdatomic.h>
  #include <stdlib.h>
-@@ -144,6 +145,12 @@
+@@ -144,6 +145,13 @@
                     (int)getpid(), stage, real_rc, effective_rc);
      return effective_rc;
  #else
-+    static atomic_bool injected;
-+    if (real_rc == 0 && !strcmp(stage, "wait") && !atomic_exchange(&injected, true)) {
++    static atomic_uint injected;
++    if (real_rc == 0 && reason == OHCODEC_DRAIN_REASON_CLOSE && !strcmp(stage, "wait") &&
++        atomic_fetch_add(&injected, 1) < 2) {
 +        OH_LOG_Print(LOG_APP, LOG_ERROR, 0xd001, "VidAllFenceProbe", "FENCE_PROBE wait real=0 injected=-4 reason=%{public}d pid=%{public}ld", reason, (long)getpid());
 +        MP_ERR(mapper, "FENCE_PROBE wait real=0 injected=-4 reason=%d pid=%ld\n", reason, (long)getpid());
 +        return VK_ERROR_DEVICE_LOST;
