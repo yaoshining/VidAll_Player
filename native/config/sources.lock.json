@@ -294,6 +294,11 @@
       "path": "native/patches/libmpv-ohos-build/0007-libplacebo-enable-libdovi.patch",
       "sha256": "20fd8f6c6ecf25a6917bbe4285297793cfbe94a1159bdc263488cc8c1fe2ae29",
       "appliesTo": "mpv"
+    },
+    {
+      "path": "native/patches/mpv/0001-ohaudio-legacy-interrupt.patch",
+      "sha256": "fd91b22df8e46b49acb3b120e1f38bfd3bad4d8c12e7d95e2f26d1256a161e72",
+      "appliesTo": "mpv"
     }
   ],
   "buildSwitches": {

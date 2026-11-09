@@ -1,5 +1,5 @@
 {
-  "source": "ohos_ijkplayer Phase30 A / Phase31",
+  "source": "Phase30 A + VidAll_Player #89",
   "exactReferences": [
     {
       "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase30-consumer-handoff/target-input-locks/input-package/package.json",
@@ -45,11 +45,6 @@
       "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase18/licenses/prebuilt-index.json",
       "sha256": "692c99d16740d4705dead41d45e72ea4a28eb088f2fd71bf665a758978e91b23",
       "size": 2801
-    },
-    {
-      "path": "/private/tmp/phase30-consumer-handoff-20261023/build/mpv-trace-c/libplacebo/install/lib/libplacebo.a",
-      "sha256": "4124ab8e1d7a64beeda1419b7ddc99c309cef4c0ad9e2b44c4928ada1c1ff1d4",
-      "size": 2205246
     },
     {
       "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase30-consumer-handoff/target-sources/A/ffmpeg/.forgejo/CODEOWNERS",
@@ -53884,14 +53879,24 @@
   ],
   "staticLibplacebo": {
     "path": "run/libplacebo/install/lib/libplacebo.a",
-    "sha256": "4124ab8e1d7a64beeda1419b7ddc99c309cef4c0ad9e2b44c4928ada1c1ff1d4"
-  },
-  "runtimeHap": {
-    "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase31-normal-validation-attempt01/artifacts/normal-a.hap",
-    "sha256": "e2caf1ab58fb833968c789b885dfa1d7d1ced86b9bf270816872e65ded1773dc"
+    "sha256": "a0c1e102b3403e84ca464dea4573fa16180b9b654c6f07325635e7370f808d57"
   },
   "limits": [
     "外部封存来源采用精确路径、大小、SHA引用；本目录不是全部源码重建包",
     "源头历史局限沿用生产者封存，不把当前新重建来源等同于旧 TV 哈希来源"
-  ]
+  ],
+  "mpvUpdate": {
+    "baselineCommit": "793478db4384a7e6e484b24028c2630dd1e1ebf2",
+    "baselineInputSHA256": "ba6747a77f6d4a18d2cd004f0301b2cb6f1aa940be1fa2bad0b1bd38bcd78fc4",
+    "baselineLibmpvSHA256": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
+    "baselineSourceLockSHA256": "e09d5473e57e26474e0a0cd3177f7a9d3871e9e1c7bb9a0fd83516ee959c3e7a",
+    "patchedInputSHA256": "2fb2e87a351f30faa567f14d58bfe7e1d068d66136ddd7133817ca3308cac051",
+    "patch": "native/patches/mpv/0001-ohaudio-legacy-interrupt.patch",
+    "patchSHA256": "fd91b22df8e46b49acb3b120e1f38bfd3bad4d8c12e7d95e2f26d1256a161e72",
+    "baselineStaticLibplaceboSHA256": "4124ab8e1d7a64beeda1419b7ddc99c309cef4c0ad9e2b44c4928ada1c1ff1d4"
+  },
+  "baselineRuntimeHap": {
+    "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase31-normal-validation-attempt01/artifacts/normal-a.hap",
+    "sha256": "e2caf1ab58fb833968c789b885dfa1d7d1ced86b9bf270816872e65ded1773dc"
+  }
 }

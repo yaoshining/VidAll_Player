@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """对实际接入清单运行正例及篡改/遗漏负例。"""
-import importlib.util,json,tempfile,unittest,copy,shutil,os
+import importlib.util,json,tempfile,unittest,copy,shutil,os,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('audit',ROOT/'scripts/audit/normal-core-verify.py')
@@ -13,6 +13,17 @@ class BindingTests(unittest.TestCase):
   return audit.verify(BASE,d)
  def test_missing_manifest(self):
   with tempfile.TemporaryDirectory() as t:self.assertIn('清单缺失',audit.verify(Path(t)))
+ def test_legacy_interrupt_imports(self):
+  # 模拟核心可用但只注册写入回调的旧版本。
+  from unittest.mock import patch
+  check_output=subprocess.check_output
+  def without_interrupt(args, **kwargs):
+   output=check_output(args, **kwargs)
+   if '--undefined-only' in args:
+    return '\n'.join(line for line in output.splitlines() if 'OH_AudioStreamBuilder_SetRendererCallback' not in line)
+   return output
+  with patch.object(audit.subprocess, 'check_output', side_effect=without_interrupt):
+   self.assertIn('缺少旧系统中断注册接口',audit.verify(BASE))
  def test_wrong_library(self):self.assertTrue(self.mutated(lambda d:d['libraries'][0].update(sha256='0'*64)))
  def test_missing_library(self):self.assertTrue(self.mutated(lambda d:d['libraries'].pop()))
  def test_fault_macro(self):self.assertTrue(self.mutated(lambda d:d['compileDefinitions'].append('MP_OHCODEC_DIAGNOSTIC=1')))
@@ -32,6 +43,45 @@ class BindingTests(unittest.TestCase):
    return audit.verify(target,m)
  def test_forged_producer_binding(self):self.assertTrue(self.changed_file('provenance/normal-library-binding.json',lambda d:d.update({'libmpv.so':'0'*64})))
  def test_forged_compile_macro(self):self.assertTrue(self.changed_file('provenance/normal-compile-binding.json',lambda d:d['translationUnits'][0].update(command='clang -DMP_OHCODEC_HANDOFF_TEST=1')))
+ def test_external_summary_errors(self):
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {'VIDALL_MPV_BUILD_ROOT':''}):
+   target=Path(tmp)/'inputs';shutil.copytree(BASE,target,copy_function=os.symlink)
+   summary=target/'provenance/mpv-run-summary.json';summary.unlink()
+   for data in (None,'{', '{}', '{"runRoot":false}'):
+    with self.subTest(data=data):
+     if data is not None:summary.write_text(data)
+     self.assertIn('无效或缺失的 mpv 构建目录证据',audit.verify(target,verify_external=True))
+ def test_matching_static_archive(self):
+  """来源锁的摘要与真实 ar 文件相符时，外部审计应接受该归档。"""
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {'VIDALL_MPV_BUILD_ROOT':tmp}):
+   target=Path(tmp)/'inputs';shutil.copytree(BASE,target,copy_function=os.symlink)
+   lock_file=target/'provenance/source-lock.json'
+   lock=json.loads(lock_file.read_text())
+   archive=Path(tmp)/lock['staticLibplacebo']['path'].removeprefix('run/')
+   archive.parent.mkdir(parents=True)
+   member=Path(tmp)/'member';member.write_bytes(b'archive member')
+   subprocess.run(['ar','rcs',str(archive),str(member)],check=True)
+   lock['staticLibplacebo']['sha256']=audit.sha(archive)
+   lock_file.unlink();lock_file.write_text(json.dumps(lock))
+   digest=audit.sha(lock_file)
+   manifest=json.loads((target/'manifest.json').read_text())
+   next(row for row in manifest['evidence'] if row['path']=='provenance/source-lock.json')['sha256']=digest
+   with patch.object(audit,'SOURCE_LOCK_SHA',digest):
+    errors=audit.verify(target,manifest,verify_external=True)
+   self.assertFalse(any('静态 libplacebo' in error or '来源锁身份' in error for error in errors),errors)
+ def test_archive_disappears_during_read(self):
+  from unittest.mock import patch
+  actual=audit.sha
+  def race(path):
+   if path.name=='libplacebo.a':raise FileNotFoundError('archive disappeared')
+   return actual(path)
+  with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {'VIDALL_MPV_BUILD_ROOT':tmp}):
+   archive=Path(tmp)/'libplacebo/install/lib/libplacebo.a'
+   archive.parent.mkdir(parents=True);archive.write_bytes(b'archive')
+   with patch.object(audit,'sha',side_effect=race):
+    self.assertTrue(any('静态 libplacebo' in err for err in audit.verify(BASE,verify_external=True)))
  def test_resource_hash(self):self.assertTrue(self.mutated(lambda d:d['resources'][0].update(sha256='0'*64)))
  def test_forged_source_lock(self):self.assertTrue(self.changed_file('provenance/source-lock.json',lambda d:d.update(exactReferences=[])))
  def test_missing_header(self):self.assertTrue(self.mutated(lambda d:d['headers'].clear()))

@@ -28,7 +28,7 @@ compute_patchset_digest() {
     cat "$1"/*.patch | shasum -a 256
   fi | cut -d' ' -f1 | cut -c1-16
 }
-readonly PATCHSET_DIGEST="$(compute_patchset_digest "$PATCHES_DIR")"
+readonly PATCHSET_DIGEST="$(compute_patchset_digest "$PATCHES_DIR")-$(compute_patchset_digest "$ROOT_DIR/native/patches/mpv")"
 
 invalidate_dependency_cache_if_build_source_changed() {
   local work_dir="$1"
@@ -168,6 +168,15 @@ PY
 # 仅对 patches/<dep>/ 存在的依赖执行还原：重置无补丁的依赖（如 freetype）
 # 会触发不必要的重新构建，可能因缓存中残留的 pkg-config 文件改变构建配置
 # （例如 freetype 重新检测到 harfbuzz），最终导致链接错误。
+reset_mpv_source() {
+  local source="$1" commit="$2"
+  [ -e "$source/.git" ] || { echo '缺少独立的 mpv 源码仓库' >&2; return 1; }
+  if ! git -C "$source" cat-file -e "$commit^{commit}" 2>/dev/null; then
+    git -C "$source" fetch --depth 1 origin "$commit" || return 1
+  fi
+  git -C "$source" checkout --detach --force "$commit" && git -C "$source" clean -fd
+}
+
 reset_dependency_sources() {
   local work_dir="$1"
   local dep_dir="$work_dir/libmpv"
@@ -258,9 +267,12 @@ fi
 cd "$WORK_DIR"
 chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 ./download.sh
+mpv_commit=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sources"]["mpv"]["commit"])' "$LOCK_FILE")
+reset_mpv_source "$WORK_DIR/libmpv/mpv" "$mpv_commit"
 reset_dependency_sources "$WORK_DIR"
 ./patch.sh
 apply_build_script_patches "$WORK_DIR" "$PATCHES_DIR"
+apply_build_script_patches "$WORK_DIR/libmpv/mpv" "$ROOT_DIR/native/patches/mpv"
 # 清除旧构建遗留的静态 FFmpeg headers、archives 和 .pc，防止 Meson 误解析缓存。
 rm -f "$WORK_DIR/libmpv/arm64-build/lib/"libav*.a   "$WORK_DIR/libmpv/arm64-build/lib/"libswresample.a   "$WORK_DIR/libmpv/arm64-build/lib/"libswscale.a
 rm -f "$WORK_DIR/libmpv/arm64-build/lib/pkgconfig/"libav*.pc   "$WORK_DIR/libmpv/arm64-build/lib/pkgconfig/"libswresample.pc   "$WORK_DIR/libmpv/arm64-build/lib/pkgconfig/"libswscale.pc
@@ -317,7 +329,7 @@ write_sha256 "$LIBMPV_PATH" "$OUTPUT_DIR/libmpv.so.sha256"
 "$ELF_AUDIT_SCRIPT" --runtime-dir "$WORK_DIR/libmpv/arm64-build/ffmpeg-shared/lib" --input "$LIBMPV_PATH" --output "$OUTPUT_DIR/elf-audit.json" \
   --allow libc.so --allow libm.so --allow libdl.so --allow libz.so \
   --allow libc++.so --allow libc++_shared.so --allow libhilog_ndk.z.so \
-  --allow libEGL.so --allow libvulkan.so --allow libohaudio.so \
+  --allow libEGL.so --allow libvulkan.so --allow libohaudio.so --allow libdeviceinfo_ndk.z.so \
   --allow libnative_buffer.so --allow libnative_image.so --allow libnative_window.so \
   --allow libavcodec.so.62 --allow libavformat.so.62 --allow libavutil.so.60 \
   --allow libavfilter.so.11 --allow libswresample.so.6 --allow libswscale.so.9 \

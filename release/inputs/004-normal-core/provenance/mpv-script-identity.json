@@ -1,11 +1,11 @@
 {
-  "script": "/private/tmp/phase30-consumer-handoff-20261023/build-runtime/fresh_build.py",
-  "sha256": "007975f671c6399865539c2ebc372ce28c2d6e24d140e57cbc1f95bdcae4e663",
+  "script": "/private/tmp/main89/runtime/fresh_build.py",
+  "sha256": "1f098c60c8836c88ecfbe6779c6e281058fa0e4746c9b9ea0e8f6140dd53c2ee",
   "arguments": [
     "--input-root",
-    "input-package",
+    "review5/fixed-package",
     "--run-root",
-    "build/mpv-trace-c",
+    "review5/fixed",
     "--sdk",
     "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native",
     "--meson",
@@ -14,10 +14,10 @@
     "/Users/yaoshining/anaconda3/bin/ninja",
     "--pkg-config",
     "/opt/homebrew/bin/pkg-config",
-    "--stable-prefix",
-    "/usr/local",
     "--jobs",
     "8",
+    "--stable-prefix",
+    "/usr/local",
     "--handoff-trace"
   ]
 }

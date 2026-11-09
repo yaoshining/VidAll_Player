@@ -48,6 +48,12 @@ jobs:
           export DEVECO26_SDK="$STUDIO/Contents/sdk/default/openharmony/native"
           export DEVECO26_CMAKE="$DEVECO26_SDK/build-tools/cmake/bin/cmake"
           python3 -B scripts/test/deveco26/runtime.test.py
+      - name: 核对 iMac 可用的 Phase30 A 封存输入
+        id: archive
+        if: vars.VIDALL_PHASE30_INPUT != ''
+        env:
+          VIDALL_PHASE30_INPUT: ${{ vars.VIDALL_PHASE30_INPUT }}
+        run: python3 -B native/tests/audio-interrupt/prepare.test.py ArchivedInputTests
       - name: 完整构建与审计 HAR
         id: target
         run: python3 -B scripts/test/deveco26/evaluate.py build --out "$CI_OUT" --studio "$STUDIO" --wrapper "$WRAPPER" --common "$COMMON"
