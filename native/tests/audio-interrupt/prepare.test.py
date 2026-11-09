@@ -52,6 +52,26 @@ class InputTests(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             prepare.prepare(self.src, self.dest)
 
+    def test_normal_core_patch_order_and_identity(self):
+        extra = self.root / 'phase30.patch'
+        extra.write_text('--- a/audio.c\n+++ b/audio.c\n@@ -1 +1 @@\n-new\n+final\n')
+        lock = json.loads(prepare.SOURCE_LOCK.read_text())
+        update = lock['mpvUpdate']
+        update['additionalPatches'] = [{'patch': extra.name, 'patchSHA256': prepare.digest(extra)}]
+        self.file.write_text('final\n')
+        expected = self.root / 'final.json'
+        expected.write_text(self.manifest())
+        self.file.write_text('old\n')
+        update['patchedInputSHA256'] = prepare.digest(expected)
+        prepare.SOURCE_LOCK.write_text(json.dumps(lock))
+        prepare.prepare(self.src, self.dest)
+        self.assertEqual((self.dest / self.rel).read_text(), 'final\n')
+        extra.write_text('tampered')
+        other = self.root / 'other'
+        with self.assertRaisesRegex(ValueError, '补丁与来源锁不匹配'):
+            prepare.prepare(self.src, other)
+        self.assertFalse(other.exists())
+
     def test_nested_output(self):
         """未创建的多级父目录也可承载独立的派生输入。"""
         target = self.root / 'nested' / 'outputs' / 'copy'

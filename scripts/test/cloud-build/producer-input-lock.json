@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "acceptedDelivery": "004-normal-core-phase30-a-issue89",
+  "acceptedDelivery": "004-normal-core-phase30-a-ohcodec-fence",
   "producerLatestNormalFullCloudRebuildVerified": false,
   "files": {
-    "manifest.json": "70d8d5d768444616c47367ce0b191cc96e188144195fba94f696293903383fdf",
-    "provenance/source-lock.json": "3aeb3afaa7dc4706b3e7206ef27e0ee0c69ac0086a27fe083e9d41832cf3d5cd",
-    "provenance/normal-library-binding.json": "6b6e7739bb678fbc5a90ece81bfb15d5430a03216aee69ab06e6b0faa55f19a4",
-    "provenance/normal-compile-binding.json": "8e3852a358d1e069223cb3ec369b2fa7e9728c12870fc50e89e0a620db653ad2",
+    "manifest.json": "fba877682522a38ef702f7d024083d5e7a476b4e12a68a4175e97731a8dcf178",
+    "provenance/source-lock.json": "e8d26daa6bacf1f9ce82c124c3377bcbd9d688be8b22bd788d300e302315c49e",
+    "provenance/normal-library-binding.json": "2721822178ad50674fc97e2b36f42c94224eb17fae455321eec2affe8c8345aa",
+    "provenance/normal-compile-binding.json": "b403bcf00c77b84d84f3eb902d24755071a82ae2116a88eb6576e1226233f505",
     "arm64-v8a/libavfilter.so.11": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
     "arm64-v8a/libavformat.so.62": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
     "arm64-v8a/libswscale.so.9": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
     "arm64-v8a/libavcodec.so.62": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
-    "arm64-v8a/libmpv.so": "b6af0c892115b95f355b411a42bb26c4fedb1f1ed3c0a9bde258eab741bf86bd",
+    "arm64-v8a/libmpv.so": "589434c76f3d44fcdeb668210ef5f4181a8d2d0dc367bf8e4b1b6dd7a0c7afbb",
     "arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
     "arm64-v8a/libswresample.so.6": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
     "arm64-v8a/libavutil.so.60": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43"

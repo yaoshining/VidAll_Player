@@ -18,9 +18,12 @@ def digest(path):
 def prepare(source, output):
     """校验 Phase30 A 归档，并在独立副本中应用锁定的 mpv 补丁。"""
     update = json.loads(SOURCE_LOCK.read_text())['mpvUpdate']
-    patch = ROOT / update['patch']
-    if digest(patch) != update['patchSHA256']:
-        raise ValueError('mpv 补丁与来源锁不匹配')
+    patches = []
+    for item in [update, *update.get('additionalPatches', [])]:
+        patch = ROOT / item['patch']
+        if not patch.is_file() or digest(patch) != item['patchSHA256']:
+            raise ValueError('mpv 补丁与来源锁不匹配：' + item['patch'])
+        patches.append(patch)
     if digest(source / 'package.json') != update['baselineInputSHA256']:
         raise ValueError('输入须为封存的 Phase30 A package.json')
     if output.resolve().is_relative_to(source.resolve()):
@@ -38,8 +41,9 @@ def prepare(source, output):
             if digest(dest) != row['sha256']:
                 raise ValueError('封存输入不匹配：' + row['path'])
         # 副本可位于另一个 checkout 内；禁止 git 发现父仓库后静默跳过补丁。
-        subprocess.run(['git', 'apply', '--directory=sources/mpv', str(patch)], cwd=work, check=True,
-                       env={**os.environ, 'GIT_CEILING_DIRECTORIES': str(work.resolve().parent)})
+        for patch in patches:
+            subprocess.run(['git', 'apply', '--directory=sources/mpv', str(patch)], cwd=work, check=True,
+                           env={**os.environ, 'GIT_CEILING_DIRECTORIES': str(work.resolve().parent)})
         for row in manifest['files']:
             if row['path'].startswith('sources/mpv/'):
                 path = work / row['path']

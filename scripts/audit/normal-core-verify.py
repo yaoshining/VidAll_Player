@@ -3,9 +3,9 @@
 import hashlib,json,os,subprocess,sys
 from pathlib import Path
 # 固定已审查生产者证据的身份，不能只信任待验清单自报。
-BINDING_SHA='6b6e7739bb678fbc5a90ece81bfb15d5430a03216aee69ab06e6b0faa55f19a4'
-COMPILE_SHA='8e3852a358d1e069223cb3ec369b2fa7e9728c12870fc50e89e0a620db653ad2'
-SOURCE_LOCK_SHA='3aeb3afaa7dc4706b3e7206ef27e0ee0c69ac0086a27fe083e9d41832cf3d5cd'
+BINDING_SHA='2721822178ad50674fc97e2b36f42c94224eb17fae455321eec2affe8c8345aa'
+COMPILE_SHA='b403bcf00c77b84d84f3eb902d24755071a82ae2116a88eb6576e1226233f505'
+SOURCE_LOCK_SHA='e8d26daa6bacf1f9ce82c124c3377bcbd9d688be8b22bd788d300e302315c49e'
 RESOURCE_AUDIT_SHA='9417458d3d308e6b601ce2b408dc82596528d4a471052548cd45735b7106955c'
 MIN_EXPORTS={'libmpv.so':{'mpv_create','mpv_initialize','mpv_client_api_version','mpv_ohcodec_terminal_api_version','mpv_ohcodec_terminal_register','mpv_ohcodec_terminal_enable','mpv_ohcodec_terminal_snapshot'},'libavformat.so.62':{'ohcodec_smb_runtime_configure_v1'}}
 NAMES={'libmpv.so','libavcodec.so.62','libavfilter.so.11','libavformat.so.62','libavutil.so.60','libswresample.so.6','libswscale.so.9','libc++_shared.so'}
@@ -64,8 +64,10 @@ def verify(base,manifest=None,verify_external=False):
  if not source.is_file() or sha(source)!=SOURCE_LOCK_SHA:errors.append('来源锁身份不匹配')
  else:
   lock=json.loads(source.read_text())
-  update=lock['mpvUpdate'];patch=ROOT/update['patch']
-  if not patch.is_file() or sha(patch)!=update['patchSHA256']:errors.append('主线 mpv 补丁与来源锁不匹配')
+  update=lock['mpvUpdate']
+  for item in [update, *update.get('additionalPatches', [])]:
+   patch=ROOT/item['patch']
+   if not patch.is_file() or sha(patch)!=item['patchSHA256']:errors.append('主线 mpv 补丁与来源锁不匹配 '+item['patch'])
   if verify_external:
    for row in lock['exactReferences']:
     p=Path(row['path'])
