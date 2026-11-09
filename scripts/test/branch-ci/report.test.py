@@ -11,6 +11,11 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(report['cleanup']['outcome'], 'unknown')
         self.assertNotIn('private-value', str(report))
 
+    def test_archive_outcome(self):
+        for outcome in ('skipped', 'success', 'failure'):
+            with self.subTest(outcome=outcome):
+                self.assertEqual(summarize({'archive': {'outcome': outcome}}, {})['archive']['outcome'], outcome)
+
     def test_omit_unknown_data(self):
         reports = {'target': {'error': 'private', 'commands': [{'name':'private','exit':1}]}}
         self.assertEqual(summarize({}, reports)['target'], {'outcome':'unknown', 'failedCommands':[]})

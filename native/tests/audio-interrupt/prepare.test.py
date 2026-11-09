@@ -52,6 +52,12 @@ class InputTests(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             prepare.prepare(self.src, self.dest)
 
+    def test_nested_output(self):
+        """未创建的多级父目录也可承载独立的派生输入。"""
+        target = self.root / 'nested' / 'outputs' / 'copy'
+        prepare.prepare(self.src, target)
+        self.assertEqual((target / self.rel).read_text(), 'new\n')
+
     def test_modified_input(self):
         self.file.write_text('other\n')
         with self.assertRaisesRegex(ValueError, '封存输入不匹配'):

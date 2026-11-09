@@ -28,6 +28,7 @@ def prepare(source, output):
     if output.exists():
         raise FileExistsError(output)
     manifest = json.loads((source / 'package.json').read_text())
+    output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=output.parent) as temp:
         work = Path(temp) / 'package'
         for row in manifest['files']:

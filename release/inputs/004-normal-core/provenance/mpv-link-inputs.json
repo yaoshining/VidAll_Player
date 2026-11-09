@@ -529,7 +529,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_audio.c.o",
-    "sha256": "a4a17c315b409bf35de65f6e52e410b9ac7af72cc099cf9a549beeaa49ee1e91"
+    "sha256": "8847b59c77575cf0499c4254e5b6610b6b4f91b7429d68c8dde7c9df0a52ca1c"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_client.c.o",
@@ -581,7 +581,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_screenshot.c.o",
-    "sha256": "e11f5fe4cb7b479966dd9e364223f40647141aa278c491f392f912e9f537fc01"
+    "sha256": "40679d757444f7bba182300bc81bb958e78f4e23e46f9366b79a1d6e4bc196bd"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_scripting.c.o",

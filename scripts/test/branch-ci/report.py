@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 
-STAGES = ('checkout', 'init', 'context', 'runtime', 'target', 'negative', 'consumer', 'hypium', 'cleanup', 'har')
+STAGES = ('checkout', 'init', 'context', 'runtime', 'archive', 'target', 'negative', 'consumer', 'hypium', 'cleanup', 'har')
 RESULT_FILES = {'target': 'evaluation-result.json', 'negative': 'consumer-negative-result.json',
                 'consumer': 'consumer-result.json', 'hypium': 'hypium-result.json'}
 COMMANDS = {'cli-version', 'node-version', 'clean', 'input-audit', 'har-build', 'bridge-undefined',

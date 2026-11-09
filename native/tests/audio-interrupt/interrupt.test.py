@@ -48,6 +48,7 @@ parts = [
     function(source('player/playloop.c'), 'step_frame_mute'),
     function(source('player/playloop.c'), 'set_pause_state'),
     function(core, 'handle_audio_interrupt'), function(source('player/playloop.c'), 'add_step_frame'),
+    function(source('player/screenshot.c'), 'handle_each_frame_screenshot'),
     'static void unload(struct MPContext *mpctx) { struct MPOpts *opts = mpctx->opts; if (' + unload + '}',
     'static void set_user_pause_option(struct MPContext *mpctx, bool pause) { struct MPOpts *opts = mpctx->opts; opts->pause = pause; ' + apply_pause + '}',
 

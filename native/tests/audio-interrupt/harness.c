@@ -23,9 +23,15 @@ struct priv { OH_AudioStreamBuilder *builder; OH_AudioRenderer *renderer; struct
 struct ao { struct priv *priv; atomic_uint events_; bool per_file;
             void (*wakeup_cb)(void *); void *wakeup_ctx; };
 struct MPOpts { bool pause; int gapless_audio; };
+typedef struct {
+    void *each_frame;
+    int last_frame_count;
+} screenshot_ctx;
 struct ao_chain { struct ao *ao; };
 struct MPContext {
     struct ao_chain *ao_chain;
+    screenshot_ctx *screenshot_ctx;
+    int shown_vframes;
     bool paused, paused_for_cache, osd_force_update;
     int audio_status, osd_function;
     double time_frame;
@@ -77,12 +83,30 @@ enum { STATUS_EOF = 4 };
 static float gain, configured_gain = 0.75f;
 static float audio_get_gain(struct MPContext *ctx) { return configured_gain; }
 static void ao_set_gain(struct ao *ao, float value) { gain = value; }
-static void ao_set_paused(struct ao *ao, bool paused, bool eof) {}
-static void vo_set_paused(void *vo, bool paused) {}
+static bool audio_paused, video_paused;
+static void ao_set_paused(struct ao *ao, bool paused, bool eof) { audio_paused = paused; }
+static void vo_set_paused(void *vo, bool paused) { video_paused = paused; }
 static void mp_wakeup_core(struct MPContext *ctx) {}
 static double get_relative_time(struct MPContext *ctx) { return 0; }
 static void update_core_idle_state(struct MPContext *ctx) {}
 static void m_config_notify_change_opt_ptr(void *config, bool *option) { pauses++; }
+
+// 两轮空闲调度模拟慢写盘。首轮到达系统打断，第二轮写盘仍未结束。
+struct mp_waiter { int unused; };
+#define MP_WAITER_INITIALIZER {0}
+static unsigned screenshot_ticks;
+static void *mp_cmd_clone(void *cmd) { return cmd; }
+static void screenshot_fin(void *cmd) {}
+static void run_command(struct MPContext *ctx, void *cmd, void *sender, void (*done)(void *), void *args) {}
+static bool mp_waiter_poll(struct mp_waiter *wait) { return screenshot_ticks >= 2; }
+static void mp_waiter_wait(struct mp_waiter *wait) { assert(screenshot_ticks == 2); }
+void ao_request_pause(struct ao *ao);
+static void mp_idle(struct MPContext *ctx) {
+    if (screenshot_ticks++ == 0)
+        ao_request_pause(ctx->ao);
+    else
+        assert(ctx->opts->pause && audio_paused && video_paused);
+}
 
 /* PRODUCTION */
 
@@ -213,6 +237,16 @@ int main(void)
         handle_audio_interrupt(&ctx);
         assert(opts.pause && gain == configured_gain);
     }
+    screenshot_ctx screenshot = {.each_frame = &ctx};
+    ctx.screenshot_ctx = &screenshot;
+    ctx.shown_vframes++;
+    ctx.video_out = &ctx;
+    set_pause_state(&ctx, false);
+    assert(!audio_paused && !video_paused);
+    handle_each_frame_screenshot(&ctx);
+    assert(screenshot_ticks == 2 && audio_paused && video_paused);
+    set_pause_state(&ctx, false);
+    assert(!audio_paused && !video_paused);
     sdk = 20;
     assert(register_callbacks(&next) == 0 && modern == 1 && !next.per_file);
     result = -1;

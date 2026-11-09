@@ -209,7 +209,7 @@ index 1e9c7c4..a082053 100644
                       cc.find_library('native_media_core'),
                       cc.find_library('native_media_vdec'),
 diff --git a/player/audio.c b/player/audio.c
-index b3e975d..326bc56 100644
+index b3e975d..785b685 100644
 --- a/player/audio.c
 +++ b/player/audio.c
 @@ -27,6 +27,7 @@
@@ -224,7 +224,7 @@ index b3e975d..326bc56 100644
      mp_wakeup_core(mpctx);
  }
  
-+static void handle_audio_interrupt(struct MPContext *mpctx)
++void handle_audio_interrupt(struct MPContext *mpctx)
 +{
 +    if (!mpctx->ao || !ao_query_and_reset_events(mpctx->ao, AO_EVENT_PAUSE))
 +        return;
@@ -246,6 +246,18 @@ index b3e975d..326bc56 100644
      if (mpctx->ao && ao_query_and_reset_events(mpctx->ao, AO_EVENT_RELOAD))
          reload_audio_output(mpctx);
  
+diff --git a/player/core.h b/player/core.h
+index eb7f508..306bf47 100644
+--- a/player/core.h
++++ b/player/core.h
+@@ -500,6 +500,7 @@ void reinit_audio_chain(struct MPContext *mpctx);
+ int init_audio_decoder(struct MPContext *mpctx, struct track *track);
+ int reinit_audio_filters(struct MPContext *mpctx);
+ double playing_audio_pts(struct MPContext *mpctx);
++void handle_audio_interrupt(struct MPContext *mpctx);
+ void fill_audio_out_buffers(struct MPContext *mpctx);
+ double written_audio_pts(struct MPContext *mpctx);
+ void clear_audio_output_buffers(struct MPContext *mpctx);
 diff --git a/player/loadfile.c b/player/loadfile.c
 index f9b6531..c8dec96 100644
 --- a/player/loadfile.c
@@ -295,3 +307,19 @@ index f111920..3d87500 100644
  void update_screensaver_state(struct MPContext *mpctx)
  {
      if (!mpctx->video_out)
+diff --git a/player/screenshot.c b/player/screenshot.c
+index c733a2b..dc33ffa 100644
+--- a/player/screenshot.c
++++ b/player/screenshot.c
+@@ -616,8 +616,10 @@ void handle_each_frame_screenshot(struct MPContext *mpctx)
+ 
+     // Block (in a reentrant way) until the screenshot was written. Otherwise,
+     // we could pile up screenshot requests forever.
+-    while (!mp_waiter_poll(&wait))
++    while (!mp_waiter_poll(&wait)) {
++        handle_audio_interrupt(mpctx);
+         mp_idle(mpctx);
++    }
+ 
+     mp_waiter_wait(&wait);
+ }

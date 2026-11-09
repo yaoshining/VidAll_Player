@@ -24,8 +24,8 @@
     },
     {
       "path": "arm64-v8a/libmpv.so",
-      "sha256": "41b56c64c0fca41f5ccb0034ff4ae7fd4737c8d17353189877c725e1b15927fb",
-      "size": 15716936
+      "sha256": "f4bb96f2f2743ad017b4566ec0c4a1dbbdc5822a421138924eae728c379b95e0",
+      "size": 15717080
     },
     {
       "path": "arm64-v8a/libc++_shared.so",
