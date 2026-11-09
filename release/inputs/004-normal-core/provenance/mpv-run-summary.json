@@ -1,11 +1,11 @@
 {
-  "runRoot": "/private/tmp/ohcodec-cloud.ntAXnV/fixed",
+  "runRoot": "/private/tmp/vidall-session16/fixed",
   "freshRootVerified": true,
   "configuration": {
     "profile": "stable-target-prefix-macro-map-origin-staging",
     "stablePrefix": "/usr/local",
     "ffmpegRelative": "mpv/source/_staged/ffmpeg",
-    "packageSHA256": "2a0d8bd3cc4157267ed4ffc825d9803ec8b6c5d2c74ec562df73ccba2dbfa4a5",
+    "packageSHA256": "4f231c01c72f7787c6ed1c4812df100285d30f535113e74a84a19cd78fbf0459",
     "toolHashes": {
       "meson": "2ac5f65bc3760309298f8cab1c8abd2773633a5c0e1470a22f7aa7940c0e2084",
       "ninja": "4e2125bd4c149186d6715a3d46ca294fc58ff9dbae8b3444c8e9330941276b57",
@@ -47,7 +47,7 @@
     "target": "aarch64-linux-ohos",
     "linkerTraceDiagnostic": true
   },
-  "artifactPath": "/private/tmp/ohcodec-cloud.ntAXnV/fixed/install/usr/local/lib/libmpv.so",
+  "artifactPath": "/private/tmp/vidall-session16/fixed/install/usr/local/lib/libmpv.so",
   "linkInputs": [
     {
       "path": "sdk/llvm/lib/aarch64-linux-ohos/libc++_shared.so",
@@ -519,7 +519,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/options_options.c.o",
-      "sha256": "d8f142a27595c10146c2418e2c3518c7ce162be38c8c64a7424259cb7d5cb6a9"
+      "sha256": "ad64ede067a97eebcdbb9a4f910683c0f6f5c43a3f4d0db66632f70d72a7e6db"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/options_parse_commandline.c.o",
@@ -579,7 +579,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_audio.c.o",
-      "sha256": "8847b59c77575cf0499c4254e5b6610b6b4f91b7429d68c8dde7c9df0a52ca1c"
+      "sha256": "ac72e3a77fc2170b8c7863ea6c5358f335a7494c69a1fbcf69ff452ffb27ec59"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_client.c.o",
@@ -595,7 +595,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_command.c.o",
-      "sha256": "77ef1f31b3f8c798234dc67a9c2a6377d020a4d2e4193b9e61f7286117f617df"
+      "sha256": "27245441d086eccd662c7bc349b8a9088c4958f3ec2f2520b41e87499383b36b"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_configfiles.c.o",
@@ -619,7 +619,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_misc.c.o",
-      "sha256": "0867660c8d0a170a824ced0b46e36b7fa7a149aae8ca442874a0be0b8302c5fa"
+      "sha256": "0f39404c2ea81acdd02a6f958c2fda6693942383e43fee325ad701730fbfa251"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_osd.c.o",
@@ -627,7 +627,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_playloop.c.o",
-      "sha256": "44f8d16d841d5d7c9aa7c3a75702df1bdab0a559c790b677a5f9e79404d4517b"
+      "sha256": "e73686eabe47a7533ce519fc948d41f51ff7f53254699b63b9525bb20326b4e3"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_screenshot.c.o",
@@ -643,7 +643,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/player_video.c.o",
-      "sha256": "ad910283a0e5b7bea807e6308efaa203296e305a01771eb599f897f49373ae7c"
+      "sha256": "bdb52ad99772f435d47364703ab5139361ff2b84986847d65dec7dee06d08b2e"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/stream_cookies.c.o",
@@ -819,7 +819,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_aspect.c.o",
-      "sha256": "10bd17f1351690f207513afec9b10ce66efcc6a4f55a40b8c46f72e538340412"
+      "sha256": "0d497d66190da09095c496ba7afe6c7b45c180645ebe230c556f74cc73190a5f"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_bitmap_packer.c.o",
@@ -859,7 +859,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_gpu_next_context.c.o",
-      "sha256": "1fd06ba3aab346434f9be9677e56fb355cc8f87c26406a525fa8dfa72bede790"
+      "sha256": "968ad3252d8da876b9587e83e8f56e85d54b5430104587479f71d236f3ea7bff"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_gpu_osd.c.o",
@@ -891,7 +891,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_gpu_video.c.o",
-      "sha256": "73980f71a850a9e8bd3e8a64ef0550654d81cb847f8ec7520292ac18bda5627d"
+      "sha256": "1bcbebacc346d26c5fbe904ff632d69a6d59515477c8dc59b0e8052934ebe937"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_gpu_video_shaders.c.o",
@@ -899,7 +899,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_ohcodec.c.o",
-      "sha256": "8732b810bf1ecaf59b8367af08c2c6dbfd6eb215bd54535eaa685ef231ee3ef0"
+      "sha256": "f328239ae7806ccdcb956f7eef41f38dc9344a5d044ad8abc506f4137565aa78"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_ohcodec_gl.c.o",
@@ -907,7 +907,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_ohcodec_pl.c.o",
-      "sha256": "b61f83fe4b7ebb0ba368aee2af30d1e6d59a79b715eab3b6eb4b4850513405d7"
+      "sha256": "12f45898eef2cf00f1ce22440f456a6124b8be16f7d46eddf12d945b06d64499"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_vulkan.c.o",
@@ -927,7 +927,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_ohos_common.c.o",
-      "sha256": "8e8a075f7c0acfff922ba5b60882620e2222d600eab73191f24cf27837c9fda0"
+      "sha256": "7808174bdacfb1e5fc508aad2f66d987c4b64ecc7e3502a7a2856dd47dc8d455"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_opengl_common.c.o",
@@ -935,7 +935,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_opengl_context.c.o",
-      "sha256": "85693946a6dbae182e3c3f6be6fd641291cfaab1624c70ef1f59806816b305cc"
+      "sha256": "3883ab00c0557952a6cb1f8ecb27dfa832293b2059c2b7a41d6a69bb3b13a4d8"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_opengl_context_ohos.c.o",
@@ -971,7 +971,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_vo.c.o",
-      "sha256": "3f4688d0d46faae06a25d8394a82c86071eacd8692b3a7ee3367b0fe91514ef1"
+      "sha256": "f0927f7fa867ceaa3b0c24fd45aebfd1da7f389d2f909d31cf55ee3500e9ade4"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_vo_gpu.c.o",
@@ -979,7 +979,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_vo_gpu_next.c.o",
-      "sha256": "9a8ac1d067c9f831d1f8012ae5663329e244b452231beee8d8e6bd3a8e52a500"
+      "sha256": "a60175e724eb7e1f3f495b696339aea622fee664ac907901dfd18ee7d78bda2a"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_vo_image.c.o",
@@ -1003,11 +1003,11 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_vo_tct.c.o",
-      "sha256": "3dcf7a2e30a9a4f9878dd87acaec56bd3737465f5c3bdb04194c8852d5a10ae9"
+      "sha256": "6804790663386df2b0cba67090d3ef6b8d9c29aeefdfab959c36ff56d3f6c972"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_vulkan_context.c.o",
-      "sha256": "110ee94866b80830b21ca0be55a3e73668d0b7dcd49640c42f7b90a9e1fbc7e6"
+      "sha256": "0e79f5878ccbf96239815119ecbc5305e79461107250e74bc9ed32be1acbba1b"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_vulkan_context_display.c.o",
@@ -1023,7 +1023,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_out_win_state.c.o",
-      "sha256": "ad8d3b1a08371c39dc284c62e32bf8363f227e1bee0ea7ca17fbc75e92685beb"
+      "sha256": "4abbcf84db4c701ab967c91375f9f8f47c722b8f32a3eeb5beaaca128374e98a"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/video_repack.c.o",
@@ -1059,7 +1059,7 @@
     }
   ],
   "artifactHashes": {
-    "mpv": "589434c76f3d44fcdeb668210ef5f4181a8d2d0dc367bf8e4b1b6dd7a0c7afbb",
+    "mpv": "59eb37dbb74150bdd4a5202cd8b846696ca3ceb08e37c99249c55f5f007aab1c",
     "libplacebo": "a0c1e102b3403e84ca464dea4573fa16180b9b654c6f07325635e7370f808d57"
   },
   "allocatedSections": {
@@ -1077,7 +1077,7 @@
       "address": 656,
       "size": 303960,
       "allocated": true,
-      "sha256": "0b13072082ddea28fdf919937a4bb447162c28facd4caf290ca057968484ff50"
+      "sha256": "8c60cd866cf12f580db7e731b1bfb3f43549dcff51b6417eed6086bc20036f69"
     },
     ".gnu.version": {
       "type": 1879048191,
@@ -1123,30 +1123,30 @@
       "type": 4,
       "flags": 2,
       "address": 1353744,
-      "size": 853248,
+      "size": 853296,
       "allocated": true,
-      "sha256": "a53baead5e73bf2ca7bad2b80c0142127c6e940929f8b8126e0fd587ac3199e4"
+      "sha256": "36d18beac65d54b4ba37925ca08d23a2e524c8abdb86a49f1dd241bed278acb8"
     },
     ".rela.plt": {
       "type": 4,
       "flags": 66,
-      "address": 2206992,
+      "address": 2207040,
       "size": 19104,
       "allocated": true,
-      "sha256": "ccdff4cdc3b5f08ae43c217798461734c87951b944e4dd55ca2ade595ba71d0f"
+      "sha256": "4156b54decb831a56a7b1d8acfcac07e2ac91f56b0e4af81e1af2b91e8e56d0b"
     },
     ".rodata": {
       "type": 1,
       "flags": 50,
-      "address": 2226096,
-      "size": 2429932,
+      "address": 2226144,
+      "size": 2429996,
       "allocated": true,
-      "sha256": "3a726d51510691f4680e09af9fb831675ba9d7df13bb3bf0404a416a7d3d3020"
+      "sha256": "85f283263081455471eae888a48ca78c1c0a64ecd7e6e8a18594fe8932c2fad8"
     },
     ".gcc_except_table": {
       "type": 1,
       "flags": 2,
-      "address": 4656028,
+      "address": 4656140,
       "size": 14324,
       "allocated": true,
       "sha256": "0f73f180dbb200a0722177e1e944de57a2fc20e5a8f7d2d5613a0a6c4afcf8e5"
@@ -1154,31 +1154,31 @@
     ".eh_frame_hdr": {
       "type": 1,
       "flags": 2,
-      "address": 4670352,
+      "address": 4670464,
       "size": 115012,
       "allocated": true,
-      "sha256": "ca3b1086a7778e6482b1641a246af87bdca83aa86565966a852ea9419bc4578e"
+      "sha256": "7a3b3e1399ba957811ef91660fb2630bf3f9190846e6d1e16271aee845678ead"
     },
     ".eh_frame": {
       "type": 1,
       "flags": 2,
-      "address": 4785368,
+      "address": 4785480,
       "size": 522884,
       "allocated": true,
-      "sha256": "c8161c78b9b7caa5ea48ccf71f7ce5ea2ba21ff7218cead5fb5eb386fcf14343"
+      "sha256": "a65767c3148e374a8262ac0985a715b6ef0f23fcf730d6b8a60ed68eeb8cd2f3"
     },
     ".text": {
       "type": 1,
       "flags": 6,
-      "address": 5312348,
-      "size": 9723976,
+      "address": 5312460,
+      "size": 9724492,
       "allocated": true,
-      "sha256": "68b00a770a7c96d57b10679f08ce8ed7fa58cb1cf6902447b33a3ba1c3db78cb"
+      "sha256": "1f9498d0aaf553ccc1c548ab4837bd8e3d6eee305d9cedf5d11480fb0ff942c1"
     },
     ".init": {
       "type": 1,
       "flags": 6,
-      "address": 15036324,
+      "address": 15036952,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1186,7 +1186,7 @@
     ".fini": {
       "type": 1,
       "flags": 6,
-      "address": 15036344,
+      "address": 15036972,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1194,15 +1194,15 @@
     ".plt": {
       "type": 1,
       "flags": 6,
-      "address": 15036368,
+      "address": 15036992,
       "size": 12768,
       "allocated": true,
-      "sha256": "492751afec3a58f571834b67ec267237d7175caa63dd05314737abf22e577172"
+      "sha256": "4b8a58c043c5980f418c08739b3f7d4fb1fb238695981e7724cefcb7be74e4d8"
     },
     ".init_array": {
       "type": 14,
       "flags": 3,
-      "address": 15053232,
+      "address": 15053856,
       "size": 32,
       "allocated": true,
       "sha256": "66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
@@ -1210,7 +1210,7 @@
     ".fini_array": {
       "type": 15,
       "flags": 3,
-      "address": 15053264,
+      "address": 15053888,
       "size": 24,
       "allocated": true,
       "sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0"
@@ -1218,23 +1218,23 @@
     ".data.rel.ro": {
       "type": 1,
       "flags": 3,
-      "address": 15053288,
-      "size": 619136,
+      "address": 15053912,
+      "size": 619232,
       "allocated": true,
-      "sha256": "08486217d06f6406dfc28dd7b5f1e9ac05223417b8c0f9ce98b966b24f475936"
+      "sha256": "b62ed3aa164adec60a802ba5de3f56e5743ccd3ca8dca9b30f951b54d8977920"
     },
     ".dynamic": {
       "type": 6,
       "flags": 3,
-      "address": 15672424,
+      "address": 15673144,
       "size": 704,
       "allocated": true,
-      "sha256": "ed5a1fb1624b7cd130e67f1ec79d3a5ec670b01bbaaf0b3f24bd99d6f49faef6"
+      "sha256": "ba376be82ec3a2dfbecb59149ad561f750fb1570b249057d3e6b48bec77d7e55"
     },
     ".got": {
       "type": 1,
       "flags": 3,
-      "address": 15673128,
+      "address": 15673848,
       "size": 7312,
       "allocated": true,
       "sha256": "c5f2ac524611e50497b6223599d900ade3cc4789784b091166ae3594b3ba6130"
@@ -1242,15 +1242,15 @@
     ".got.plt": {
       "type": 1,
       "flags": 3,
-      "address": 15680440,
+      "address": 15681160,
       "size": 6392,
       "allocated": true,
-      "sha256": "1503bc159e43b570a54e565dc1f4104cc2dec8a35f52e6dbee7922236435af11"
+      "sha256": "528763396112e78a5e71ba0071852dd5467173c51037570721517301170f20a4"
     },
     ".data": {
       "type": 1,
       "flags": 3,
-      "address": 15690928,
+      "address": 15691648,
       "size": 36480,
       "allocated": true,
       "sha256": "5b96e2550e42c59516ffe0fdb9dad341571a15f1ca7225c51fac45f4fe1475d7"
@@ -1258,8 +1258,8 @@
     ".bss": {
       "type": 8,
       "flags": 3,
-      "address": 15727408,
-      "size": 81048,
+      "address": 15728128,
+      "size": 81144,
       "allocated": true,
       "sha256": null
     }

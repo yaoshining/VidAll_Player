@@ -53890,7 +53890,7 @@
     "baselineInputSHA256": "ba6747a77f6d4a18d2cd004f0301b2cb6f1aa940be1fa2bad0b1bd38bcd78fc4",
     "baselineLibmpvSHA256": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
     "baselineSourceLockSHA256": "e09d5473e57e26474e0a0cd3177f7a9d3871e9e1c7bb9a0fd83516ee959c3e7a",
-    "patchedInputSHA256": "2a0d8bd3cc4157267ed4ffc825d9803ec8b6c5d2c74ec562df73ccba2dbfa4a5",
+    "patchedInputSHA256": "4f231c01c72f7787c6ed1c4812df100285d30f535113e74a84a19cd78fbf0459",
     "patch": "native/patches/mpv/0001-ohaudio-legacy-interrupt.patch",
     "patchSHA256": "fd91b22df8e46b49acb3b120e1f38bfd3bad4d8c12e7d95e2f26d1256a161e72",
     "baselineStaticLibplaceboSHA256": "4124ab8e1d7a64beeda1419b7ddc99c309cef4c0ad9e2b44c4928ada1c1ff1d4",
@@ -53898,6 +53898,10 @@
       {
         "patch": "native/patches/phase30/0001-close-untransferred-release-fence.patch",
         "patchSHA256": "1a7f71893d223a2d40aa0cc9ada7a9d44e8780478e2664e294ff2ed7363bca2f"
+      },
+      {
+        "patch": "native/patches/phase30/0002-isolate-ohcodec-owner.patch",
+        "patchSHA256": "64e9b858a02cf76fbdc9ead77f260df9a564dd0ec609cedb589ee19d72b399a2"
       }
     ]
   },

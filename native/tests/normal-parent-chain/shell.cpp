@@ -1,4 +1,5 @@
 #include "process_runtime.h"
+#include "session_isolation.h"
 #include "../render/render_backend_policy.h"
 #include <mpv/ohcodec_terminal.h>
 #include <libavformat/ohcodec_smb_runtime.h>
@@ -45,6 +46,7 @@ void OH_NativeWindow_DestroyNativeWindow(void*){event("window",true);}
 void napi_release_threadsafe_function(void*,int){event("callback",true);if(mode=="terminal-callback-close")terminalNow();}
 class NativeSession {
 public:
+ std::shared_ptr<vidall::runtime::SessionIsolation> Isolation() const { return {}; }
  /* EXTRACT NativeSession() */
  /* EXTRACT ~NativeSession() */
  /* EXTRACT void Release() */

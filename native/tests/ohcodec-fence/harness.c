@@ -23,7 +23,7 @@ struct vk_mapper {
     VkResult (*wait_idle)(int);
     VkResult (*signal_release)(int, int, int *, int, int *);
 };
-struct ohcodec_mapper_priv { struct vk_mapper *priv; void *last_src, *last_token; };
+struct ohcodec_mapper_priv { int terminal_drain_error; struct vk_mapper *priv; void *last_src, *last_token; };
 struct ra_hwdec_mapper { struct ohcodec_mapper_priv *priv; void *tex[1]; };
 #define MP_INFO(...) ((void)0)
 #define MP_ERR(...) ((void)0)
@@ -86,6 +86,9 @@ int main(int argc, char **argv)
             assert(transferred == 1 && !v.current && !image.busy && v.external_release_inflight);
         } else {
             assert(transferred == 0 && v.window_buffer && v.current == &image && image.busy);
+            int error = 0;
+            assert(ohcodec_drain(&mapper, 2, &error) == OHCODEC_DRAIN_UNSAFE);
+            assert(error == (signal_rc ? signal_rc : -1) && !waits && !destroyed);
         }
     } else {
         if (strstr(scenario, "history")) {

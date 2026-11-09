@@ -53,6 +53,8 @@ def main():
     common = ['clang++', '-std=c++17', '-pthread', '-Irelease/inputs/004-normal-core/include']
     if run('diagnostics-compile', common+['-Inative/diagnostics', 'native/tests/diagnostics_test.cpp', '-o', work/'diagnostics']):
         run('diagnostics-native', [work/'diagnostics'])
+    if run('isolation-compile', common+['-Inative/runtime', 'native/tests/ohcodec-fence/isolation.test.cpp', '-o', work/'isolation']):
+        run('session-isolation', [work/'isolation'])
     if run('runtime-compile', common+['-DVIDALL_MPV_AVAILABLE=1', '-Inative/runtime', 'native/tests/normal-process-runtime.test.cpp', 'native/runtime/process_runtime.cpp', '-o', work/'runtime']):
         for case in ['normal', 'no-policy', 'abi', 'register', 'enable', 'smb', 'invalid-config', 'invalid-deadline', 'resources-rejected', 'directory-missing', 'directory-file', 'directory-symlink', 'config-corrupt']:
             run('runtime-'+case, [work/'runtime', case, work/('runtime-'+case)])

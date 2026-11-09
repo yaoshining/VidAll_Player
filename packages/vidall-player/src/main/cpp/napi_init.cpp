@@ -33,6 +33,7 @@
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
 #include "render_backend_policy.h"
+#include "session_isolation.h"
 #endif
 
 #undef LOG_TAG
@@ -284,6 +285,7 @@ public:
         std::uint64_t epoch;
         std::uint64_t sequence;
         std::uint64_t generation;
+        std::shared_ptr<vidall::runtime::SessionIsolation> isolation;
     };
 
     NativeSession()
@@ -327,9 +329,24 @@ public:
         // 硬件解码：libmpv 编译时 --enable-ohcodec，链接 libnative_media_vdec.so。
         // hwdec 为空时保留 mpv 默认（软件解码）；"auto-safe" 自动选择 ohcodec 硬解后端，
         // 失败时回退软件解码；"no" 强制软件解码。
-        if (!hwdec.empty()) {
-            mpv_set_option_string(player_.get(), "hwdec", hwdec.c_str());
-            hardwareDecodingRequested_.store(hwdec != "no");
+        std::string effectiveHwdec = hwdec;
+        if (renderBackend_ == vidall::render::RenderBackend::Vulkan) {
+            if (!hwdec.empty() && hwdec != "no") {
+                isolation_ = vidall::runtime::SessionIsolation::Acquire();
+                if (isolation_) {
+                    if (mpv_set_option_string(player_.get(), "ohcodec-session-isolation", "yes") < 0)
+                        return false;
+                } else {
+                    effectiveHwdec = "no";
+                    OH_LOG_Print(LOG_APP, LOG_WARN, LOG_DOMAIN, LOG_TAG, "OHCodec session limit: software decode");
+                }
+            }
+            if (!isolation_ && mpv_set_option_string(player_.get(), "gpu-hwdec-interop", "no") < 0)
+                return false;
+        }
+        if (!effectiveHwdec.empty()) {
+            mpv_set_option_string(player_.get(), "hwdec", effectiveHwdec.c_str());
+            hardwareDecodingRequested_.store(effectiveHwdec != "no");
         }
         if (!fontsDir.empty()) {
             // HarmonyOS 沙箱内没有系统 fontconfig，libass 的 fontconfig provider 探测不到
@@ -761,6 +778,15 @@ public:
             Json(version, versionField) + ",\"fields\":" + fields + "}";
     }
 
+    std::shared_ptr<vidall::runtime::SessionIsolation> Isolation() const { return isolation_; }
+
+    void CloseIsolatedCallbacks()
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        stopEvents_ = true;
+        CloseCallbackLocked();
+    }
+
     void Release()
     {
         vidall::runtime::ParkIfTerminal();
@@ -798,6 +824,7 @@ private:
     {
         std::unique_ptr<Event> event(static_cast<Event*>(data));
         if (env == nullptr || callback == nullptr || !event) return;
+        if (event->isolation && event->isolation->IsQuarantined() && event->type != "error") return;
         napi_value payload = nullptr;
         napi_create_object(env, &payload);
         napi_set_named_property(env, payload, "type", CreateString(env, event->type));
@@ -813,13 +840,13 @@ private:
     void Dispatch(const std::string& type, const std::string& message)
     {
         std::lock_guard<std::mutex> lock(callbackMutex_);
-        if (released_ || eventTsfn_ == nullptr) {
+        if ((isolation_ && isolation_->IsQuarantined() && type != "error") || released_ || eventTsfn_ == nullptr) {
             OH_LOG_Print(LOG_APP, LOG_WARN, LOG_DOMAIN, LOG_TAG,
                 "Dispatch: dropped type=%{public}s message=%{public}s released=%{public}d tsfnNull=%{public}d",
                 type.c_str(), message.c_str(), released_.load(), eventTsfn_ == nullptr);
             return;
         }
-        auto* event = new Event{type, message, eventEpoch_, ++eventSequence_, generation_};
+        auto* event = new Event{type, message, eventEpoch_, ++eventSequence_, generation_, isolation_};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
     }
 
@@ -909,7 +936,7 @@ private:
         std::lock_guard<std::mutex> lock(callbackMutex_);
         if (released_ || vidall::runtime::AdmissionError() || !eventTsfn_ || epoch != eventEpoch_.load()) return;
         auto* event = new Event{"fileEnd", reason == MPV_END_FILE_REASON_EOF ? "completed" : "error",
-            epoch, ++eventSequence_, generation_.load()};
+            epoch, ++eventSequence_, generation_.load(), isolation_};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
     }
 
@@ -998,6 +1025,17 @@ private:
         while (!stopEvents_) {
             mpv_event* event = mpv_wait_event(player, 0.1);
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
+            if (isolation_ && event->event_id == MPV_EVENT_CLIENT_MESSAGE && event->data) {
+                auto* msg = static_cast<mpv_event_client_message*>(event->data);
+                if (msg->num_args == 3 && !std::strcmp(msg->args[0], "vidall-ohcodec-quarantined")) {
+                    isolation_->Quarantine();
+                    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                        "OHCodec isolated session=%{public}llu stage=%{public}s platform_error=%{public}s",
+                        static_cast<unsigned long long>(surfaceSessionHandle_), msg->args[1], msg->args[2]);
+                    Dispatch("error", "OHCodec playback session unavailable");
+                    break;
+                }
+            }
             if (event->event_id == MPV_EVENT_START_FILE && event->data) {
                 activeEntry = static_cast<const mpv_event_start_file*>(event->data)->playlist_entry_id;
             }
@@ -1744,6 +1782,7 @@ private:
         if (eventTsfn_ != nullptr) { napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release); eventTsfn_ = nullptr; }
     }
 
+    std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
     std::unique_ptr<mpv_handle, decltype(&mpv_terminate_destroy)> player_{nullptr, mpv_terminate_destroy};
     bool diagnosticsStopped_ = true; // lifecycleMutex_ 保护，stop 返回后立即屏蔽残留属性。
     std::mutex lifecycleMutex_;
@@ -1851,10 +1890,11 @@ struct NativeWork {
     std::function<NativeResult()> operation;
     NativeResult result{false, 0, "NATIVE_PLAYBACK_FAILED"};
     bool admit = true;
+    bool retire = false;
 };
-napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeResult()> operation, bool admit = true)
+napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeResult()> operation, bool admit = true, bool retire = false)
 {
-    auto data = std::make_unique<NativeWork>(); data->operation = std::move(operation); data->result.handle = handle; data->admit = admit;
+    auto data = std::make_unique<NativeWork>(); data->operation = std::move(operation); data->result.handle = handle; data->admit = admit; data->retire = retire;
     napi_value promise = nullptr;
     if (napi_create_promise(env, &data->deferred, &promise) != napi_ok) return nullptr;
     if (admit) if (const char* error = vidall::runtime::AdmissionError()) {
@@ -1863,7 +1903,34 @@ napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeR
     auto execute = [](napi_env, void* p) {
         auto* d = static_cast<NativeWork*>(p);
         if (d->admit) if (const char* error = vidall::runtime::AdmissionError()) { d->result.code = error; return; }
-        try { d->result = d->operation(); } catch (...) { d->result = {false, d->result.handle, "NATIVE_PLAYBACK_FAILED"}; }
+        try {
+#if VIDALL_MPV_AVAILABLE
+            auto session = FindSession(d->result.handle);
+            auto isolation = session ? session->Isolation() : nullptr;
+            if (isolation) {
+                auto result = std::make_shared<NativeResult>(d->result);
+                auto task = [result, session, op = std::move(d->operation)] { *result = op(); };
+                if (isolation->Run(std::move(task), std::chrono::seconds(5))) {
+                    d->result = *result;
+                    if (d->retire && result->ok) isolation->FinishedRelease();
+                } else {
+                    d->result = {false, d->result.handle, "SESSION_QUARANTINED"};
+                    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                        "OHCodec isolated session=%{public}llu release=%{public}d",
+                        static_cast<unsigned long long>(d->result.handle), d->retire);
+                    if (d->retire) {
+                        session->CloseIsolatedCallbacks();
+                        std::lock_guard<std::mutex> lock(gSessionsMutex);
+                        gSessions.erase(d->result.handle);
+                        d->result = {true, d->result.handle, "RELEASED"};
+                    }
+                }
+            } else
+#endif
+            {
+                d->result = d->operation();
+            }
+        } catch (...) { d->result = {false, d->result.handle, "NATIVE_PLAYBACK_FAILED"}; }
         // 最后 shared_ptr 在后台释放，不能把析构/常规 Release 带回 UI complete。
         d->operation = nullptr;
         if (d->admit && vidall::runtime::Snapshot().state == 4) d->result = {false, d->result.handle, "PLAYER_TERMINAL"};
@@ -1885,6 +1952,14 @@ void DeleteSession(NativeSession* session)
 {
     // terminal 对象整体保留；不触发成员 thread/unique_ptr 的隐式析构。
     if (vidall::runtime::Snapshot().state == 4) return;
+    auto isolation = session->Isolation();
+    if (isolation) {
+        if (isolation->IsQuarantined()) return;
+        // 最后一个引用可能来自 ArkUI 清理钩子。析构始终在后台执行。
+        try { std::thread([session] { delete session; }).detach(); }
+        catch (...) { isolation->Quarantine(); }
+        return;
+    }
     delete session;
 }
 #endif
@@ -1947,7 +2022,7 @@ napi_value ReleaseSession(napi_env env, napi_callback_info info)
     if (vidall::runtime::Snapshot().state == 4) return NativeResult{false, handle, "PLAYER_TERMINAL"};
     { std::lock_guard<std::mutex> lock(gSessionsMutex); gSessions.erase(handle); }
     return NativeResult{true, handle, "RELEASED"};
-    });
+    }, true, true);
 #else
     return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
 #endif
@@ -2194,7 +2269,12 @@ napi_value GetDiagnostics(napi_env env, napi_callback_info info)
 #if VIDALL_MPV_AVAILABLE
             if (const char* error = vidall::runtime::AdmissionError()) d->error = error;
             else if (!d->session) d->error = "DIAGNOSTICS_RELEASED";
-            else d->json = d->session->Diagnostics(d->handle);
+            else if (auto isolation = d->session->Isolation()) {
+                auto json = std::make_shared<std::string>();
+                auto task = [json, session = d->session, handle = d->handle] { *json = session->Diagnostics(handle); };
+                if (isolation->Run(std::move(task), std::chrono::seconds(5))) d->json = *json;
+                else d->error = "DIAGNOSTICS_READ_FAILED";
+            } else d->json = d->session->Diagnostics(d->handle);
 #else
             d->error = "DIAGNOSTICS_UNSUPPORTED";
 #endif
