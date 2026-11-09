@@ -297,7 +297,7 @@
     },
     {
       "path": "native/patches/mpv/0001-ohaudio-legacy-interrupt.patch",
-      "sha256": "f92f26b6355fb69d1ccc62117bbc20c872acb969689a2451f6f0038378db7d53",
+      "sha256": "fd91b22df8e46b49acb3b120e1f38bfd3bad4d8c12e7d95e2f26d1256a161e72",
       "appliesTo": "mpv"
     }
   ],

@@ -16,3 +16,5 @@
 第三轮复审在旧核心复现了缓存暂停期间残留步数和静音的问题。修复后，以 mpv 实际内部暂停和逐帧增益函数驱动该时序，另验证有效静态归档和真实 Phase30 A 输入。两次独立重建的核心均为 `41b56c64c0fca41f5ccb0034ff4ae7fd4737c8d17353189877c725e1b15927fb`。本轮 CI 与设备回执跟踪于 [PR #91](https://github.com/yaoshining/VidAll_Player/pull/91)。
 
 第四轮复审的回归在旧实现复现了逐帧截图写盘期间未暂停以及多级输出目录创建失败。修复后，截图写盘期间音、视频输出均暂停，显式恢复后两者均恢复；嵌套输出和真实归档输入用例通过。双份构建的核心为 `f4bb96f2f2743ad017b4566ec0c4a1dbbdc5822a421138924eae728c379b95e0`。本次 CI HAR 和模拟器结果记录在 [PR #91](https://github.com/yaoshining/VidAll_Player/pull/91)。
+
+第五轮复审复现了系统打断与截图完成在同一次调度中到达的边界。现在先处理打断，再决定是否结束等待；慢写盘中途打断、结束时打断、立即完成及正常无打断均通过。两次独立构建的核心为 `b6af0c892115b95f355b411a42bb26c4fedb1f1ed3c0a9bde258eab741bf86bd`，对应 CI HAR 及模拟器结果见 [PR #91](https://github.com/yaoshining/VidAll_Player/pull/91)。

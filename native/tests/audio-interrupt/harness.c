@@ -91,10 +91,10 @@ static double get_relative_time(struct MPContext *ctx) { return 0; }
 static void update_core_idle_state(struct MPContext *ctx) {}
 static void m_config_notify_change_opt_ptr(void *config, bool *option) { pauses++; }
 
-// 两轮空闲调度模拟慢写盘。首轮到达系统打断，第二轮写盘仍未结束。
+// 两轮空闲调度模拟慢写盘，第二轮结束时截图完成。
 struct mp_waiter { int unused; };
 #define MP_WAITER_INITIALIZER {0}
-static unsigned screenshot_ticks;
+static unsigned screenshot_ticks, interrupt_tick;
 static void *mp_cmd_clone(void *cmd) { return cmd; }
 static void screenshot_fin(void *cmd) {}
 static void run_command(struct MPContext *ctx, void *cmd, void *sender, void (*done)(void *), void *args) {}
@@ -102,9 +102,10 @@ static bool mp_waiter_poll(struct mp_waiter *wait) { return screenshot_ticks >= 
 static void mp_waiter_wait(struct mp_waiter *wait) { assert(screenshot_ticks == 2); }
 void ao_request_pause(struct ao *ao);
 static void mp_idle(struct MPContext *ctx) {
-    if (screenshot_ticks++ == 0)
+    screenshot_ticks++;
+    if (screenshot_ticks == interrupt_tick)
         ao_request_pause(ctx->ao);
-    else
+    if (screenshot_ticks > interrupt_tick)
         assert(ctx->opts->pause && audio_paused && video_paused);
 }
 
@@ -239,14 +240,26 @@ int main(void)
     }
     screenshot_ctx screenshot = {.each_frame = &ctx};
     ctx.screenshot_ctx = &screenshot;
-    ctx.shown_vframes++;
     ctx.video_out = &ctx;
+    // 分别在慢写盘中途、写盘完成的最后一次调度中打断。
+    for (interrupt_tick = 1; interrupt_tick <= 2; interrupt_tick++) {
+        ctx.shown_vframes++;
+        screenshot_ticks = 0;
+        set_pause_state(&ctx, false);
+        assert(!audio_paused && !video_paused);
+        handle_each_frame_screenshot(&ctx);
+        assert(screenshot_ticks == 2 && audio_paused && video_paused);
+    }
     set_pause_state(&ctx, false);
     assert(!audio_paused && !video_paused);
+    // 写盘立即完成时，正常播放继续，已到达的打断仍先处理。
+    ctx.shown_vframes++;
     handle_each_frame_screenshot(&ctx);
-    assert(screenshot_ticks == 2 && audio_paused && video_paused);
-    set_pause_state(&ctx, false);
     assert(!audio_paused && !video_paused);
+    ao_request_pause(&step);
+    ctx.shown_vframes++;
+    handle_each_frame_screenshot(&ctx);
+    assert(audio_paused && video_paused);
     sdk = 20;
     assert(register_callbacks(&next) == 0 && modern == 1 && !next.per_file);
     result = -1;

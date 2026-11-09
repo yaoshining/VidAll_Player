@@ -308,16 +308,18 @@ index f111920..3d87500 100644
  {
      if (!mpctx->video_out)
 diff --git a/player/screenshot.c b/player/screenshot.c
-index c733a2b..dc33ffa 100644
+index c733a2b..f6c7054 100644
 --- a/player/screenshot.c
 +++ b/player/screenshot.c
-@@ -616,8 +616,10 @@ void handle_each_frame_screenshot(struct MPContext *mpctx)
+@@ -616,8 +616,12 @@ void handle_each_frame_screenshot(struct MPContext *mpctx)
  
      // Block (in a reentrant way) until the screenshot was written. Otherwise,
      // we could pile up screenshot requests forever.
 -    while (!mp_waiter_poll(&wait))
-+    while (!mp_waiter_poll(&wait)) {
++    for (;;) {
 +        handle_audio_interrupt(mpctx);
++        if (mp_waiter_poll(&wait))
++            break;
          mp_idle(mpctx);
 +    }
  

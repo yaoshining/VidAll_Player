@@ -581,7 +581,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_screenshot.c.o",
-    "sha256": "40679d757444f7bba182300bc81bb958e78f4e23e46f9366b79a1d6e4bc196bd"
+    "sha256": "e2cf595a5fabd8fa4d3f8adaaf24777f6613ce770b6f315541a5dbd344419e30"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_scripting.c.o",
