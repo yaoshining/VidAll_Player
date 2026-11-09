@@ -28,6 +28,8 @@ class SessionIsolation {
         std::mutex mutex;
         std::condition_variable changed;
         std::shared_ptr<Job> current;
+        std::shared_ptr<Job> close;
+        bool retiring = false;
         bool quarantined = false;
         bool stopping = false;
     };
@@ -38,20 +40,27 @@ class SessionIsolation {
     static void Worker(std::shared_ptr<State> state) {
         std::unique_lock<std::mutex> lock(state->mutex);
         for (;;) {
-            state->changed.wait(lock, [&] { return state->current || state->stopping || state->quarantined; });
+            state->changed.wait(lock, [&] {
+                return state->current || state->close || state->stopping || state->quarantined;
+            });
             if (state->stopping || state->quarantined) break;
-            auto job = state->current;
+            auto job = state->current ? state->current : state->close;
+            const bool closing = job == state->close;
             lock.unlock();
             std::exception_ptr error;
             try { job->work(); } catch (...) { error = std::current_exception(); }
             job->work = nullptr;  // 不在状态锁内释放操作持有的最后一个会话引用。
             lock.lock();
+            if (closing && error) state->quarantined = true;
             job->error = error;
             job->done = true;
-            state->current.reset();
+            if (closing) state->close.reset();
+            else state->current.reset();
             state->changed.notify_all();
+            if (closing) break;
         }
         auto cancelled = std::move(state->current);
+        auto cancelledClose = std::move(state->close);
         lock.unlock();
     }
 public:
@@ -77,7 +86,10 @@ public:
         return state_->quarantined;
     }
     // mpv 的正常 shutdown 已返回，后续建播放器不必等 UI 完成回调。
-    void FinishedRelease() { state_->ReleaseSlot(); }
+    void FinishedRelease() {
+        std::lock_guard<std::mutex> lock(state_->mutex);
+        if (!state_->quarantined) state_->ReleaseSlot();
+    }
     bool Quarantine() {
         std::lock_guard<std::mutex> lock(state_->mutex);
         bool first = !state_->quarantined;
@@ -85,22 +97,25 @@ public:
         state_->changed.notify_all();
         return first;
     }
-    bool Run(std::function<void()> work, std::chrono::milliseconds timeout) {
+    bool Run(std::function<void()> work, std::chrono::milliseconds timeout, bool closing = false) {
         const auto until = std::chrono::steady_clock::now() + timeout;
         auto job = std::make_shared<Job>();
         job->work = std::move(work);
         std::unique_lock<std::mutex> lock(state_->mutex);
-        auto wait = [&](auto ready) {
-            if (!state_->changed.wait_until(lock, until, [&] { return state_->quarantined || ready(); })) {
-                state_->quarantined = true;
-                state_->changed.notify_all();
-            }
-            return !state_->quarantined;
-        };
-        if (!wait([&] { return !state_->current; })) return false;
-        state_->current = job;
+        if (state_->quarantined || state_->retiring) return false;
+        if (closing) {
+            // 保留关闭任务。调用方超时返回后，仍在原线程等待在途操作并执行关闭。
+            state_->retiring = true;
+            state_->close = job;
+        } else {
+            if (!state_->changed.wait_until(lock, until, [&] {
+                return state_->quarantined || state_->retiring || !state_->current;
+            }) || state_->quarantined || state_->retiring) return false;
+            state_->current = job;
+        }
         state_->changed.notify_all();
-        if (!wait([&] { return job->done; })) return false;
+        if (!state_->changed.wait_until(lock, until, [&] { return state_->quarantined || job->done; })
+            || state_->quarantined) return false;
         if (job->error) std::rethrow_exception(job->error);
         return true;
     }

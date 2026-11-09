@@ -808,6 +808,7 @@ public:
         }
         vidall::runtime::ParkIfTerminal();
         player_.reset();
+        if (isolation_) isolation_->FinishedRelease();
     }
 
 private:
@@ -1884,7 +1885,9 @@ std::shared_ptr<NativeSession> FindSession(std::uint64_t handle)
 }
 #endif
 
+class NativeSession;
 struct NativeWork {
+    std::shared_ptr<NativeSession> pinned;
     napi_async_work work = nullptr;
     napi_deferred deferred = nullptr;
     std::function<NativeResult()> operation;
@@ -1892,9 +1895,11 @@ struct NativeWork {
     bool admit = true;
     bool retire = false;
 };
-napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeResult()> operation, bool admit = true, bool retire = false)
+napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeResult()> operation, bool admit = true, bool retire = false,
+                       std::shared_ptr<NativeSession> pinned = {})
 {
     auto data = std::make_unique<NativeWork>(); data->operation = std::move(operation); data->result.handle = handle; data->admit = admit; data->retire = retire;
+    data->pinned = std::move(pinned);
     napi_value promise = nullptr;
     if (napi_create_promise(env, &data->deferred, &promise) != napi_ok) return nullptr;
     if (admit) if (const char* error = vidall::runtime::AdmissionError()) {
@@ -1905,19 +1910,19 @@ napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeR
         if (d->admit) if (const char* error = vidall::runtime::AdmissionError()) { d->result.code = error; return; }
         try {
 #if VIDALL_MPV_AVAILABLE
-            auto session = FindSession(d->result.handle);
+            auto session = d->pinned ? std::move(d->pinned) : FindSession(d->result.handle);
             auto isolation = session ? session->Isolation() : nullptr;
             if (isolation) {
                 auto result = std::make_shared<NativeResult>(d->result);
                 auto task = [result, session, op = std::move(d->operation)] { *result = op(); };
-                if (isolation->Run(std::move(task), std::chrono::seconds(5))) {
+                if (isolation->Run(std::move(task), std::chrono::seconds(5), d->retire)) {
                     d->result = *result;
-                    if (d->retire && result->ok) isolation->FinishedRelease();
                 } else {
-                    d->result = {false, d->result.handle, "SESSION_QUARANTINED"};
+                    const char* reason = isolation->IsQuarantined() ? "SESSION_QUARANTINED" : "NATIVE_WORK_TIMEOUT";
+                    d->result = {false, d->result.handle, reason};
                     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
-                        "OHCodec isolated session=%{public}llu release=%{public}d",
-                        static_cast<unsigned long long>(d->result.handle), d->retire);
+                        "OHCodec session=%{public}llu release=%{public}d status=%{public}s",
+                        static_cast<unsigned long long>(d->result.handle), d->retire, reason);
                     if (d->retire) {
                         session->CloseIsolatedCallbacks();
                         std::lock_guard<std::mutex> lock(gSessionsMutex);
@@ -2015,14 +2020,15 @@ napi_value ReleaseSession(napi_env env, napi_callback_info info)
     napi_value args[1] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
     if (!GetArguments(env, info, 1, args, argc) || argc != 1 || !ReadHandle(env, args[0], handle)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
-    return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session;
-    { std::lock_guard<std::mutex> lock(gSessionsMutex); const auto found = gSessions.find(handle); if (found == gSessions.end()) return NativeResult{true, handle, "ALREADY_RELEASED"}; session = found->second; }
+    // 控制权移交前拿到强引用，调用方超时并移除 handle 后后台仍能关闭正确实例。
+    auto session = FindSession(handle);
+    return QueueNative(env, handle, [session, handle]() -> NativeResult {
+    if (!session) return NativeResult{true, handle, "ALREADY_RELEASED"};
     session->Release();
     if (vidall::runtime::Snapshot().state == 4) return NativeResult{false, handle, "PLAYER_TERMINAL"};
     { std::lock_guard<std::mutex> lock(gSessionsMutex); gSessions.erase(handle); }
     return NativeResult{true, handle, "RELEASED"};
-    }, true, true);
+    }, true, true, session);
 #else
     return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
 #endif

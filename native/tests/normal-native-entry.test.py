@@ -30,11 +30,11 @@ const int napi_ok=0;
 struct NativeResult {bool ok;std::uint64_t handle;const char*code;};
 int creates=0,initializes=0,releases=0,destructs=0;bool terminal=false,configured=false,createRace=false,releaseRace=false;
 namespace vidall::runtime {struct Status{int state;};Status Snapshot(){return {terminal?4:configured?2:0};}const char*AdmissionError(){return terminal?"PLAYER_TERMINAL":configured?nullptr:"RUNTIME_NOT_READY";}void ParkIfTerminal(){if(terminal){puts("FAIL terminal reached destructor");std::abort();}}}
-bool scopedTest=false;
+bool scopedTest=false, slowClose=false;
 std::atomic<bool> resumeOld{false}, oldReturned{false};
 std::atomic<int> closedCallbacks{0};
 struct NativeSession {std::shared_ptr<vidall::runtime::SessionIsolation> isolation;auto Isolation(){return isolation;}void CloseIsolatedCallbacks(){closedCallbacks++;} bool closed=false;NativeSession(){creates++;if(createRace)terminal=true;}~NativeSession(){destructs++;vidall::runtime::ParkIfTerminal();Release();vidall::runtime::ParkIfTerminal();}bool Initialize(const std::string&,const std::string&,const std::string&,const std::string&){initializes++;if(scopedTest)isolation=vidall::runtime::SessionIsolation::Acquire();return true;}void Release(){if(closed)return;closed=true;releases++;if(releaseRace)terminal=true;
- if(scopedTest&&isolation){isolation->Quarantine();while(!resumeOld.load())std::this_thread::yield();oldReturned=true;}}};
+ if(scopedTest&&isolation){if(!slowClose)isolation->Quarantine();while(!resumeOld.load())std::this_thread::sleep_for(std::chrono::milliseconds(1));isolation->FinishedRelease();oldReturned=true;}}};
 std::mutex gSessionsMutex;std::unordered_map<std::uint64_t,std::shared_ptr<NativeSession>>gSessions;std::uint64_t gNextSessionId=1;
 std::shared_ptr<NativeSession> FindSession(std::uint64_t id){std::lock_guard<std::mutex> lock(gSessionsMutex);auto it=gSessions.find(id);return it==gSessions.end()?nullptr:it->second;}
 int napi_get_cb_info(napi_env,napi_callback_info,size_t*,napi_value*,void*,void*){return napi_ok;}
@@ -53,15 +53,17 @@ void run(){auto current=jobs;jobs.clear();for(auto*w:current){std::thread t([=]{
 '''
 main=r'''
 int main(int argc,char**argv){std::string mode=argv[1];if(mode=="create-unconfigured"){CreateSession(nullptr,nullptr);if(creates||!jobs.empty()) {puts("FAIL created before runtime");return 1;}}
-else if(mode=="isolated-release"){
- configured=true;scopedTest=true;
+else if(mode=="isolated-release" || mode=="slow-release"){
+ configured=true;scopedTest=true;slowClose=mode=="slow-release";
  CreateSession(nullptr,nullptr);run();if(!last.ok||last.handle!=1||!FindSession(1)->Isolation())return 1;
  ReleaseSession(nullptr,nullptr);if(releases!=0)return 1;run();
  if(!last.ok||FindSession(1)||closedCallbacks!=1||destructs||oldReturned)return 1;
  CreateSession(nullptr,nullptr);run();if(!last.ok||last.handle!=2||!FindSession(2)->Isolation())return 1;
  QueueNative(nullptr,2,[]{return NativeResult{true,2,"SECOND_SESSION"};});run();
  if(!last.ok||std::string(last.code)!="SECOND_SESSION"||terminal)return 1;
+ if(vidall::runtime::SessionIsolation::Acquire())return 1;
  resumeOld=true;while(!oldReturned.load())std::this_thread::yield();
+ if(bool(vidall::runtime::SessionIsolation::Acquire())!=slowClose)return 1;
  // Test process ends with an intentionally retained generation, as on the device.
  puts("PASS");std::fflush(stdout);std::_Exit(0);
 }
@@ -79,8 +81,8 @@ if '--mutant-delete' in sys.argv:
 (out/'harness.cpp').write_text(prefix+functions+main)
 subprocess.run(['clang++','-std=c++17','-pthread','-I'+str(root/'native/runtime'),str(out/'harness.cpp'),'-o',str(out/'test')],check=True)
 rows=[]
-for c in ['create-unconfigured','create-ui','isolated-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']:
- p=subprocess.run([str(out/'test'),c],capture_output=True,text=True,timeout=3);rows.append({'case':c,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr});print(c,p.returncode,p.stdout.strip())
+for c in ['create-unconfigured','create-ui','isolated-release','slow-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']:
+ p=subprocess.run([str(out/'test'),c],capture_output=True,text=True,timeout=10 if c=='slow-release' else 3);rows.append({'case':c,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr});print(c,p.returncode,p.stdout.strip())
 (out/'results.json').write_text(json.dumps({'sourceSHA256':hashlib.sha256(src.read_bytes()).hexdigest(),'method':'actual-entry-slices-platform-and-session-stubs','results':rows},indent=2)+'\n')
 
 passed=all(row['exit']==0 and row['stdout'].strip()=='PASS' and 'FAIL' not in row['stdout']+row['stderr'] for row in rows)
