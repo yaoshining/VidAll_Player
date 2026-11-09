@@ -168,6 +168,15 @@ PY
 # 仅对 patches/<dep>/ 存在的依赖执行还原：重置无补丁的依赖（如 freetype）
 # 会触发不必要的重新构建，可能因缓存中残留的 pkg-config 文件改变构建配置
 # （例如 freetype 重新检测到 harfbuzz），最终导致链接错误。
+reset_mpv_source() {
+  local source="$1" commit="$2"
+  [ -e "$source/.git" ] || { echo '缺少独立的 mpv 源码仓库' >&2; return 1; }
+  if ! git -C "$source" cat-file -e "$commit^{commit}" 2>/dev/null; then
+    git -C "$source" fetch --depth 1 origin "$commit" || return 1
+  fi
+  git -C "$source" checkout --detach --force "$commit" && git -C "$source" clean -fd
+}
+
 reset_dependency_sources() {
   local work_dir="$1"
   local dep_dir="$work_dir/libmpv"
@@ -258,6 +267,8 @@ fi
 cd "$WORK_DIR"
 chmod +x ./*.sh ./download/*.sh ./scripts/*.sh
 ./download.sh
+mpv_commit=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sources"]["mpv"]["commit"])' "$LOCK_FILE")
+reset_mpv_source "$WORK_DIR/libmpv/mpv" "$mpv_commit"
 reset_dependency_sources "$WORK_DIR"
 ./patch.sh
 apply_build_script_patches "$WORK_DIR" "$PATCHES_DIR"

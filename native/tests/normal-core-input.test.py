@@ -43,6 +43,15 @@ class BindingTests(unittest.TestCase):
    return audit.verify(target,m)
  def test_forged_producer_binding(self):self.assertTrue(self.changed_file('provenance/normal-library-binding.json',lambda d:d.update({'libmpv.so':'0'*64})))
  def test_forged_compile_macro(self):self.assertTrue(self.changed_file('provenance/normal-compile-binding.json',lambda d:d['translationUnits'][0].update(command='clang -DMP_OHCODEC_HANDOFF_TEST=1')))
+ def test_external_summary_errors(self):
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {'VIDALL_MPV_BUILD_ROOT':''}):
+   target=Path(tmp)/'inputs';shutil.copytree(BASE,target,copy_function=os.symlink)
+   summary=target/'provenance/mpv-run-summary.json';summary.unlink()
+   for data in (None,'{', '{}', '{"runRoot":false}'):
+    with self.subTest(data=data):
+     if data is not None:summary.write_text(data)
+     self.assertIn('无效或缺失的 mpv 构建目录证据',audit.verify(target,verify_external=True))
  def test_resource_hash(self):self.assertTrue(self.mutated(lambda d:d['resources'][0].update(sha256='0'*64)))
  def test_forged_source_lock(self):self.assertTrue(self.changed_file('provenance/source-lock.json',lambda d:d.update(exactReferences=[])))
  def test_missing_header(self):self.assertTrue(self.mutated(lambda d:d['headers'].clear()))

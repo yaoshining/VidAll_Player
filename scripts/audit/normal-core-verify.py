@@ -3,9 +3,9 @@
 import hashlib,json,os,subprocess,sys
 from pathlib import Path
 # 固定已审查生产者证据的身份，不能只信任待验清单自报。
-BINDING_SHA='b8b4941f426224b64ac8a7d1cef7c34c5ad051accd8f50f58d04baf91020fd8b'
-COMPILE_SHA='89180ca415d70f56ad31e162c813ce63d2eff6c46074b1bed4d8fd692e54065a'
-SOURCE_LOCK_SHA='15b26fac5ed4e2e7bed452423eed148b81754e7616d2f09acf00250172b70fe7'
+BINDING_SHA='aab31be6acb96bacf631527b8b527f20636eb7a0543d10b8f97cb7b78dd6790e'
+COMPILE_SHA='e70881a9bebe7b79b983a88e65f46d7562035e315d88c92576fd691f4f0104bf'
+SOURCE_LOCK_SHA='9890fd6f88c3113fd0cd5cb9ab8fb727f50246f6bd1f47dec989473695be3b77'
 RESOURCE_AUDIT_SHA='9417458d3d308e6b601ce2b408dc82596528d4a471052548cd45735b7106955c'
 MIN_EXPORTS={'libmpv.so':{'mpv_create','mpv_initialize','mpv_client_api_version','mpv_ohcodec_terminal_api_version','mpv_ohcodec_terminal_register','mpv_ohcodec_terminal_enable','mpv_ohcodec_terminal_snapshot'},'libavformat.so.62':{'ohcodec_smb_runtime_configure_v1'}}
 NAMES={'libmpv.so','libavcodec.so.62','libavfilter.so.11','libavformat.so.62','libavutil.so.60','libswresample.so.6','libswscale.so.9','libc++_shared.so'}
@@ -70,9 +70,18 @@ def verify(base,manifest=None,verify_external=False):
    for row in lock['exactReferences']:
     p=Path(row['path'])
     if not p.is_file() or sha(p)!=row['sha256']:errors.append('外部来源不匹配 '+row['path'])
-   build_root=os.environ.get('VIDALL_MPV_BUILD_ROOT') or json.loads((base/'provenance/mpv-run-summary.json').read_text())['runRoot']
-   archive=Path(build_root)/lock['staticLibplacebo']['path'].removeprefix('run/')
-   if not archive.is_file() or sha(archive)!=lock['staticLibplacebo']['sha256']:errors.append('静态 libplacebo 与来源锁不匹配，请设置 VIDALL_MPV_BUILD_ROOT')
+   build_root=os.environ.get('VIDALL_MPV_BUILD_ROOT')
+   if not build_root:
+    try:
+     summary=json.loads((base/'provenance/mpv-run-summary.json').read_text())
+     build_root=summary.get('runRoot') if isinstance(summary,dict) else None
+    except (OSError,ValueError):
+     build_root=None
+   if not isinstance(build_root,str) or not build_root.strip():
+    errors.append('无效或缺失的 mpv 构建目录证据')
+   else:
+    archive=Path(build_root)/lock['staticLibplacebo']['path'].removeprefix('run/')
+    if not archive.is_file() or sha(archive)!=lock['staticLibplacebo']['sha256']:errors.append('静态 libplacebo 与来源锁不匹配，请设置 VIDALL_MPV_BUILD_ROOT')
  resource_audit=base/'provenance/samba-resource-audit.json'
  if not resource_audit.is_file() or sha(resource_audit)!=RESOURCE_AUDIT_SHA:errors.append('资源来源证据身份不匹配')
  else:

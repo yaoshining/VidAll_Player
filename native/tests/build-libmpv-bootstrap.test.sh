@@ -204,6 +204,18 @@ EOF
   [ "$(cat "$dep_dir/ffmpeg/file.txt")" = 'original' ] || fail 'reset_dependency_sources 应还原 tracked 文件到干净状态'
   assert_missing "$dep_dir/ffmpeg/new_file_from_patch.txt"
 
+  # 仓库自带 mpv 补丁，即使上游没有 patches/mpv 也必须从锁定版本开始。
+  git clone -q "$dep_dir/ffmpeg" "$dep_dir/mpv"
+  local pinned
+  pinned=$(git -C "$dep_dir/mpv" rev-parse HEAD)
+  git -C "$dep_dir/mpv" -c user.name=Test -c user.email=t@test commit -q --allow-empty -m other
+  printf 'dirty\n' > "$dep_dir/mpv/file.txt"
+  printf 'stale\n' > "$dep_dir/mpv/untracked.txt"
+  reset_mpv_source "$dep_dir/mpv" "$pinned"
+  [ "$(git -C "$dep_dir/mpv" rev-parse HEAD)" = "$pinned" ] || fail 'mpv 未还原到来源锁'
+  [ "$(cat "$dep_dir/mpv/file.txt")" = original ] || fail 'mpv 源码已污染'
+  assert_missing "$dep_dir/mpv/untracked.txt"
+
   # 无补丁的 git 依赖不应被还原，避免触发不必要的重新构建
   mkdir -p "$dep_dir/freetype"
   pushd "$dep_dir/freetype" > /dev/null

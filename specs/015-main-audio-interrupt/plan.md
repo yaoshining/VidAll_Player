@@ -10,3 +10,7 @@
 2. 使用封存的 `build-runtime/fresh_build.py`（SHA 见主线 `provenance/mpv-script-identity.json`），指定 input-root、全新 run-root、SDK、Meson、Ninja、pkg-config，传入 `--stable-prefix /usr/local --handoff-trace`。该入口编译 libplacebo 和 mpv，链接已存在的共享 FFmpeg。参考结果与原主线 `1a469850…` 逐字节一致。
 3. 运行 `python3 native/scripts/prepare-normal-mpv-input.py <原输入目录> <新临时目录>`，再将第 2 步的 input-root 改为该副本，使用新的 run-root。最终核心、编译及链接记录进入 `release/inputs/004-normal-core`；来源锁保留原输入身份并新增补丁与派生输入哈希。本地工具链与历史封存版本有差异，实际工具摘要已随构建记录更新。
 4. 运行 `python3 scripts/audit/normal-core-verify.py` 和 `python3 native/tests/normal-core-input.test.py`。有封存材料时设置 `VIDALL_MPV_BUILD_ROOT` 为当前修复构建的 run-root，再用 `--verify-external` 校验外部来源和静态库。
+
+## 自动审查补充
+
+注册旧系统回调时分配永不复用的整数标识，AO 仅在持有注册表读锁时可访问。注销取得写锁等候已进入的回调，在释放系统渲染器前移除标识。用户设置 pause=no 时原子取走此前排队的 PAUSE，后续 PAUSE 继续生效。宿主替身运行实际文件卸载条件，覆盖 gapless、编码模式、已注销的写入/打断和并发回调。受控缓存的 mpv 单独检出来源锁版本。

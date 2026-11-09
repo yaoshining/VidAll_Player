@@ -1,6 +1,6 @@
 {
   "formalArtifactAllowed": false,
-  "inputManifestSHA256": "23984a54a65d20bf22cf60c329a3f71a56375d44b0d9d67174d77d53e56b8ea0",
+  "inputManifestSHA256": "ac7788b1e7b2d8e30985197d83501ece2515fa1f830729012e3281800d6dd893",
   "red": {
     "case": "BindingTests.test_actual_current_inputs",
     "result": "语义失败：清单缺失",
@@ -33,8 +33,8 @@
   "initialInputManifestSHA256": "97d5030fe0ac0420bcf489508db6ead92defa7e71d4c85922ce9f5c81c762d2f",
   "issue89": {
     "baselineRebuiltMatchesMain": true,
-    "hostInputTests": 17,
-    "mpvOutputSHA256": "a312afe7a1775103e45c121904a7557390d3b6e219b213d347573b82467c7f92",
+    "hostInputTests": 18,
+    "mpvOutputSHA256": "d756223539f3e5156d708ec95e8e8bb90d4261b687f64c484c971b38bb6d557c",
     "spec": "specs/015-main-audio-interrupt"
   }
 }

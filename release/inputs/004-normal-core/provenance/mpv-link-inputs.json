@@ -181,7 +181,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/audio_out_ao_ohaudio.c.o",
-    "sha256": "d84620e6960f6e59948763f273e87cc83dd8c148851cd15c7bd71f209c18e782"
+    "sha256": "3a570180371535abfa7b26e6b6bb37b3b8eb26b5c6360f2a4649eb6241830bf7"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/audio_out_ao_pcm.c.o",
@@ -545,7 +545,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_command.c.o",
-    "sha256": "77ef1f31b3f8c798234dc67a9c2a6377d020a4d2e4193b9e61f7286117f617df"
+    "sha256": "502ddfff07cdbb112897945cc4ce0fc1a3bf816a5ad04afba56b22db6ba71a6d"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_configfiles.c.o",
