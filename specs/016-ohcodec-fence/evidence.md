@@ -29,7 +29,7 @@
 
 ## 真机关闭错误注入
 
-独立诊断 HAP `f56fc1ad88631243f7864f910c43fdfabe5444e0e4e4e718c90172a4caeb9388` 用离线配置构建。诊断版 mpv `5cf80c2ad1aa722bc708b06653c9024141ba87b492a7bf28be26cad95a4caeb2` 在真实队列等待返回成功后，仅一次将结果替换为 `VK_ERROR_DEVICE_LOST`。注入补丁在 `native/tests/ohcodec-fence/inject-wait.patch`，不在生产来源锁内。重放时在临时派生源码树应用该补丁，链接 `hilog_ndk.z`，用实际播放页播放正常硬解样片，关闭播放页并观察超过运行时的 3000 ms 期限。
+独立诊断 HAP `f56fc1ad88631243f7864f910c43fdfabe5444e0e4e4e718c90172a4caeb9388` 用离线配置构建。诊断版 mpv `5cf80c2ad1aa722bc708b06653c9024141ba87b492a7bf28be26cad95a4caeb2` 在真实队列等待返回成功后，仅一次将结果替换为 `VK_ERROR_DEVICE_LOST`。注入补丁在 `39f62ad9e871b00ced6acdc62ad7a54a35d46288:native/tests/ohcodec-fence/inject-wait.patch`，不在生产来源锁内。重放时在临时派生源码树应用该补丁，链接 `hilog_ndk.z`，用实际播放页播放正常硬解样片，关闭播放页并观察超过运行时的 3000 ms 期限。
 
 样片有运动画面，退出播放页时列表短暂出现，随后回到了系统桌面。必须点应用图标重启。两次启动记录不同的 PID：
 
@@ -54,3 +54,5 @@ reason=2 对应关闭。结果复现了应用进程退出，第三方驱动在�
 | 02:14:13–02:14:41 | B 退出后列表仍可操作。两个硬解名额被占满，再播 B 时为 `hw=unavailable fmt=yuv420p renderer=vulkan`；进度达到 4417 ms，有画面和非零音频，正常回到列表。随后另选损坏 MP4，在「播放未能继续」页手动点「返回」回到列表。 |
 
 [脱敏 HiLog 摘录](tablet-recovery.txt) · [故障后的列表与 B 的两帧](tablet-recovery.jpg)。本轮覆盖真机上注入的返回错误，平台真实阻塞由宿主测试模拟。API 19 TV 真机兼容性仍待单独验收。
+
+当前联合接入及待验收项见 [FFmpeg 接入记录](integration.md)。上文保留历史提交的真实结果，不代表新 SDK、延迟回收及可靠故障通知版本已完成平板验收。

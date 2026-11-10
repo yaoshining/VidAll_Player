@@ -11,7 +11,7 @@ int main() {
     std::promise<void> entered, finish;
     auto gate = finish.get_future().share();
     auto pending = std::async(std::launch::async, [&] {
-        return first->Run([&] { entered.set_value(); gate.wait(); }, 1s);
+        return first->Run([gate, &entered] { entered.set_value(); gate.wait(); }, 1s);
     });
     entered.get_future().wait();
     first->Quarantine();

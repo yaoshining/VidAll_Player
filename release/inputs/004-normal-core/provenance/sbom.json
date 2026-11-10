@@ -4,28 +4,28 @@
   "runtime": [
     {
       "path": "arm64-v8a/libavfilter.so.11",
-      "sha256": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
-      "size": 3943016
+      "sha256": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "size": 3942968
     },
     {
       "path": "arm64-v8a/libavformat.so.62",
-      "sha256": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
-      "size": 19264368
+      "sha256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "size": 19264304
     },
     {
       "path": "arm64-v8a/libswscale.so.9",
-      "sha256": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
-      "size": 738688
+      "sha256": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "size": 738672
     },
     {
       "path": "arm64-v8a/libavcodec.so.62",
-      "sha256": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
-      "size": 12306216
+      "sha256": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "size": 12305456
     },
     {
       "path": "arm64-v8a/libmpv.so",
-      "sha256": "59eb37dbb74150bdd4a5202cd8b846696ca3ceb08e37c99249c55f5f007aab1c",
-      "size": 15717816
+      "sha256": "c1997eee1f1190aca663e49ef86e98b96a1403cf5e2f99b16158cd217ef7d56a",
+      "size": 15718232
     },
     {
       "path": "arm64-v8a/libc++_shared.so",
@@ -34,13 +34,13 @@
     },
     {
       "path": "arm64-v8a/libswresample.so.6",
-      "sha256": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
-      "size": 91736
+      "sha256": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "size": 91704
     },
     {
       "path": "arm64-v8a/libavutil.so.60",
-      "sha256": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43",
-      "size": 683384
+      "sha256": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "size": 683352
     }
   ],
   "staticLinkInputs": [
@@ -92,5 +92,7 @@
   "licenseIndex": "../licenses/index.json",
   "sourceLock": "source-lock.json",
   "formalArtifactAllowed": false,
-  "scope": "核心动态库、静态链接输入与生产者来源/许可证索引；系统平台库不随包分发"
+  "scope": "核心动态库、静态链接输入与生产者来源/许可证索引；系统平台库不随包分发",
+  "ffmpegRuntimeSource": "ffmpeg-recovery-sdk.json",
+  "mpvCompileSourceLock": "source-lock.json"
 }

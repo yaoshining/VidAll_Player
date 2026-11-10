@@ -3,19 +3,49 @@
 import hashlib,json,os,subprocess,sys
 from pathlib import Path
 # 固定已审查生产者证据的身份，不能只信任待验清单自报。
-BINDING_SHA='5fe9e2a16b463da1a1ac5f409f8e7b326844b5b870408ef85f6c808211a89b8c'
-COMPILE_SHA='c8a999707423189e72cf3e0beab43fef19e1b57757ad44c5a4a8a4d2eb764115'
-SOURCE_LOCK_SHA='eeebadfefc9eed016fa6c5094761b92984092ab4718e1fe925a1de202fb6b05c'
-RESOURCE_AUDIT_SHA='9417458d3d308e6b601ce2b408dc82596528d4a471052548cd45735b7106955c'
+BINDING_SHA='b0e829825928b8a8ff52a97542b3ccdfaf3606e356a52e3906b35694d7700105'
+COMPILE_SHA='5379cf1f3ad8ee6bfb4e979eb4864661fb8a21dc71dc03e6621b8f1330e3d742'
+SOURCE_LOCK_SHA='2cab2d94414e81e0ba513ca53143011f05741c23a01e53e2b88b7c9289275065'
+RESOURCE_AUDIT_SHA='62bf0d7e8f42f1f318ce7c56850bb51f18bc8b555aa706b8a36ce5e92c8c1149'
+FFMPEG_SDK_SHA='7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf'
+FFMPEG_MERGE_SHA='3695ec4419c31999ade8fb947b24b465760f7e62ee54579ea5ee5c1ec9e81b6f'
 MIN_EXPORTS={'libmpv.so':{'mpv_create','mpv_initialize','mpv_client_api_version','mpv_ohcodec_terminal_api_version','mpv_ohcodec_terminal_register','mpv_ohcodec_terminal_enable','mpv_ohcodec_terminal_snapshot'},'libavformat.so.62':{'ohcodec_smb_runtime_configure_v1'}}
 NAMES={'libmpv.so','libavcodec.so.62','libavfilter.so.11','libavformat.so.62','libavutil.so.60','libswresample.so.6','libswscale.so.9','libc++_shared.so'}
 ROOT=Path(__file__).resolve().parents[2]
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
+def verify_ffmpeg_recovery(base, manifest):
+ """独立绑定当前六库，不将旧 mpv 链接输入冒充当前 FFmpeg 来源。"""
+ errors=[]
+ key=manifest.get('ffmpegRecovery')
+ if key!='provenance/ffmpeg-recovery-sdk.json':return ['FFmpeg 恢复 SDK 绑定缺失']
+ sdk=base/key
+ if not sdk.is_file() or sha(sdk)!=FFMPEG_SDK_SHA:return ['FFmpeg 恢复 SDK 身份不匹配']
+ source=json.loads(sdk.read_text())
+ if source.get('diagnosticInjection') is not False or source.get('buildOrigin')!='local':
+  errors.append('FFmpeg SDK 来源或注入状态错误')
+ if manifest.get('compileDefinitionsScope')!='libmpv.so' or manifest.get('ffmpegCompileDefinitions')!=[]:
+  errors.append('FFmpeg 与 mpv 编译宏范围混淆')
+ current={Path(r['path']).name:r['sha256'] for r in manifest.get('libraries',[])}
+ for row in source['files']:
+  name=Path(row['path']).name
+  if row['path'].startswith('lib/') and name in NAMES:
+   if current.get(name)!=row['sha256']:errors.append('FFmpeg 运行库未绑定恢复 SDK '+name)
+ merge_key=manifest.get('ffmpegRecoveryMerge')
+ if merge_key!='provenance/ffmpeg-recovery-merge.json':
+  errors.append('FFmpeg 合并绑定缺失')
+ else:
+  merge=base/merge_key
+  if not merge.is_file() or sha(merge)!=FFMPEG_MERGE_SHA:
+   errors.append('FFmpeg 合并绑定身份不匹配')
+  elif json.loads(merge.read_text()).get('sdkManifestSHA256')!=sha(sdk):
+   errors.append('FFmpeg SDK 与合并记录不一致')
+ return errors
+
 def verify(base,manifest=None,verify_external=False):
  if manifest is None:
   if not (base/'manifest.json').is_file():return ['清单缺失']
   manifest=json.loads((base/'manifest.json').read_text())
- errors=[]
+ errors=verify_ffmpeg_recovery(base,manifest)
  if manifest.get('formalArtifactAllowed') is not False:errors.append('禁止正式产物授权')
  libs=manifest.get('libraries',[])
  if {Path(r['path']).name for r in libs}!=NAMES or len(libs)!=8:errors.append('运行库集合不完整')
@@ -56,6 +86,7 @@ def verify(base,manifest=None,verify_external=False):
  if compilation.is_file() and sha(compilation)==COMPILE_SHA:
   c=json.loads(compilation.read_text()); observed=c.get('observedMacros',{})
   if observed!={'TRACE':True,'TEST':False,'DIAGNOSTIC':False,'EXPERIMENT':False,'RETURN_REPLACEMENT':False}:errors.append('实际编译宏不是正常组合')
+  # 此记录描述 mpv 的原始编译及当时 FFmpeg 输入；当前六库由恢复 SDK 单独锁定。
   commands=[r.get('command','') for r in c.get('translationUnits',[])]+[c.get('ffmpegExplicitFlags','')]
   if len(commands)<3 or any('-DMP_OHCODEC_HANDOFF_TRACE=1' not in x for x in commands):errors.append('实际编译 TRACE 证据不足')
   if any(any(s in x for s in ['-DMP_OHCODEC_DIAGNOSTIC','-DMP_OHCODEC_LIFECYCLE_EXPERIMENT','-DMP_OHCODEC_HANDOFF_TEST','-DMP_OHCODEC_TEST']) for x in commands):errors.append('实际编译含故障宏')

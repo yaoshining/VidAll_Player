@@ -10,6 +10,7 @@ def function(signature):
   depth+=(s[i]=='{')-(s[i]=='}');i+=1
  return s[start:i]
 out=pathlib.Path(sys.argv[1]);out.mkdir(parents=True,exist_ok=True)
+subprocess.run([sys.executable,'-B',str(root/'native/tests/ohcodec-fence/initialize.test.py')],check=True)
 functions=s[s.index('struct NativeWork {'):s.index('napi_value ConfigureRuntime(')]+'\n'+'\n'.join(function(x) for x in ['napi_value CreateSession(', 'napi_value ReleaseSession(', 'void CleanupSessions('])
 prefix=r'''
 #include "session_isolation.h"
@@ -56,7 +57,10 @@ int main(int argc,char**argv){std::string mode=argv[1];if(mode=="create-unconfig
 else if(mode=="isolated-release" || mode=="slow-release"){
  configured=true;scopedTest=true;slowClose=mode=="slow-release";
  CreateSession(nullptr,nullptr);run();if(!last.ok||last.handle!=1||!FindSession(1)->Isolation())return 1;
+ auto before=std::chrono::steady_clock::now();
  ReleaseSession(nullptr,nullptr);if(releases!=0)return 1;run();
+ auto elapsed=std::chrono::steady_clock::now()-before;
+ if(slowClose&&(elapsed<std::chrono::milliseconds(4800)||elapsed>std::chrono::milliseconds(6500)))return 1;
  if(!last.ok||FindSession(1)||closedCallbacks!=1||destructs||oldReturned)return 1;
  CreateSession(nullptr,nullptr);run();if(!last.ok||last.handle!=2||!FindSession(2)->Isolation())return 1;
  QueueNative(nullptr,2,[]{return NativeResult{true,2,"SECOND_SESSION"};});run();
@@ -65,6 +69,15 @@ else if(mode=="isolated-release" || mode=="slow-release"){
  resumeOld=true;while(!oldReturned.load())std::this_thread::yield();
  if(bool(vidall::runtime::SessionIsolation::Acquire())!=slowClose)return 1;
  // Test process ends with an intentionally retained generation, as on the device.
+ puts("PASS");std::fflush(stdout);std::_Exit(0);
+}
+else if(mode=="cleanup-isolated"){
+ configured=true;scopedTest=true;
+ CreateSession(nullptr,nullptr);run();auto retained=FindSession(1);
+ retained->Isolation()->Quarantine();
+ CleanupSessions(nullptr);
+ if(closedCallbacks!=1||!gSessions.empty()||destructs||releases)return 1;
+ retained.reset();
  puts("PASS");std::fflush(stdout);std::_Exit(0);
 }
 else if(mode=="create-ui"){configured=true;CreateSession(nullptr,nullptr);if(creates){puts("FAIL native create executed synchronously on UI");return 1;}run();if(creates!=1||!last.ok)return 1;gSessions.clear();}
@@ -81,7 +94,7 @@ if '--mutant-delete' in sys.argv:
 (out/'harness.cpp').write_text(prefix+functions+main)
 subprocess.run(['clang++','-std=c++17','-pthread','-I'+str(root/'native/runtime'),str(out/'harness.cpp'),'-o',str(out/'test')],check=True)
 rows=[]
-for c in ['create-unconfigured','create-ui','isolated-release','slow-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']:
+for c in ['create-unconfigured','create-ui','cleanup-isolated','isolated-release','slow-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']:
  p=subprocess.run([str(out/'test'),c],capture_output=True,text=True,timeout=10 if c=='slow-release' else 3);rows.append({'case':c,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr});print(c,p.returncode,p.stdout.strip())
 (out/'results.json').write_text(json.dumps({'sourceSHA256':hashlib.sha256(src.read_bytes()).hexdigest(),'method':'actual-entry-slices-platform-and-session-stubs','results':rows},indent=2)+'\n')
 

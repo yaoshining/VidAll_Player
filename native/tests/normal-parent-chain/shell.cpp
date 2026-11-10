@@ -55,6 +55,7 @@ public:
  /* EXTRACT void StopRendererLocked() */
  /* EXTRACT void DestroyRenderer() */
  /* EXTRACT void CloseCallbackLocked() */
+ /* EXTRACT void CloseIsolatedCallbacks() */
  std::unique_ptr<mpv_handle,decltype(&mpv_terminate_destroy)>player_{nullptr,mpv_terminate_destroy};
  std::mutex lifecycleMutex_,rendererMutex_,callbackMutex_,completionMutex_;
  // 与实际InvalidateCompletion读取的成员类型一致，非空初值检验Release真实清理调用。

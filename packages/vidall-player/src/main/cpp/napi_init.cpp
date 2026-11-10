@@ -2330,8 +2330,16 @@ void CleanupSessions(void*)
 {
 #if VIDALL_MPV_AVAILABLE
     std::unordered_map<std::uint64_t, std::shared_ptr<NativeSession>> sessions;
-    if (vidall::runtime::Snapshot().state == 4) return;
-    { std::lock_guard<std::mutex> lock(gSessionsMutex); sessions.swap(gSessions); }
+    const bool terminal = vidall::runtime::Snapshot().state == 4;
+    {
+        std::lock_guard<std::mutex> lock(gSessionsMutex);
+        // 清理钩子返回后 NAPI 环境即不可再用；先封闭投递，再异步销毁耗时资源。
+        for (auto& entry : gSessions) {
+            if (entry.second->Isolation()) entry.second->CloseIsolatedCallbacks();
+        }
+        if (terminal) return;
+        sessions.swap(gSessions);
+    }
 #endif
 }
 

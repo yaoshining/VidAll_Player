@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "formalArtifactAllowed": false,
-  "librarySHA256": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+  "librarySHA256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
   "archive": {
     "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase20/local-v3/origin-a/dependencies/sysroot/lib/libsmbclient.a",
     "logical": "out/phase20/local-v3/origin-a/dependencies/sysroot/lib/libsmbclient.a",
@@ -14,14 +14,14 @@
       "entries": 65536,
       "bytes": 131072,
       "sha256": "19442bdd7623101de9e217a943b103283406ff96d332f6e7ca4e1fe06e111a53",
-      "exactBytesInCurrentAvformatAtOffset": 4127160
+      "exactBytesInCurrentAvformatAtOffset": 4127144
     },
     {
       "name": "lowcase_table",
       "entries": 65536,
       "bytes": 131072,
       "sha256": "677e114a5ae036d630fdc52e87a4b3a923c940cce9b7da52a5ccb4e1d17af316",
-      "exactBytesInCurrentAvformatAtOffset": 4258232
+      "exactBytesInCurrentAvformatAtOffset": 4258216
     }
   ],
   "sources": [

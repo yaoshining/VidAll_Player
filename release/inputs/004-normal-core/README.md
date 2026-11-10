@@ -1,6 +1,6 @@
 # 正常核心输入（独立接入）
 
-当前输入在 Phase30 A TRACE-only 基线上应用 #89 的 mpv 补丁。六个 FFmpeg 库与 C++ 运行库仍与 Phase31 正常 HAP 逐字节一致；MPV 公开头来自精确匹配二进制的 `mpv-trace-c` 安装输出，SMB 公共头来自其配套 FFmpeg staging。`manifest.json` 是本目录唯一绑定入口，运行 `python3 -B scripts/audit/normal-core-verify.py` 校验。
+当前输入在 Phase30 A TRACE-only 基线上应用 #89 的 mpv 补丁。六个 FFmpeg 运行库现消费 ohos_ijkplayer PR #11 的恢复 SDK，C++ 运行库保持原身份；MPV 公开头来自精确匹配二进制的 `mpv-trace-c` 安装输出，SMB 公共头来自其配套 FFmpeg staging。`manifest.json` 是本目录唯一绑定入口，运行 `python3 -B scripts/audit/normal-core-verify.py` 校验。
 
 `provenance/source-lock.json` 绑定精确生产者源码/补丁索引、静态 libplacebo、工具链及历史来源限制。`provenance/sbom.json` 列出运行库和静态链接输入，许可证正文与生产者完整索引位于 `licenses/`。此处的来源索引不宣称已复制全部源码构建闭包；离线接收者要重建时还需按精确引用取得生产者封存输入。索引校验与法律合规发布审核是不同验收层级。
 
@@ -19,3 +19,9 @@
 当前字符表由精确 Samba 源码内嵌：`codepoints.c` 的 `lowcase_table` / `upcase_table` 各 65,536 个 uint16，完整 131,072 字节都能在当前 avformat 中精确定位；`valid.dat` 是服务端文件名处理的历史注释，现实现为静态数组。不能将其他旧版 Samba 的外置 `.dat` 假设套用到当前组合。证据见 `provenance/samba-resource-audit.json`。
 
 当前客户端必须实际准备并校验 `smb.conf`，以及可读 resource root、可写 state/cache 根目录与 state 下 private/state/lock 三子目录。可选 LMHOSTS 和动态模块不在当前 IP 直连 NAS 的验收范围；这不是对所有 Samba 可选功能的承诺。初始化实现不能用任意非空资源列表替代必要配置文件。
+
+## FFmpeg 关闭恢复 SDK 接入
+
+生产者合并提交 `32887363cb103163fe6557ca64c05539ad6d73f2`，SDK 来源为上游本地构建，非 CI 目标重建。`provenance/ffmpeg-recovery-sdk.json` 保存原始 217 项 SDK 清单，`ffmpeg-recovery-merge.json` 保存上游合并/归档绑定，`ffmpeg-recovery-compatibility.json` 保存本次实际 ABI/142 个头文件/归档核验。最终 Player HAR 仍须由 iMac 自托管 GitHub Actions 构建。
+
+`normal-compile-binding.json`、`mpv-link-inputs.json` 与来源锁中的历史外部 FFmpeg 路径保留 mpv 编译时的真实输入，本次为可靠故障通知补丁重新编译 mpv，仍使用固定历史 FFmpeg 编译输入。当前六库单独由恢复 SDK 锁定；六库无 TRACE/TEST/DIAGNOSTIC/EXPERIMENT，mpv 保持 TRACE，所有正常产物均无故障注入。两张 Samba 字符表逐字节匹配新库，偏移已更新。

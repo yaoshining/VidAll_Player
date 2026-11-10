@@ -1,0 +1,429 @@
+{
+  "schemaVersion": 1,
+  "pr": "https://github.com/yaoshining/ohos_ijkplayer/pull/11",
+  "prHead": "f22c830cde82b9245ce1b147b17d8b1ae989449e",
+  "mergeCommit": "32887363cb103163fe6557ca64c05539ad6d73f2",
+  "masterObserved": "32887363cb103163fe6557ca64c05539ad6d73f2",
+  "mergedAt": "2026-11-10T15:57:20Z",
+  "mergeTreeEqualsVerifiedHead": true,
+  "buildOrigin": "local",
+  "validatedOriginalCommit": "f23b708c4ddea6f03ddea6f7859c1cc07641aeb9",
+  "files": [
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/README.md",
+      "sha256": "ba40203c8086c285af09d6936eb323f13f81a1df63275bea325d01e291aea97c",
+      "matchesValidatedOriginal": false,
+      "role": "documentation"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/build.py",
+      "sha256": "2a8816bd0d26ecd7bb9f3481f8f2169999a0b91be6491c8914b2c6b066e1fd4c",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/build_probes.py",
+      "sha256": "2aa053525421eb99ad32ab05f20b571b9d15c504d0a4708e555189798cba90a1",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/device-probe.c",
+      "sha256": "cdeb3d9a18fa653a50d244b64ba6f678c92977060f5366212eb918408b731c8a",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/evidence/destroy-accepted.txt",
+      "sha256": "42a85882900c6692ac95176ff76b53057cfbaaec37c7bcb62ce82e29fa3b8e1d",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/evidence/normal-accepted.txt",
+      "sha256": "7430eec24940a1e42dccdc6832e37d4f9a60604293b9c77b2baa2c511fa73f76",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/evidence/normal-hap-binding.json",
+      "sha256": "49c0064f2bc6ab17ada397bcef08e33359b309658a37b2ca276f6520bc7e2929",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/evidence/rebuild.json",
+      "sha256": "c713c57d470c470d65009bf99cf7c935ce18ac318e4df92e4a143f6f9a557a5a",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/evidence/stop-accepted.txt",
+      "sha256": "844c73c58065c3c7dc63f300e36df51b889522b4900ba7e5390f495b0bd42a48",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/evidence/verified.json",
+      "sha256": "4f522a12054f339010d321beededf4df42f40db087d229b3591ccb3a763fa509",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/inputs.lock.json",
+      "sha256": "9bb02046c4039932a85dc5d9f57e8e310baa62742b9e7699ce04e9c571169d9e",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/gmp-6.3.0-COPYING",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/gmp-6.3.0-COPYING.LESSERv3",
+      "sha256": "a853c2ffec17057872340eee242ae4d96cbf2b520ae27d903e1b2fef1a5f9d1c",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/gmp-6.3.0-COPYINGv2",
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/gmp-6.3.0-COPYINGv3",
+      "sha256": "e6037104443f9a7829b2aa7c5370d0789a7bda3ca65a0b904cdc0c2e285d9195",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/gnutls-3.8.7-LICENSE",
+      "sha256": "3e043d77917e48e262301b8f880812fcd82236482630a421d555a38804eee643",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/gnutls-3.8.7-doc-COPYING.LESSER",
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/libtasn1-4.19.0-COPYING",
+      "sha256": "7446831f659f7ebfd8d497acc7f05dfa8e31c6cb6ba1b45df33d4895ab80f5a6",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/libtasn1-4.19.0-doc-COPYING.LESSER",
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/nettle-3.9.1-COPYING.LESSERv3",
+      "sha256": "a853c2ffec17057872340eee242ae4d96cbf2b520ae27d903e1b2fef1a5f9d1c",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/nettle-3.9.1-COPYINGv2",
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/nettle-3.9.1-COPYINGv3",
+      "sha256": "e6037104443f9a7829b2aa7c5370d0789a7bda3ca65a0b904cdc0c2e285d9195",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/popt-COPYING",
+      "sha256": "2b488b239927935f34769a39309c0680be16e3725a1f55dbb06ed20d53852801",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/samba-COPYING",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/licenses/zlib-LICENSE",
+      "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/probe.h",
+      "sha256": "093744bec3424f7f167de58e85ea05f113077b623987f64573def19227a17fb2",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/recover.patch",
+      "sha256": "55b1966f6d5a819a9f07747f3722bd8dcd39365224219520368e8b2845725293",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/recovery-case.c",
+      "sha256": "a727a90d4cd75d433ab8208dd3e641228bf46cf9caf60fa56345377bb999e96c",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/test_recovery.py",
+      "sha256": "cd2c1c49b2d1fa8bb56f738a08260bf024a492bbecc878b1a348e83299f389d6",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/tests/baseline-ohdec.c",
+      "sha256": "d7c4bcc960d54dcae930168a56fcd6cf2b064e8758294b9e6a98c80768f19499",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/tests/extract.py",
+      "sha256": "2c022b7d37129d8193b6c259243bfd734890d3969fc5dc2c86b5f6f7bff41a5b",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    },
+    {
+      "path": "tools/ffmpeg8/phase30-close-recovery/tests/harness.c",
+      "sha256": "02dec4281aa2021518be8299a0b979d5f86699adaf507eecf9d6d3074397734d",
+      "matchesValidatedOriginal": true,
+      "role": "source-or-evidence"
+    }
+  ],
+  "sdkManifestSHA256": "7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf",
+  "sdkFilesVerified": 217,
+  "archiveFilesVerified": 217,
+  "archiveSHA256": "eb069effc2ce51233186e5e033a2f8bf33f5317a27e4626ba50184807422aea0",
+  "premergeChecks": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:25:51Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133955/job/129926919897",
+      "name": "contracts",
+      "startedAt": "2026-11-10T15:25:21Z",
+      "status": "COMPLETED",
+      "workflowName": "FFmpeg OHCodec producer 门禁"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:25:44Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133660/job/129926912386",
+      "name": "host",
+      "startedAt": "2026-11-10T15:25:20Z",
+      "status": "COMPLETED",
+      "workflowName": "PR1 producer真实宿主门禁"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:26:25Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926914059",
+      "name": "contracts (21)",
+      "startedAt": "2026-11-10T15:25:21Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:25:34Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133853/job/129926912492",
+      "name": "recovery",
+      "startedAt": "2026-11-10T15:25:20Z",
+      "status": "COMPLETED",
+      "workflowName": "Phase30 关闭失败恢复"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:22:16Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42843541367/job/129924810373",
+      "name": "recovery",
+      "startedAt": "2026-11-10T15:21:54Z",
+      "status": "COMPLETED",
+      "workflowName": "Phase30 关闭失败恢复"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:25:43Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926913947",
+      "name": "contracts (22)",
+      "startedAt": "2026-11-10T15:25:20Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:25:47Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926914061",
+      "name": "contracts (23)",
+      "startedAt": "2026-11-10T15:25:20Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:25:43Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926914135",
+      "name": "contracts (24)",
+      "startedAt": "2026-11-10T15:25:20Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:26:23Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926914118",
+      "name": "contracts (26)",
+      "startedAt": "2026-11-10T15:25:21Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:26:31Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926914044",
+      "name": "contracts (27)",
+      "startedAt": "2026-11-10T15:25:21Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:27:41Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926913837",
+      "name": "contracts (28)",
+      "startedAt": "2026-11-10T15:25:21Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:26:30Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926913961",
+      "name": "contracts (parent)",
+      "startedAt": "2026-11-10T15:25:21Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:26:04Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926913561",
+      "name": "contracts (29)",
+      "startedAt": "2026-11-10T15:25:20Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:26:17Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926914175",
+      "name": "contracts (30)",
+      "startedAt": "2026-11-10T15:25:21Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:25:51Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129926914029",
+      "name": "contracts (31)",
+      "startedAt": "2026-11-10T15:25:21Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:55:51Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133955/job/129927253206",
+      "name": "ohcodec-source-producer",
+      "startedAt": "2026-11-10T15:25:53Z",
+      "status": "COMPLETED",
+      "workflowName": "FFmpeg OHCodec producer 门禁"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:28:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/yaoshining/ohos_ijkplayer/actions/runs/42844133935/job/129928380724",
+      "name": "required",
+      "startedAt": "2026-11-10T15:27:43Z",
+      "status": "COMPLETED",
+      "workflowName": "PR3 完整宿主契约"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:22:07Z",
+      "conclusion": "NEUTRAL",
+      "detailsUrl": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+      "name": "CodeRabbit",
+      "startedAt": "2026-11-10T15:22:07Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:23:57Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://cursor.com/agents/bc-b7a44292-0b25-4502-9b41-37657c99ea7d",
+      "name": "Cursor Approval Agent: Pull Request Router",
+      "startedAt": "2026-11-10T15:21:56Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:23:33Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://cursor.com/docs/bugbot",
+      "name": "Cursor Bugbot",
+      "startedAt": "2026-11-10T15:22:09Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-10T15:26:21Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://cursor.com/agents/bc-faf7fe35-74c8-470c-a0fe-64b04be2f1b3",
+      "name": "Cursor Security Agent: Security Reviewer",
+      "startedAt": "2026-11-10T15:21:54Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    }
+  ],
+  "unresolvedReviewThreads": 0,
+  "reviewNote": "CodeRabbit 首轮行内问题已解决；二次限流为 neutral。非阻塞建议处理依据见合并的 analysis.md。",
+  "tasks": {
+    "T013": "completed: PR 检查与审查完成",
+    "T014": "completed: master 与 SDK 字节绑定完成"
+  },
+  "scope": "FFmpeg SDK；不含 Player/TV 接入；无 API19 TV、永久挂起或资源耗尽验收",
+  "postMergeCI": "未作为本次已验收 SDK 来源；本记录绑定合并前通过的精确 head，合并树与其完全一致"
+}

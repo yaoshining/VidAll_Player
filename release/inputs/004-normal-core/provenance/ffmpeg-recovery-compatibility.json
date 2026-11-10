@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "producerMerge": "32887363cb103163fe6557ca64c05539ad6d73f2",
+  "sdkArchiveSHA256": "eb069effc2ce51233186e5e033a2f8bf33f5317a27e4626ba50184807422aea0",
+  "sdkFilesVerified": 217,
+  "archiveFilesVerified": 217,
+  "mergedFilesVerified": 32,
+  "mpvCompileHistory": "normal-compile-binding.json",
+  "mpvRebuilt": true,
+  "ffmpegHeadersCompared": 142,
+  "ffmpegHeadersByteIdentical": true,
+  "libraries": [
+    {
+      "name": "libavfilter.so.11",
+      "previousSHA256": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
+      "currentSHA256": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "exportsCount": 65,
+      "exportsSHA256": "b6c3eafbe77696ed57370e1a313d81a7f369966c7d85b51f95eebe34cee633e9",
+      "addedImports": []
+    },
+    {
+      "name": "libavformat.so.62",
+      "previousSHA256": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
+      "currentSHA256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "exportsCount": 154,
+      "exportsSHA256": "d8d9265b0281af8cef7849a0171a5c4abd8e42cfb10c43c9986349f4e0df5eb7",
+      "addedImports": []
+    },
+    {
+      "name": "libswscale.so.9",
+      "previousSHA256": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
+      "currentSHA256": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "exportsCount": 39,
+      "exportsSHA256": "d02bcb46192688cd41135f3b2f528e032824b161381bbd736729f00ebea331db",
+      "addedImports": []
+    },
+    {
+      "name": "libavcodec.so.62",
+      "previousSHA256": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
+      "currentSHA256": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "exportsCount": 164,
+      "exportsSHA256": "bf774b14f0393427662a19d531128a83756ac8929420f2b9de0465c7b8911c19",
+      "addedImports": [
+        "OH_NativeWindow_NativeObjectReference",
+        "OH_NativeWindow_NativeObjectUnreference"
+      ]
+    },
+    {
+      "name": "libswresample.so.6",
+      "previousSHA256": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
+      "currentSHA256": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "exportsCount": 23,
+      "exportsSHA256": "6fd8146bf8f28134f51f839a34d0a8c9ec4c52d1a9b92a373dbab7a3f557c0ea",
+      "addedImports": []
+    },
+    {
+      "name": "libavutil.so.60",
+      "previousSHA256": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43",
+      "currentSHA256": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "exportsCount": 621,
+      "exportsSHA256": "9559d23bc7b35f48937d85def14a23972ade802e814a37d32c00bd458929527d",
+      "addedImports": []
+    }
+  ],
+  "limits": [
+    "仅消费上游本地构建 SDK，未在 Player 重建 FFmpeg。",
+    "mpv 因可靠故障通知补丁重建，两次干净构建字节一致。编译/链接时使用固定历史 FFmpeg SDK；当前运行库由恢复 SDK 单独绑定，142 个头与六库导出集合已核对一致。",
+    "兼容比对与来源核验不替代联合设备验收。"
+  ],
+  "mpvLibrarySHA256": "c1997eee1f1190aca663e49ef86e98b96a1403cf5e2f99b16158cd217ef7d56a"
+}

@@ -5,6 +5,7 @@ import os
 from unittest.mock import patch
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -94,6 +95,7 @@ class ArchivedInputTests(unittest.TestCase):
             output = Path(tmp) / 'output'
             prepare.prepare(source, output)
             self.assertEqual(prepare.digest(output / 'package.json'), lock['patchedInputSHA256'])
+            subprocess.run([sys.executable, '-B', str(ROOT / 'native/tests/ohcodec-fence/client-critical.test.py'), str(output / 'sources/mpv')], check=True)
 
 if __name__ == '__main__':
     unittest.main()

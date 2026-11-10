@@ -533,7 +533,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_client.c.o",
-    "sha256": "1c12312380f7713f6d9c78617b6ae8947a1a616c97717414e832f86ee9393485"
+    "sha256": "ecf7faf55b157777093ecae80e7c822888d2908bd220dbfcf34c9006203be6dd"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_clipboard_clipboard-vo.c.o",
@@ -849,7 +849,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_ohcodec.c.o",
-    "sha256": "f328239ae7806ccdcb956f7eef41f38dc9344a5d044ad8abc506f4137565aa78"
+    "sha256": "9120a1b1875303c55fbf1c79e69b0e4f4b8a55cdae7dd47404896301a86b840f"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_ohcodec_gl.c.o",
