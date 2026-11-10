@@ -1,0 +1,46 @@
+{
+  "normal": {
+    "sha256": "fdf97594f66285ed7b3117ffe11162469eaf73bc83c03d666cbfef69b04deab7",
+    "bytes": 109766058
+  },
+  "vulkan": {
+    "sha256": "38de5cfe42801c11ad66051c27936c1dc87b48ed3ea974ce56547aa354748f94",
+    "bytes": 109765113
+  },
+  "stop": {
+    "sha256": "ab9eff2c4b3f29e3121531bde06e425864a844f36a999fe2f516fdd24408760c",
+    "bytes": 109764538
+  },
+  "destroy": {
+    "sha256": "eb7b09b21de769fef8054a1e14aba7a991f0185315453cafccb86f3e5f27f972",
+    "bytes": 109764538
+  },
+  "audio": {
+    "sha256": "e4cf7617fff9979113fdd03451c3fb1bd8b3b813008cd37ceb4251d84caab880",
+    "bytes": 109772544
+  },
+  "audio-intent": {
+    "sha256": "98daf6a02365710517773ad8c10648851a6a19dcbc8124c896f5e9474df493a2",
+    "bytes": 109772501
+  },
+  "stop-compact": {
+    "sha256": "3b1f18baaf50415f474f9a2f43a6e38b84af82c8ccdd78481d0246405c9acd94",
+    "bytes": 51283602,
+    "packaging": "release 编译；仅测试包 app.debug=true；原生库压缩；B 截为 22 秒，损坏 MP4 为 4096 字节"
+  },
+  "destroy-compact": {
+    "sha256": "3816ad494f7eeac8bfa95699c61d3d7433a1da76cb5b6151c9b30c1bb671de0c",
+    "bytes": 51283603,
+    "packaging": "release 编译；仅测试包 app.debug=true；原生库压缩；B 截为 22 秒，损坏 MP4 为 4096 字节"
+  },
+  "vulkan-compact": {
+    "sha256": "4d98620a4c25f5123d5b9852a1347edc55f9e783002b8d7010b0eca305db763f",
+    "bytes": 51283600,
+    "packaging": "release 编译；仅测试包 app.debug=true；原生库压缩；B 截为 22 秒，损坏 MP4 为 4096 字节"
+  },
+  "normal-compact": {
+    "sha256": "bb94f2575246e42c198612895abb4386772156a5e74fc314aa73fc30b18d189d",
+    "bytes": 51283603,
+    "packaging": "release 编译；仅测试包 app.debug=true；原生库压缩；B 截为 22 秒，损坏 MP4 为 4096 字节"
+  }
+}

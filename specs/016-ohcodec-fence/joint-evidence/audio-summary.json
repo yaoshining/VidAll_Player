@@ -1,0 +1,252 @@
+{
+  "api19-fence.log": [
+    {
+      "phase": "idle",
+      "playing": false,
+      "fromMs": 0,
+      "toMs": 0,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "playing",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1417,
+      "maxAmplitude": 0.0112,
+      "samples": 32
+    },
+    {
+      "phase": "paused",
+      "playing": false,
+      "fromMs": 1417,
+      "toMs": 1417,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "user-resume",
+      "playing": true,
+      "fromMs": 2167,
+      "toMs": 3833,
+      "maxAmplitude": 0.0106,
+      "samples": 32
+    },
+    {
+      "phase": "system-alarm",
+      "playing": false,
+      "fromMs": 3917,
+      "toMs": 3917,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "alarm-ended",
+      "playing": false,
+      "fromMs": 3917,
+      "toMs": 3917,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "final-resume",
+      "playing": true,
+      "fromMs": 4667,
+      "toMs": 6417,
+      "maxAmplitude": 0.0103,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-playing",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1333,
+      "maxAmplitude": 0.0118,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-user-resume",
+      "playing": true,
+      "fromMs": 2000,
+      "toMs": 3667,
+      "maxAmplitude": 0.0106,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-interrupted",
+      "playing": false,
+      "fromMs": 3833,
+      "toMs": 3833,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "after-exit",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1417,
+      "maxAmplitude": 0.0113,
+      "samples": 32
+    }
+  ],
+  "api19-switch.log": [
+    {
+      "phase": "after-exit",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1417,
+      "maxAmplitude": 0.0113,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-playing",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1333,
+      "maxAmplitude": 0.0118,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-user-resume",
+      "playing": true,
+      "fromMs": 2167,
+      "toMs": 3917,
+      "maxAmplitude": 0.0106,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-interrupted",
+      "playing": false,
+      "fromMs": 3917,
+      "toMs": 3917,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "after-switch",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1583,
+      "maxAmplitude": 0.0118,
+      "samples": 32
+    }
+  ],
+  "api20-fence.log": [
+    {
+      "phase": "alarm-ended",
+      "playing": false,
+      "fromMs": 3917,
+      "toMs": 3917,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "final-resume",
+      "playing": true,
+      "fromMs": 4750,
+      "toMs": 6333,
+      "maxAmplitude": 0.0034,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-playing",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1667,
+      "maxAmplitude": 0.0035,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-user-resume",
+      "playing": true,
+      "fromMs": 2250,
+      "toMs": 4083,
+      "maxAmplitude": 0.0034,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-interrupted",
+      "playing": false,
+      "fromMs": 4083,
+      "toMs": 4083,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "after-exit",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1333,
+      "maxAmplitude": 0.0035,
+      "samples": 32
+    }
+  ],
+  "api20-switch-details.log": [
+    {
+      "phase": "boundary-playing",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1583,
+      "maxAmplitude": 0.0035,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-user-resume",
+      "playing": true,
+      "fromMs": 2417,
+      "toMs": 4000,
+      "maxAmplitude": 0.0034,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-interrupted",
+      "playing": false,
+      "fromMs": 4000,
+      "toMs": 4000,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "after-switch",
+      "playing": false,
+      "fromMs": 0,
+      "toMs": 0,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    }
+  ],
+  "api20-intent.log": [
+    {
+      "phase": "boundary-playing",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1500,
+      "maxAmplitude": 0.0035,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-user-resume",
+      "playing": true,
+      "fromMs": 2333,
+      "toMs": 4000,
+      "maxAmplitude": 0.0035,
+      "samples": 32
+    },
+    {
+      "phase": "boundary-interrupted",
+      "playing": false,
+      "fromMs": 4000,
+      "toMs": 4000,
+      "maxAmplitude": 0.0,
+      "samples": 32
+    },
+    {
+      "phase": "after-switch",
+      "playing": true,
+      "fromMs": 0,
+      "toMs": 1500,
+      "maxAmplitude": 0.0035,
+      "samples": 32
+    }
+  ]
+}

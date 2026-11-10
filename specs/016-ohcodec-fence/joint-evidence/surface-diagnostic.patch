@@ -1,0 +1,16 @@
+--- a/video/out/hwdec/hwdec_ohcodec.c
++++ b/video/out/hwdec/hwdec_ohcodec.c
+@@ -1,2 +1,3 @@
++#include <hilog/log.h>
+ /* HarmonyOS decoder Surface -> GPU zero-copy bridge. */
+ 
+@@ -94,4 +95,9 @@
+         goto fail;
+ 
++    uint64_t probe_surface_id = 0;
++    int probe_surface_rc = OH_NativeImage_GetSurfaceId(image, &probe_surface_id);
++    OH_LOG_Print(LOG_APP, LOG_INFO, 0xD001, "SurfaceVerify",
++                 "SURFACE_VERIFY id=%{public}llu rc=%{public}d",
++                 (unsigned long long)probe_surface_id, probe_surface_rc);
+     surface->initialized = true;
+     return true;
