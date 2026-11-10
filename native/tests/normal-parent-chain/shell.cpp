@@ -46,6 +46,7 @@ void OH_NativeWindow_DestroyNativeWindow(void*){event("window",true);}
 void napi_release_threadsafe_function(void*,int){event("callback",true);if(mode=="terminal-callback-close")terminalNow();}
 class NativeSession {
 public:
+ std::shared_ptr<std::atomic<bool>> callbackOpen_;
  std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
  std::shared_ptr<vidall::runtime::SessionIsolation> Isolation() const { return isolation_; }
  /* EXTRACT NativeSession() */

@@ -286,6 +286,7 @@ public:
         std::uint64_t sequence;
         std::uint64_t generation;
         std::shared_ptr<vidall::runtime::SessionIsolation> isolation;
+        std::shared_ptr<std::atomic<bool>> callbackOpen;
     };
 
     NativeSession()
@@ -713,6 +714,7 @@ public:
         if (napi_create_threadsafe_function(env, callback, nullptr, name, 0, 1, nullptr, FinalizeCallback, this, CallCallback, &eventTsfn_) != napi_ok) {
             return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         }
+        callbackOpen_ = std::make_shared<std::atomic<bool>>(true);
         return {true, handle, "OK"};
     }
 
@@ -783,7 +785,8 @@ public:
     void CloseIsolatedCallbacks()
     {
         std::lock_guard<std::mutex> lock(callbackMutex_);
-        stopEvents_ = true;
+        // 只封闭 JS 投递；原生事件线程必须继续观察关闭期间迟到的 owner 故障。
+        // Release 在图形资源安全关闭后负责停止并 join 该线程。
         CloseCallbackLocked();
     }
 
@@ -825,6 +828,8 @@ private:
     {
         std::unique_ptr<Event> event(static_cast<Event*>(data));
         if (env == nullptr || callback == nullptr || !event) return;
+        // 排队事件可能比 Session 活得更久；不解引用 TSFN context 或已销毁对象。
+        if (!event->callbackOpen || !event->callbackOpen->load()) return;
         if (event->isolation && event->isolation->IsQuarantined() && event->type != "error") return;
         napi_value payload = nullptr;
         napi_create_object(env, &payload);
@@ -847,7 +852,7 @@ private:
                 type.c_str(), message.c_str(), released_.load(), eventTsfn_ == nullptr);
             return;
         }
-        auto* event = new Event{type, message, eventEpoch_, ++eventSequence_, generation_, isolation_};
+        auto* event = new Event{type, message, eventEpoch_, ++eventSequence_, generation_, isolation_, callbackOpen_};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
     }
 
@@ -937,7 +942,7 @@ private:
         std::lock_guard<std::mutex> lock(callbackMutex_);
         if (released_ || vidall::runtime::AdmissionError() || !eventTsfn_ || epoch != eventEpoch_.load()) return;
         auto* event = new Event{"fileEnd", reason == MPV_END_FILE_REASON_EOF ? "completed" : "error",
-            epoch, ++eventSequence_, generation_.load(), isolation_};
+            epoch, ++eventSequence_, generation_.load(), isolation_, callbackOpen_};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
     }
 
@@ -1780,9 +1785,12 @@ private:
 
     void CloseCallbackLocked()
     {
+        // release 仍允许 NAPI 回收队列；关闭标记使已有 state/position/error 全部只释放数据。
+        if (callbackOpen_) callbackOpen_->store(false);
         if (eventTsfn_ != nullptr) { napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release); eventTsfn_ = nullptr; }
     }
 
+    std::shared_ptr<std::atomic<bool>> callbackOpen_;
     std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
     std::unique_ptr<mpv_handle, decltype(&mpv_terminate_destroy)> player_{nullptr, mpv_terminate_destroy};
     bool diagnosticsStopped_ = true; // lifecycleMutex_ 保护，stop 返回后立即屏蔽残留属性。

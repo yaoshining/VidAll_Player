@@ -33,3 +33,12 @@ R6 → T016/T017 → 来源清单/独立绑定校验 → 实际输入正负例�
 - Surface ID 非复用尚待当前设备日志补证，任务表已据此更正。
 
 最终本地门禁在补齐 parent-chain 的真实回调关闭函数后重新执行，49 项全部通过；输入审计 28 项、CI 合同 29 项通过。初次重跑的 parent-chain 因测试壳缺少新生产方法而编译失败，补齐实际函数提取后通过，未跳过断言。新的 mpv 两次独立构建均为 `c1997eee1f1190aca663e49ef86e98b96a1403cf5e2f99b16158cd217ef7d56a`，导出仍为原有 58 项。
+## PR 第二轮清理审查（2026-11-11）
+
+两条 CodeRabbit 文档意见已在 a67e504 修正：历史单次注入明确指向 39f62ad，解码策略约束明确允许隔离名额耗尽后的软件回退。Cursor 的旧审查状态通知不表示新增缺陷。
+
+新增两条清理意见均有可复现行为。`callback-cleanup.test.py` 逐字编译 `SetEventCallback`、`Dispatch`、`CallCallback`、两种关闭方法与 owner 故障分支，使用 NAPI 排队替身。修复前 queued、owner、replace 三种情况均断言失败；修复后它们与正常投递、空环境回收、隔离后只允许错误事件共 6 项通过 ASan/UBSan。每个事件共享对应回调代的关闭标记，队列释放时只销毁数据，不调用 JS，也不依赖 Session 存活。关闭 JS 通道不再置 `stopEvents_`，原生监听持续到 `Release` 安全停止，仍可观察迟到故障。
+
+完整宿主门禁 49 项及真实 completion 生产函数回归通过；新测试已接入 native-entry 门禁。Spec Kit 前置检查与宪章一致性检查通过：未增加平台 API、权限或 FFmpeg 改动，R10 → T023 → 生产回调/故障分支 → 回归可追踪。平台和 NAPI 为替身，不能据此宣称设备环境销毁或 GPU 恢复已验收。
+
+a67e504 的 iMac CI [42912627864](https://github.com/yaoshining/VidAll_Player/actions/runs/42912627864) 已通过，实际构建 PR 合并预览 122648249ec59f81b3641f9488533c21477bc1f7；本次桥接库修改仍需新的 CI HAR，不能沿用该包作为最新修改验收。

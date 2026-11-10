@@ -11,6 +11,7 @@ def function(signature):
  return s[start:i]
 out=pathlib.Path(sys.argv[1]);out.mkdir(parents=True,exist_ok=True)
 subprocess.run([sys.executable,'-B',str(root/'native/tests/ohcodec-fence/initialize.test.py')],check=True)
+subprocess.run([sys.executable,'-B',str(root/'native/tests/ohcodec-fence/callback-cleanup.test.py')],check=True)
 functions=s[s.index('struct NativeWork {'):s.index('napi_value ConfigureRuntime(')]+'\n'+'\n'.join(function(x) for x in ['napi_value CreateSession(', 'napi_value ReleaseSession(', 'void CleanupSessions('])
 prefix=r'''
 #include "session_isolation.h"
