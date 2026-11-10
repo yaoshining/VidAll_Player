@@ -1966,14 +1966,15 @@ void DeleteSession(NativeSession* session)
     // terminal 对象整体保留；不触发成员 thread/unique_ptr 的隐式析构。
     if (vidall::runtime::Snapshot().state == 4) return;
     auto isolation = session->Isolation();
-    if (isolation) {
-        if (isolation->IsQuarantined()) return;
-        // 最后一个引用可能来自 ArkUI 清理钩子。析构始终在后台执行。
-        try { std::thread([session] { delete session; }).detach(); }
-        catch (...) { isolation->Quarantine(); }
-        return;
+    if (isolation && isolation->IsQuarantined()) return;
+    // 软件解码同样可能等待图形资源；最后引用可来自环境清理，统一后台析构。
+    // 启动失败时保留对象，不能在环境线程回退到同步释放。
+    try { std::thread([session] { delete session; }).detach(); }
+    catch (...) {
+        if (isolation) isolation->Quarantine();
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                     "Background session destruction unavailable; retaining native resources");
     }
-    delete session;
 }
 #endif
 napi_value ConfigureRuntime(napi_env env, napi_callback_info info)
@@ -2343,7 +2344,7 @@ void CleanupSessions(void*)
         std::lock_guard<std::mutex> lock(gSessionsMutex);
         // 清理钩子返回后 NAPI 环境即不可再用；先封闭投递，再异步销毁耗时资源。
         for (auto& entry : gSessions) {
-            if (entry.second->Isolation()) entry.second->CloseIsolatedCallbacks();
+            entry.second->CloseIsolatedCallbacks();
         }
         if (terminal) return;
         sessions.swap(gSessions);

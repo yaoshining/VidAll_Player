@@ -59,12 +59,19 @@ def main():
   finished_ms=time.monotonic()*1000;reader.join();log=''.join(lines)
   (out/(case+'.log')).write_text(log)
   terminal=case.startswith('terminal-');forbidden=[line for line in log.splitlines() if line.startswith('DESTROY ') and 'after_terminal=1' in line]
+  # 环境退出必须关闭 TSFN；仅此用例允许该通道退役，GPU/窗口/播放器仍禁止析构。
+  if case=='terminal-cleanup-swap':
+   forbidden=[line for line in forbidden if line!='DESTROY callback after_terminal=1']
   required=['DESTROY renderer','DESTROY egl-surface','DESTROY egl-context','DESTROY egl-display','DESTROY window','DESTROY callback','DESTROY mpv-player','EVENT event-thread-exit','EVENT render-thread-exit','EVENT owner-delete']
   passed=rc==(86 if terminal else 0) and 'FAIL' not in log and (not forbidden if terminal else all(s in log for s in required)) and ('EVENT terminal' in log if terminal else True)
   match=re.search(r'TERMINAL first_ms=(\d+) observed_ms=(\d+) deadline_ms=(\d+)',log)
   deadline_elapsed=round(finished_ms-trigger_times[0]+int(match[2])-int(match[1]),2) if match and trigger_times else None
   deadline_valid=(match is not None and deadline_elapsed is not None and int(match[3])-10<=deadline_elapsed<=int(match[3])+500) if terminal else None
   if terminal:passed=passed and deadline_valid
+  if case=='terminal-cleanup-swap':
+   callback='DESTROY callback after_terminal=1'
+   returned='EVENT cleanup-return after_terminal=1'
+   passed=passed and log.count(callback)==1 and returned in log and log.index(callback)<log.index(returned)
   if case=='terminal-callback-delivery-blocked':passed=passed and 'EVENT callback-wait-enter' in log and 'callback-wait-return' not in log
   if case=='terminal-logger-blocked':passed=passed and 'EVENT logger-write-enter' in log and 'logger-write-return' not in log
   results.append({'case':case,'exit':rc,'seconds':round(time.monotonic()-started,3),'forbiddenEvents':forbidden,'deadlineElapsedMs':deadline_elapsed,'deadlineValid':deadline_valid,'passed':passed})

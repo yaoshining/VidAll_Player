@@ -94,7 +94,7 @@ with tempfile.TemporaryDirectory(prefix='callback-cleanup-') as out:
     path = pathlib.Path(out)
     (path / 'test.cpp').write_text(code)
     subprocess.run(['clang++', '-std=c++17', '-pthread', '-fsanitize=address,undefined',
-                    '-I' + str(ROOT / 'native/runtime'), str(path / 'test.cpp'), '-o', str(path / 'test')], check=True)
+                    '-I' + str(ROOT / 'native/runtime'), str(path / 'test.cpp'), '-o', str(path / 'test')], check=True, timeout=120)
     results = []
     for case in ['queued', 'owner', 'replace', 'normal', 'null-env', 'quarantined']:
         result = subprocess.run([str(path / 'test'), case], capture_output=True, text=True, timeout=5)

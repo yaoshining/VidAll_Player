@@ -1,0 +1,118 @@
+{
+  "scope": "宿主真实函数提取测试，平台为替身；不计设备验收",
+  "red": {
+    "sourceSHA256": "2f2589bab327b8ae3c087263bb1fd8feb031f80155426853818e445b975cb171",
+    "results": [
+      {
+        "case": "cleanup-plain-blocked",
+        "exit": 1,
+        "stdout": "FAIL cleanup waited for GPU destructor\n",
+        "stderr": ""
+      },
+      {
+        "case": "cleanup-plain-retained",
+        "exit": 1,
+        "stdout": "FAIL retained callback still live after cleanup\n",
+        "stderr": ""
+      },
+      {
+        "case": "cleanup-plain-terminal",
+        "exit": 1,
+        "stdout": "FAIL retained callback still live after cleanup\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "green": {
+    "sourceSHA256": "5fb38916f6c36befabbbc48eab60d18e251779188d965e6bb52443ca8aada270",
+    "method": "actual-entry-slices-platform-and-session-stubs",
+    "results": [
+      {
+        "case": "create-unconfigured",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "create-ui",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "cleanup-isolated",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "cleanup-plain-blocked",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "cleanup-plain-retained",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "cleanup-plain-terminal",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "isolated-release",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "slow-release",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "release-terminal",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "cleanup-terminal",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "create-terminal-race",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "release-terminal-race",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      },
+      {
+        "case": "normal-release",
+        "exit": 0,
+        "stdout": "PASS\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "host": {
+    "passed": true,
+    "checks": 49
+  },
+  "parent": {
+    "passed": true,
+    "cases": 10
+  }
+}

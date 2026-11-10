@@ -1,4 +1,5 @@
 #include "process_runtime.h"
+#define OH_LOG_Print(...) ((void)0)
 #include "session_isolation.h"
 #include "../render/render_backend_policy.h"
 #include <mpv/ohcodec_terminal.h>
@@ -17,7 +18,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-static std::atomic<bool> terminal{false},cleanupObserved{false};
+static std::atomic<bool> terminal{false},cleanupObserved{false},destructionDone{false};
 static std::mutex logMutex;
 static std::string mode;
 static thread_local bool isCleanupThread=false;
@@ -46,6 +47,8 @@ void OH_NativeWindow_DestroyNativeWindow(void*){event("window",true);}
 void napi_release_threadsafe_function(void*,int){event("callback",true);if(mode=="terminal-callback-close")terminalNow();}
 class NativeSession {
 public:
+ // 最先声明、最后销毁：等待后台析构真实完成再结束正常路径测试进程。
+ struct DestructionMarker { ~DestructionMarker(){destructionDone=true;} } destructionMarker_;
  std::shared_ptr<std::atomic<bool>> callbackOpen_;
  std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
  std::shared_ptr<vidall::runtime::SessionIsolation> Isolation() const { return isolation_; }
@@ -104,5 +107,6 @@ int main(int argc,char**argv){
   p.reset();event("owner-delete");
  }
  if(mode.rfind("terminal-",0)==0){for(;;)std::this_thread::sleep_for(std::chrono::milliseconds(10));}
+ while(!destructionDone.load())std::this_thread::yield();
  return 0;
 }
