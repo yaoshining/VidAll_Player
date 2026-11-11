@@ -52,3 +52,5 @@
 - [x] T041 Stop 返回错误后重查明确 STOPPED；真实函数红绿/负例、锁定 mpv 重建、d4a059b 的 iMac 完整 HAR 与 Ubuntu 音频回归通过。FFmpeg 未变；永久平台挂起和真实声音仍属未完成验收。
 
 - [x] T042 已将 mapper 关闭探针同步到 d4a059b/T041 来源，完整核心、Player HAR、独立消费 HAP 构建及逐库/fixture 核对通过，见 device-evidence/t042-fence-preparation.json；未操作设备，真实硬件正向验收仍归 T013/T009/T007。
+
+- [x] T043 准备可上传云平板的两组诊断 HAP：声明 tv/tablet、全局探针 hardware-first、九库无损压缩，完整 HAR/素材/库一致性核对通过，见 device-evidence/t043-tablet-preparation.json；准备完成不代表设备验收。

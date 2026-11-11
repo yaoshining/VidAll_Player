@@ -290,3 +290,20 @@ T041 最终本地统一门禁 94/94 通过（`/tmp/vidall-host-survival-host-gat
 - 本轮不重复既有模拟器软件资格负例。`deviceExecuted`、`deviceQualified`、`audibleAudioAccepted` 均为 false；旧 T037 结果未继承。最终交付仍是 latest-delivery.md 中 d4a059b 的 iMac CI 原始 HAR。
 
 同期确认文档提交 b380037 的 [iMac 工作流](https://github.com/yaoshining/VidAll_Player/actions/runs/43039988205) 已成功。当前本机仍只连接 API19 TV 模拟器，T3 preview 无标签页，Dia 现有标签页无华为云真机入口。T007/T009/T013/T017/T018 保持开放；平台 Stop/Release 永久未返回或静止状态未知的限制也未消除。后续需要可操作 ARM64 OHCodec/Vulkan 设备和真实音频/焦点观测，不能用重复主机或软件模拟器绿灯关闭这些项。
+
+## T043 云平板验收包准备（2026-11-12）
+
+华为云调试登录和 T3 页面操作已恢复。本轮先读取旧签名 HAP 的实际 `module.json`，发现只声明 `tv`；旧包不能直接用于平板。原包约 77 MB，T3 上传返回 `Cannot transfer files larger than 50Mb to a browser not co-located with the server`。系统自动化通道也返回 `Sky Computer Use native pipe startup failed`，没有把失败操作记录为上传成功。
+
+按 DevEco CLI 本地官方文档 `FAQ/编译构建/打包体积大如何配置优化包体积问题/faqs-compiling-and-building-100`，在两套独立诊断消费工程中增加 `tablet` 并设置 `compressNativeLibs=true`，使用 `devecocli build --product default --modules entry@default` 重新构建及签名。未修改、重打包原 HAR，没有 strip、删库或混入旧桥。全局探针从仓库原样复制 `hardware-first` 配置，保留三个独立 Surface。
+
+- mapper 关闭探针：完整诊断 HAR 仍为 `cb11ef7cbadd869527726ecd53c35fe854da66b0b4461b56e24066ed5b8695f7`；新签名 HAP 45,405,018 字节，SHA-256 `592d70c5a356ba31d035628be7ab2682fe225aeb98bf17865fa16a3f8bda9c2b`。
+- 全局终局探针：完整诊断 HAR 仍为 `6d79c863a73be3f852186be90710ae49e3038ef8fe7851a28813e6a6693bfedf`；新签名 HAP 45,375,924 字节，SHA-256 `483e563a541b5920178579acc97c7a29492c12330648cb19c83dd4c4a6298d86`。
+- 两个最终签名 HAP 的 tv/tablet 声明、ARM64 九库、原 HAR 哈希、逐库解压哈希、两个素材及全部页面 fixture 均逐一核对通过。九库只改 ZIP 存储形式，内容与各自 HAR 完全一致；两包均小于 50 MiB。完整清单见 [准备记录](device-evidence/t043-tablet-preparation.json)。实际机器为本地 MacBookPro18,4 / Darwin arm64，不是 CI 交付。
+- Spec Kit 前置检查和差异空白检查通过；按宪章第五/八/十条核对签名配置不发布、构建与设备验收分层、S17→T043→包清单可追踪。本轮仅更正验收包配置，未改生产行为，不重复已绿的宿主套件。
+
+本轮云端仅列出两款 API24 MatePad Mini，其余平板为 API5–8。已提交当日 06:00–07:00 的 API24 预约，提交后显示“暂无可用设备”；这不是设备验收结果。`deviceExecuted` 和 `audibleAudioAccepted` 仍为 false，T007/T009/T013/T017/T018 保持开放。API24 平板不能替代 API19 TV 正式文件入口验收，最终正式交付仍使用 d4a059b 的 iMac CI 原始 HAR。
+
+两组诊断 HAP 随后均经 T3 自动上传成功，云调试应用列表新增两条 `VidAllCoreConsumer / com.yaoshining.vidallplayer / tv,tablet`，总数由61变为63；上传不表示安装或运行。重新筛选“平板 + 空闲”只剩 API5–8 三台，当前新版平板仍不可用。
+
+另为原始 iMac CI HAR 准备相同 tv/tablet 声明及无损库压缩的基础验收 HAP：standard 包 45,014,389 字节、SHA-256 `508b41fd0058a0be4c4f4886d0d2e0dc31e7e551281020357cb1155affda09ba`；compatible 包 45,014,394 字节、SHA-256 `f93680002233137aa45f08dcdd8824909a4c795105a24cce151dbb23582b7d1e`。两者完整消费 `a8ce9ee5…ab3da1d3`，九库、素材及已有模式探针源码逐一核对通过；当前只完成本地目标构建和包验证，未继承旧模拟器运行结论，也未安装到真机。对应信息一并纳入 T043 清单。

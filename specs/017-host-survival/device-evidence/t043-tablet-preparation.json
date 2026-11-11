@@ -1,0 +1,179 @@
+{
+  "kind": "t043-cloud-tablet-preparation",
+  "sourceCommit": "d4a059b3117a23d70aa0832d00ed7161fd8c6d5a",
+  "formalArtifactAllowed": false,
+  "deviceExecuted": false,
+  "audibleAudioAccepted": false,
+  "buildHost": {
+    "system": "Darwin",
+    "architecture": "arm64",
+    "model": "MacBookPro18,4",
+    "runner": "local workstation, not GitHub Actions"
+  },
+  "packages": [
+    {
+      "kind": "fence",
+      "profile": "standard",
+      "harPath": "/tmp/vidall-t043-fence-tablet/entry/libs/current.har",
+      "harSHA256": "cb11ef7cbadd869527726ecd53c35fe854da66b0b4461b56e24066ed5b8695f7",
+      "hapPath": "/tmp/vidall-t043-fence-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "hapSHA256": "592d70c5a356ba31d035628be7ab2682fe225aeb98bf17865fa16a3f8bda9c2b",
+      "hapBytes": 45405018,
+      "deviceTypes": [
+        "tv",
+        "tablet"
+      ],
+      "supportedArchitectures": [
+        "arm64-v8a"
+      ],
+      "compressNativeLibs": true,
+      "librariesMatchOriginalHAR": true,
+      "nativeLibrarySHA256": {
+        "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libmpv.so": "c4c0a254aafa7254588d1b58c1a3a888f65a2fbb371d1a8d27345a8ea9e45907",
+        "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "libvidall_player_native.so": "4d4faa5fc4c205a74ab17526519b5c9f5e0f5e56f480d966830a98f6c45e9433"
+      },
+      "mediaSHA256": {
+        "global-probe.mp4": "bee054bffe503fd32a19d30b0d586e9a9fd26abfe1e6f1b26b7fb84df25ebc76",
+        "test_video.mp4": "e227199fde48379861c1e234470b2e3c17c7c5c962d28eaac7b129f29395d5e6"
+      },
+      "fixtureSHA256": {
+        "fixtures/normal-core-consumer/recovery-fence/Index.ets": "45f85b742549ee81ec0c72fc7263d5e818e726d35bfd5d230e891a7bc838de37",
+        "fixtures/normal-core-consumer/recovery-fence/FenceRun.ets": "6ef4c42312d76afee9390ff8cac934c20862560456490939a001baa84c14dc33",
+        "fixtures/normal-core-consumer/recovery-terminal/ProbeChecks.ets": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327"
+      },
+      "buildLog": "/tmp/vidall-t043-fence-tablet-compressed-build.log"
+    },
+    {
+      "kind": "global",
+      "profile": "hardware-first",
+      "harPath": "/tmp/vidall-t043-global-tablet/entry/libs/current.har",
+      "harSHA256": "6d79c863a73be3f852186be90710ae49e3038ef8fe7851a28813e6a6693bfedf",
+      "hapPath": "/tmp/vidall-t043-global-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "hapSHA256": "483e563a541b5920178579acc97c7a29492c12330648cb19c83dd4c4a6298d86",
+      "hapBytes": 45375924,
+      "deviceTypes": [
+        "tv",
+        "tablet"
+      ],
+      "supportedArchitectures": [
+        "arm64-v8a"
+      ],
+      "compressNativeLibs": true,
+      "librariesMatchOriginalHAR": true,
+      "nativeLibrarySHA256": {
+        "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libmpv.so": "311559c460bdd950137a3c3214706f28216bdcdffe31125fd991baf38ca9dcab",
+        "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "libvidall_player_native.so": "660210c122078146f2608cb072e12c33cbda3e697687a51227e6cdc7dc0e1bdc"
+      },
+      "mediaSHA256": {
+        "global-probe.mp4": "bee054bffe503fd32a19d30b0d586e9a9fd26abfe1e6f1b26b7fb84df25ebc76",
+        "test_video.mp4": "e227199fde48379861c1e234470b2e3c17c7c5c962d28eaac7b129f29395d5e6"
+      },
+      "fixtureSHA256": {
+        "fixtures/normal-core-consumer/recovery-terminal/Index.ets": "6e4c56782b109f010557d641d7f7fa86f1690ac328ed8cf257d6ed98faadad41",
+        "fixtures/normal-core-consumer/recovery-terminal/ProbeChecks.ets": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327",
+        "fixtures/normal-core-consumer/recovery-terminal/ProbeProfile.ets": "d08f94a85d3cff9b3898413feb873e2f2e82755b2bf30a3c29317ca52bb86ddb"
+      },
+      "buildLog": "/tmp/vidall-t043-global-tablet-compressed-build.log"
+    },
+    {
+      "kind": "ci-standard",
+      "profile": "standard",
+      "harPath": "/tmp/vidall-t043-ci-standard-tablet/entry/libs/current.har",
+      "harSHA256": "a8ce9ee5d73a47ed4a4eed0f9fdb22664cc4db7b43a34fbf0aecc625ab3da1d3",
+      "harSource": "https://github.com/yaoshining/VidAll_Player/actions/runs/43038228044",
+      "harRunner": "yaoshiningdeiMac, self-hosted macOS X64",
+      "hapPath": "/tmp/vidall-t043-ci-standard-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "hapSHA256": "508b41fd0058a0be4c4f4886d0d2e0dc31e7e551281020357cb1155affda09ba",
+      "hapBytes": 45014389,
+      "deviceTypes": [
+        "tv",
+        "tablet"
+      ],
+      "supportedArchitectures": [
+        "arm64-v8a"
+      ],
+      "compressNativeLibs": true,
+      "librariesMatchOriginalHAR": true,
+      "nativeLibrarySHA256": {
+        "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libmpv.so": "ee78bf290d9697ff825eb3f4590d09120474834eec9edb11eb53ea83fbcb5267",
+        "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "libvidall_player_native.so": "94d9e545b5dd56b258932394370d15092e14e91a76fd8dccbaa21d7c6049a443"
+      },
+      "mediaSHA256": {
+        "test_video.mp4": "e227199fde48379861c1e234470b2e3c17c7c5c962d28eaac7b129f29395d5e6"
+      },
+      "fixtureSHA256": {
+        "Index.ets": "507fceb756a26c9aaeebaf40241bdbc17b69b648f763ef8398fd91e03d7e90ca"
+      },
+      "buildLog": "/tmp/vidall-t043-ci-standard-tablet-build.log"
+    },
+    {
+      "kind": "ci-compatible",
+      "profile": "compatible",
+      "harPath": "/tmp/vidall-t043-ci-compatible-tablet/entry/libs/current.har",
+      "harSHA256": "a8ce9ee5d73a47ed4a4eed0f9fdb22664cc4db7b43a34fbf0aecc625ab3da1d3",
+      "harSource": "https://github.com/yaoshining/VidAll_Player/actions/runs/43038228044",
+      "harRunner": "yaoshiningdeiMac, self-hosted macOS X64",
+      "hapPath": "/tmp/vidall-t043-ci-compatible-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "hapSHA256": "f93680002233137aa45f08dcdd8824909a4c795105a24cce151dbb23582b7d1e",
+      "hapBytes": 45014394,
+      "deviceTypes": [
+        "tv",
+        "tablet"
+      ],
+      "supportedArchitectures": [
+        "arm64-v8a"
+      ],
+      "compressNativeLibs": true,
+      "librariesMatchOriginalHAR": true,
+      "nativeLibrarySHA256": {
+        "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libmpv.so": "ee78bf290d9697ff825eb3f4590d09120474834eec9edb11eb53ea83fbcb5267",
+        "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "libvidall_player_native.so": "94d9e545b5dd56b258932394370d15092e14e91a76fd8dccbaa21d7c6049a443"
+      },
+      "mediaSHA256": {
+        "test_video.mp4": "e227199fde48379861c1e234470b2e3c17c7c5c962d28eaac7b129f29395d5e6"
+      },
+      "fixtureSHA256": {
+        "Index.ets": "3960ac99e3de2fa64b0d1541f88ba1264b7adeb95fcb828df10a10db99f4f356"
+      },
+      "buildLog": "/tmp/vidall-t043-ci-compatible-tablet-build.log"
+    }
+  ],
+  "cloudUploads": {
+    "fence": {
+      "uploadAccepted": true,
+      "installed": false
+    },
+    "global": {
+      "uploadAccepted": true,
+      "installed": false
+    }
+  }
+}

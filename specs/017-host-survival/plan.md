@@ -115,3 +115,7 @@ T040：两次 Azure Ubuntu 镜像 DNS 失败均只下载 clang/llvm/llvm-runtime
 T041：以真实 stop_for_recovery 的“Stop 返回错误但随后状态为STOPPED”分支红测开始；增加仍RUNNING、状态查询错误、未返回时不查询的负例。最小修改只在返回后重查状态并按既有STOPPED标准确认，不重试Stop、不调用Release。作为Player mpv补丁重建锁定输入/核心与CI HAR，FFmpeg保持原预编译SDK；永久平台阻塞与真机音频验收仍开放。
 
 T042：将 T037 的真实 mapper 关闭探针重建到含 T041 的当前锁定来源，产出完整 Player 诊断 HAR 及独立消费 HAP，逐库核对。既有注入补丁、资格门槛和流程保持原样，不新增行为或重跑已通过的宿主套件；只补当前验收包准备，不以构建或旧 T035 模拟器负例代替当前硬件结果。
+
+T043：云调试恢复访问后先核对最终 HAP；发现旧验收包 `deviceTypes=[tv]`，且未压缩九库使包超过 T3 的 50 MB 上传上限。保留原 HAR 和素材，在独立验收工程增加 tablet、启用官方 compressNativeLibs；全局探针使用仓库原样 hardware-first 配置。重新构建签名 HAP，核对模块声明、模式、素材、原 HAR 和九库哈希后上传。保留旧包为负例，不改 Player/FFmpeg 二进制或 TV 工程；只有实际设备运行才能关闭 T007 等验收任务。
+
+同样准备完整 iMac CI HAR 的 standard/compatible 平板消费包，保留已有基础探针源码及素材，独立于两组故障注入包。HAP 在本地构建，原始 HAR 仍由 iMac CI 交付；正常包和诊断包分开记录，不相互替代。
