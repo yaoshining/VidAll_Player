@@ -50,3 +50,5 @@
 
 - [x] T040 严格选择并绑定预装 LLVM18；11 项正负例及工作流变异通过，保留 apt fallback 与全部门禁；d4a059b 在 Ubuntu 实际选择18.1.3并完整通过。
 - [x] T041 Stop 返回错误后重查明确 STOPPED；真实函数红绿/负例、锁定 mpv 重建、d4a059b 的 iMac 完整 HAR 与 Ubuntu 音频回归通过。FFmpeg 未变；永久平台挂起和真实声音仍属未完成验收。
+
+- [x] T042 已将 mapper 关闭探针同步到 d4a059b/T041 来源，完整核心、Player HAR、独立消费 HAP 构建及逐库/fixture 核对通过，见 device-evidence/t042-fence-preparation.json；未操作设备，真实硬件正向验收仍归 T013/T009/T007。

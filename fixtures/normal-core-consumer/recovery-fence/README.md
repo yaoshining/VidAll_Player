@@ -1,6 +1,6 @@
 # 真实 close/wait 的会话隔离与名额回收诊断
 
-本目录对应 Spec 017 T037，只准备设备验收流程。宿主回归通过不代表 OHCodec/Vulkan、API 19 TV、同进程画面或可听音频已验收。页面只使用 `standard`，第一部素材必须报告实际 `renderBackend=vulkan`、`hwdec-current=ohcodec`；模拟器软件路径、`ohcodec-copy`、估算字段或终局缓存快照都不能通过硬件门槛。
+本目录对应 Spec 017 T037，T042 将验收包同步到当前 T041 来源；仅准备设备验收流程。宿主回归通过不代表 OHCodec/Vulkan、API 19 TV、同进程画面或可听音频已验收。页面只使用 `standard`，第一部素材必须报告实际 `renderBackend=vulkan`、`hwdec-current=ohcodec`；模拟器软件路径、`ohcodec-copy`、估算字段或终局缓存快照都不能通过硬件门槛。
 
 ## 诊断包与准备
 
@@ -13,11 +13,11 @@
 
 ### 当前可复现构建约束
 
-以已锁定 T035 输入的独立副本为基线（package SHA-256 `60e24caba7b2bbd5cfc72dd572fcd5f5c747ac09343d6e75bf345e3a6413a650`），不要对已打生产补丁的输入再次运行基线准备器。应用 `inject-wait.patch` 后，在临时 `sources/mpv/meson.build` 的 OHOS 音频依赖列表额外链接 `cc.find_library('hilog_ndk.z')`；清单仅重锁该文件和 `video/out/hwdec/hwdec_ohcodec_pl.c`，注明 `formalArtifactAllowed=false`、诊断补丁哈希与未改 FFmpeg。
+以已锁定 T041 输入的独立副本为基线（package SHA-256 `5d223ee219cc9ebdffb00101ece9cdc1112835dd24b04bfa6d929bf8d1236dbb`，包含 0008 音频停止确认补丁），不要对已打生产补丁的输入再次运行基线准备器。应用 `inject-wait.patch` 后，在临时 `sources/mpv/meson.build` 的 OHOS 音频依赖列表额外链接 `cc.find_library('hilog_ndk.z')`；清单仅重锁该文件和 `video/out/hwdec/hwdec_ohcodec_pl.c`，注明 `formalArtifactAllowed=false`、诊断补丁哈希与未改 FFmpeg。
 
 使用 `native/tooling/normal-core/fresh_build.py` 的全新 `--run-root` 和已有预编译 SDK，保留 `--handoff-trace`。**不加 `--handoff-test`**（它要求另一套 global probe），**不加 `--ohcodec-diagnostic`**（本补丁位于该宏的 else 分支），不启用 experiment/return-replacement。完成后检查精确 64 公开接口、库中三个 `FENCE_PROBE` 标记以及 global probe 不存在。
 
-在 Player 临时诊断工程接入此核心并执行 `devecocli build --product default --modules vidall_player@deveco26`，获取完整 ARM64 九库 HAR，再完整接入消费者。实际清单、核心/包哈希、构建机与模拟器资格负例见 `specs/017-host-survival/device-evidence/api19-t037-fence-negative.json`；正常 CI 来源锁及 HAR 不得替换。
+在 Player 临时诊断工程接入此核心并执行 `devecocli build --product default --modules vidall_player@deveco26`，获取完整 ARM64 九库 HAR，再完整接入消费者。当前 T041 的验收包准备清单见 `specs/017-host-survival/device-evidence/t042-fence-preparation.json`。原 `api19-t037-fence-negative.json` 只记录旧 T035 包的模拟器资格负例，不能绑定为当前候选的设备结果；正常 CI 来源锁及 HAR 不得替换。
 
 ## 页面流程与真实故障合同
 

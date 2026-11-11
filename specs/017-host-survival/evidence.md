@@ -278,3 +278,15 @@ T041 最终本地统一门禁 94/94 通过（`/tmp/vidall-host-survival-host-gat
 - [当前诊断包的API19模拟器复验](device-evidence/api19-injected-global-d4a059b.json)：同一PID21377，终局退休旧代，ready generation2，独立新Surface连开两会话，共三次首帧，恢复后错误为0。诊断HAR为本地完整构建，SHA `6d79c863a73be3f852186be90710ae49e3038ef8fe7851a28813e6a6693bfedf`；仅software-control/定时注入，未替代真实硬解、可听音频及TV正式文件入口验收。
 
 当前 iMac 原始 HAR（SHA `a8ce9ee5d73a47ed4a4eed0f9fdb22664cc4db7b43a34fbf0aecc625ab3da1d3`）已分别以 standard/compatible 整包接入独立消费工程，在 API19 TV 模拟器通过坏片失败、后续首帧、暂停恢复、seek、释放重开；每组两次首帧且后续错误0。HAP九库与原HAR逐库完全一致。具体PID/包/素材/fixture哈希见 `device-evidence/api19-ci-{standard,compatible}-d4a059b.json`，仍为软件路径和探针入口。
+
+## T042 当前 mapper 关闭验收包准备（2026-11-11）
+
+完成性审计发现 T037 封存诊断包仍使用 T035 音频核心；不能直接把其旧设备记录绑定到当前候选。因此从固定源 `d4a059b3117a23d70aa0832d00ed7161fd8c6d5a` 和 T041 正式输入重新派生同一 mapper 探针，未修改运行期行为、FFmpeg、注入规则或既有宿主测试。对应 S12/S14/R7，先更新计划和任务，再构建当前验收包。
+
+- 完整原生静态验证、Player HAR 与独立消费者 HAP 编译通过，实际机器为本地 MacBookPro18,4 / Darwin arm64，不是 CI。仅启用 handoff-trace；真实 mapper 关闭接缝保留 owner 隔离，global 定时注入不存在。
+- 诊断核心 SHA-256 `c4c0a254aafa7254588d1b58c1a3a888f65a2fbb371d1a8d27345a8ea9e45907`；完整 HAR `cb11ef7cbadd869527726ecd53c35fe854da66b0b4461b56e24066ed5b8695f7`；签名 HAP `439de3db8a072f826fb91ee074a83d99279bf9ffa9221432f6c94218de050a9d`。
+- 原始 HAR 与消费者引用完全一致；签名/未签名 HAP 的 ARM64 九库逐字节匹配 HAR，FFmpeg/C++与正式输入不变。三个运行 fixture 与固定源提交逐字节一致；root 独立复核输入包、两处诊断源码差异、构建宏、完整包及各库哈希。
+- 完整清单、素材与日志路径见 [T042 准备记录](device-evidence/t042-fence-preparation.json)。其中 `/tmp` 为本地准备产物，非发布附件。HAP 实际 minAPI15、targetAPI22、compileSdk26，目录中的 api19 表示预定设备，未发生设备运行或安装验收。
+- 本轮不重复既有模拟器软件资格负例。`deviceExecuted`、`deviceQualified`、`audibleAudioAccepted` 均为 false；旧 T037 结果未继承。最终交付仍是 latest-delivery.md 中 d4a059b 的 iMac CI 原始 HAR。
+
+同期确认文档提交 b380037 的 [iMac 工作流](https://github.com/yaoshining/VidAll_Player/actions/runs/43039988205) 已成功。当前本机仍只连接 API19 TV 模拟器，T3 preview 无标签页，Dia 现有标签页无华为云真机入口。T007/T009/T013/T017/T018 保持开放；平台 Stop/Release 永久未返回或静止状态未知的限制也未消除。后续需要可操作 ARM64 OHCodec/Vulkan 设备和真实音频/焦点观测，不能用重复主机或软件模拟器绿灯关闭这些项。
