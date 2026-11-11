@@ -7,6 +7,17 @@ HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[2]
 def verdict(needs):
  return set(needs)=={'host-contracts','target-har'} and all(v.get('result')=='success' for v in needs.values())
 
+def host_checks_passed(summary):
+ # 清单由代码审阅维护；不能让同数量的新成功检查抵消遗漏的旧检查。
+ expected=json.loads((HERE/'host-checks.json').read_text())['checks']
+ checks=summary.get('checks',[])
+ if summary.get('passed') is not True or not isinstance(checks,list) or len(checks)!=len(expected):return False
+ if not all(isinstance(row,dict) and isinstance(row.get('name'),str) for row in checks):return False
+ if {row['name'] for row in checks}!=set(expected):return False
+ return all(row.get('passed') is True and not row.get('skipped') and not row.get('disabled')
+            and type(row.get('exit')) is int and type(row.get('expectedExit')) is int
+            and row['exit']==expected[row['name']]==row['expectedExit'] for row in checks)
+
 def finish(out,steps,mode):
  work=out/'work';public=out/'public';work.mkdir(parents=True,exist_ok=True);public.mkdir(parents=True,exist_ok=True)
  selected=[(p,Path(p.name)) for p in sorted(work.iterdir()) if p.suffix in {'.log','.json'} and p.name!='ci-status.json']
@@ -25,7 +36,7 @@ def finish(out,steps,mode):
  if mode=='host':
   if not read(work/'schema-result.json').get('passed'):errors.append('Actions schema/作用域门禁缺失或失败')
   suite=out/'suite/public';summary=read(suite/'summary.json');checks=summary.get('checks',[])
-  if not summary.get('passed') or len(checks)!=49 or not {'isolation-compile','session-isolation'} <= {r.get('name') for r in checks} or not all(r.get('passed') and r.get('exit')==r.get('expectedExit') for r in checks):errors.append('宿主49项检查未全部通过')
+  if not host_checks_passed(summary):errors.append('宿主检查清单不完整或未全部通过')
   if not (suite/'source-identities.json').is_file():errors.append('宿主源码身份缺失')
   if any(not (suite/(r.get('name','')+'.log')).is_file() for r in checks):errors.append('宿主检查日志缺失')
   for item in suite.rglob('*'):

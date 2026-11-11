@@ -145,7 +145,7 @@ class Contracts(unittest.TestCase):
 
  def test_host_finish_rejects_post_context_change(self):
   m=module('ci-evidence');identity=module('ci-context');self.repo();before=identity.snapshot(self.root);out=self.root/'evidence';(out/'work').mkdir(parents=True);(out/'suite/public').mkdir(parents=True)
-  (out/'work/context.json').write_text(json.dumps({'passed':True,**before}));checks=[{'name':'c'+str(i),'passed':True,'exit':0,'expectedExit':0} for i in range(47)]+[{'name':name,'passed':True,'exit':0,'expectedExit':0} for name in ('isolation-compile','session-isolation')]
+  (out/'work/context.json').write_text(json.dumps({'passed':True,**before}));checks=[{'name':name,'passed':True,'exit':code,'expectedExit':code} for name,code in json.loads((HERE/'host-checks.json').read_text())['checks'].items()];self.assertEqual(len(checks),94)
   (out/'suite/public/summary.json').write_text(json.dumps({'passed':True,'checks':checks}));(out/'suite/public/source-identities.json').write_text('{}')
   for c in checks:(out/'suite/public'/(c['name']+'.log')).write_text('PASS')
   (out/'suite/public/index.json').write_text('{}');steps={s:{'outcome':'success'} for s in ['context','dependencies','contracts','host']}
@@ -153,6 +153,24 @@ class Contracts(unittest.TestCase):
    self.assertFalse(m.finish(out,steps,'host')['stepsPassed'])
    (out/'work/schema-result.json').write_text(json.dumps({'passed':True}))
    self.assertTrue(m.finish(out,steps,'host')['stepsPassed']);self.assertIn('host/index.json',[r['path'] for r in json.loads((out/'public/index.json').read_text())['files']])
+   # 完整性必须按名字与退出码核对，同样数量的伪造成功不得过门禁。
+   for mode in ['missing','extra','duplicate','replacement','skipped','disabled','wrong-expected','failed','summary-failed','missing-log']:
+    mutated=json.loads(json.dumps(checks));summary_passed=True
+    if mode=='missing':mutated.pop()
+    elif mode=='extra':mutated.append(mutated[0].copy())
+    elif mode=='duplicate':mutated[-1]=mutated[0].copy()
+    elif mode=='replacement':
+     mutated[-1]['name']='invented-check';(out/'suite/public/invented-check.log').write_text('PASS')
+    elif mode=='skipped':mutated[0]['skipped']=True
+    elif mode=='disabled':mutated[0]['disabled']=True
+    elif mode=='wrong-expected':mutated[0].update(exit=7,expectedExit=7)
+    elif mode=='failed':mutated[0]['passed']=False
+    elif mode=='summary-failed':summary_passed=False
+    elif mode=='missing-log':(out/'suite/public'/(checks[0]['name']+'.log')).unlink()
+    (out/'suite/public/summary.json').write_text(json.dumps({'passed':summary_passed,'checks':mutated}))
+    self.assertFalse(m.finish(out,steps,'host')['stepsPassed'],mode)
+    if mode=='missing-log':(out/'suite/public'/(checks[0]['name']+'.log')).write_text('PASS')
+   (out/'suite/public/summary.json').write_text(json.dumps({'passed':True,'checks':checks}))
    (self.root/'a').write_text('dirty');self.assertFalse(m.finish(out,steps,'host')['stepsPassed']);self.git('checkout','--','a');self.git('commit','--allow-empty','-m','same tree new commit');self.assertFalse(m.finish(out,steps,'host')['stepsPassed'])
 
  def test_discover_uses_real_clean_output_not_docs_catalog(self):
