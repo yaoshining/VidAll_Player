@@ -66,6 +66,8 @@ def main():
         run('old-core-recovery-rejected', [work/'old-core-recovery', 'abi', work/'old-core-root'])
     if run('diagnostics-compile', common+['-Inative/diagnostics', 'native/tests/diagnostics_test.cpp', '-o', work/'diagnostics']):
         run('diagnostics-native', [work/'diagnostics'])
+    if run('environment-compile', common+['-Inative/runtime', 'native/tests/host-survival/environment.test.cpp', '-o', work/'environment']):
+        run('environment-lifetime', [work/'environment'])
     if run('executor-compile', common+['-Inative/runtime', 'native/tests/host-survival/executor.test.cpp', '-o', work/'executor']):
         run('session-executor', [work/'executor'])
     if run('isolation-compile', common+['-Inative/runtime', 'native/tests/ohcodec-fence/isolation.test.cpp', '-o', work/'isolation']):

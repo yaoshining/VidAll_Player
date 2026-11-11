@@ -30,6 +30,7 @@ if not legacy:
 
 code=r'''
 #include "session_isolation.h"
+#include "environment_lifetime.h"
 #include <atomic>
 #include <mutex>
 #include <vector>
@@ -43,7 +44,7 @@ code=r'''
 #include <condition_variable>
 #include <chrono>
 struct Handle {void* get(){return nullptr;}};
-struct Event {std::string type,message;uint64_t epoch,sequence,generation;std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<std::atomic<bool>> callbackOpen;uint64_t runtimeGeneration;bool compatible;};
+struct Event {std::string type,message;uint64_t epoch,sequence,generation;std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<std::atomic<bool>> callbackOpen;uint64_t runtimeGeneration;bool compatible;std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment;};
 static constexpr int napi_tsfn_nonblocking=0,napi_ok=0;
 static uint64_t requested=0;static int submitResult=0;
 static std::function<void()> onSubmit;
@@ -54,6 +55,7 @@ namespace vidall { namespace runtime { std::atomic<bool> terminal{false};const c
 class Harness {
 public:
 uint64_t runtimeGeneration_=1;bool compatible_=false;
+std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment_;
 const char* RuntimeAdmissionError(){return vidall::runtime::AdmissionError();}
 std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
 std::shared_ptr<std::atomic<bool>> callbackOpen_;

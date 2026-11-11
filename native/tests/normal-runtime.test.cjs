@@ -4,13 +4,13 @@ const fs = require('node:fs');
 const Module = require('node:module');
 const ts = require(process.env.TYPESCRIPT_PATH || '/Applications/DevEco-Studio.app/Contents/plugins/codelinter/node_modules/typescript');
 let state = 'unconfigured';
-let recovery,configuredPolicy;
+let recovery,configuredPolicy,requestedGeneration;
 let creates = 0, configurations = 0, nativeReleases = 0, callbackFailure = false;
 const native = new Proxy({
   getRuntimeStatus: () => JSON.stringify({state, recovery, terminal: state === 'terminal' ? {stage:1,platformError:-4,firstObservedMs:100,deadlineMs:3000,ownerTag:'1'} : undefined}),
   configureRuntime: async (_root,_text,_deadline,policy) => { configuredPolicy=policy;configurations++;state='ready'; return {ok:true,handle:0,code:'OK'}; },
   rejectRuntimeResources:()=>{state='failed';return {ok:false,handle:0,code:'RUNTIME_RESOURCE_FAILED'};},
-  createSession: async () => {creates++;return {ok:true,handle:1,code:'OK'};},
+  createSession: async (...args) => {requestedGeneration=args[5];creates++;return {ok:true,handle:1,code:'OK'};},
   setEventCallback:()=>({ok:!callbackFailure,handle:1,code:callbackFailure?'NATIVE_PLAYBACK_FAILED':'OK'}),
   releaseSession:async()=>{nativeReleases++;return {ok:true,handle:1,code:'RELEASED'};},
 }, {get:(o,k)=>o[k]||(()=>({ok:true,handle:1,code:'OK'}))});
@@ -32,7 +32,7 @@ async function main(){
     const context={filesDir:'/private/app',resourceManager:{getRawFileContent:async()=>new TextEncoder().encode('[global]\nclient min protocol = SMB2_02\n')}};
     await runtime.initializePlayerRuntime(context,{terminalPolicy:'preserve-host',deadlineMs:3000});
     assert.equal(configuredPolicy,'preserve-host');
-    const old=createPlayer({playbackMode:'compatible'});await old.attachSurface({componentId:'old',generation:1,width:10,height:10});
+    const old=createPlayer({playbackMode:'compatible'});await old.attachSurface({componentId:'old',generation:1,width:10,height:10});assert.equal(requestedGeneration,1);
     state='terminal';recovery={state:'pending',generation:0};runtime.getPlayerRuntimeStatus();
     assert.equal(old.stateMachine.getState(),'error');
     assert.throws(()=>createPlayer({playbackMode:'compatible'}),/PLAYER_RECOVERY_PENDING/);
@@ -40,7 +40,7 @@ async function main(){
     assert.throws(()=>createPlayer(),/PLAYER_TERMINAL/);
     let freshEvent;native.setEventCallback=(_h,cb)=>{freshEvent=cb;return {ok:true,handle:1,code:'OK'};};
     const fresh=createPlayer({playbackMode:'compatible'});
-    await fresh.attachSurface({componentId:'fresh',generation:1,width:10,height:10});
+    await fresh.attachSurface({componentId:'fresh',generation:1,width:10,height:10});assert.equal(requestedGeneration,2);
     await fresh.load({kind:'localFile',uri:'file:///test.mp4'});
     freshEvent({type:'state',message:'preparing',eventEpoch:1,sequence:1,surfaceGeneration:1});
     await fresh.play();

@@ -25,6 +25,7 @@ methods = '\n'.join(extract(s) for s in [
 owner = extract('if (isolation_ && event->event_id == MPV_EVENT_CLIENT_MESSAGE')
 code = r'''
 #include "session_isolation.h"
+#include "environment_lifetime.h"
 #include <atomic>
 #include <cassert>
 #include <cstring>
@@ -59,6 +60,7 @@ class NativeSession {
 public:
 @@EVENT@@;
 uint64_t runtimeGeneration_=1;bool compatible_=false;
+std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment_;
 std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
 std::shared_ptr<std::atomic<bool>> callbackOpen_=std::make_shared<std::atomic<bool>>(true);
 std::mutex callbackMutex_;
@@ -89,6 +91,13 @@ int main(int argc,char**argv){
   s.CloseIsolatedCallbacks();s.Dispatch("error","");assert(queue.empty());
  }else if(mode=="null-env"){
   NativeSession s;s.Dispatch("error","");drain(true);assert(calls==0&&objects==0);
+ }else if(mode=="environment"){
+  int a,b;NativeSession old,fresh;
+  old.environment_=vidall::runtime::EnvironmentLifetime::Open(&a);
+  fresh.environment_=vidall::runtime::EnvironmentLifetime::Open(&b);
+  old.Dispatch("position","");fresh.Dispatch("position","");
+  vidall::runtime::EnvironmentLifetime::Close(old.environment_);drain();assert(calls==1&&objects==1);
+  vidall::runtime::EnvironmentLifetime::Close(fresh.environment_);
  }else if(mode=="recovery"){
   NativeSession old;old.Dispatch("position","");old.Dispatch("error","");
   vidall::runtime::terminal=true;drain();assert(calls==0&&objects==0);
@@ -106,7 +115,7 @@ with tempfile.TemporaryDirectory(prefix='callback-cleanup-') as out:
     subprocess.run(['clang++', '-std=c++17', '-pthread', '-fsanitize=address,undefined',
                     '-I' + str(ROOT / 'native/runtime'), str(path / 'test.cpp'), '-o', str(path / 'test')], check=True, timeout=120)
     results = []
-    for case in ['recovery', 'queued', 'owner', 'replace', 'normal', 'null-env', 'quarantined']:
+    for case in ['environment', 'recovery', 'queued', 'owner', 'replace', 'normal', 'null-env', 'quarantined']:
         result = subprocess.run([str(path / 'test'), case], capture_output=True, text=True, timeout=5)
         print(case, result.returncode, result.stderr.strip())
         results.append(result.returncode)

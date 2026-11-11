@@ -21,6 +21,8 @@
 #include <functional>
 #include "process_runtime.h"
 #include "work_budget.h"
+#include "environment_lifetime.h"
+#include "session_isolation.h"
 
 #if VIDALL_MPV_AVAILABLE
 #include <ace/xcomponent/native_interface_xcomponent.h>
@@ -281,6 +283,7 @@ static void* MpvGlGetProcAddress(void* /*ctx*/, const char* name)
 #endif
 
 class NativeSession {
+    std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment_;
     const std::uint64_t runtimeGeneration_ = vidall::runtime::CaptureGeneration();
     bool compatible_ = false;
     // 首先构造、最后销毁，确保 mpv、线程及 Surface 释放后才归还预算。
@@ -291,6 +294,9 @@ public:
     const char* RuntimeAdmissionError() const {
         return vidall::runtime::SessionAdmissionError(runtimeGeneration_, compatible_);
     }
+    void SetEnvironment(std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment) { environment_ = std::move(environment); }
+    std::shared_ptr<vidall::runtime::EnvironmentLifetime> Environment() const { return environment_; }
+    void SetExecutor(std::shared_ptr<vidall::runtime::SessionIsolation> executor) { executor_ = std::move(executor); }
     void SetBudget(std::shared_ptr<vidall::runtime::SessionBudget> budget) { budget_ = std::move(budget); }
     struct Event {
         std::string type;
@@ -302,6 +308,7 @@ public:
         std::shared_ptr<std::atomic<bool>> callbackOpen;
         std::uint64_t runtimeGeneration;
         bool compatible;
+        std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment;
     };
 
     NativeSession()
@@ -371,7 +378,8 @@ public:
             mpv_set_option_string(player_.get(), "osd-fonts-dir", fontsDir.c_str());
         }
         // 所有可阻塞的平台操作交给独立实例线程；软解不能长期占住 NAPI 共用池。
-        executor_ = isolation_ ? isolation_ : vidall::runtime::SessionIsolation::Acquire(
+        if (isolation_) executor_ = isolation_;
+        else if (!executor_) executor_ = vidall::runtime::SessionIsolation::Acquire(
             compatible ? vidall::runtime::SessionIsolation::Pool::Compatible :
                          vidall::runtime::SessionIsolation::Pool::Standard);
         if (!executor_) return false;
@@ -847,6 +855,7 @@ private:
     {
         std::unique_ptr<Event> event(static_cast<Event*>(data));
         if (env == nullptr || callback == nullptr || !event) return;
+        if (event->environment && !event->environment->IsOpen()) return;
         if (vidall::runtime::SessionAdmissionError(event->runtimeGeneration, event->compatible)) return;
         // 排队事件可能比 Session 活得更久；不解引用 TSFN context 或已销毁对象。
         if (!event->callbackOpen || !event->callbackOpen->load()) return;
@@ -872,7 +881,7 @@ private:
                 type.c_str(), message.c_str(), released_.load(), eventTsfn_ == nullptr);
             return;
         }
-        auto* event = new Event{type, message, eventEpoch_, ++eventSequence_, generation_, isolation_, callbackOpen_, runtimeGeneration_, compatible_};
+        auto* event = new Event{type, message, eventEpoch_, ++eventSequence_, generation_, isolation_, callbackOpen_, runtimeGeneration_, compatible_, environment_};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
     }
 
@@ -962,7 +971,7 @@ private:
         std::lock_guard<std::mutex> lock(callbackMutex_);
         if (released_ || RuntimeAdmissionError() || !eventTsfn_ || epoch != eventEpoch_.load()) return;
         auto* event = new Event{"fileEnd", reason == MPV_END_FILE_REASON_EOF ? "completed" : "error",
-            epoch, ++eventSequence_, generation_.load(), isolation_, callbackOpen_, runtimeGeneration_, compatible_};
+            epoch, ++eventSequence_, generation_.load(), isolation_, callbackOpen_, runtimeGeneration_, compatible_, environment_};
         if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
     }
 
@@ -1917,18 +1926,49 @@ std::unordered_map<std::uint64_t, std::shared_ptr<NativeSession>> gSessions;
 std::uint64_t gNextSessionId = 1;
 
 #if VIDALL_MPV_AVAILABLE
-std::shared_ptr<NativeSession> FindSession(std::uint64_t handle)
+std::shared_ptr<NativeSession> FindSession(std::uint64_t handle, napi_env env = nullptr)
 {
     std::lock_guard<std::mutex> lock(gSessionsMutex);
     const auto session = gSessions.find(handle);
-    return session == gSessions.end() ? nullptr : session->second;
+    if (session == gSessions.end()) return nullptr;
+    auto owner = session->second->Environment();
+    return owner && owner->Matches(env) ? session->second : nullptr;
 }
 #endif
 
 class NativeSession;
+// 票据状态及 handle 发布都在 gSessionsMutex 下读写。
+struct SessionCreation {
+    std::uint64_t generation = 0;
+    bool compatible = false;
+    bool cancelled = false;
+    std::uint64_t handle = 0;
+};
+void CancelCreation(const std::shared_ptr<SessionCreation>& creation)
+{
+#if VIDALL_MPV_AVAILABLE
+    if (!creation) return;
+    std::shared_ptr<NativeSession> retired;
+    {
+        std::lock_guard<std::mutex> lock(gSessionsMutex);
+        creation->cancelled = true;
+        auto it = gSessions.find(creation->handle);
+        if (it != gSessions.end()) { retired = std::move(it->second); gSessions.erase(it); }
+    }
+#endif
+}
 struct NativeWork {
+    std::shared_ptr<SessionCreation> creation;
+    std::shared_ptr<vidall::runtime::SessionIsolation> bootstrap;
+    std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment;
     bool compatibleCreation = false;
     const char* AdmissionError() const {
+        if (!environment || !environment->IsOpen()) return "RUNTIME_ENV_CLOSED";
+        if (creation) {
+            if (creation->generation) return vidall::runtime::SessionAdmissionError(creation->generation, creation->compatible);
+            const char* error = vidall::runtime::AdmissionError(creation->compatible);
+            return error ? error : "PLAYER_RECOVERY_PENDING";
+        }
 #if VIDALL_MPV_AVAILABLE
         if (pinned) return pinned->RuntimeAdmissionError();
 #endif
@@ -1944,16 +1984,27 @@ struct NativeWork {
     bool retire = false;
 };
 napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeResult()> operation, bool admit = true, bool retire = false,
-                       std::shared_ptr<NativeSession> pinned = {}, bool compatibleCreation = false)
+                       std::shared_ptr<NativeSession> pinned = {}, bool compatibleCreation = false, std::shared_ptr<SessionCreation> creation = {},
+                       std::shared_ptr<vidall::runtime::SessionIsolation> bootstrap = {})
 {
     auto data = std::make_unique<NativeWork>(); data->operation = std::move(operation); data->result.handle = handle; data->admit = admit; data->retire = retire;
+    data->creation = std::move(creation); data->bootstrap = std::move(bootstrap);
+    data->environment = vidall::runtime::EnvironmentLifetime::Current(env);
     data->pinned = std::move(pinned);
     data->compatibleCreation = compatibleCreation;
 #if VIDALL_MPV_AVAILABLE
-    if (!data->pinned && handle) data->pinned = FindSession(handle);
+    if (!data->pinned && handle) data->pinned = FindSession(handle, env);
 #endif
     napi_value promise = nullptr;
     if (napi_create_promise(env, &data->deferred, &promise) != napi_ok) return nullptr;
+    if (!data->environment || !data->environment->IsOpen()) {
+        napi_resolve_deferred(env, data->deferred, CreateResult(env, {false, handle, "RUNTIME_ENV_CLOSED"})); return promise;
+    }
+#if VIDALL_MPV_AVAILABLE
+    if (handle && !data->pinned && !retire) {
+        napi_resolve_deferred(env, data->deferred, CreateResult(env, {false, handle, "RELEASED"})); return promise;
+    }
+#endif
     if (admit) if (const char* error = data->AdmissionError()) {
         napi_resolve_deferred(env, data->deferred, CreateResult(env, {false, handle, error})); return promise;
     }
@@ -1970,17 +2021,19 @@ napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeR
     }
     auto execute = [](napi_env, void* p) {
         auto* d = static_cast<NativeWork*>(p);
+        if (!d->environment->IsOpen()) { d->result.code = "RUNTIME_ENV_CLOSED"; return; }
         if (d->admit) if (const char* error = d->AdmissionError()) { d->result.code = error; return; }
         try {
 #if VIDALL_MPV_AVAILABLE
-            auto session = d->pinned ? d->pinned : FindSession(d->result.handle);
-            auto isolation = session ? session->Executor() : nullptr;
+            auto session = d->pinned;
+            auto isolation = session ? session->Executor() : d->bootstrap;
             if (isolation) {
                 auto result = std::make_shared<NativeResult>(d->result);
                 auto task = [result, session, budget = d->budget, op = std::move(d->operation)] { *result = op(); };
                 if (isolation->Run(std::move(task), std::chrono::seconds(5), d->retire)) {
                     d->result = *result;
                 } else {
+                    CancelCreation(d->creation);
                     const char* reason = isolation->IsQuarantined() ? "SESSION_QUARANTINED" : "NATIVE_WORK_TIMEOUT";
                     d->result = {false, d->result.handle, reason};
                     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
@@ -2005,8 +2058,15 @@ napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeR
     };
     auto complete = [](napi_env env, napi_status status, void* p) {
         std::unique_ptr<NativeWork> d(static_cast<NativeWork*>(p));
+        if (!d->environment || !d->environment->IsOpen()) {
+            CancelCreation(d->creation);
+            // complete 由 NAPI 在有效环境中执行；仅归还 work，不再访问 JS Promise。
+            napi_delete_async_work(env, d->work);
+            return;
+        }
         if (status != napi_ok) d->result = {false, d->result.handle, "NATIVE_WORK_CANCELLED"};
         if (d->admit) if (const char* error = d->AdmissionError()) d->result = {false, d->result.handle, error};
+        if (!d->result.ok) CancelCreation(d->creation);
         napi_resolve_deferred(env, d->deferred, CreateResult(env, d->result)); napi_delete_async_work(env, d->work);
     };
     napi_status rc = napi_create_async_work(env, nullptr, CreateString(env, "VidAllNative"), execute, complete, data.get(), &data->work);
@@ -2038,14 +2098,24 @@ napi_value ConfigureRuntime(napi_env env, napi_callback_info info)
     std::string root, config, policy = "controlled-app-exit"; int64_t deadline = 0;
     if (!GetArguments(env, info, 4, args, argc) || argc < 3 || argc > 4 || !ReadString(env,args[0],root) || !ReadString(env,args[1],config) || napi_get_value_int64(env,args[2],&deadline) != napi_ok) return nullptr;
     if (argc == 4 && !ReadString(env,args[3],policy)) return nullptr;
-    return QueueNative(env, 0, [root,config,deadline,policy]() -> NativeResult {
+    std::shared_ptr<vidall::runtime::SessionIsolation> executor;
+    try {
+        static const auto shared = vidall::runtime::SessionIsolation::Acquire(
+            vidall::runtime::SessionIsolation::Pool::Runtime);
+        executor = shared;
+    } catch (...) {
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "Runtime executor unavailable");
+    }
+    const bool available = static_cast<bool>(executor);
+    return QueueNative(env, 0, [root,config,deadline,policy,available]() -> NativeResult {
+        if (!available) return {false,0,"NATIVE_PLAYBACK_FAILED"};
         if (deadline < 1000 || deadline > 10000) return {false,0,"RUNTIME_CONFIG_INVALID"};
         if (policy != "controlled-app-exit" && policy != "preserve-host") return {false,0,"RUNTIME_CONFIG_INVALID"};
         const char* error = vidall::runtime::Configure(root,config,static_cast<unsigned>(deadline),
             policy == "preserve-host" ? vidall::runtime::TerminalPolicy::PreserveHost :
                                        vidall::runtime::TerminalPolicy::ControlledAppExit);
         return {error == nullptr, 0, error ? error : "OK"};
-    }, false);
+    }, false, false, {}, false, {}, executor);
 }
 napi_value RejectRuntimeResources(napi_env env, napi_callback_info)
 {
@@ -2067,7 +2137,8 @@ napi_value GetRuntimeStatus(napi_env env, napi_callback_info)
 
 napi_value CreateSession(napi_env env, napi_callback_info info)
 {
-    napi_value args[5] = {nullptr}; size_t argc = 5;
+    napi_value args[6] = {nullptr}; size_t argc = 6;
+    int64_t expectedGeneration = -1;
     std::string fontsDir, hwdec, toneMapping, hdrComputePeak, playbackMode = "standard";
     if (napi_get_cb_info(env, info, &argc, args, nullptr, nullptr) == napi_ok) {
         if (argc >= 1) ReadString(env, args[0], fontsDir);
@@ -2075,23 +2146,57 @@ napi_value CreateSession(napi_env env, napi_callback_info info)
         if (argc >= 3) ReadString(env, args[2], toneMapping);
         if (argc >= 4) ReadString(env, args[3], hdrComputePeak);
         if (argc >= 5 && !ReadString(env, args[4], playbackMode)) return nullptr;
+        if (argc >= 6 && (napi_get_value_int64(env,args[5],&expectedGeneration) != napi_ok ||
+                         expectedGeneration < 1 || expectedGeneration > 2)) return nullptr;
     }
 #if VIDALL_MPV_AVAILABLE
+    auto environment = vidall::runtime::EnvironmentLifetime::Current(env);
+    auto creation = std::make_shared<SessionCreation>();
+    std::shared_ptr<vidall::runtime::SessionBudget> budget;
+    std::shared_ptr<vidall::runtime::SessionIsolation> executor;
+    const bool compatible = playbackMode == "compatible";
+    creation->generation = expectedGeneration > 0 ? static_cast<std::uint64_t>(expectedGeneration) :
+        vidall::runtime::CaptureGeneration();
+    creation->compatible = compatible;
+    const char* allocationError = nullptr;
+    if (playbackMode != "standard" && !compatible) allocationError = "INVALID_PLAYBACK_MODE";
+    else if (environment && environment->IsOpen() &&
+             !vidall::runtime::SessionAdmissionError(creation->generation, compatible)) {
+        try {
+            const bool recovery = compatible && creation->generation > 1;
+            budget = vidall::runtime::SessionBudget::Acquire(compatible, recovery);
+            if (budget) executor = vidall::runtime::SessionIsolation::Acquire(recovery ?
+                vidall::runtime::SessionIsolation::Pool::Recovery : compatible ?
+                vidall::runtime::SessionIsolation::Pool::Compatible : vidall::runtime::SessionIsolation::Pool::Standard);
+            if (!budget || !executor) allocationError = "SESSION_RESOURCE_LIMIT";
+        } catch (...) { allocationError = "NATIVE_PLAYBACK_FAILED"; }
+    }
     return QueueNative(env, 0, [=]() mutable -> NativeResult {
-    if (playbackMode != "standard" && playbackMode != "compatible")
-        return NativeResult{false, 0, "INVALID_PLAYBACK_MODE"};
-    auto budget = vidall::runtime::SessionBudget::Acquire(playbackMode == "compatible");
-    if (!budget) return NativeResult{false, 0, "SESSION_RESOURCE_LIMIT"};
+    if (allocationError) return {false,0,allocationError};
+    {
+        std::lock_guard<std::mutex> lock(gSessionsMutex);
+        if (creation->cancelled || !environment || !environment->IsOpen()) return {false,0,"RUNTIME_ENV_CLOSED"};
+    }
     std::shared_ptr<NativeSession> session(new NativeSession(), DeleteSession);
-    session->SetBudget(std::move(budget));
-    if (const char* error = vidall::runtime::SessionAdmissionError(session->RuntimeGeneration(), playbackMode == "compatible"))
+    session->SetEnvironment(environment);
+    session->SetBudget(budget);
+    session->SetExecutor(executor);
+    if (session->RuntimeGeneration() != creation->generation) return {false,0,"PLAYER_TERMINAL"};
+    if (const char* error = vidall::runtime::SessionAdmissionError(session->RuntimeGeneration(), compatible))
         return NativeResult{false, 0, error};
+    {
+        std::lock_guard<std::mutex> lock(gSessionsMutex);
+        if (creation->cancelled || !environment->IsOpen()) return {false,0,"RUNTIME_ENV_CLOSED"};
+    }
     if (!session->Initialize(fontsDir, hwdec, toneMapping, hdrComputePeak, playbackMode)) return NativeResult{false, 0, "NATIVE_PLAYBACK_FAILED"};
     std::lock_guard<std::mutex> lock(gSessionsMutex);
+    // 清理、超时撤销和发布共用同一把锁，不留下迟到的不可达 handle。
+    if (creation->cancelled || !environment->IsOpen()) return NativeResult{false,0,"RUNTIME_ENV_CLOSED"};
     const std::uint64_t handle = gNextSessionId++;
+    creation->handle = handle;
     gSessions.emplace(handle, std::move(session));
     return NativeResult{true, handle, "OK"};
-    }, true, false, {}, playbackMode == "compatible");
+    }, true, false, {}, compatible, creation, executor);
 #else
     return CreateResult(env, {false, 0, "FEATURE_UNSUPPORTED"});
 #endif
@@ -2103,7 +2208,7 @@ napi_value ReleaseSession(napi_env env, napi_callback_info info)
     if (!GetArguments(env, info, 1, args, argc) || argc != 1 || !ReadHandle(env, args[0], handle)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     // 控制权移交前拿到强引用，调用方超时并移除 handle 后后台仍能关闭正确实例。
-    auto session = FindSession(handle);
+    auto session = FindSession(handle, env);
     return QueueNative(env, handle, [session, handle]() -> NativeResult {
     if (!session) return NativeResult{true, handle, "ALREADY_RELEASED"};
     session->Release();
@@ -2124,7 +2229,7 @@ napi_value WithSurface(napi_env env, napi_callback_info info, int operation)
         napi_get_value_int64(env, args[2], &generation) != napi_ok || napi_get_value_int64(env, args[3], &width) != napi_ok || napi_get_value_int64(env, args[4], &height) != napi_ok) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     if (session == nullptr) return NativeResult{false, handle, "RELEASED"};
     return operation == 0 ? session->Attach(component, generation, width, height, handle) : session->Resize(generation, width, height, handle);
     });
@@ -2141,7 +2246,7 @@ napi_value DetachSurface(napi_env env, napi_callback_info info)
     if (!GetArguments(env, info, 2, args, argc) || argc != 2 || !ReadHandle(env, args[0], handle) || napi_get_value_int64(env, args[1], &generation) != napi_ok) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle); return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->Detach(generation, handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env); return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->Detach(generation, handle);
     });
 #else
     return CreateResult(env, {false, handle, "FEATURE_UNSUPPORTED"});
@@ -2157,7 +2262,7 @@ napi_value Load(napi_env env, napi_callback_info info)
         !ReadString(env, args[3], smbUsername) || !ReadString(env, args[4], smbPassword)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     if (session != nullptr) {
         NativeResult result = session->Load(uri, headerFields, smbUsername, smbPassword, handle);
         smbUsername.assign(smbUsername.size(), '\0');
@@ -2177,7 +2282,7 @@ napi_value Control(napi_env env, napi_callback_info info, int action)
     if (!GetArguments(env, info, 1, args, argc) || argc != 1 || !ReadHandle(env, args[0], handle)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     if (session == nullptr) return NativeResult{false, handle, "RELEASED"};
     NativeResult result = action == 1 ? session->Play(handle) : (action == 2 ? session->Pause(handle) : session->Stop(handle));
     return result;
@@ -2197,7 +2302,7 @@ napi_value SeekRelative(napi_env env, napi_callback_info info)
         napi_get_value_double(env, args[1], &seconds) != napi_ok) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SeekRelative(seconds, handle);
     });
 #else
@@ -2212,7 +2317,7 @@ napi_value SeekPercent(napi_env env, napi_callback_info info)
         napi_get_value_double(env, args[1], &percent) != napi_ok) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SeekPercent(percent, handle);
     });
 #else
@@ -2227,7 +2332,7 @@ napi_value SetRate(napi_env env, napi_callback_info info)
         napi_get_value_double(env, args[1], &rate) != napi_ok) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SetRate(rate, handle);
     });
 #else
@@ -2242,7 +2347,7 @@ napi_value SetPropertyString(napi_env env, napi_callback_info info)
         !ReadString(env, args[1], property) || !ReadString(env, args[2], value)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SetPropertyString(property, value, handle);
     });
 #else
@@ -2257,7 +2362,7 @@ napi_value SetAudioFilter(napi_env env, napi_callback_info info)
         !ReadString(env, args[1], filter)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SetAudioFilter(filter, handle);
     });
 #else
@@ -2272,7 +2377,7 @@ napi_value SetVolume(napi_env env, napi_callback_info info)
         napi_get_value_double(env, args[1], &volume) != napi_ok) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SetVolume(volume, handle);
     });
 #else
@@ -2287,7 +2392,7 @@ napi_value SelectTrack(napi_env env, napi_callback_info info)
         !ReadString(env, args[1], kind) || napi_get_value_int64(env, args[2], &trackId) != napi_ok) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SelectTrack(kind, trackId, handle);
     });
 #else
@@ -2302,7 +2407,7 @@ napi_value AddExternalTrack(napi_env env, napi_callback_info info, const char* k
         !ReadString(env, args[1], uri)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     return session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->AddExternalTrack(kind, uri, handle);
     });
 #else
@@ -2317,7 +2422,7 @@ napi_value SetEventCallback(napi_env env, napi_callback_info info)
     napi_value args[2] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
     if (!GetArguments(env, info, 2, args, argc) || argc != 2 || !ReadHandle(env, args[0], handle)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     if (session) if (const char* error = session->RuntimeAdmissionError()) return CreateResult(env,{false,handle,error});
     return CreateResult(env, session == nullptr ? NativeResult{false, handle, "RELEASED"} : session->SetEventCallback(env, args[1], handle));
 #else
@@ -2327,6 +2432,7 @@ napi_value SetEventCallback(napi_env env, napi_callback_info info)
 
 // 工作线程只操作 C++ / mpv；NAPI 对象仅在完成回调中创建。
 struct DiagnosticsWork {
+    std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment;
     std::shared_ptr<vidall::runtime::WorkBudget> budget;
     napi_async_work work = nullptr;
     napi_deferred deferred = nullptr;
@@ -2341,11 +2447,13 @@ napi_value GetDiagnostics(napi_env env, napi_callback_info info)
 {
     napi_value args[1] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
     if (!GetArguments(env, info, 1, args, argc) || argc != 1 || !ReadHandle(env, args[0], handle)) return nullptr;
+    auto environment = vidall::runtime::EnvironmentLifetime::Current(env);
     const char* admission = vidall::runtime::AdmissionError();
 #if VIDALL_MPV_AVAILABLE
-    auto session = FindSession(handle);
+    auto session = FindSession(handle, env);
     if (session) admission = session->RuntimeAdmissionError();
 #endif
+    if (!environment || !environment->IsOpen()) admission = "RUNTIME_ENV_CLOSED";
     if (const char* code = admission) {
         napi_deferred deferred; napi_value promise, error;
         napi_create_promise(env,&deferred,&promise); napi_create_error(env,nullptr,CreateString(env,code),&error);
@@ -2353,6 +2461,7 @@ napi_value GetDiagnostics(napi_env env, napi_callback_info info)
     }
     auto data = std::make_unique<DiagnosticsWork>();
     data->handle = handle;
+    data->environment = environment;
 #if VIDALL_MPV_AVAILABLE
     data->session = session;
 #endif
@@ -2371,6 +2480,7 @@ napi_value GetDiagnostics(napi_env env, napi_callback_info info)
     }
     auto execute = [](napi_env, void* opaque) {
         auto* d = static_cast<DiagnosticsWork*>(opaque);
+        if (!d->environment->IsOpen()) { d->error = "RUNTIME_ENV_CLOSED"; return; }
         try {
 #if VIDALL_MPV_AVAILABLE
             if (const char* error = d->session ? d->session->RuntimeAdmissionError() : vidall::runtime::AdmissionError()) d->error = error;
@@ -2394,6 +2504,10 @@ napi_value GetDiagnostics(napi_env env, napi_callback_info info)
     };
     auto complete = [](napi_env env, napi_status status, void* opaque) {
         std::unique_ptr<DiagnosticsWork> d(static_cast<DiagnosticsWork*>(opaque));
+        if (!d->environment->IsOpen()) {
+            napi_delete_async_work(env, d->work);
+            return;
+        }
         #if VIDALL_MPV_AVAILABLE
         if (d->session) if (const char* error = d->session->RuntimeAdmissionError()) d->error=error;
 #else
@@ -2422,7 +2536,7 @@ napi_value GetFrameData(napi_env env, napi_callback_info info)
     napi_value args[1] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
     if (!GetArguments(env, info, 1, args, argc) || argc != 1 || !ReadHandle(env, args[0], handle)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
-    std::shared_ptr<NativeSession> session = FindSession(handle);
+    std::shared_ptr<NativeSession> session = FindSession(handle, env);
     if (session && session->RuntimeAdmissionError()) return nullptr;
     return session ? session->GetFrameData(env) : nullptr;
 #else
@@ -2430,28 +2544,26 @@ napi_value GetFrameData(napi_env env, napi_callback_info info)
 #endif
 }
 
-void CleanupSessions(void*)
+void CleanupSessions(void* context)
 {
+    std::unique_ptr<std::shared_ptr<vidall::runtime::EnvironmentLifetime>> owner(
+        static_cast<std::shared_ptr<vidall::runtime::EnvironmentLifetime>*>(context));
+    if (!owner || !*owner) return;
+    auto environment = *owner;
+    vidall::runtime::EnvironmentLifetime::Close(environment);
 #if VIDALL_MPV_AVAILABLE
     std::unordered_map<std::uint64_t, std::shared_ptr<NativeSession>> sessions;
     const bool terminal = vidall::runtime::Snapshot().state == 4;
     {
         std::lock_guard<std::mutex> lock(gSessionsMutex);
-        // 清理钩子返回后 NAPI 环境即不可再用；先封闭投递，再异步销毁耗时资源。
-        for (auto& entry : gSessions) {
-            entry.second->CloseIsolatedCallbacks();
+        for (auto it = gSessions.begin(); it != gSessions.end();) {
+            if (it->second->Environment() != environment) { ++it; continue; }
+            it->second->CloseIsolatedCallbacks();
+            // 只保留当前环境的旧终局实例；其他环境与新兼容代互不影响。
+            if (terminal && it->second->RuntimeAdmissionError()) { ++it; continue; }
+            sessions.emplace(it->first, std::move(it->second));
+            it = gSessions.erase(it);
         }
-        if (terminal) {
-            // 旧代整体保留；新兼容代仍可完成真实析构并归还预算。
-            for (auto it = gSessions.begin(); it != gSessions.end();) {
-                if (!it->second->RuntimeAdmissionError()) {
-                    sessions.emplace(it->first, std::move(it->second));
-                    it = gSessions.erase(it);
-                } else ++it;
-            }
-            return;
-        }
-        sessions.swap(gSessions);
     }
 #endif
 }
@@ -2484,8 +2596,14 @@ napi_value Init(napi_env env, napi_value exports)
         {"getDiagnostics", nullptr, GetDiagnostics, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getFrameData", nullptr, GetFrameData, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
+    auto environment = vidall::runtime::EnvironmentLifetime::Open(env);
+    auto owner = std::make_unique<std::shared_ptr<vidall::runtime::EnvironmentLifetime>>(environment);
     if (!Check(env, napi_define_properties(env, exports, sizeof(descriptors) / sizeof(descriptors[0]), descriptors), "Failed to define native bridge exports.") ||
-        !Check(env, napi_add_env_cleanup_hook(env, CleanupSessions, nullptr), "Failed to register cleanup hook.")) return nullptr;
+        !Check(env, napi_add_env_cleanup_hook(env, CleanupSessions, owner.get()), "Failed to register cleanup hook.")) {
+        vidall::runtime::EnvironmentLifetime::Close(environment);
+        return nullptr;
+    }
+    owner.release();
     return exports;
 }
 } // namespace

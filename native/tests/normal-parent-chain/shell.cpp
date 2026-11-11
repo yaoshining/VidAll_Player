@@ -1,6 +1,7 @@
 #include "process_runtime.h"
 #define OH_LOG_Print(...) ((void)0)
 #include "session_isolation.h"
+#include "environment_lifetime.h"
 #include "../render/render_backend_policy.h"
 #include <mpv/ohcodec_terminal.h>
 #include <libavformat/ohcodec_smb_runtime.h>
@@ -50,6 +51,8 @@ public:
  // 最先声明、最后销毁：等待后台析构真实完成再结束正常路径测试进程。
  struct DestructionMarker { ~DestructionMarker(){destructionDone=true;} } destructionMarker_;
  std::shared_ptr<std::atomic<bool>> callbackOpen_;
+ std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment_=vidall::runtime::EnvironmentLifetime::Current(nullptr);
+ auto Environment()const{return environment_;}
  std::shared_ptr<vidall::runtime::SessionIsolation> isolation_, executor_;
  std::shared_ptr<vidall::runtime::SessionIsolation> Isolation() const { return isolation_; }
  std::shared_ptr<vidall::runtime::SessionIsolation> Executor() const { return executor_; }
@@ -85,9 +88,10 @@ public:
 /* EXTRACT void DeleteSession(NativeSession* session) */
 std::mutex gSessionsMutex;
 std::unordered_map<std::uint64_t,std::shared_ptr<NativeSession>>gSessions;
-/* EXTRACT void CleanupSessions(void*) */
+/* EXTRACT void CleanupSessions(void* context) */
+void CleanupTest(){CleanupSessions(new std::shared_ptr<vidall::runtime::EnvironmentLifetime>(vidall::runtime::EnvironmentLifetime::Current(nullptr)));}
 int main(int argc,char**argv){
- if(argc!=3)return 90;mode=argv[1];mkdir(argv[2],0700);
+ vidall::runtime::EnvironmentLifetime::Open(nullptr);if(argc!=3)return 90;mode=argv[1];mkdir(argv[2],0700);
  if(const char*e=vidall::runtime::Configure(argv[2],"[global]\nclient min protocol = SMB2_02\n",1000)){printf("FAIL configure %s\n",e);return 91;}
  if(mode=="terminal-direct-destructor"){std::unique_ptr<NativeSession>direct(new NativeSession());direct->Start();terminalNow();direct.reset();event("FAIL destructor returned");return 92;}
  auto p=std::shared_ptr<NativeSession>(new NativeSession(),DeleteSession);p->Start();
@@ -104,7 +108,7 @@ int main(int argc,char**argv){
  else if(mode=="terminal-cleanup-swap"){
   gSessions.emplace(1,p);p.reset();
   std::unique_lock<std::mutex>held(gSessionsMutex);
-  std::thread cleanup([]{isCleanupThread=true;CleanupSessions(nullptr);event("cleanup-return");});
+  std::thread cleanup([]{isCleanupThread=true;CleanupTest();event("cleanup-return");});
   while(!cleanupObserved)std::this_thread::sleep_for(std::chrono::milliseconds(1));
   terminalNow();held.unlock();cleanup.join();
  }else{

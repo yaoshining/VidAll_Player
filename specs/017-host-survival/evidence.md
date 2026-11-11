@@ -63,3 +63,20 @@ NAPI 与 ArkTS 的 preserve-host 已贯通：真实入口切片覆盖旧/新配�
 以重建源码执行原 #89 音频中断测试：保留全部既有断言，接入真实恢复登记模块和新的释放返回值，再增加退休音频忽略中断断言，通过。#84 真实 Load/Stop/完成事件测试通过。本轮 HAR 已完成本地 ArkTS/native 编译；首次因匿名对象类型不符合 ArkTS 规范失败，改为命名 PlayerRecoveryStatus 后通过。此 HAR 仍含旧 libmpv，所以 preserve-host 会明确返回 RUNTIME_RECOVERY_UNAVAILABLE，不能交给 TV 当作新恢复产物。
 
 仍缺：可靠故障会话/媒体归属、创建执行与跨环境生命周期、音频回调/释放更完整竞争验证、正式核心来源锁和交付更新、iMac CI HAR、目标设备恢复音画。没有 PR、没有新 CI HAR、没有 API 19 TV 通过结论。
+
+
+## 跨环境、创建竞争与恢复容量
+
+2026-11-11：gate-10 至 gate-14 的完整宿主门禁均通过；最新 gate-14 为 66 项，包含真实 NAPI 配置/创建/释放入口、父级保护与负向变异检查。本轮 MacBook Pro / arm64 本地 ArkTS/native 构建通过，未产生 CI 交付。
+
+T020：环境 A/B 归属、同地址新环境、旧清理不得删除新登记、跨环境句柄拒绝、初始化中清理及迟到创建不发布通过。回调清理使用 ASan/UBSan，旧环境排队事件不得进入 JS，其他环境仍可投递。异步 complete 的早退曾漏掉 napi_delete_async_work，新增计数断言复现后修复；现在只归还 native work，不访问关闭环境的 Promise。
+
+T021：create-timeout 红测曾阻塞超过 10 秒；mpv_create/Initialize 改为独立有界执行，5 秒返回且迟到对象不发布。已发布但未交付的创建被取消时收回 handle。ArkTS 捕获的运行代作为第六参数传到 NAPI，排队期间和跨桥调用期间退休均不得创建不匹配的新代。configure-timeout 红测超过 8 秒；使用全进程单配置执行器后 5 秒返回，其他请求保持可处理，真正完成后可重试。旧五参数创建调用仍兼容。
+
+T022：occupied-compatible-pool 红测失败；此前两个旧兼容会话占满新代恢复名额。改为标准 6、旧兼容 2、新恢复 2，恢复额度只由终局后固定代的新兼容会话申请。旧兼容两个均保留时仍能新建两个恢复会话，第三个明确 SESSION_RESOURCE_LIMIT；新代正常释放后额度可复用，旧代没有被强制释放。
+
+设备查询当前无连接设备；本地列有已停止的 API 19 TV 模拟器，尚未运行本轮验证。上述宿主替身测试不证明设备音画或系统焦点，也不证明新核心已随 HAR 交付。
+
+## 音频数据回调竞争补测
+
+以独立 mpv 源副本应用实际补丁，audio-data.test.py 在 ASan/UBSan 下运行真实 audio_on_write_callback。新增 during-query 先因时间戳 IPC 返回后仍调用旧 ao_read_data 失败；补退休检查后，normal、retired、retired-u8、during-read、during-query、fresh 六例通过。audio-control.test.py 对实际停止/暂停/恢复函数复验通过。该补丁变化尚未重新完整链接 mpv；前述本地 libmpv 哈希对应较早草案，不能代表此次变化。仍需初始化与释放更完整竞争验证、正式来源绑定、可靠故障归属、CI 和设备验收。

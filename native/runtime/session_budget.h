@@ -7,14 +7,15 @@ namespace vidall::runtime {
 class SessionBudget {
     inline static std::atomic<unsigned> standard_{0};
     inline static std::atomic<unsigned> compatible_{0};
+    inline static std::atomic<unsigned> recovery_{0};
     std::atomic<unsigned>& pool_;
     explicit SessionBudget(std::atomic<unsigned>& pool) : pool_(pool) {}
 public:
     SessionBudget(const SessionBudget&) = delete;
     SessionBudget& operator=(const SessionBudget&) = delete;
     ~SessionBudget() { --pool_; }
-    static std::shared_ptr<SessionBudget> Acquire(bool compatible) {
-        auto& pool = compatible ? compatible_ : standard_;
+    static std::shared_ptr<SessionBudget> Acquire(bool compatible, bool recovery = false) {
+        auto& pool = compatible ? (recovery ? recovery_ : compatible_) : standard_;
         const unsigned limit = compatible ? 2 : 6;
         unsigned used = pool.load();
         do { if (used >= limit) return {}; }

@@ -6,12 +6,19 @@ using vidall::runtime::SessionIsolation;
 using namespace std::chrono_literals;
 int main(){
  using Pool=SessionIsolation::Pool;
+ auto configuration=SessionIsolation::Acquire(Pool::Runtime);
+ assert(configuration&&!SessionIsolation::Acquire(Pool::Runtime));
  std::vector<std::shared_ptr<SessionIsolation>> ordinary;
  for(int i=0;i<6;i++){auto s=SessionIsolation::Acquire(Pool::Standard);assert(s);ordinary.push_back(s);}
  assert(!SessionIsolation::Acquire(Pool::Standard));
  auto compatibility=SessionIsolation::Acquire(Pool::Compatible);
  auto spare=SessionIsolation::Acquire(Pool::Compatible);
  assert(compatibility&&spare&&!SessionIsolation::Acquire(Pool::Compatible));
+ auto recovery=SessionIsolation::Acquire(Pool::Recovery);
+ auto recoverySpare=SessionIsolation::Acquire(Pool::Recovery);
+ assert(recovery&&recoverySpare&&!SessionIsolation::Acquire(Pool::Recovery));
+ assert(recovery->Run([]{},200ms));
+ assert(!SessionIsolation::Acquire(Pool::Compatible));
  auto hardware=SessionIsolation::Acquire();assert(hardware);
  std::promise<void> unblock,entered;
  auto gate=unblock.get_future().share();

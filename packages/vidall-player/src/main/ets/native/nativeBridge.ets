@@ -349,5 +349,5 @@ export function createNativePlayerBridge(subtitleFontsDir?: string, hardwareDeco
   if (playbackMode !== 'standard' && playbackMode !== 'compatible') throw new Error('INVALID_PLAYBACK_MODE');
   return new HarNativePlayerBridge(nativeSession.createSession(
     subtitleFontsDir ?? '', playbackMode === 'compatible' ? 'no' : resolveHardwareDecoding(hardwareDecoding),
-    resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak), playbackMode), generation, compatible);
+    resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak), playbackMode, generation), generation, compatible);
 }

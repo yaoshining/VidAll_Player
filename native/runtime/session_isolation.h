@@ -15,7 +15,7 @@ namespace vidall::runtime {
 // 一个名额覆盖整个 mpv 实例及其工作线程，直到正常析构完成。
 class SessionIsolation {
 public:
-    enum class Pool { Hardware, Standard, Compatible };
+    enum class Pool { Hardware, Standard, Compatible, Recovery, Runtime };
 private:
     struct Job {
         std::function<void()> work;
@@ -38,7 +38,7 @@ private:
         bool quarantined = false;
         bool stopping = false;
     };
-    inline static std::atomic<unsigned> slots_[3]{};
+    inline static std::atomic<unsigned> slots_[5]{};
     std::shared_ptr<State> state_;
     explicit SessionIsolation(std::shared_ptr<State> state) : state_(std::move(state)) {}
 
@@ -71,8 +71,8 @@ private:
 public:
     static std::shared_ptr<SessionIsolation> Acquire(Pool pool = Pool::Hardware) {
         const unsigned index = static_cast<unsigned>(pool);
-        if (index >= 3) return {};
-        const unsigned limit = pool == Pool::Standard ? 6 : 2;
+        if (index >= 5) return {};
+        const unsigned limit = pool == Pool::Runtime ? 1 : pool == Pool::Standard ? 6 : 2;
         auto& slots = slots_[index];
         unsigned used = slots.load();
         do {
