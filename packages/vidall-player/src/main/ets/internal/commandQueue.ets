@@ -1,9 +1,9 @@
-import { lifecycleFailure } from './playerFailure';
+import { lifecycleFailure, PlayerFailure } from './playerFailure';
 
 class PendingCommand {
   readonly resolve: () => void;
-  readonly reject: (error: Error) => void;
-  constructor(resolve: () => void, reject: (error: Error) => void) {
+  readonly reject: (error: Error | PlayerFailure) => void;
+  constructor(resolve: () => void, reject: (error: Error | PlayerFailure) => void) {
     this.resolve = resolve;
     this.reject = reject;
   }
@@ -11,7 +11,7 @@ class PendingCommand {
 
 export class CommandQueue {
   private tail: Promise<void> = Promise.resolve();
-  private closedError?: Error;
+  private closedError?: Error | PlayerFailure;
   private readonly pending: Set<PendingCommand> = new Set();
 
   enqueue(operation: () => Promise<void>): Promise<void> {
@@ -37,7 +37,7 @@ export class CommandQueue {
     });
   }
 
-  close(error: Error = lifecycleFailure('RELEASED', 'Player session has been released.')): void {
+  close(error: Error | PlayerFailure = lifecycleFailure('RELEASED', 'Player session has been released.')): void {
     if (this.closedError !== undefined) return;
     this.closedError = error;
     // 只结束调用方等待；原生在途任务及其资源仍由原生命周期持有。

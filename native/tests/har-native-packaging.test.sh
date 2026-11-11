@@ -33,7 +33,7 @@ require_contains "$SOURCE" 'mpv_initialize'
 require_contains "$SOURCE" 'CreateSession'
 require_contains "$SOURCE" 'ReleaseSession'
 require_contains "$MANIFEST" '"name": "libvidall_player_native.so"'
-require_contains "$TYPES" 'createSession(fontsDir?: string, hwdec?: string, toneMapping?: string, hdrComputePeak?: string): Promise<NativeSessionResult>;'
+require_contains "$TYPES" "createSession(fontsDir?: string, hwdec?: string, toneMapping?: string, hdrComputePeak?: string, playbackMode?: 'standard' | 'compatible', runtimeGeneration?: number): Promise<NativeSessionResult>;"
 require_contains "$TYPES" 'releaseSession(handle: number): Promise<NativeSessionResult>;'
 require_contains "$BRIDGE" "from 'libvidall_player_native.so'"
 NATIVE_BRIDGE="$ROOT/packages/vidall-player/src/main/ets/native/nativeBridge.ets"

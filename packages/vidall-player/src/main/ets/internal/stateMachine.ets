@@ -90,7 +90,9 @@ export class SessionStateMachine {
     event.sequence = this.sequence;
     event.eventEpoch = this.eventEpoch;
     const listeners = this.listeners.slice();
-    for (let index = 0; index < listeners.length; index++) { listeners[index](event); }
+    for (let index = 0; index < listeners.length; index++) {
+      try { listeners[index](event); } catch (_) { console.error('VidAllPlayer: player event listener failed'); }
+    }
   }
 
   enterTerminal(): void {

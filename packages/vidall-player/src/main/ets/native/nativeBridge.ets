@@ -50,6 +50,7 @@ export interface NativePlayerBridge {
 }
 
 function nativeFailure(result: NativeSessionResult): PlayerFailure {
+  const eventFailure = result.code === 'PLAYER_EVENT_QUEUE_FULL' || result.code === 'CALLBACK_RESOURCE_LIMIT';
   const backendUnavailable = result.code === 'RENDER_BACKEND_UNAVAILABLE';
   const renderFailure = result.code === 'SURFACE_UNAVAILABLE' || backendUnavailable;
   const inputFailure = result.code === 'INPUT_INVALID';
@@ -57,7 +58,7 @@ function nativeFailure(result: NativeSessionResult): PlayerFailure {
   return new PlayerFailure({
     domain: renderFailure ? 'render' : (inputFailure ? 'input' : (released ? 'lifecycle' : 'native')),
     code: result.code,
-    message: backendUnavailable ? '当前设备没有可用的 MPV 渲染后端。' :
+    message: eventFailure ? '播放器事件处理失败，请释放会话后重新打开视频。' : backendUnavailable ? '当前设备没有可用的 MPV 渲染后端。' :
       (renderFailure ? '当前没有可用的 XComponent 画面。' :
       (inputFailure ? '原生播放器参数无效。' :
         (released ? '播放器会话已释放。' : 'libmpv 原生操作失败。'))),
@@ -153,7 +154,9 @@ class HarNativePlayerBridge implements NativePlayerBridge {
         this.requireResult(nativeSession.setEventCallback(this.handle, (event: NativePlayerEvent): void => {
         if (this.released || playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) return;
         const listeners = this.listeners.slice();
-        for (let index = 0; index < listeners.length; index++) listeners[index](event);
+        for (let index = 0; index < listeners.length; index++) {
+          try { listeners[index](event); } catch (_) { console.error('VidAllPlayer: native event listener failed'); }
+        }
         }));
       } catch (error) {
         // 非终局的半创建失败由真正的 native release 回收；终局保留整个对象。

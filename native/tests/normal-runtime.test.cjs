@@ -34,7 +34,50 @@ const tick=()=>new Promise(r=>setImmediate(r));
 async function bounded(p){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error('TEST_TIMEOUT')),150))]);}
 async function main(){
   const which=process.argv[2];
-  if(which==='terminal-listener-lifetime') {
+  if(which.startsWith('terminal-publication-')) {
+    const preserve=which.endsWith('preserve');
+    const reentrant=which.includes('reentrant');
+    let poll,clears=0,reads=0,terminal;
+    global.setInterval=fn=>{poll=fn;return 47;};
+    global.clearInterval=id=>{assert.equal(id,47);clears++;};
+    native.getRuntimeStatus=()=>{reads++;return JSON.stringify({state,terminal,recovery,faults});};
+    const context={filesDir:'/private/app',resourceManager:{getRawFileContent:async()=>new TextEncoder().encode('[global]\nclient min protocol = SMB2_02\n')}};
+    await runtime.initializePlayerRuntime(context,{terminalPolicy:preserve?'preserve-host':'controlled-app-exit',deadlineMs:3000});
+    const bridge=new Proxy({subscribe:()=>()=>{},attachSurface:()=>new Promise(()=>{})}, {get:(o,k)=>o[k]||(()=>Promise.resolve())});
+    const player=new PlayerSession(undefined,bridge);
+    const rejected=assert.rejects(bounded(player.attachSurface({componentId:'s',generation:1,width:1,height:1})),/PLAYER_TERMINAL/);
+    const initial={stage:0,platformError:0,firstObservedMs:0,deadlineMs:3000,ownerTag:'0',attribution:{state:'unknown'}};
+    const complete={stage:2,platformError:-7,firstObservedMs:123,deadlineMs:3000,ownerTag:'5',attribution:{state:'known',sessionId:'17',loadGeneration:'4'}};
+    const early=[],late=[];let nested=0;
+    runtime.onPlayerTerminal(info=>{
+      early.push(info);
+      if(reentrant) {
+        terminal=complete;
+        const refreshed=runtime.getPlayerRuntimeStatus();
+        assert.equal(refreshed.terminal.firstObservedMs,123);
+        runtime.onPlayerTerminal(info=>{nested++;late.push(info);});
+      } else runtime.getPlayerRuntimeStatus();
+    });
+    runtime.onPlayerTerminal(()=>{throw Error('监听者失败不得阻止发布');});
+    state='terminal';terminal=initial;
+    if(preserve)recovery={state:'pending',generation:0};
+    poll();await rejected;
+    assert.equal(player.stateMachine.getState(),'error','元数据未发布也要立即终止旧会话');
+    assert.equal(early.length,1);assert.equal(early[0].firstObservedMs,0);
+    if(!reentrant)assert.equal(clears,0,'不完整元数据不能停止 controlled 策略的后续观察');
+    terminal=complete;faults=[{sequence:1,kind:'process-terminal',stage:2,platformError:-7,attribution:complete.attribution}];
+    if(preserve)recovery={state:'ready',generation:2};
+    poll();
+    const after=runtime.getPlayerRuntimeStatus();
+    assert.deepEqual(after.terminal,complete,'已发布的完整记录必须更新暂态缓存');
+    assert.equal(early.length,1,'同一监听者不得重复收到终局');
+    runtime.onPlayerTerminal(info=>{late.push(info);assert.deepEqual(runtime.getPlayerRuntimeStatus().terminal,complete);});
+    assert.equal(late.length,reentrant?2:1);assert(late.every(info=>info.firstObservedMs===123));
+    assert.equal(nested,reentrant?1:0);assert.equal(runtime.testTerminalListenerCount(),0);
+    assert.equal(clears,preserve?0:1);
+    const lastReads=reads;runtime.getPlayerRuntimeStatus();
+    assert.equal(reads,preserve?lastReads+1:lastReads,'controlled 完整记录才可停止原生读取');
+  } else if(which==='terminal-listener-lifetime') {
     state='ready';recovery={state:'pending',generation:0};let a=0,b=0,c=0;
     const off=runtime.onPlayerTerminal(()=>{throw Error('已取消订阅不应执行');});off();off();
     runtime.onPlayerTerminal(()=>{a++;runtime.onPlayerTerminal(()=>c++);runtime.getPlayerRuntimeStatus();});

@@ -2,6 +2,7 @@
 #define OH_LOG_Print(...) ((void)0)
 #include "session_isolation.h"
 #include "environment_lifetime.h"
+#include "event_mailbox.h"
 #include "../render/render_backend_policy.h"
 #include <mpv/ohcodec_terminal.h>
 #include <libavformat/ohcodec_smb_runtime.h>
@@ -51,6 +52,9 @@ public:
  // 最先声明、最后销毁：等待后台析构真实完成再结束正常路径测试进程。
  struct DestructionMarker { ~DestructionMarker(){destructionDone=true;} } destructionMarker_;
  std::shared_ptr<std::atomic<bool>> callbackOpen_;
+ struct CallbackEvent { std::string type, message; };
+ std::shared_ptr<vidall::runtime::EventMailbox<CallbackEvent>> callbackMailbox_ =
+     vidall::runtime::EventMailbox<CallbackEvent>::Acquire();
  std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment_=vidall::runtime::EnvironmentLifetime::Current(nullptr);
  auto Environment()const{return environment_;}
  std::shared_ptr<vidall::runtime::SessionIsolation> isolation_, executor_;

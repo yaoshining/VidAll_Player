@@ -29,8 +29,8 @@
     },
     {
       "path": "arm64-v8a/libmpv.so",
-      "sha256": "814e4f02ced52a15a213fd9a0c54f37ffbbe6ca466df758bd04ab0a9fa901beb",
-      "size": 15723928
+      "sha256": "46cd4112ac963a935773d70fe8fec4254753c9ceade6f546c6433c40318815e7",
+      "size": 15723688
     },
     {
       "path": "arm64-v8a/libc++_shared.so",
@@ -83,23 +83,23 @@
   "evidence": [
     {
       "path": "provenance/mpv-run-summary.json",
-      "sha256": "9a3d17fcdecd5bd222b576cc4914fd172d129d5b5a29db9a94f2eca36f235bc4",
-      "size": 148434
+      "sha256": "bf1dcc11449688d7f432db46861a0c738a3291983d3e739be27ec2f6c59696c7",
+      "size": 148430
     },
     {
       "path": "provenance/mpv-link-inputs.json",
-      "sha256": "739cc91fe319ead5796016b352260faf86fd915d50593b587f3383ec9ed87e9a",
+      "sha256": "680ca3ac18b9fbe928c2f3cb38e36c9ce8db440100f2a87a782ac8f562f7b3e9",
       "size": 38773
     },
     {
       "path": "provenance/mpv-build-profile.json",
-      "sha256": "965a99bba58f02d94cc4e5322af7711e128f7cf8f8dbd06886a3abf81f40623f",
-      "size": 393
+      "sha256": "67c98ac8510b6c499b4aca02e75e9ecf7d7e55b3a67464078303f8efb4fa104a",
+      "size": 391
     },
     {
       "path": "provenance/mpv-script-identity.json",
-      "sha256": "2535d0774883c9ee52fede859f465f481d5d73840d9668586f3d7131ca465dfd",
-      "size": 699
+      "sha256": "08a9953c89514ef1db0e999514671b42cbed08e5c7ba6c8ed89f575b3a39e2f5",
+      "size": 695
     },
     {
       "path": "provenance/mpv-tools.json",
@@ -108,12 +108,12 @@
     },
     {
       "path": "provenance/normal-compile-binding.json",
-      "sha256": "ea65a811b87e04fa2a44d3b2beb0e5dc49fb0f99fec22f4a394adf15a42faebb",
-      "size": 30340
+      "sha256": "f61bc9b4abeef71b6ab5606ec15b1d508ca66e9f0394f760f04ff39b1009a407",
+      "size": 30098
     },
     {
       "path": "provenance/source-lock.json",
-      "sha256": "cd73631ba35e73d779a98c1a58735fd70c397ee351e7ded8fc1e0b0014ff450a",
+      "sha256": "4b98249e47504e3306aec54fa46d17e9dd61e9cd95c2cdc82443696598252663",
       "size": 2900480
     },
     {
@@ -123,7 +123,7 @@
     },
     {
       "path": "provenance/normal-library-binding.json",
-      "sha256": "862e36a9c19eb3e9dcd22e58f51fb10ec0e3cf2b4b785c10622327356737d89e",
+      "sha256": "d2a257aa24e46b91d46f6b1936a0ff082b4007d9d06745dc8763ad45f795ecaf",
       "size": 718
     },
     {
@@ -148,13 +148,13 @@
     },
     {
       "path": "provenance/host-recovery-input.json",
-      "sha256": "a25e7a759d3dfbee046fe66b317af4cce27abf622655d73748f45ee19931ec14",
-      "size": 1818
+      "sha256": "fab831235512a500fce87eff1a0ade6230febf45dff333fe057b3f46f792e946",
+      "size": 1996
     },
     {
       "path": "provenance/host-recovery-static-validation.json",
-      "sha256": "b9cd2c2ecd0ae075c035e28e40cce98bd96b5eac7bd4310fce9b43f0c349560b",
-      "size": 25894
+      "sha256": "3269a17617ba0aa75cb6638f0563201dbe10b702f1a26c39bf893a19afd34b70",
+      "size": 25874
     },
     {
       "path": "provenance/host-recovery-input-check.json",

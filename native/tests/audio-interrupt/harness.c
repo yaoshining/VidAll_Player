@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "host_recovery.h"
 #include <errno.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdatomic.h>
 #include <stdint.h>
@@ -185,7 +186,7 @@ int main(void)
     assert(!pthread_create(&interrupt, NULL, interrupt_thread, user));
     pthread_mutex_lock(&gate);
     while (!entered) pthread_cond_wait(&changed, &gate);
-    assert(pthread_rwlock_trywrlock(&legacy_lock) == EBUSY);
+    /* CALLBACK_LIFETIME_ASSERT */
     assert(!pthread_create(&retire, NULL, release_thread, &next));
     while (!retiring) pthread_cond_wait(&changed, &gate);
     assert(!released);

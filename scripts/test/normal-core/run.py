@@ -47,7 +47,7 @@ def main():
     run('typescript-version', ['node', '-e', 'const t=require(process.env.TYPESCRIPT_PATH); console.log(t.version); if(t.version!=="5.6.3")process.exit(1)'])
     run('input-audit', py+['scripts/audit/normal-core-verify.py'])
     run('input-mutations', py+['native/tests/normal-core-input.test.py'])
-    ets_cases = ['terminal-listener-lifetime', 'failed-release-listener', 'pending-release-listener', 'fault-notifications', 'constructor-terminal-replay', 'host-recovery', 'unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
+    ets_cases = ['terminal-publication-preserve', 'terminal-publication-controlled', 'terminal-publication-reentrant-preserve', 'terminal-publication-reentrant-controlled', 'terminal-listener-lifetime', 'failed-release-listener', 'pending-release-listener', 'fault-notifications', 'constructor-terminal-replay', 'host-recovery', 'unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
     for case in ets_cases:
         run('ets-'+case, ['node', 'native/tests/normal-runtime.test.cjs', case])
     for case in ['switch', 'queue-failed', 'callback-failed', 'terminal-in-callback', 'invalid', 'legacy']:
@@ -59,6 +59,7 @@ def main():
     if run('audio-domain-compile', ['clang', '-std=c11', '-pthread', '-Wall', '-Wextra', '-Werror', '-Inative/mpv', 'native/tests/host-survival/audio-domain.test.c', 'native/mpv/host_recovery.c', '-o', work/'audio-domain']):
         run('audio-domain', [work/'audio-domain'])
     run('bounded-command-queue', ['node', 'native/tests/host-survival/queue.test.cjs'])
+    run('bounded-event-delivery', ['node', 'native/tests/host-survival/event-overflow.test.cjs'])
     run('compatible-playback', ['node', 'native/tests/host-survival/compatible.test.cjs'])
     run('diagnostics-session', ['node', 'native/tests/diagnostics-session.test.cjs'])
     run('diagnostics-probe-contract', ['node', 'native/tests/diagnostics-device.test.cjs'])

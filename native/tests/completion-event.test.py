@@ -78,6 +78,10 @@ LOAD
 @@STOP@@
 void process(mpv_event* event){do { @@REPLY@@ @@END_BLOCK@@ } while(false);}
 
+void QueueEventLocked(const std::string&type,const std::string&message,uint64_t epoch){
+ auto* event=new Event{type,message,epoch,++eventSequence_,generation_.load(),isolation_,callbackOpen_,runtimeGeneration_,compatible_,environment_};
+ napi_call_threadsafe_function(eventTsfn_,event,napi_tsfn_nonblocking);
+}
 int napi_call_threadsafe_function(void*,Event* event,int){std::unique_lock<std::mutex> lk(testMutex);if(block){entered=true;cv.notify_all();cv.wait(lk,[&]{return unblock;});}if(verifyOrder)assert(preparing);if(event->message=="completed")sent.push_back({event->epoch,event->generation});else errors.push_back(event->epoch);delete event;return napi_ok;}
 METHODS
 void reply(uint64_t request,int64_t id,int error=0){mpv_node value{};value.format=MPV_FORMAT_INT64;value.u.int64=id;char key[]="playlist_entry_id";char* keys[]={key};mpv_node_list list{1,&value,keys};mpv_event_command command{};command.result.format=MPV_FORMAT_NODE_MAP;command.result.u.list=&list;mpv_event event{};event.event_id=MPV_EVENT_COMMAND_REPLY;event.reply_userdata=request;event.error=error;event.data=&command;process(&event);}

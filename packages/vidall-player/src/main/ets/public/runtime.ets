@@ -14,6 +14,7 @@ export interface PlayerFaultAttribution {
 export interface PlayerTerminalInfo {
   stage: number;
   platformError: number;
+  // 0 表示已观察到终局但元数据尚在发布；之后可通过状态快照读取完整记录。
   firstObservedMs: number;
   deadlineMs: number;
   ownerTag: string;
@@ -72,9 +73,15 @@ let pending: Promise<PlayerRuntimeStatus> | undefined;
 let timer: number = -1;
 let preserveHost: boolean = false;
 let cachedTerminal: PlayerTerminalInfo | undefined;
+function terminalPublished(info: PlayerTerminalInfo): boolean {
+  // 原生先关闭旧代准入，再发布元数据；0 表示首写者尚未完成快照。
+  return info.firstObservedMs > 0;
+}
 function notify(info: PlayerTerminalInfo): void {
-  if (cachedTerminal === undefined) cachedTerminal = info;
-  if (!preserveHost && timer >= 0) { clearInterval(timer); timer = -1; }
+  if (cachedTerminal === undefined || (!terminalPublished(cachedTerminal) && terminalPublished(info))) {
+    cachedTerminal = info;
+  }
+  if (!preserveHost && terminalPublished(cachedTerminal) && timer >= 0) { clearInterval(timer); timer = -1; }
   // 全局终局不可复位；投递前移走本批，避免旧 Player 被全局表持有。
   const current = listeners.splice(0);
   for (const listener of current) {
@@ -88,12 +95,16 @@ function notify(info: PlayerTerminalInfo): void {
   }
 }
 export function getPlayerRuntimeStatus(): PlayerRuntimeStatus {
-  if (cachedTerminal !== undefined && !preserveHost) return { state: 'terminal', terminal: cachedTerminal };
+  if (cachedTerminal !== undefined && terminalPublished(cachedTerminal) && !preserveHost) {
+    return { state: 'terminal', terminal: cachedTerminal };
+  }
   const status = JSON.parse(nativeSession.getRuntimeStatus()) as PlayerRuntimeStatus;
   if (status.recovery !== undefined) preserveHost = true;
   notifyFaults(status.faults);
   if (status.terminal !== undefined) {
-    if (cachedTerminal === undefined) notify(status.terminal);
+    if (cachedTerminal === undefined || (!terminalPublished(cachedTerminal) && terminalPublished(status.terminal))) {
+      notify(status.terminal);
+    }
     status.terminal = cachedTerminal;
   }
   return status;

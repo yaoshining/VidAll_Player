@@ -1,0 +1,35 @@
+{
+  "description": "仅供宿主音频测试；最终摘要与 Spec 017 已构建 mpv 输入逐文件一致，不重建 FFmpeg 或核心。",
+  "upstreamCommit": "6edeee00a07b9b76f197aa71eee3d029fb090de4",
+  "mpvLibrarySHA256": "46cd4112ac963a935773d70fe8fec4254753c9ceade6f546c6433c40318815e7",
+  "files": {
+    "audio/out/ao_ohaudio.c": {
+      "baselineSHA256": "a3e83b8746711bfd2e3e18cb6c15bf3f98338b913b0b1c5230ef677f5a1d973a",
+      "patchedSHA256": "2bfe14e207371a1c7a30805582302b35b9b6550c47a80340b7c79f8980e861cc"
+    },
+    "audio/out/ao.c": {
+      "baselineSHA256": "ba8afa85c6626c0869228df832a164881742258d3f5670fdb18b730b380ae59b",
+      "patchedSHA256": "54a762b476433828479966cca06add7694089342f87d84baf35eb4dab2e3cc45"
+    },
+    "player/audio.c": {
+      "baselineSHA256": "6ab689827cb918eb4dd0a323892f3ab8a117223f06bca979196ffea4b9d61afe",
+      "patchedSHA256": "58e160bdf1e23a1f839ffa33e2b4ffad8b909d6b2672769dbffa2b5b151a3b54"
+    },
+    "player/playloop.c": {
+      "baselineSHA256": "724bc9665ab950772139476d769e7f1449fd8c53c13cdd3af67f726f1cd8883f",
+      "patchedSHA256": "5051d6ea5e64a3e7ac7a5741b22b3a1ad5ce0a4886f053c1acbb5ae7ff5b1609"
+    },
+    "player/loadfile.c": {
+      "baselineSHA256": "08ba89fce329fe22f2226f53af92300be9bb5073c6a4526b646f029cbab26e2e",
+      "patchedSHA256": "27e8f362321d27ac33c9f453eb0690abc2f9bfb9b31c07e1144dd01a4fff7bbf"
+    },
+    "player/command.c": {
+      "baselineSHA256": "4058b34e8bc23eee4f3db965e164790eaec57ffac1f7e3112806b0726a7ecc21",
+      "patchedSHA256": "2c7031dd7845752f431cb759dc459156aac7506c9f45a9fa8fb1704e3811525e"
+    },
+    "player/screenshot.c": {
+      "baselineSHA256": "f7b3cea7e6f86b3dca76e6fccbcff65c8d82d49f83dc61c602ca7d22f5369bf4",
+      "patchedSHA256": "d447c7e0670d62bcb03d130379873709ca5d4d4e550fc5f94f373baab8238647"
+    }
+  }
+}

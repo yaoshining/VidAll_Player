@@ -2,7 +2,7 @@
   "profile": "stable-target-prefix-macro-map-origin-staging",
   "stablePrefix": "/usr/local",
   "ffmpegRelative": "mpv/source/_staged/ffmpeg",
-  "artifact": "/private/tmp/vidall-host-recovery-locked-build/install/usr/local/lib/libmpv.so",
+  "artifact": "/private/tmp/vidall-host-recovery-t032-build/install/usr/local/lib/libmpv.so",
   "ohcodecLifecycleExperiment": false,
   "ohcodecDiagnostic": false,
   "testReturnReplacement": false,

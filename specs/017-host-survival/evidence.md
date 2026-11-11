@@ -146,3 +146,26 @@ Actions [43014565922](https://github.com/yaoshining/VidAll_Player/actions/runs/4
 核对本地诊断包时发现 PID 15071 的 default 目标还附带两个 x86_64 探针；原 JSON 保留实际十一库并补充说明，不宣称支持 x86_64 播放。改为 deveco26 目标后，PID 20503 的独立诊断 HAP 确认为 ARM64 九库，终局后的新代续播/释放重开仍通过，见 api19-injected-global-deveco26.json。正式 CI 一直使用 deveco26，未受该本地诊断目标误选影响。
 
 后续提交只补充这些证据与构建说明，不改变 ccd253a 的产品代码、测试或原生输入。目标 OHCodec/Vulkan 真机、可听音频、系统打断/焦点、硬件连续隔离上限及 TV 正式文件入口仍未验收。平台 Stop 永久卡住时不能安全开放恢复代的问题仍是明确限制，未将 R3 改成“只保活、不续播”。
+
+
+## PR 工作流预跑与 T031 静态合同修正
+
+本地预跑主 PR 工作流的 27 组合同测试，26 组通过；har-native-packaging.test.py 的静态门禁失败，仍硬编码旧四参数 createSession 声明。先保留该红测，并扩展负向变异，随后修正为当前可选 playbackMode/runtimeGeneration 合同。8 个归档/ELF/静态测试全部通过，仍拒绝同步返回、删除恢复参数及将可选扩展改成必填。证据在 /tmp/vidall-host-survival-pre-pr-contracts/summary.json 与 /tmp/vidall-host-survival-har-contract-red.log；这是本地工作流预检，不是 GitHub 已执行该 job。
+
+同轮实际 Vulkan 尺寸测试 20 例和 GL 重绘平台替身测试通过。旧 14 项 CTest + 2 项 JS 的封装脚本因正在修改的 tracked 工作区不干净而主动拒绝，尚未运行；没有跳过源树一致性门禁，待本轮代码提交后复验。
+
+
+可用设备能力复核：使用 ccd253a CI 原始 HAR，仅把独立探针的播放模式改为 standard，API 19 TV 模拟器同一 PID 25923 完成坏片返回、正常首帧、暂停恢复、seek 和释放重开，firstFrames=2/errors=0。实际 diagnostics 仍为 software/no，符合模拟器缺少 vendor GPU 栈时的选择；不能证明 OHCodec/Vulkan，也不代表尚在修改的 T029/T030 新包。哈希与日志见 device-evidence/api19-ci-standard-ccd253a.json。
+
+
+## T030–T032 本地收尾（2026-11-11）
+
+T030 实际回调 ASan/UBSan 19 例、队列溢出后的实际 NAPI 准入/释放、跨媒体 epoch 失败及监听者异常隔离通过；独立只读复核未发现新增明确缺陷，见 resource-audit.md。目标 ArkTS 首轮因 PlayerFailure 传入 Error 参数触发结构类型限制，改为显式 Error | PlayerFailure 联合后，原队列/事件回归和 deveco26 HAR 编译通过；没有添加强制转换或降低编译检查。
+
+首次完整宿主门禁共 90 项，85 项通过，父级链和三组负向变异及其汇总因旧夹具未声明 callbackMailbox_ 编译失败。已用真实 EventMailbox 补齐夹具，保留原销毁保护、86 退出期限及负向断言；随后完整复跑结果另列。
+
+T032 新增 0006-isolate-legacy-audio-callbacks.patch（SHA-256 d35a126644500e410e79b81fcea80e5f5536ec524e07083ade489f99ebe1893e），只改变 Player mpv 的旧音频回调登记。从封存基线完整派生输入，清洁目录重建 mpv/libplacebo，FFmpeg 使用原预编译 SDK且六库不变。输入清单 SHA-256 0ccb801d27b802ea05b97cfff114d01768562b18b2fe2cfe97cfc675f477fb80；新 libmpv SHA-256 46cd4112ac963a935773d70fe8fec4254753c9ceade6f546c6433c40318815e7，64 个导出及恢复 ABI 不变；libplacebo 静态库哈希不变。机器仍为 MacBook Pro / Darwin arm64，这不是最终 iMac CI HAR。
+
+完整构建的输入不变、实际编译命令、链接输入、静态验证和来源锁已更新，normal-core-verify --verify-external 与 31 个输入正负例通过；本地 deveco26 HAR 编译通过。producer 输入门禁先拒绝新哈希，核对上述完整目标构建及冻结补丁后才更新精确锁，继续保留“未来输入变化拒绝”与“未验证最新完整云端重建”的标记，未放宽规则。
+
+T032 最终本地统一门禁：`/tmp/vidall-host-survival-host-gate-t032/work/summary.json` 共 90 项全部通过，含父级真实关闭链、三组负向变异及公开日志检查；当前完整 HAR 含 ARM64 九库，libmpv 为上述新哈希。旧 14 项 CTest/2 项 JS 要求干净提交快照，将在提交后执行，尚未将其写为通过。

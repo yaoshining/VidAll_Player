@@ -18,7 +18,7 @@ const player = createPlayer();
 
 `deadlineMs` 是 1000–10000 ms 的整数。preserve-host 下它只决定等待状态是否显示为 timeout，不调用 `_Exit`，也不解除全局硬解安全锁。必须使用包含恢复 ABI `0x00020000` 的完整 HAR；旧核心或缺失接口会返回 `RUNTIME_RECOVERY_UNAVAILABLE`，不会偷偷切回退出策略。初始化同配置幂等、不同配置拒绝。
 
-`onPlayerTerminal` 是进程内一次性通知，投递后自动移除；终局后的订阅同步重放且不长期持有闭包。普通 `onPlayerFault` 仍须由宿主显式取消订阅。`onPlayerTerminal` 用于更新失败状态和导航，**不要调用 killAllProcesses**。终局后旧实例不可再用；释放/放弃旧实例不等待尚未确认安全的 GPU 资源。`getPlayerRuntimeStatus()` 的 state 保持 terminal，recovery.state 独立表示：pending 等待旧音频停止；timeout 超过观察期限但继续保留资源；ready 已确认旧音频停止。ready 后用 `createPlayer({ playbackMode: 'compatible' })` 创建新实例并附加新 Surface。普通模式在本次进程中始终拒绝新建；重启进程后未标记视频重新优先硬解。
+`onPlayerTerminal` 是进程内一次性通知，投递后自动移除；终局后的订阅同步重放且不长期持有闭包。刚观察到终局时，完整记录可能尚未发布（firstObservedMs 为 0），该通知立即关闭旧操作；后续状态查询会更新为完整记录，但不重复通知原订阅者。媒体标记应使用 onPlayerFault 的可靠归属，而不是用暂态通知猜测。普通 `onPlayerFault` 仍须由宿主显式取消订阅。`onPlayerTerminal` 用于更新失败状态和导航，**不要调用 killAllProcesses**。终局后旧实例不可再用；释放/放弃旧实例不等待尚未确认安全的 GPU 资源。`getPlayerRuntimeStatus()` 的 state 保持 terminal，recovery.state 独立表示：pending 等待旧音频停止；timeout 超过观察期限但继续保留资源；ready 已确认旧音频停止。ready 后用 `createPlayer({ playbackMode: 'compatible' })` 创建新实例并附加新 Surface。普通模式在本次进程中始终拒绝新建；重启进程后未标记视频重新优先硬解。
 
 compatible 强制软件解码与软件渲染，绕过 Vulkan/EGL/OHCodec interop。原 `hardwareDecoding: 'disabled'` 只控制解码器，不等于兼容恢复。新实例仍按既有事件合同加载、等待准备、播放及释放；恢复成功须以实际首帧与音频确认，不能仅凭 create/load Promise 成功显示“已切换兼容模式”。若旧音频平台 Stop 永久不返回或不能确认停止，保持 pending/timeout，不强行释放或假称续播成功；这是当前安全恢复的实际限制，R3 设备验收仍未完成。
 
@@ -38,7 +38,11 @@ compatible 强制软件解码与软件渲染，绕过 Vulkan/EGL/OHCodec interop
 
 全部会话创建前申请预算：标准 6、故障前兼容 2、故障后恢复 2；正常释放可归还，超时/隔离保留不归还。常规/关闭/恢复工作预算分别为 32/8/8，ArkTS 队列最多 64。每会话独立有界执行器使创建/命令/关闭的前台等待最多 5 秒；全局配置独立单执行器。超时不等于平台操作取消，禁止盲目重试相对 seek 等操作。上限到达明确失败，不增加无界线程或强行释放未知状态资源。
 
-旧代的排队回调不得进入新会话；NAPI 环境关闭和同地址复用也不能接管旧句柄。旧音频数据回调退休后静音，停止确认与释放有独立登记，平台阻塞不占全局登记锁。仍需设备验证真实音频焦点及系统服务行为。
+原生事件邮箱每个回调代最多排队 64 条、256 KiB 有效字符串负载，单条最多 64 KiB；高频进度、字幕和参数快照合并，关键状态与播完事件保持顺序。JS 正在处理的批次与下一个批次可同时存在，因此每代上界为 128 条、512 KiB 有效负载。普通回调代最多 32 个，故障后恢复代另保留 8 个；旧票据和 finalize 未结束前不归还额度。这里限定事件有效负载，不是进程 RSS 或系统播放器内存。
+
+不能继续可靠交付时，当前桥会话进入 `PLAYER_EVENT_QUEUE_FULL`，普通命令和读帧停止，安全释放仍可执行。宿主应释放该会话后创建新实例，不应在原会话反复 load。该错误不是媒体硬解故障，不得据此把视频记成需兼容模式。回调代预算耗尽返回 `CALLBACK_RESOURCE_LIMIT`；用户仍能返回列表，待旧回调回收后重开，不自动无限重试。
+
+旧代的排队回调不得进入新会话；NAPI 环境关闭和同地址复用也不能接管旧句柄。旧音频数据回调退休后静音，停止确认与释放有独立登记。API 19 旧回调只在取得/归还在途引用时持登记锁；注销先撤销入口，再等待自身在途回调，不阻止其他实例登记。平台阻塞不占全局登记锁。仍需设备验证真实音频焦点及系统服务行为。
 
 ## 架构、产物与迁移
 

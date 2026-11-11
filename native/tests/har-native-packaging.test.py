@@ -59,6 +59,14 @@ class Tests(unittest.TestCase):
   files=['native/tests/har-native-packaging.test.sh','packages/vidall-player/build-profile.json5','packages/vidall-player/src/main/cpp/CMakeLists.txt','packages/vidall-player/src/main/cpp/napi_init.cpp','packages/vidall-player/src/main/cpp/types/libvidall_player_native/index.d.ts','packages/vidall-player/src/main/cpp/types/libvidall_player_native/oh-package.json5','packages/vidall-player/src/main/ets/native/harNativePackagingProbe.ets','packages/vidall-player/src/main/ets/native/nativeBridge.ets','packages/vidall-player/Index.ets']
   for rel in files:
    dst=self.d/rel;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/rel,dst)
-  types=self.d/files[4];types.write_text(types.read_text().replace('): Promise<NativeSessionResult>;','): NativeSessionResult;'))
-  r=subprocess.run(['bash',str(self.d/files[0])],capture_output=True,text=True);self.assertNotEqual(r.returncode,0);self.assertIn('Promise<NativeSessionResult>',r.stderr)
+  types=self.d/files[4];original=types.read_text()
+  # 同步化、丢恢复模式/代、把可选扩展变为必填都必须被拒绝。
+  mutations=[original.replace('): Promise<NativeSessionResult>;','): NativeSessionResult;'),
+    original.replace(", playbackMode?: 'standard' | 'compatible', runtimeGeneration?: number",''),
+    original.replace("playbackMode?: 'standard' | 'compatible'","playbackMode: 'standard' | 'compatible'"),
+    original.replace('runtimeGeneration?: number','runtimeGeneration: number')]
+  for mutated in mutations:
+   self.assertNotEqual(mutated,original);types.write_text(mutated)
+   r=subprocess.run(['bash',str(self.d/files[0])],capture_output=True,text=True)
+   self.assertNotEqual(r.returncode,0,r.stdout+r.stderr);self.assertIn('Promise<NativeSessionResult>',r.stderr)
 if __name__=='__main__':unittest.main()

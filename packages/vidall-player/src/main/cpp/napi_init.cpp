@@ -22,6 +22,7 @@
 #include "process_runtime.h"
 #include "fault_message.h"
 #include "work_budget.h"
+#include "event_mailbox.h"
 #include "environment_lifetime.h"
 #include "session_isolation.h"
 
@@ -288,6 +289,7 @@ class NativeSession {
     std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment_;
     const std::uint64_t runtimeGeneration_ = vidall::runtime::CaptureGeneration();
     bool compatible_ = false;
+    std::atomic<bool> eventDeliveryFailed_{false};
     // 首先构造、最后销毁，确保 mpv、线程及 Surface 释放后才归还预算。
     std::shared_ptr<vidall::runtime::SessionBudget> budget_;
 public:
@@ -295,6 +297,10 @@ public:
     bool IsRecoverySession() const { return runtimeGeneration_ > 1 && compatible_; }
     const char* RuntimeAdmissionError() const {
         return vidall::runtime::SessionAdmissionError(runtimeGeneration_, compatible_);
+    }
+    const char* OperationAdmissionError() const {
+        if (const char* error = RuntimeAdmissionError()) return error;
+        return eventDeliveryFailed_.load() ? "PLAYER_EVENT_QUEUE_FULL" : nullptr;
     }
     void SetEnvironment(std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment) { environment_ = std::move(environment); }
     std::shared_ptr<vidall::runtime::EnvironmentLifetime> Environment() const { return environment_; }
@@ -312,6 +318,8 @@ public:
         bool compatible;
         std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment;
     };
+    using CallbackMailbox = vidall::runtime::EventMailbox<Event>;
+    using CallbackTicket = std::shared_ptr<CallbackMailbox>;
 
     NativeSession()
         : player_(mpv_create(), mpv_terminate_destroy)
@@ -743,21 +751,29 @@ public:
         napi_valuetype type = napi_undefined;
         if (callback == nullptr || napi_typeof(env, callback, &type) != napi_ok || type != napi_function) return {false, handle, "INPUT_INVALID"};
         std::lock_guard<std::mutex> lock(callbackMutex_);
+        if (const char* error = OperationAdmissionError()) return {false, handle, error};
+        auto mailbox = CallbackMailbox::Acquire(IsRecoverySession());
+        if (!mailbox) return {false, handle, "CALLBACK_RESOURCE_LIMIT"};
+        auto open = std::make_shared<std::atomic<bool>>(true);
+        auto lifetime = std::make_unique<CallbackTicket>(mailbox);
         CloseCallbackLocked();
         napi_value name = CreateString(env, "VidAllHarEvent");
-        if (napi_create_threadsafe_function(env, callback, nullptr, name, 0, 1, nullptr, FinalizeCallback, this, CallCallback, &eventTsfn_) != napi_ok) {
+        if (napi_create_threadsafe_function(env, callback, nullptr, name, 1, 1,
+                lifetime.get(), FinalizeCallback, nullptr, CallCallback, &eventTsfn_) != napi_ok) {
             return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         }
-        callbackOpen_ = std::make_shared<std::atomic<bool>>(true);
+        lifetime.release(); // finalize 归还回调代额度，不依赖 Session 是否已销毁。
+        callbackMailbox_ = std::move(mailbox);
+        callbackOpen_ = std::move(open);
         return {true, handle, "OK"};
     }
 
     std::string Diagnostics(std::uint64_t handle)
     {
         using namespace vidall::diagnostics;
-        if (RuntimeAdmissionError()) throw std::runtime_error("PLAYER_TERMINAL");
+        if (const char* error = OperationAdmissionError()) throw std::runtime_error(error);
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
-        if (RuntimeAdmissionError()) throw std::runtime_error("PLAYER_TERMINAL");
+        if (const char* error = OperationAdmissionError()) throw std::runtime_error(error);
         if (released_) throw std::runtime_error("DIAGNOSTICS_RELEASED");
         const auto started = std::chrono::steady_clock::now();
         const auto sampled = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -857,40 +873,75 @@ private:
         session->renderCondition_.notify_one();
     }
 
-    static void FinalizeCallback(napi_env, void*, void*) {}
+    static void FinalizeCallback(napi_env, void* data, void*) {
+        delete static_cast<CallbackTicket*>(data);
+    }
 
     static void CallCallback(napi_env env, napi_value callback, void*, void* data)
     {
-        std::unique_ptr<Event> event(static_cast<Event*>(data));
-        if (env == nullptr || callback == nullptr || !event) return;
-        if (event->environment && !event->environment->IsOpen()) return;
-        if (vidall::runtime::SessionAdmissionError(event->runtimeGeneration, event->compatible)) return;
-        // 排队事件可能比 Session 活得更久；不解引用 TSFN context 或已销毁对象。
-        if (!event->callbackOpen || !event->callbackOpen->load()) return;
-        if (event->isolation && event->isolation->IsQuarantined() && event->type != "error") return;
-        napi_value payload = nullptr;
-        napi_create_object(env, &payload);
-        napi_set_named_property(env, payload, "type", CreateString(env, event->type));
-        napi_set_named_property(env, payload, "message", CreateString(env, event->message));
-        napi_value value = nullptr;
-        napi_create_int64(env, static_cast<int64_t>(event->epoch), &value); napi_set_named_property(env, payload, "eventEpoch", value);
-        napi_create_int64(env, static_cast<int64_t>(event->sequence), &value); napi_set_named_property(env, payload, "sequence", value);
-        napi_create_int64(env, static_cast<int64_t>(event->generation), &value); napi_set_named_property(env, payload, "surfaceGeneration", value);
-        napi_value ignored = nullptr;
-        napi_call_function(env, nullptr, callback, 1, &payload, &ignored);
+        std::unique_ptr<CallbackTicket> ticket(static_cast<CallbackTicket*>(data));
+        if (!ticket || !*ticket) return;
+        auto batch = (*ticket)->Take();
+        if (env == nullptr || callback == nullptr) return;
+        for (const auto& item : batch) {
+            const auto* event = &item;
+            if (event->environment && !event->environment->IsOpen()) continue;
+            if (vidall::runtime::SessionAdmissionError(event->runtimeGeneration, event->compatible)) continue;
+            // 排队事件可能比 Session 活得更久；不解引用 TSFN context 或已销毁对象。
+            if (!event->callbackOpen || !event->callbackOpen->load()) continue;
+            if (event->isolation && event->isolation->IsQuarantined() && event->type != "error") continue;
+            napi_value payload = nullptr;
+            napi_create_object(env, &payload);
+            napi_set_named_property(env, payload, "type", CreateString(env, event->type));
+            napi_set_named_property(env, payload, "message", CreateString(env, event->message));
+            napi_value value = nullptr;
+            napi_create_int64(env, static_cast<int64_t>(event->epoch), &value); napi_set_named_property(env, payload, "eventEpoch", value);
+            napi_create_int64(env, static_cast<int64_t>(event->sequence), &value); napi_set_named_property(env, payload, "sequence", value);
+            napi_create_int64(env, static_cast<int64_t>(event->generation), &value); napi_set_named_property(env, payload, "surfaceGeneration", value);
+            napi_value ignored = nullptr;
+            const auto status = napi_call_function(env, nullptr, callback, 1, &payload, &ignored);
+            if (status == napi_pending_exception) {
+                // 用户监听者的异常不能污染同一批次中后续 EOF/错误事件。
+                napi_value exception = nullptr;
+                napi_get_and_clear_last_exception(env, &exception);
+                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                    "Player event callback threw; exception cleared");
+            } else if (status != napi_ok) {
+                OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                    "Player event callback invocation failed");
+            }
+        }
+    }
+
+    // 调用方持 callbackMutex_；NAPI 只排一张唤醒票据，不等待 JS 消费者。
+    void QueueEventLocked(const std::string& type, const std::string& message, std::uint64_t epoch)
+    {
+        if (!callbackMailbox_ || eventDeliveryFailed_.load()) return;
+        Event event{"", "", epoch, ++eventSequence_, generation_.load(), isolation_, callbackOpen_,
+            runtimeGeneration_, compatible_, environment_};
+        const auto result = callbackMailbox_->Push(std::move(event), type, message);
+        if (result.failed) eventDeliveryFailed_.store(true);
+        if (!result.wake) return;
+        auto ticket = std::make_unique<CallbackTicket>(callbackMailbox_);
+        if (napi_call_threadsafe_function(eventTsfn_, ticket.get(), napi_tsfn_nonblocking) == napi_ok) ticket.release();
+        else {
+            eventDeliveryFailed_.store(true);
+            callbackMailbox_->Close();
+            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG, "Player callback wakeup unavailable");
+        }
     }
 
     void Dispatch(const std::string& type, const std::string& message)
     {
         std::lock_guard<std::mutex> lock(callbackMutex_);
-        if ((isolation_ && isolation_->IsQuarantined() && type != "error") || released_ || eventTsfn_ == nullptr) {
+        if ((isolation_ && isolation_->IsQuarantined() && type != "error") || released_ ||
+            RuntimeAdmissionError() || eventTsfn_ == nullptr) {
             OH_LOG_Print(LOG_APP, LOG_WARN, LOG_DOMAIN, LOG_TAG,
                 "Dispatch: dropped type=%{public}s message=%{public}s released=%{public}d tsfnNull=%{public}d",
                 type.c_str(), message.c_str(), released_.load(), eventTsfn_ == nullptr);
             return;
         }
-        auto* event = new Event{type, message, eventEpoch_, ++eventSequence_, generation_, isolation_, callbackOpen_, runtimeGeneration_, compatible_, environment_};
-        if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
+        QueueEventLocked(type, message, eventEpoch_.load());
     }
 
     // 独立窄锁：Load/Stop/Release可持lifecycle锁进入；事件线程绝不反向取lifecycle锁。
@@ -981,9 +1032,7 @@ private:
         if (reason != MPV_END_FILE_REASON_EOF && reason != MPV_END_FILE_REASON_ERROR) return;
         std::lock_guard<std::mutex> lock(callbackMutex_);
         if (released_ || RuntimeAdmissionError() || !eventTsfn_ || epoch != eventEpoch_.load()) return;
-        auto* event = new Event{"fileEnd", reason == MPV_END_FILE_REASON_EOF ? "completed" : "error",
-            epoch, ++eventSequence_, generation_.load(), isolation_, callbackOpen_, runtimeGeneration_, compatible_, environment_};
-        if (napi_call_threadsafe_function(eventTsfn_, event, napi_tsfn_nonblocking) != napi_ok) delete event;
+        QueueEventLocked("fileEnd", reason == MPV_END_FILE_REASON_EOF ? "completed" : "error", epoch);
     }
 
     void EventLoop(mpv_handle* player)
@@ -1768,6 +1817,7 @@ private:
     napi_value GetFrameData(napi_env env)
     {
         std::lock_guard<std::mutex> lock(frameMutex_);
+        if (OperationAdmissionError()) return nullptr;
         if (!frameReady_ || pendingFrame_.empty()) return nullptr;
         napi_value result = nullptr;
         napi_create_object(env, &result);
@@ -1842,9 +1892,12 @@ private:
     {
         // release 仍允许 NAPI 回收队列；关闭标记使已有 state/position/error 全部只释放数据。
         if (callbackOpen_) callbackOpen_->store(false);
+        if (callbackMailbox_) callbackMailbox_->Close();
         if (eventTsfn_ != nullptr) { napi_release_threadsafe_function(eventTsfn_, napi_tsfn_release); eventTsfn_ = nullptr; }
+        callbackMailbox_.reset();
     }
 
+    CallbackTicket callbackMailbox_;
     std::shared_ptr<std::atomic<bool>> callbackOpen_;
     std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
     std::shared_ptr<vidall::runtime::SessionIsolation> executor_;
@@ -1985,7 +2038,7 @@ struct NativeWork {
             return error ? error : "PLAYER_RECOVERY_PENDING";
         }
 #if VIDALL_MPV_AVAILABLE
-        if (pinned) return pinned->RuntimeAdmissionError();
+        if (pinned) return retire ? pinned->RuntimeAdmissionError() : pinned->OperationAdmissionError();
 #endif
         return vidall::runtime::AdmissionError(compatibleCreation);
     }
@@ -2044,7 +2097,14 @@ napi_value QueueNative(napi_env env, std::uint64_t handle, std::function<NativeR
             auto isolation = session ? session->Executor() : d->bootstrap;
             if (isolation) {
                 auto result = std::make_shared<NativeResult>(d->result);
-                auto task = [result, session, budget = d->budget, op = std::move(d->operation)] { *result = op(); };
+                auto task = [result, session, budget = d->budget, retire = d->retire, op = std::move(d->operation)] {
+                    // 等待前一操作期间可能发生邮箱失败；实际进入 mpv 前再次准入。
+                    if (session) {
+                        const char* error = retire ? session->RuntimeAdmissionError() : session->OperationAdmissionError();
+                        if (error) { *result = {false, result->handle, error}; return; }
+                    }
+                    *result = op();
+                };
                 if (isolation->Run(std::move(task), std::chrono::seconds(5), d->retire)) {
                     d->result = *result;
                 } else {
@@ -2492,7 +2552,7 @@ napi_value GetDiagnostics(napi_env env, napi_callback_info info)
     const char* admission = vidall::runtime::AdmissionError();
 #if VIDALL_MPV_AVAILABLE
     auto session = FindSession(handle, env);
-    if (session) admission = session->RuntimeAdmissionError();
+    if (session) admission = session->OperationAdmissionError();
 #endif
     if (!environment || !environment->IsOpen()) admission = "RUNTIME_ENV_CLOSED";
     if (const char* code = admission) {
@@ -2578,7 +2638,7 @@ napi_value GetFrameData(napi_env env, napi_callback_info info)
     if (!GetArguments(env, info, 1, args, argc) || argc != 1 || !ReadHandle(env, args[0], handle)) return nullptr;
 #if VIDALL_MPV_AVAILABLE
     std::shared_ptr<NativeSession> session = FindSession(handle, env);
-    if (session && session->RuntimeAdmissionError()) return nullptr;
+    if (session && session->OperationAdmissionError()) return nullptr;
     return session ? session->GetFrameData(env) : nullptr;
 #else
     return nullptr;

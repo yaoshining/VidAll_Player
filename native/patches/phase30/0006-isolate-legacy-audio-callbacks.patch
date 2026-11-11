@@ -1,0 +1,149 @@
+diff --git a/audio/out/ao_ohaudio.c b/audio/out/ao_ohaudio.c
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -30,6 +30,7 @@
+ #include "osdep/timer.h"
+ 
+ #include <pthread.h>
++#include <limits.h>
+ #include <deviceinfo.h>
+ #include <ohaudio/native_audiorenderer.h>
+ #include <ohaudio/native_audiostreambuilder.h>
+@@ -38,6 +39,7 @@
+     uintptr_t token;
+     struct ao *ao;
+     struct legacy_binding *next;
++    unsigned in_flight;
+ };
+ 
+ struct priv {
+@@ -55,43 +57,70 @@
+     int encoding_type;
+ };
+ 
+-// 旧回调只持有不复用的数字标识。读锁保护在途回调，注销后迟到的回调查不到 AO。
+-static pthread_rwlock_t legacy_lock = PTHREAD_RWLOCK_INITIALIZER;
++// token 永不复用；全局锁只保护登记和引用计数，不能跨平台回调持锁。
++static pthread_mutex_t legacy_lock = PTHREAD_MUTEX_INITIALIZER;
++static pthread_cond_t legacy_idle = PTHREAD_COND_INITIALIZER;
+ static struct legacy_binding *legacy_bindings;
+ static uintptr_t last_legacy_token;
+ 
+ static void *bind_legacy(struct ao *ao)
+ {
+     struct priv *p = ao->priv;
+-    pthread_rwlock_wrlock(&legacy_lock);
+-    if (last_legacy_token != UINTPTR_MAX) {
+-        p->legacy = (struct legacy_binding){++last_legacy_token, ao, legacy_bindings};
++    pthread_mutex_lock(&legacy_lock);
++    void *token = NULL;
++    if (!p->legacy.token && last_legacy_token != UINTPTR_MAX) {
++        p->legacy = (struct legacy_binding){
++            .token = ++last_legacy_token, .ao = ao, .next = legacy_bindings,
++        };
+         legacy_bindings = &p->legacy;
++        token = (void *)p->legacy.token;
+     }
+-    pthread_rwlock_unlock(&legacy_lock);
+-    return (void *)p->legacy.token;
++    pthread_mutex_unlock(&legacy_lock);
++    return token;
+ }
+ 
+-static struct ao *lookup_legacy(void *user)
++static struct legacy_binding *acquire_legacy(void *user)
+ {
++    struct legacy_binding *found = NULL;
++    pthread_mutex_lock(&legacy_lock);
+     for (struct legacy_binding *b = legacy_bindings; b; b = b->next) {
+-        if (b->token == (uintptr_t)user)
+-            return b->ao;
++        if (b->token == (uintptr_t)user) {
++            // 极端重复回调也不能让引用回绕后提前释放 AO。
++            if (b->in_flight != UINT_MAX) {
++                b->in_flight++;
++                found = b;
++            }
++            break;
++        }
+     }
+-    return NULL;
++    pthread_mutex_unlock(&legacy_lock);
++    return found;
+ }
+ 
++static void release_legacy(struct legacy_binding *binding)
++{
++    pthread_mutex_lock(&legacy_lock);
++    if (--binding->in_flight == 0)
++        pthread_cond_broadcast(&legacy_idle);
++    pthread_mutex_unlock(&legacy_lock);
++}
++
+ static void unbind_legacy(struct priv *p)
+ {
+-    if (!p->legacy.token)
+-        return;
+-    pthread_rwlock_wrlock(&legacy_lock);
+-    struct legacy_binding **link = &legacy_bindings;
+-    while (*link != &p->legacy)
+-        link = &(*link)->next;
+-    *link = p->legacy.next;
+-    p->legacy = (struct legacy_binding){0};
+-    pthread_rwlock_unlock(&legacy_lock);
++    pthread_mutex_lock(&legacy_lock);
++    if (p->legacy.token) {
++        struct legacy_binding **link = &legacy_bindings;
++        while (*link && *link != &p->legacy)
++            link = &(*link)->next;
++        if (*link)
++            *link = p->legacy.next;
++        // 先撤销查找，再仅等本 AO 的在途回调；等待会释放全局锁。
++        // 不能以超时为由返回并释放仍在使用的 AO。
++        while (p->legacy.in_flight)
++            pthread_cond_wait(&legacy_idle, &legacy_lock);
++        p->legacy = (struct legacy_binding){0};
++    }
++    pthread_mutex_unlock(&legacy_lock);
+ }
+ 
+ static void reset_timing(struct priv *p)
+@@ -202,13 +231,13 @@
+ 
+ static int32_t legacy_write(OH_AudioRenderer *renderer, void *user, void *data, int32_t size)
+ {
+-    pthread_rwlock_rdlock(&legacy_lock);
+-    struct ao *ao = lookup_legacy(user);
+-    if (ao)
+-        audio_on_write_callback(renderer, ao, data, size);
+-    else if (data && size > 0)
++    struct legacy_binding *binding = acquire_legacy(user);
++    if (binding) {
++        audio_on_write_callback(renderer, binding->ao, data, size);
++        release_legacy(binding);
++    } else if (data && size > 0) {
+         memset(data, 0, size);
+-    pthread_rwlock_unlock(&legacy_lock);
++    }
+     return 0;
+ }
+ 
+@@ -216,11 +245,13 @@
+                                 OH_AudioInterrupt_ForceType type, OH_AudioInterrupt_Hint hint)
+ {
+     if (hint == AUDIOSTREAM_INTERRUPT_HINT_PAUSE || hint == AUDIOSTREAM_INTERRUPT_HINT_STOP) {
+-        pthread_rwlock_rdlock(&legacy_lock);
+-        struct ao *ao = lookup_legacy(user);
+-        if (ao && !mp_host_is_retired(((struct priv *)ao->priv)->recovery_generation))
+-            ao_request_pause(ao);
+-        pthread_rwlock_unlock(&legacy_lock);
++        struct legacy_binding *binding = acquire_legacy(user);
++        if (binding) {
++            struct ao *ao = binding->ao;
++            if (!mp_host_is_retired(((struct priv *)ao->priv)->recovery_generation))
++                ao_request_pause(ao);
++            release_legacy(binding);
++        }
+     }
+     return 0;
+ }

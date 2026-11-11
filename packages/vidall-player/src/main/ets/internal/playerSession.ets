@@ -38,9 +38,11 @@ export class PlayerSession implements VidAllPlayer {
   private readonly runtimeGeneration: number;
   private readonly compatible: boolean;
   private terminal: boolean = false;
+  private eventDeliveryFailure?: PlayerFailure;
   private unsubscribeTerminal?: () => void;
 
   getDiagnostics(): Promise<PlayerDiagnosticsSnapshot> {
+    if (this.eventDeliveryFailure !== undefined) return Promise.reject(this.eventDeliveryFailure);
     const fatal = playerTerminalError(this.runtimeGeneration, this.compatible);
     if (fatal !== undefined) {
       if (this.diagnosticsCached !== undefined) {
@@ -373,7 +375,7 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   reportNativeEvent(event: PlayerEvent): boolean {
-    if (this.terminal || playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) return false;
+    if (this.terminal || this.eventDeliveryFailure !== undefined || playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) return false;
     return this.stateMachine.emitIncoming(event);
   }
 
@@ -396,6 +398,12 @@ export class PlayerSession implements VidAllPlayer {
 
   private handleNativeBridgeEvent(event: NativeBridgeEvent): void {
     if (this.terminal || playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) return;
+    if (event.type === 'error' && event.message === 'PLAYER_EVENT_QUEUE_FULL') {
+      // 交付队列属于整个桥会话；切源/换 Surface 后仍必须看到它的失败。
+      this.failEventDelivery();
+      return;
+    }
+    if (this.eventDeliveryFailure !== undefined) return;
     if (event.type === 'fileEnd') {
       if (this.loadedRequest === this.mediaRequest && this.stateMachine.getReleasePhase() === 'open' &&
         this.stateMachine.acceptNativeSequence(event.eventEpoch, event.sequence)) {
@@ -638,7 +646,8 @@ export class PlayerSession implements VidAllPlayer {
       this.stateMachine.matchesNativeContext(event.eventEpoch, event.surfaceGeneration)) {
       this.stateMachine.transition('error');
       this.stateMachine.emit({ type: 'error', sequence: 0, error: redactError({
-        domain: 'native', code: 'NATIVE_PLAYBACK_FAILED', message: event.message, retryable: false, context: {}
+        domain: 'native', code: 'NATIVE_PLAYBACK_FAILED', message: event.message,
+        retryable: false, context: {}
       }) });
     }
   }
@@ -697,6 +706,7 @@ export class PlayerSession implements VidAllPlayer {
   }
 
   getFrameData(): FrameData | null {
+    if (this.eventDeliveryFailure !== undefined) return null;
     if (playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) return null;
     return this.nativeBridge.getFrameData();
   }
@@ -751,6 +761,20 @@ export class PlayerSession implements VidAllPlayer {
     return this.recovery;
   }
 
+  private failEventDelivery(): void {
+    if (this.eventDeliveryFailure !== undefined || this.stateMachine.getReleasePhase() !== 'open') return;
+    const failure = new PlayerFailure({ domain: 'native', code: 'PLAYER_EVENT_QUEUE_FULL',
+      message: '播放器事件处理失败，请释放会话后重新打开视频。', retryable: false, context: {} });
+    this.eventDeliveryFailure = failure;
+    this.diagnosticsRevision++;
+    this.mediaRequest++;
+    this.pendingFileEnd = undefined;
+    this.queue.close(failure);
+    if (this.stateMachine.getState() === 'completed') this.stateMachine.transition('idle');
+    this.stateMachine.transition('error');
+    this.stateMachine.emit({ type: 'error', sequence: 0, error: failure.playerError });
+  }
+
   private enqueue(_name: string, operation: () => void | Promise<void>): Promise<void> {
     const fatal = playerTerminalError(this.runtimeGeneration, this.compatible);
     if (fatal !== undefined) return Promise.reject(fatal);
@@ -758,8 +782,12 @@ export class PlayerSession implements VidAllPlayer {
       const error = playerTerminalError(this.runtimeGeneration, this.compatible);
       if (error !== undefined) return Promise.reject(error);
       return Promise.resolve(operation()).then(() => {
+        if (this.eventDeliveryFailure !== undefined) throw this.eventDeliveryFailure;
         if (playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) throw new Error('PLAYER_TERMINAL');
       });
+    }).catch((error: Error) => {
+      if (error instanceof PlayerFailure && error.playerError.code === 'PLAYER_EVENT_QUEUE_FULL') this.failEventDelivery();
+      throw error;
     });
   }
 

@@ -12,7 +12,7 @@ def function(signature):
 out=pathlib.Path(sys.argv[1]);out.mkdir(parents=True,exist_ok=True)
 subprocess.run([sys.executable,'-B',str(root/'native/tests/ohcodec-fence/initialize.test.py')],check=True)
 subprocess.run([sys.executable,'-B',str(root/'native/tests/ohcodec-fence/callback-cleanup.test.py')],check=True)
-functions=function('std::shared_ptr<NativeSession> FindSession(')+'\n'+s[s.index('struct SessionCreation {'):s.index('napi_value ConfigureRuntime(')]+'\n'+'\n'.join(function(x) for x in ['napi_value ConfigureRuntime(', 'napi_value CreateSession(', 'napi_value ReleaseSession(', 'void CleanupSessions('])
+functions=function('std::shared_ptr<NativeSession> FindSession(')+'\n'+s[s.index('struct SessionCreation {'):s.index('napi_value ConfigureRuntime(')]+'\n'+'\n'.join(function(x) for x in ['napi_value ConfigureRuntime(', 'napi_value CreateSession(', 'napi_value ReleaseSession(', 'napi_value GetFrameData(napi_env env,', 'void CleanupSessions('])
 prefix=r'''
 #include "session_isolation.h"
 #include "session_budget.h"
@@ -56,7 +56,10 @@ void SetEnvironment(std::shared_ptr<vidall::runtime::EnvironmentLifetime> value)
 auto Environment()const{return environment;}
 const std::uint64_t born=vidall::runtime::CaptureGeneration();bool compatible=false;
 std::uint64_t RuntimeGeneration()const{return born;}
+int frameReads=0;napi_value GetFrameData(napi_env){frameReads++;return (void*)1;}
+std::atomic<bool> eventDeliveryFailed{false};mutable std::atomic<unsigned> operationChecks{0};
 const char* RuntimeAdmissionError()const{return vidall::runtime::SessionAdmissionError(born,compatible);}
+const char* OperationAdmissionError()const{const char* error=RuntimeAdmissionError();if(!error&&eventDeliveryFailed)error="PLAYER_EVENT_QUEUE_FULL";operationChecks++;return error;}
 bool IsRecoverySession()const{return born>1&&compatible;}
 std::shared_ptr<vidall::runtime::SessionBudget> budget;void SetBudget(std::shared_ptr<vidall::runtime::SessionBudget> b){budget=std::move(b);}std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<vidall::runtime::SessionIsolation> executor;auto Isolation(){return isolation;}auto Executor(){return isolation?isolation:executor;}void SetExecutor(std::shared_ptr<vidall::runtime::SessionIsolation> value){executor=std::move(value);}void CloseIsolatedCallbacks(){closedCallbacks++;} bool closed=false;NativeSession(){creates++;if(createRace)terminal=true;}~NativeSession(){while(blockDestructor.load())std::this_thread::yield();destructs++;vidall::runtime::ParkIfTerminal(IsRecoverySession());Release();vidall::runtime::ParkIfTerminal(IsRecoverySession());destructionDone=true;}bool Initialize(const std::string&,const std::string&,const std::string&,const std::string&,const std::string& mode){receivedMode=mode;compatible=mode=="compatible";initializes++;initializeEntered=true;while(blockInitialize)std::this_thread::yield();if(scopedTest){if(mode=="compatible"){if(!executor)executor=vidall::runtime::SessionIsolation::Acquire(vidall::runtime::SessionIsolation::Pool::Compatible);}else isolation=vidall::runtime::SessionIsolation::Acquire();}return true;}void Release(){if(closed)return;closed=true;releases++;if(releaseRace)terminal=true;
  if(scopedTest&&Executor()){if(!slowClose)Executor()->Quarantine();while(!resumeOld.load())std::this_thread::sleep_for(std::chrono::milliseconds(1));Executor()->FinishedRelease();oldReturned=true;}}};
@@ -280,6 +283,32 @@ else if(mode=="create-compatible" || mode=="create-invalid-mode" || mode=="creat
    gSessions.clear();waitDestruction();
  }
 }
+else if(mode=="queued-event-overflow"){
+ configured=true;CreateSession(nullptr,nullptr);run();if(!last.ok)return 1;
+ auto session=FindSession(1);std::atomic<bool> entered{false},resume{false};int started=0;
+ QueueNative(nullptr,1,[&]{entered=true;while(!resume.load())std::this_thread::yield();return NativeResult{true,1,"OK"};});
+ auto first=jobs.back();jobs.clear();std::thread firstThread([&]{first->execute(nullptr,first->data);});
+ while(!entered)std::this_thread::yield();
+ QueueNative(nullptr,1,[&]{started++;return NativeResult{true,1,"OK"};});
+ auto second=jobs.back();jobs.clear();unsigned checks=session->operationChecks;
+ std::thread secondThread([&]{second->execute(nullptr,second->data);});
+ while(session->operationChecks==checks)std::this_thread::yield();
+ session->eventDeliveryFailed=true;resume=true;firstThread.join();secondThread.join();
+ first->complete(nullptr,0,first->data);second->complete(nullptr,0,second->data);
+ if(started||last.ok||std::string(last.code)!="PLAYER_EVENT_QUEUE_FULL"){puts("FAIL queued operation ran after mailbox failure");return 1;}
+ gSessions.clear();
+}
+else if(mode=="event-overflow-release"){
+ configured=true;CreateSession(nullptr,nullptr);run();if(!last.ok)return 1;
+ auto old=FindSession(1);old->eventDeliveryFailed=true;int commands=0;
+ if(GetFrameData(nullptr,nullptr)||old->frameReads){puts("FAIL failed mailbox still exposes frames");return 1;}
+ QueueNative(nullptr,1,[&]{commands++;return NativeResult{true,1,"OK"};});run();
+ if(last.ok||std::string(last.code)!="PLAYER_EVENT_QUEUE_FULL"||commands)return 1;
+ ReleaseSession(nullptr,nullptr);run();if(!last.ok||FindSession(1))return 1;
+ old.reset();waitDestruction();CreateSession(nullptr,nullptr);run();
+ if(!last.ok||last.handle!=2||FindSession(2)->OperationAdmissionError())return 1;
+ gSessions.clear();
+}
 else if(mode=="create-ui"){configured=true;CreateSession(nullptr,nullptr);if(creates){puts("FAIL native create executed synchronously on UI");return 1;}run();if(creates!=1||!last.ok)return 1;gSessions.clear();waitDestruction();}
 else if(mode=="create-terminal-race"){configured=true;createRace=true;CreateSession(nullptr,nullptr);run();if(initializes||destructs||last.ok)return 1;}
 else{configured=true;gSessions[1]=std::shared_ptr<NativeSession>(new NativeSession(),DeleteSession);terminal=mode!="normal-release"&&mode!="release-terminal-race";releaseRace=mode=="release-terminal-race";
@@ -294,7 +323,8 @@ if '--mutant-delete' in sys.argv:
 (out/'harness.cpp').write_text(prefix+functions+main)
 subprocess.run(['clang++','-std=c++17','-pthread','-I'+str(root/'native/runtime'),str(out/'harness.cpp'),'-o',str(out/'test')],check=True)
 rows=[]
-for c in ['configure-timeout','occupied-compatible-pool','create-boundary-generation','create-cancelled-result','create-generation-race','create-timeout','environment-creating','environment-scope','recovery-reserve','recovery-generation','work-budget','compatible-slow-release','session-budget','create-compatible','create-invalid-mode','create-legacy','create-unconfigured','create-ui','cleanup-isolated','cleanup-plain-blocked','cleanup-plain-retained','cleanup-plain-terminal','isolated-release','slow-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']:
+cases=['queued-event-overflow','event-overflow-release','configure-timeout','occupied-compatible-pool','create-boundary-generation','create-cancelled-result','create-generation-race','create-timeout','environment-creating','environment-scope','recovery-reserve','recovery-generation','work-budget','compatible-slow-release','session-budget','create-compatible','create-invalid-mode','create-legacy','create-unconfigured','create-ui','cleanup-isolated','cleanup-plain-blocked','cleanup-plain-retained','cleanup-plain-terminal','isolated-release','slow-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']
+for c in ([c for c in sys.argv[2:] if c in cases] or cases):
  p=subprocess.run([str(out/'test'),c],capture_output=True,text=True,timeout=10 if c in ['configure-timeout','create-timeout','slow-release','compatible-slow-release'] else 3);rows.append({'case':c,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr});print(c,p.returncode,p.stdout.strip())
 (out/'results.json').write_text(json.dumps({'sourceSHA256':hashlib.sha256(src.read_bytes()).hexdigest(),'method':'actual-entry-slices-platform-and-session-stubs','results':rows},indent=2)+'\n')
 

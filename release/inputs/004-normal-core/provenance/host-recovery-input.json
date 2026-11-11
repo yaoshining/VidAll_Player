@@ -25,6 +25,10 @@
     {
       "path": "native/patches/phase30/0005-fault-media-context.patch",
       "sha256": "2528fd8c8bda7cfa59467a63c13336b70a429d629bbaf52e7a86f85b8354e087"
+    },
+    {
+      "path": "native/patches/phase30/0006-isolate-legacy-audio-callbacks.patch",
+      "sha256": "d35a126644500e410e79b81fcea80e5f5536ec524e07083ade489f99ebe1893e"
     }
   ],
   "addedSources": [
