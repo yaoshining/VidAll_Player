@@ -1,0 +1,353 @@
+diff --git a/common/global.h b/common/global.h
+index 9787e32..38507fa 100644
+--- a/common/global.h
++++ b/common/global.h
+@@ -1,11 +1,14 @@
+ #ifndef MPV_MPV_H
+ #define MPV_MPV_H
++#include <stdatomic.h>
+ 
+ // This should be accessed by glue code only, never normal code.
+ // The only purpose of this is to make mpv library-safe.
+ // Think hard before adding new members.
+ struct mpv_global {
+     unsigned long long host_generation;
++    atomic_ullong host_session_id;
++    atomic_ullong host_load_generation;
+     struct mp_log *log;
+     struct m_config_shadow *config;
+     struct mp_client_api *client_api;
+diff --git a/common/playlist.h b/common/playlist.h
+index fe54104..dbe6ad0 100644
+--- a/common/playlist.h
++++ b/common/playlist.h
+@@ -31,6 +31,7 @@ struct playlist_entry {
+     int pl_index;
+ 
+     uint64_t id;
++    uint64_t host_load_generation;
+ 
+     char *filename;
+     char *playlist_path;
+diff --git a/input/cmd.h b/input/cmd.h
+index 7163593..7256fe0 100644
+--- a/input/cmd.h
++++ b/input/cmd.h
+@@ -100,6 +100,7 @@ struct mp_cmd_arg {
+ };
+ 
+ typedef struct mp_cmd {
++    uint64_t host_load_generation;
+     char *name;
+     struct mp_cmd_arg *args;
+     int nargs;
+diff --git a/player/client.c b/player/client.c
+index e576f3b..6711ded 100644
+--- a/player/client.c
++++ b/player/client.c
+@@ -24,6 +24,9 @@
+ 
+ #include "common/common.h"
+ #include "common/global.h"
++#if HAVE_OHOS
++#include "common/host_recovery_api.h"
++#endif
+ #include "common/msg.h"
+ #include "common/msg_control.h"
+ #include "input/input.h"
+@@ -1269,6 +1272,22 @@ static int run_async_cmd(mpv_handle *ctx, uint64_t ud, struct mp_cmd *cmd)
+     return run_async(ctx, async_cmd_fn, req);
+ }
+ 
++#if HAVE_OHOS
++int mpv_host_loadfile_async(mpv_handle *ctx, uint64_t generation, uint64_t session_id, const char **args)
++{
++    if (!ctx || !generation || !session_id || !args || !args[0] || strcmp(args[0], "loadfile"))
++        return MPV_ERROR_INVALID_PARAMETER;
++    unsigned long long expected = 0;
++    if (!atomic_compare_exchange_strong(&ctx->mpctx->global->host_session_id, &expected, session_id) &&
++        expected != session_id)
++        return MPV_ERROR_INVALID_PARAMETER;
++    struct mp_cmd *cmd = mp_input_parse_cmd_strv(ctx->log, args);
++    if (!cmd) return MPV_ERROR_INVALID_PARAMETER;
++    cmd->host_load_generation = generation;
++    return run_async_cmd(ctx, generation, cmd);
++}
++#endif
++
+ int mpv_command_async(mpv_handle *ctx, uint64_t ud, const char **args)
+ {
+     return run_async_cmd(ctx, ud, mp_input_parse_cmd_strv(ctx->log, args));
+diff --git a/player/command.c b/player/command.c
+index 1efb810..31b8c87 100644
+--- a/player/command.c
++++ b/player/command.c
+@@ -6128,6 +6128,7 @@ static void cmd_loadfile(void *p)
+ 
+     char *path = mp_get_user_path(NULL, mpctx->global, filename);
+     struct playlist_entry *entry = playlist_entry_new(path);
++    entry->host_load_generation = cmd->cmd->host_load_generation;
+     talloc_free(path);
+     if (cmd->args[3].v.str_list) {
+         char **pairs = cmd->args[3].v.str_list;
+diff --git a/player/loadfile.c b/player/loadfile.c
+index c8dec96..1d5a384 100644
+--- a/player/loadfile.c
++++ b/player/loadfile.c
+@@ -24,6 +24,7 @@
+ #include <libavutil/avutil.h>
+ 
+ #include "mpv_talloc.h"
++#include "common/global.h"
+ 
+ #include "misc/thread_pool.h"
+ #include "misc/thread_tools.h"
+@@ -1638,6 +1639,7 @@ static void play_current_file(struct MPContext *mpctx)
+     if (mpctx->stop_play || !mpctx->playlist->current)
+         return;
+ 
++    atomic_store(&mpctx->global->host_load_generation, mpctx->playlist->current->host_load_generation);
+     mpv_event_start_file start_event = {
+         .playlist_entry_id = mpctx->playlist->current->id,
+     };
+diff --git a/player/main.c b/player/main.c
+index 3495084..b27f705 100644
+--- a/player/main.c
++++ b/player/main.c
+@@ -288,6 +288,8 @@ struct MPContext *mp_create(void)
+     mp_mutex_init(&mpctx->abort_lock);
+ 
+     mpctx->global = talloc_zero(mpctx, struct mpv_global);
++    atomic_init(&mpctx->global->host_session_id, 0);
++    atomic_init(&mpctx->global->host_load_generation, 0);
+ #if HAVE_OHOS
+     mpctx->global->host_generation = mp_host_generation();
+ #endif
+diff --git a/video/decode/vd_lavc.c b/video/decode/vd_lavc.c
+index 14f324e..1a523ec 100644
+--- a/video/decode/vd_lavc.c
++++ b/video/decode/vd_lavc.c
+@@ -30,6 +30,7 @@
+ #include <libavutil/pixdesc.h>
+ 
+ #include "mpv_talloc.h"
++#include "common/global.h"
+ #include "common/msg.h"
+ #include "options/m_config.h"
+ #include "options/options.h"
+@@ -193,6 +194,7 @@ struct hwdec_info {
+ };
+ 
+ typedef struct lavc_ctx {
++    uint64_t host_session_id, host_load_generation;
+     struct mp_log *log;
+     struct m_config_cache *opts_cache;
+     struct vd_lavc_params *opts;
+@@ -1435,6 +1437,8 @@ static int decode_frame(struct mp_filter *vd)
+ 
+     ctx->hwdec_fail_count = 0;
+ 
++    mpi->host_session_id = ctx->host_session_id;
++    mpi->host_load_generation = ctx->host_load_generation;
+     mpi->pts = mp_pts_from_av(ctx->pic->pts, &ctx->codec_timebase);
+     mpi->dts = mp_pts_from_av(ctx->pic->pkt_dts, &ctx->codec_timebase);
+     mpi->pkt_duration = mp_pts_from_av(ctx->pic->duration, &ctx->codec_timebase);
+@@ -1617,6 +1621,8 @@ static struct mp_decoder *create(struct mp_filter *parent,
+ 
+     vd_ffmpeg_ctx *ctx = vd->priv;
+     ctx->log = vd->log;
++    ctx->host_session_id = atomic_load(&vd->global->host_session_id);
++    ctx->host_load_generation = atomic_load(&vd->global->host_load_generation);
+     ctx->opts_cache = m_config_cache_alloc(ctx, vd->global, &vd_lavc_conf);
+     ctx->opts = ctx->opts_cache->opts;
+     ctx->hwdec_opts_cache = m_config_cache_alloc(ctx, vd->global, &hwdec_conf);
+diff --git a/video/mp_image.c b/video/mp_image.c
+index 9f44d6d..dc581a7 100644
+--- a/video/mp_image.c
++++ b/video/mp_image.c
+@@ -542,6 +542,8 @@ void mp_image_copy_attributes(struct mp_image *dst, struct mp_image *src)
+ {
+     mp_assert(dst != src);
+ 
++    dst->host_session_id = src->host_session_id;
++    dst->host_load_generation = src->host_load_generation;
+     dst->pict_type = src->pict_type;
+     dst->fields = src->fields;
+     dst->pts = src->pts;
+diff --git a/video/mp_image.h b/video/mp_image.h
+index 5fe523d..f121526 100644
+--- a/video/mp_image.h
++++ b/video/mp_image.h
+@@ -82,6 +82,8 @@ struct mp_image_params {
+  *   image data. mp_image_make_writeable() will do that copy if required.
+  */
+ typedef struct mp_image {
++    // 来源绑定随帧传递；未知路径保持零值，不能借用当前播放器页面。
++    uint64_t host_session_id, host_load_generation;
+     int w, h;  // visible dimensions (redundant with params.w/h)
+ 
+     struct mp_image_params params;
+diff --git a/video/out/hwdec/hwdec_ohcodec.c b/video/out/hwdec/hwdec_ohcodec.c
+index 970c0a0..d1b0529 100644
+--- a/video/out/hwdec/hwdec_ohcodec.c
++++ b/video/out/hwdec/hwdec_ohcodec.c
+@@ -159,16 +159,28 @@ static AVBufferRef *create_device_ref(struct ra_hwdec *hw)
+ // 未归还的平台资源及操作线程共同占用名额，只有正常销毁才能释放。
+ static atomic_uint isolated_owners;
+ 
+-void ohcodec_owner_fault(struct ra_hwdec *hw, int error, int stage)
++void ohcodec_mapper_fault(struct ra_hwdec_mapper *mapper, int error, int stage)
+ {
++    struct ra_hwdec *hw = mapper->owner;
+     struct ohcodec_priv *owner = hw->priv;
++    struct ohcodec_mapper_priv *p = mapper->priv;
++    struct mp_image *frame = p->last_src;
++    uint64_t session = 0, generation = 0;
++    // 只采用实际保留帧，不能把新候选帧或当前 entry 当成旧 GPU 工作的来源。
++    if (frame && frame->host_session_id && frame->host_load_generation &&
++        frame->host_session_id == atomic_load(&hw->global->host_session_id)) {
++        session = frame->host_session_id;
++        generation = frame->host_load_generation;
++    }
+     if (!owner->isolated || !hw->global->client_api)
+-        mp_ohcodec_terminal_enter(error, stage, (uintptr_t)hw);
+-    char err[24], phase[24];
++        mp_ohcodec_terminal_enter_context(error, stage, (uintptr_t)hw, session, generation);
++    char err[24], phase[24], session_text[24], generation_text[24];
+     snprintf(err, sizeof(err), "%d", error);
+     snprintf(phase, sizeof(phase), "%d", stage);
+-    char *args[] = {"vidall-ohcodec-quarantined", phase, err};
+-    mpv_event_client_message event = {.num_args = 3, .args = (const char **)args};
++    snprintf(session_text, sizeof(session_text), "%llu", (unsigned long long)session);
++    snprintf(generation_text, sizeof(generation_text), "%llu", (unsigned long long)generation);
++    char *args[] = {"vidall-ohcodec-quarantined", phase, err, session_text, generation_text};
++    mpv_event_client_message event = {.num_args = 5, .args = (const char **)args};
+     mp_client_broadcast_critical(hw->global->client_api, MPV_EVENT_CLIENT_MESSAGE, &event);
+     // 留在当前栈上，父级不能继续销毁 Vulkan 设备、Surface 或解码器。
+     static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+@@ -362,7 +374,7 @@ int ohcodec_mapper_drain(struct ra_hwdec_mapper *mapper, int reason,
+ #ifdef MP_OHCODEC_DIAGNOSTIC
+         ohcodec_terminal_barrier(mapper->log, "drain-retained");
+ #endif
+-        ohcodec_owner_fault(mapper->owner, p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED);
++        ohcodec_mapper_fault(mapper, p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED);
+         return OHCODEC_DRAIN_UNSAFE;
+     }
+     int error = 0;
+@@ -384,7 +396,7 @@ int ohcodec_mapper_drain(struct ra_hwdec_mapper *mapper, int reason,
+         ohcodec_terminal_barrier(mapper->log, "drain-unsafe");
+ #endif
+     if (result == OHCODEC_DRAIN_UNSAFE)
+-        ohcodec_owner_fault(mapper->owner, error, MP_OHCODEC_TERMINAL_DRAIN);
++        ohcodec_mapper_fault(mapper, error, MP_OHCODEC_TERMINAL_DRAIN);
+     return result;
+ }
+ 
+diff --git a/video/out/hwdec/hwdec_ohcodec.h b/video/out/hwdec/hwdec_ohcodec.h
+index 7970188..3570a19 100644
+--- a/video/out/hwdec/hwdec_ohcodec.h
++++ b/video/out/hwdec/hwdec_ohcodec.h
+@@ -83,7 +83,7 @@ typedef bool (*ohcodec_interop_init)(struct ra_hwdec *hw);
+ void ohcodec_terminal_barrier(struct mp_log *log, const char *site);
+ #endif
+ 
+-void ohcodec_owner_fault(struct ra_hwdec *hw, int error, int stage);
++void ohcodec_mapper_fault(struct ra_hwdec_mapper *mapper, int error, int stage);
+ bool ohcodec_surface_init(struct ohcodec_surface *surface,
+                           OH_NativeImage *image);
+ void ohcodec_surface_destroy(struct ohcodec_surface *surface);
+diff --git a/video/out/hwdec/hwdec_ohcodec_pl.c b/video/out/hwdec/hwdec_ohcodec_pl.c
+index 8acf302..039733e 100644
+--- a/video/out/hwdec/hwdec_ohcodec_pl.c
++++ b/video/out/hwdec/hwdec_ohcodec_pl.c
+@@ -578,7 +578,7 @@ static void mapper_uninit(struct ra_hwdec_mapper *mapper)
+     else if (v->window_buffer)
+         release_window_buffer(mapper, -1);
+     if (p->terminal_drain_error)
+-        ohcodec_owner_fault(mapper->owner, p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED);
++        ohcodec_mapper_fault(mapper, p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED);
+     if (v->gpu)
+         pl_gpu_finish(v->gpu);
+     while (v->imports) {
+@@ -638,7 +638,7 @@ static int mapper_map(struct ra_hwdec_mapper *mapper)
+         mapper_release(mapper);
+         if (p->terminal_drain_error) {
+             release_acquired_buffer(mapper, wb, fence_fd, "replacement-cancelled");
+-            ohcodec_owner_fault(mapper->owner, p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED);
++            ohcodec_mapper_fault(mapper, p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED);
+             return NATIVE_ERROR_UNKNOWN;
+         }
+     }
+diff --git a/video/out/hwdec/ohcodec_terminal.c b/video/out/hwdec/ohcodec_terminal.c
+index 0cf39a7..100d4a9 100644
+--- a/video/out/hwdec/ohcodec_terminal.c
++++ b/video/out/hwdec/ohcodec_terminal.c
+@@ -70,12 +70,14 @@ bool mp_ohcodec_terminal_snapshot(struct mp_ohcodec_terminal_record *out) {
+     *out=record;
+     return true;
+ }
+-void mp_ohcodec_terminal_enter(int error,int stage,uintptr_t owner_tag) {
++void mp_ohcodec_terminal_enter_context(int error,int stage,uintptr_t owner_tag,uint64_t session_id,uint64_t load_generation) {
+     atomic_fetch_or_explicit(&admission,CLOSED,memory_order_acq_rel);
+     int expected=0;
+     if(atomic_compare_exchange_strong_explicit(&publication,&expected,1,memory_order_acq_rel,memory_order_acquire)) {
+         mp_host_retire_all();
+-        record=(struct mp_ohcodec_terminal_record){.platform_error=error,.stage=stage,.owner_tag=owner_tag};
++        record=(struct mp_ohcodec_terminal_record){.platform_error=error,.stage=stage,.owner_tag=owner_tag,
++            .session_id=session_id && load_generation ? session_id : 0,
++            .load_generation=session_id && load_generation ? load_generation : 0};
+         atomic_store_explicit(&publication,2,memory_order_release);
+         /* 发布不等待任何播放/创建锁；此锁仅由睡眠中的通知线程短持有。 */
+         pthread_mutex_lock(&notification_lock);
+@@ -85,3 +87,7 @@ void mp_ohcodec_terminal_enter(int error,int stage,uintptr_t owner_tag) {
+     /* 未再触碰平台、释放父级或调用宿主。外部接管器拥有退出权限。 */
+     for(;;) pause_poll();
+ }
++
++void mp_ohcodec_terminal_enter(int error,int stage,uintptr_t owner_tag) {
++    mp_ohcodec_terminal_enter_context(error,stage,owner_tag,0,0);
++}
+diff --git a/video/out/hwdec/ohcodec_terminal.h b/video/out/hwdec/ohcodec_terminal.h
+index 0236f39..848cdd2 100644
+--- a/video/out/hwdec/ohcodec_terminal.h
++++ b/video/out/hwdec/ohcodec_terminal.h
+@@ -5,6 +5,7 @@
+ #include <stdint.h>
+ enum mp_ohcodec_terminal_stage { MP_OHCODEC_TERMINAL_DRAIN=1, MP_OHCODEC_TERMINAL_RETAINED=2, MP_OHCODEC_TERMINAL_LATE=3 };
+ struct mp_ohcodec_terminal_record {
++    uint64_t session_id, load_generation;
+     int platform_error;
+     int stage;
+     uintptr_t owner_tag; /* 仅数值身份，不允许接收者解引用。 */
+@@ -20,4 +21,5 @@ bool mp_ohcodec_terminal_end_creation(void);
+ bool mp_ohcodec_terminal_snapshot(struct mp_ohcodec_terminal_record *out);
+ /* 受保护平台资源必须先通过 can_start；此终局只等待宿主有限退出。 */
+ void mp_ohcodec_terminal_enter(int error,int stage,uintptr_t owner_tag);
++void mp_ohcodec_terminal_enter_context(int error, int stage, uintptr_t owner_tag, uint64_t session_id, uint64_t load_generation);
+ #endif
+diff --git a/video/out/hwdec/ohcodec_terminal_api.c b/video/out/hwdec/ohcodec_terminal_api.c
+index 7c04ed7..fc14d25 100644
+--- a/video/out/hwdec/ohcodec_terminal_api.c
++++ b/video/out/hwdec/ohcodec_terminal_api.c
+@@ -1,6 +1,7 @@
+ /* Public extension wrapper; no ownership of mpv/client/VO/log objects. */
+ #include <mpv/ohcodec_terminal.h>
+ #include "ohcodec_terminal.h"
++#include "common/host_recovery_api.h"
+ #include <stdatomic.h>
+ #include <errno.h>
+ #include <string.h>
+@@ -47,3 +48,13 @@ int mpv_ohcodec_terminal_snapshot(mpv_ohcodec_terminal_record *out)
+     if(!mp_ohcodec_terminal_snapshot(&in))return 0;
+     convert(out,&in);return 1;
+ }
++
++int mpv_host_fault_snapshot(mpv_host_fault_record *out)
++{
++    if (!out || out->size != sizeof(*out)) return MPV_ERROR_INVALID_PARAMETER;
++    struct mp_ohcodec_terminal_record in;
++    if (!mp_ohcodec_terminal_snapshot(&in)) return 0;
++    out->session_id = in.session_id;
++    out->load_generation = in.load_generation;
++    return 1;
++}

@@ -32,6 +32,7 @@ code=r'''
 #include "session_isolation.h"
 #include "environment_lifetime.h"
 #include <atomic>
+#include <cstdlib>
 #include <mutex>
 #include <vector>
 #include <algorithm>
@@ -43,14 +44,20 @@ code=r'''
 #include <functional>
 #include <condition_variable>
 #include <chrono>
-struct Handle {void* get(){return nullptr;}};
+struct mpv_handle;
+struct Handle {mpv_handle* get(){return nullptr;}};
 struct Event {std::string type,message;uint64_t epoch,sequence,generation;std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<std::atomic<bool>> callbackOpen;uint64_t runtimeGeneration;bool compatible;std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment;};
 static constexpr int napi_tsfn_nonblocking=0,napi_ok=0;
-static uint64_t requested=0;static int submitResult=0;
+static bool legacyCore=std::getenv("VIDALL_TEST_LEGACY_LOAD")!=nullptr;
+static uint64_t requested=0,boundSession=0;static int submitResult=0,hostCalls=0;
 static std::function<void()> onSubmit;
-static int test_command_async(void*,uint64_t userdata,const char**){requested=userdata;if(onSubmit)onSubmit();return submitResult;}
+
 #define mpv_command_async test_command_async
 #include <mpv/client.h>
+extern "C" int test_command_async(mpv_handle*,uint64_t userdata,const char**){requested=userdata;if(onSubmit)onSubmit();return submitResult;}
+#define RTLD_DEFAULT nullptr
+static int host_load(mpv_handle*p,uint64_t generation,uint64_t session,const char**args){boundSession=session;hostCalls++;return test_command_async(p,generation,args);}
+static void* dlsym(void*,const char*name){assert(!strcmp(name,"mpv_host_loadfile_async"));return legacyCore?nullptr:reinterpret_cast<void*>(host_load);}
 namespace vidall { namespace runtime { std::atomic<bool> terminal{false};const char* AdmissionError(){return terminal?"terminal":nullptr;} } }
 class Harness {
 public:
@@ -77,7 +84,7 @@ void reply(uint64_t request,int64_t id,int error=0){mpv_node value{};value.forma
 void end(int64_t id,int reason=MPV_END_FILE_REASON_EOF){mpv_event_end_file end{};end.reason=static_cast<mpv_end_file_reason>(reason);end.playlist_entry_id=id;mpv_event event{};event.event_id=MPV_EVENT_END_FILE;event.data=&end;process(&event);}
 };
 int main(){
- {Harness h;h.load();assert(requested==h.eventEpoch_&&requested>0);h.reply(requested,10);h.end(10);assert(h.sent.size()==1);}
+ {Harness h;h.load();assert(legacyCore?hostCalls==0:(boundSession==1&&hostCalls==1));assert(requested==h.eventEpoch_&&requested>0);h.reply(requested,10);h.end(10);assert(h.sent.size()==1);}
  {Harness h;h.verifyOrder=true;std::future<void> processing;std::promise<void> entered;
   onSubmit=[&]{auto request=requested;
    processing=std::async(std::launch::async,[&,request]{entered.set_value();h.reply(request,10);h.end(10);});
@@ -106,7 +113,7 @@ int main(){
  for(int mode=0;mode<6;mode++){Harness h;auto e=h.BeginCompletion();mpv_node values[2]{};for(auto &v:values){v.format=MPV_FORMAT_INT64;v.u.int64=10;}char key[]="playlist_entry_id";char* keys[]={key,key};mpv_node_list list{mode==3?2:1,values,keys};mpv_event_command c{};c.result.format=mode==2?MPV_FORMAT_STRING:MPV_FORMAT_NODE_MAP;c.result.u.list=&list;mpv_event event{};event.reply_userdata=e;event.error=mode==0?-1:0;event.data=mode==1?nullptr:&c;if(mode==4)values[0].format=MPV_FORMAT_DOUBLE;if(mode==5)values[0].u.int64=-1;h.CompletionReply(event);h.reply(e,10);h.end(10);assert(h.sent.empty());}
  {Harness h;auto e=h.BeginCompletion();h.reply(e,10);std::thread t([&]{h.InvalidateCompletion();});t.join();h.end(10);assert(h.sent.empty());}
 }
-'''.replace('METHODS',methods).replace('EXTRAS',extras).replace('LOAD',load).replace('@@STOP@@',stop if not legacy else '').replace('@@REPLY@@',reply_line).replace('@@END_BLOCK@@',end_block)
+'''.replace('METHODS',methods).replace('EXTRAS',extras).replace('\nLOAD\n','\n'+load+'\n').replace('@@STOP@@',stop if not legacy else '').replace('@@REPLY@@',reply_line).replace('@@END_BLOCK@@',end_block)
 if legacy:
     # 原始生产END_FILE分支仅清缓存，不会投递completed；该断言应语义失败。
     before=code[:code.index('int main(){')]
@@ -117,4 +124,5 @@ with tempfile.TemporaryDirectory(prefix='completion-contract-') as out:
  p=pathlib.Path(out);(p/'test.cpp').write_text(code)
  subprocess.run([os.environ.get('CXX','c++'),'-std=c++17','-pthread','-I'+str(ROOT/'native/runtime'),'-I'+str(ROOT/'release/inputs/004-normal-core/include'),str(p/'test.cpp'),'-o',str(p/'test')],check=True)
  subprocess.run([str(p/'test')],check=True)
+ if not legacy: subprocess.run([str(p/'test')],check=True,env={**os.environ,'VIDALL_TEST_LEGACY_LOAD':'1'})
 print('PASS actual Load/Stop/COMMAND_REPLY/END_FILE/DispatchCompletion (NAPI投递替身), Release源码顺序: EOF唯一、非EOF、reply身份/格式、重载、晚到、失效与线程交错')

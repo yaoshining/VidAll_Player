@@ -2,6 +2,7 @@
 #define VIDALL_PROCESS_RUNTIME_H
 #include <cstdint>
 #include <string>
+#include <array>
 #include "../mpv/host_recovery_api.h"
 namespace vidall::runtime {
 enum class TerminalPolicy { ControlledAppExit, PreserveHost };
@@ -14,7 +15,16 @@ struct Status {
     unsigned deadlineMs;
     int recoveryState; // 0 不支持，1 等待音频停止，2 可创建兼容代，3 超时仍保留
     bool preservesHost;
+    std::uint64_t faultSession, faultLoad;
 };
+struct FaultRecord {
+    std::uint64_t sequence, sessionId, loadGeneration;
+    int platformError;
+    unsigned stage, scope; // 1 会话隔离，2 进程终局。
+};
+struct FaultHistory { std::array<FaultRecord,16> records{}; unsigned count = 0; };
+void RecordSessionFault(int platformError, unsigned stage, std::uint64_t sessionId, std::uint64_t loadGeneration);
+FaultHistory Faults();
 const char* Configure(const std::string& filesDir, const std::string& config, unsigned deadlineMs, TerminalPolicy policy = TerminalPolicy::ControlledAppExit);
 Status Snapshot();
 void RejectResources();

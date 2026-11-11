@@ -45,9 +45,10 @@ def main():
     run('typescript-version', ['node', '-e', 'const t=require(process.env.TYPESCRIPT_PATH); console.log(t.version); if(t.version!=="5.6.3")process.exit(1)'])
     run('input-audit', py+['scripts/audit/normal-core-verify.py'])
     run('input-mutations', py+['native/tests/normal-core-input.test.py'])
-    ets_cases = ['constructor-terminal-replay', 'host-recovery', 'unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
+    ets_cases = ['fault-notifications', 'constructor-terminal-replay', 'host-recovery', 'unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
     for case in ets_cases:
         run('ets-'+case, ['node', 'native/tests/normal-runtime.test.cjs', case])
+    run('fault-during-close', py+['native/tests/host-survival/fault-close.test.py'])
     run('runtime-napi-entry', py+['native/tests/host-survival/runtime-entry.test.py'])
     run('software-release-fence', py+['native/tests/surface-resize/sw.test.py', 'packages/vidall-player/src/main/cpp/napi_init.cpp'])
     if run('audio-domain-compile', ['clang', '-std=c11', '-pthread', '-Wall', '-Wextra', '-Werror', '-Inative/mpv', 'native/tests/host-survival/audio-domain.test.c', 'native/mpv/host_recovery.c', '-o', work/'audio-domain']):
@@ -60,12 +61,16 @@ def main():
     export_symbols = ['-Wl,-export_dynamic'] if platform.system() == 'Darwin' else ['-rdynamic', '-ldl']
     survival = common+['-DVIDALL_MPV_AVAILABLE=1', '-Inative/runtime', 'native/tests/host-survival/runtime.test.cpp', 'native/runtime/process_runtime.cpp']
     if run('survival-runtime-compile', survival+export_symbols+['-o', work/'survival-runtime']):
-        for case in ['normal', 'abi']:
+        for case in ['normal', 'abi', 'old-version']:
             run('survival-runtime-'+case, [work/'survival-runtime', case, work/('survival-runtime-'+case)])
+    if run('missing-fault-load-compile', survival+['-DNO_FAULT_LOAD_ABI']+export_symbols+['-o', work/'missing-fault-load']):
+        run('missing-fault-load-rejected', [work/'missing-fault-load', 'normal', work/'missing-fault-load-root'])
     if run('old-core-recovery-compile', survival+['-DNO_RECOVERY_ABI']+export_symbols+['-o', work/'old-core-recovery']):
         run('old-core-recovery-rejected', [work/'old-core-recovery', 'abi', work/'old-core-root'])
     if run('diagnostics-compile', common+['-Inative/diagnostics', 'native/tests/diagnostics_test.cpp', '-o', work/'diagnostics']):
         run('diagnostics-native', [work/'diagnostics'])
+    if run('fault-message-compile', common+['-Inative/runtime', 'native/tests/host-survival/fault-message.test.cpp', '-o', work/'fault-message']):
+        run('fault-message', [work/'fault-message'])
     if run('environment-compile', common+['-Inative/runtime', 'native/tests/host-survival/environment.test.cpp', '-o', work/'environment']):
         run('environment-lifetime', [work/'environment'])
     if run('executor-compile', common+['-Inative/runtime', 'native/tests/host-survival/executor.test.cpp', '-o', work/'executor']):

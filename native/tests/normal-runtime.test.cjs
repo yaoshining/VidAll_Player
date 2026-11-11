@@ -5,9 +5,10 @@ const Module = require('node:module');
 const ts = require(process.env.TYPESCRIPT_PATH || '/Applications/DevEco-Studio.app/Contents/plugins/codelinter/node_modules/typescript');
 let state = 'unconfigured';
 let recovery,configuredPolicy,requestedGeneration;
+let faults=[];
 let creates = 0, configurations = 0, nativeReleases = 0, callbackFailure = false;
 const native = new Proxy({
-  getRuntimeStatus: () => JSON.stringify({state, recovery, terminal: state === 'terminal' ? {stage:1,platformError:-4,firstObservedMs:100,deadlineMs:3000,ownerTag:'1'} : undefined}),
+  getRuntimeStatus: () => JSON.stringify({state, recovery, faults, terminal: state === 'terminal' ? {stage:1,platformError:-4,firstObservedMs:100,deadlineMs:3000,ownerTag:'1'} : undefined}),
   configureRuntime: async (_root,_text,_deadline,policy) => { configuredPolicy=policy;configurations++;state='ready'; return {ok:true,handle:0,code:'OK'}; },
   rejectRuntimeResources:()=>{state='failed';return {ok:false,handle:0,code:'RUNTIME_RESOURCE_FAILED'};},
   createSession: async (...args) => {requestedGeneration=args[5];creates++;return {ok:true,handle:1,code:'OK'};},
@@ -28,13 +29,29 @@ const tick=()=>new Promise(r=>setImmediate(r));
 async function bounded(p){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error('TEST_TIMEOUT')),150))]);}
 async function main(){
   const which=process.argv[2];
-  if(which==='host-recovery') {
+  if(which==='fault-notifications') {
+    state='ready';const events=[];
+    const off=runtime.onPlayerFault(f=>events.push(f));
+    runtime.onPlayerFault(()=>{throw Error('listener failure');});
+    const player=createPlayer();await player.release();
+    faults=[{sequence:1,kind:'session-quarantined',stage:2,platformError:-7,attribution:{state:'known',sessionId:'17',loadGeneration:'4'}}];
+    runtime.getPlayerRuntimeStatus();runtime.getPlayerRuntimeStatus();
+    assert.equal(events.length,1);assert.equal(events[0].attribution.loadGeneration,'4');
+    let replay=0;const stopReplay=runtime.onPlayerFault(()=>{replay++;runtime.getPlayerRuntimeStatus();});
+    assert.equal(replay,1);
+    faults.push({sequence:2,kind:'process-terminal',stage:3,platformError:-9,attribution:{state:'unknown'}});
+    state='terminal';recovery={state:'ready',generation:2};runtime.getPlayerRuntimeStatus();
+    assert.equal(events.length,2);assert.equal(replay,2);assert.equal(events[1].attribution.state,'unknown');
+    off();stopReplay();faults.push({...faults[1],sequence:3});runtime.getPlayerRuntimeStatus();
+    assert.equal(events.length,2);assert.equal(replay,2);
+  } else if(which==='host-recovery') {
     const context={filesDir:'/private/app',resourceManager:{getRawFileContent:async()=>new TextEncoder().encode('[global]\nclient min protocol = SMB2_02\n')}};
     await runtime.initializePlayerRuntime(context,{terminalPolicy:'preserve-host',deadlineMs:3000});
     assert.equal(configuredPolicy,'preserve-host');
-    const old=createPlayer({playbackMode:'compatible'});await old.attachSurface({componentId:'old',generation:1,width:10,height:10});assert.equal(requestedGeneration,1);
+    const oldErrors=[];const old=createPlayer({playbackMode:'compatible',eventListener:e=>{if(e.type==='error')oldErrors.push(e.error);}});await old.attachSurface({componentId:'old',generation:1,width:10,height:10});assert.equal(requestedGeneration,1);
     state='terminal';recovery={state:'pending',generation:0};runtime.getPlayerRuntimeStatus();
     assert.equal(old.stateMachine.getState(),'error');
+    assert.equal(oldErrors.length,1);assert(!oldErrors[0].message.includes('重新打开应用'));
     assert.throws(()=>createPlayer({playbackMode:'compatible'}),/PLAYER_RECOVERY_PENDING/);
     recovery={state:'ready',generation:2};
     assert.throws(()=>createPlayer(),/PLAYER_TERMINAL/);

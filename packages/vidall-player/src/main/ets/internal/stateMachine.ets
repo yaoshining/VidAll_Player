@@ -98,7 +98,7 @@ export class SessionStateMachine {
     this.terminal = true;
     this.state = 'error';
     const error: PlayerError = { domain: 'native', code: 'PLAYER_TERMINAL',
-      message: '播放器无法安全继续，请重新打开应用。', retryable: false, context: {} };
+      message: '当前播放会话无法安全继续。', retryable: false, context: {} };
     const events: PlayerEvent[] = [
       { type: 'state', sequence: 0, state: 'error' },
       { type: 'error', sequence: 0, error }

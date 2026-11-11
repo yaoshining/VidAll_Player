@@ -20,6 +20,7 @@
 #include <vector>
 #include <functional>
 #include "process_runtime.h"
+#include "fault_message.h"
 #include "work_budget.h"
 #include "environment_lifetime.h"
 #include "session_isolation.h"
@@ -27,6 +28,7 @@
 #if VIDALL_MPV_AVAILABLE
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <mpv/client.h>
+#include <dlfcn.h>
 #include "../../../../../native/diagnostics/diagnostics.h"
 #include <mpv/render.h>
 #include <mpv/render_gl.h>
@@ -590,7 +592,11 @@ public:
         // COMMAND_REPLY / END_FILE 必须在 preparing 入队之后才能交付。
         std::lock_guard<std::mutex> terminalLock(completionMutex_);
         const char* command[] = {"loadfile", uri.c_str(), "replace", nullptr};
-        if (mpv_command_async(player_.get(), request, command) < 0) {
+        using HostLoad = int (*)(mpv_handle*, std::uint64_t, std::uint64_t, const char**);
+        static const auto hostLoad = reinterpret_cast<HostLoad>(dlsym(RTLD_DEFAULT, "mpv_host_loadfile_async"));
+        const int submitted = hostLoad ? hostLoad(player_.get(), request, handle, command) :
+            mpv_command_async(player_.get(), request, command);
+        if (submitted < 0) {
             completionEpoch_ = 0;
             return {false, handle, "NATIVE_PLAYBACK_FAILED"};
         }
@@ -1062,7 +1068,11 @@ private:
             if (event->event_id == MPV_EVENT_SHUTDOWN) break;
             if (isolation_ && event->event_id == MPV_EVENT_CLIENT_MESSAGE && event->data) {
                 auto* msg = static_cast<mpv_event_client_message*>(event->data);
-                if (msg->num_args == 3 && !std::strcmp(msg->args[0], "vidall-ohcodec-quarantined")) {
+                if ((msg->num_args == 3 || msg->num_args == 5) &&
+                    !std::strcmp(msg->args[0], "vidall-ohcodec-quarantined")) {
+                    const auto fault = vidall::runtime::ParseQuarantineFault(msg->num_args, msg->args);
+                    // 独立记录先于实例回调；关闭中的旧会话也不能丢掉故障事实。
+                    vidall::runtime::RecordSessionFault(fault.platformError, fault.stage, fault.sessionId, fault.loadGeneration);
                     isolation_->Quarantine();
                     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
                         "OHCodec isolated session=%{public}llu stage=%{public}s platform_error=%{public}s",
@@ -2126,13 +2136,34 @@ napi_value GetRuntimeStatus(napi_env env, napi_callback_info)
 {
     auto s = vidall::runtime::Snapshot(); const char* names[] = {"unconfigured","configuring","ready","failed","terminal"};
     std::string json = std::string("{\"state\":\"") + names[s.state] + "\"";
-    if (s.state == 4) json += ",\"terminal\":{\"stage\":" + std::to_string(s.stage) + ",\"platformError\":" + std::to_string(s.platformError) + ",\"firstObservedMs\":" + std::to_string(s.firstObservedMs) + ",\"deadlineMs\":" + std::to_string(s.deadlineMs) + ",\"ownerTag\":\"" + std::to_string(s.ownerTag) + "\"}";
+    if (s.state == 4) {
+        json += ",\"terminal\":{\"stage\":" + std::to_string(s.stage) + ",\"platformError\":" + std::to_string(s.platformError) + ",\"firstObservedMs\":" + std::to_string(s.firstObservedMs) + ",\"deadlineMs\":" + std::to_string(s.deadlineMs) + ",\"ownerTag\":\"" + std::to_string(s.ownerTag) + "\"";
+        json += ",\"attribution\":{\"state\":\"";
+        if (s.faultSession && s.faultLoad) {
+            json += "known\",\"sessionId\":\"" + std::to_string(s.faultSession) +
+                "\",\"loadGeneration\":\"" + std::to_string(s.faultLoad) + "\"}}";
+        } else json += "unknown\"}}";
+    }
     if (s.state == 4 && s.preservesHost) {
         const char* recovery = s.recoveryState == 2 ? "ready" : s.recoveryState == 3 ? "timeout" : "pending";
         json += std::string(",\"recovery\":{\"state\":\"") + recovery + "\",\"generation\":" +
             std::to_string(vidall::runtime::CaptureGeneration()) + "}";
     }
-    return CreateString(env,json+"}");
+    const auto history = vidall::runtime::Faults();
+    json += ",\"faults\":[";
+    for (unsigned i = 0; i < history.count; ++i) {
+        const auto& fault = history.records[i];
+        if (i) json += ",";
+        json += "{\"sequence\":" + std::to_string(fault.sequence) + ",\"kind\":\"" +
+            (fault.scope == 2 ? "process-terminal" : "session-quarantined") + "\",\"stage\":" +
+            std::to_string(fault.stage) + ",\"platformError\":" + std::to_string(fault.platformError) +
+            ",\"attribution\":{\"state\":\"";
+        if (fault.sessionId && fault.loadGeneration) {
+            json += "known\",\"sessionId\":\"" + std::to_string(fault.sessionId) +
+                "\",\"loadGeneration\":\"" + std::to_string(fault.loadGeneration) + "\"}}";
+        } else json += "unknown\"}}";
+    }
+    return CreateString(env,json+"]}");
 }
 
 napi_value CreateSession(napi_env env, napi_callback_info info)

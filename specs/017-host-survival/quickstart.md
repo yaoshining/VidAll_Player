@@ -6,3 +6,4 @@
 4. 原生真实 Initialize 测试：`python3 native/tests/ohcodec-fence/initialize.test.py`。
 5. 完整宿主门禁：`python3 scripts/test/normal-core/run.py --out <新的证据目录>`。设备、构建与 CI 分别记录，不升级证据等级。
 6. 对应用本仓 mpv 补丁后的源码执行 `python3 native/tests/host-survival/audio-data.test.py <mpv源码目录>` 与 `python3 native/tests/host-survival/audio-control.test.py <mpv源码目录>`；记录实际源码/补丁身份，平台替身不能代替焦点验收。
+7. mpv 故障归属入口测试：`python3 native/tests/host-survival/fault-context.test.py <mpv源码目录>`；终局快照测试 `fault-snapshot.test.c` 须链接同一派生源码的 ohcodec_terminal.c / ohcodec_terminal_api.c 与本仓 host_recovery.c。此测试只证明所编译的实际入口，不替代设备整链验收。

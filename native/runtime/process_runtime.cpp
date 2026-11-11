@@ -15,6 +15,18 @@
 namespace vidall::runtime {
 namespace {
 std::atomic<int> state{0};
+std::mutex faultMutex;
+FaultHistory faultHistory;
+std::uint64_t faultSequence = 0;
+void RecordFault(unsigned scope,int error,unsigned stage,std::uint64_t session,std::uint64_t load) {
+ std::lock_guard<std::mutex> lock(faultMutex);
+ if(faultHistory.count==faultHistory.records.size()) {
+  for(unsigned i=1;i<faultHistory.count;i++)faultHistory.records[i-1]=faultHistory.records[i];
+  --faultHistory.count;
+ }
+ if(!session||!load)session=load=0;
+ faultHistory.records[faultHistory.count++]={++faultSequence,session,load,error,stage,scope};
+}
 std::atomic<std::int64_t> firstAt{0};
 std::atomic<unsigned> deadline{0};
 std::atomic<TerminalPolicy> terminalPolicy{TerminalPolicy::ControlledAppExit};
@@ -24,13 +36,17 @@ struct RecoveryApi {
  uint64_t (*generation)() = nullptr;
  unsigned (*pending)() = nullptr;
  void (*stopAudio)() = nullptr;
+ int (*faultSnapshot)(mpv_host_fault_record*) = nullptr;
+ void* loadFile = nullptr;
 } recovery;
 bool HasRecoveryAbi() {
  recovery.version = reinterpret_cast<uint32_t(*)()>(dlsym(RTLD_DEFAULT,"mpv_host_recovery_api_version"));
  recovery.generation = reinterpret_cast<uint64_t(*)()>(dlsym(RTLD_DEFAULT,"mpv_host_recovery_generation"));
  recovery.pending = reinterpret_cast<unsigned(*)()>(dlsym(RTLD_DEFAULT,"mpv_host_recovery_audio_pending"));
  recovery.stopAudio = reinterpret_cast<void(*)()>(dlsym(RTLD_DEFAULT,"mpv_host_recovery_stop_audio"));
- return recovery.version && recovery.generation && recovery.pending && recovery.stopAudio &&
+ recovery.faultSnapshot = reinterpret_cast<int(*)(mpv_host_fault_record*)>(dlsym(RTLD_DEFAULT,"mpv_host_fault_snapshot"));
+ recovery.loadFile = dlsym(RTLD_DEFAULT,"mpv_host_loadfile_async");
+ return recovery.version && recovery.generation && recovery.pending && recovery.stopAudio && recovery.faultSnapshot && recovery.loadFile &&
      recovery.version() == MPV_HOST_RECOVERY_ABI_VERSION;
 }
 std::atomic<const char*> failureCode{nullptr};
@@ -38,6 +54,7 @@ std::mutex configureMutex;
 std::string configuredRoot;
 std::string configuredText;
 mpv_ohcodec_terminal_record record{};
+mpv_host_fault_record faultRecord{sizeof(mpv_host_fault_record),0,0};
 std::atomic_flag recordWriter=ATOMIC_FLAG_INIT;
 std::int64_t Now(){return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();}
 void Observe(){
@@ -46,7 +63,13 @@ void Observe(){
  if(mpv_ohcodec_terminal_snapshot(&r)!=1)return;
  // 不等待其他观察者；首个写者按 release 发布完整快照。
  if(recordWriter.test_and_set(std::memory_order_acquire))return;
- record=r;firstAt.store(Now(),std::memory_order_release);state.store(4,std::memory_order_release);
+ record=r;
+ if(recovery.faultSnapshot){
+  mpv_host_fault_record fault{sizeof(fault),0,0};
+  if(recovery.faultSnapshot(&fault)==1 && fault.session_id && fault.load_generation)faultRecord=fault;
+ }
+ RecordFault(2,r.platform_error,r.stage,faultRecord.session_id,faultRecord.load_generation);
+ firstAt.store(Now(),std::memory_order_release);state.store(4,std::memory_order_release);
 }
 void Receiver(const mpv_ohcodec_terminal_record*,void*){}
 void Monitor(){for(;;){if(state.load(std::memory_order_acquire)==3)return;Observe();auto first=firstAt.load(std::memory_order_acquire);if(terminalPolicy.load()==TerminalPolicy::ControlledAppExit && first&&Now()-first>=deadline.load())std::_Exit(86);std::this_thread::sleep_for(std::chrono::milliseconds(10));}}
@@ -80,6 +103,10 @@ bool Prepare(const std::string&root,const std::string&text){
  char b[256];ssize_t n=read(fd,b,sizeof(b));close(fd);return n==static_cast<ssize_t>(text.size())&&!memcmp(b,text.data(),text.size());
 }
 }
+void RecordSessionFault(int error,unsigned stage,std::uint64_t session,std::uint64_t load) {
+ RecordFault(1,error,stage,session,load);
+}
+FaultHistory Faults() { std::lock_guard<std::mutex> lock(faultMutex);return faultHistory; }
 const char* Configure(const std::string&filesDir,const std::string&config,unsigned ms,TerminalPolicy policy){
  if(policy!=TerminalPolicy::ControlledAppExit && policy!=TerminalPolicy::PreserveHost)return "RUNTIME_CONFIG_INVALID";
  if(ms<1000||ms>10000||config!="[global]\nclient min protocol = SMB2_02\n")return "RUNTIME_CONFIG_INVALID";
@@ -106,7 +133,7 @@ Status Snapshot(){
  s.preservesHost=terminalPolicy.load()==TerminalPolicy::PreserveHost;
  if(s.firstObservedMs && s.preservesHost)
   s.recoveryState=recoveryReady.load(std::memory_order_acquire)?2:Now()-s.firstObservedMs>=s.deadlineMs?3:1;
- if(s.firstObservedMs){s.state=4;s.platformError=record.platform_error;s.stage=record.stage;s.ownerTag=record.owner_tag;}return s;
+ if(s.firstObservedMs){s.state=4;s.platformError=record.platform_error;s.stage=record.stage;s.ownerTag=record.owner_tag;s.faultSession=faultRecord.session_id;s.faultLoad=faultRecord.load_generation;}return s;
 }
 const char* AdmissionError(bool recoverySession){
  auto s=Snapshot();
@@ -143,6 +170,8 @@ const char* SessionAdmissionError(std::uint64_t generation,bool compatible){
 
 #else
 namespace vidall::runtime {
+void RecordSessionFault(int,unsigned,std::uint64_t,std::uint64_t){}
+FaultHistory Faults(){return {};}
 const char* Configure(const std::string&,const std::string&,unsigned,TerminalPolicy){return "FEATURE_UNSUPPORTED";}
 Status Snapshot(){return {0,0,0,0,0,0};}
 void RejectResources(){}

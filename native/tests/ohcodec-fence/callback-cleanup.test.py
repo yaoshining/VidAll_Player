@@ -26,6 +26,7 @@ owner = extract('if (isolation_ && event->event_id == MPV_EVENT_CLIENT_MESSAGE')
 code = r'''
 #include "session_isolation.h"
 #include "environment_lifetime.h"
+#include "fault_message.h"
 #include <atomic>
 #include <cassert>
 #include <cstring>
@@ -39,9 +40,9 @@ using napi_env=void*; using napi_value=void*; using napi_valuetype=int;
 constexpr int napi_ok=0,napi_tsfn_nonblocking=0,napi_tsfn_release=0;
 constexpr int napi_undefined=0,napi_function=1,MPV_EVENT_CLIENT_MESSAGE=16;
 struct NativeResult {bool ok; uint64_t handle; const char* code;};
-struct mpv_event_client_message {int num_args; char**args;};
+struct mpv_event_client_message {int num_args; const char**args;};
 struct mpv_event {int event_id; void* data;};
-int calls=0, objects=0, closed=0;
+int calls=0, objects=0, closed=0, reported=0;
 std::vector<void*> queue;
 int napi_typeof(napi_env,napi_value,napi_valuetype*t){*t=napi_function;return 0;}
 template<class... T> int napi_create_threadsafe_function(T...){return 0;}
@@ -54,6 +55,7 @@ int napi_create_int64(napi_env,int64_t,napi_value*){return 0;}
 int napi_call_function(napi_env,napi_value,napi_value,size_t,napi_value*,napi_value*){calls++;return 0;}
 namespace vidall::runtime {
 bool terminal=false;
+void RecordSessionFault(int,unsigned,uint64_t session,uint64_t load){reported++;assert(!session&&!load); }
 const char* SessionAdmissionError(uint64_t born,bool compatible){return !terminal||(born==2&&compatible)?nullptr:"PLAYER_TERMINAL";}
 }
 class NativeSession {
@@ -79,10 +81,10 @@ int main(int argc,char**argv){
   drain();assert(calls==0&&objects==0&&closed==1&&"清理后排队事件不得访问 JS");
  }else if(mode=="owner"){
   NativeSession s;s.isolation_=vidall::runtime::SessionIsolation::Acquire();s.CloseIsolatedCallbacks();
-  char tag[]="vidall-ohcodec-quarantined",stage[]="close",error[]="-4";char*args[]={tag,stage,error};
+  char tag[]="vidall-ohcodec-quarantined",stage[]="close",error[]="-4";const char*args[]={tag,stage,error};
   mpv_event_client_message message{3,args};mpv_event event{MPV_EVENT_CLIENT_MESSAGE,&message};
   s.receive(&event);assert(s.isolation_->IsQuarantined()&&"关闭回调后仍须接收 owner 故障");
-  assert(queue.empty());
+  assert(queue.empty()&&reported==1);
  }else if(mode=="replace"){
   NativeSession s;s.Dispatch("error","old");assert(s.SetEventCallback((void*)1,(void*)1,1).ok);
   s.eventTsfn_=&s;s.Dispatch("state","new");drain();assert(calls==1&&objects==1);

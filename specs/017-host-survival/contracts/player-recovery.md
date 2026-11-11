@@ -8,9 +8,13 @@
 
 兼容模式只有在 preserve-host 策略且 recovery.state=ready 时允许在终局后新建；故障前创建的兼容实例同样属于旧代，不能直接复用。无软件渲染能力或配置失败时必须返回失败，不悄悄回退 GPU。纯软件渲染仍涉及 NativeWindow/PixelMap，不等于与系统图形服务完全隔离。
 
-## 故障与媒体关联（待实现）
+## 故障与媒体关联（实现及端到端验证中）
 
-事件需区分普通媒体错误、已隔离会话故障、进程终局；携带不可复用的会话标识及加载代，不携带媒体 URL。使用原故障会话的关联，不能从当前播放页面推测。owner_tag 是底层对象标签，不等于 Player handle 或媒体 ID；无可靠映射时明确返回未知，不生成确定关联。
+普通媒体错误沿用 Player 的 error 事件；OHCodec 故障新增 `onPlayerFault` 订阅和 `getPlayerRuntimeStatus().faults` 有界历史。`PlayerFaultInfo.kind` 为 session-quarantined 或 process-terminal，含 sequence、stage、platformError 及 attribution。attribution.state=known 时 sessionId/loadGeneration 都是十进制字符串；unknown 不携带确定身份。历史最多 16 条，监听者按 sequence 去重，注册时重放现存历史，返回函数用于取消订阅。监听独立于单个 Player 生命周期，关闭期间的故障仍能记录。
+
+mpv 的加载扩展把身份绑在命令及 playlist entry，解码器在创建时捕获，随后由帧携带；OHCodec 故障只采用 last_src 的身份。候选新帧、当前页面、当前加载代、Surface generation、owner_tag 均不能补猜旧资源的来源。创建回滚 LATE 无可靠已使用帧时为 unknown。整个路径不记录媒体 URL。
+
+**尚未完成接入闭环**：加载开始前向 TV 提供不可变身份回执，及解码/过滤/映射整条链的目标运行验证仍待完成；不得把目前的数值故障记录按当前页面强行映射到媒体。T013 保持未完成。恢复 ABI 已升为 0x00020000，新增加载与故障快照接口；ABI 版本或必需符号缺失会拒绝 preserve-host，不能静默改成退出宿主。
 
 TV 维护稳定媒体身份和有界标记存储。Player 不持久化视频黑名单。仅实际关联相关故障的视频记兼容选择；本进程临时被迫兼容的其他视频不记失败。进程重新启动后全局临时限制自然结束，不复位旧进程的终局锁。
 

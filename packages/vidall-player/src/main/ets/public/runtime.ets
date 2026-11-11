@@ -6,26 +6,65 @@ export interface PlayerRuntimeOptions {
   terminalPolicy: 'controlled-app-exit' | 'preserve-host';
   deadlineMs: number;
 }
+export interface PlayerFaultAttribution {
+  state: 'known' | 'unknown';
+  sessionId?: string;
+  loadGeneration?: string;
+}
 export interface PlayerTerminalInfo {
   stage: number;
   platformError: number;
   firstObservedMs: number;
   deadlineMs: number;
   ownerTag: string;
+  attribution?: PlayerFaultAttribution;
 }
 export interface PlayerRecoveryStatus {
   state: 'pending' | 'ready' | 'timeout';
   generation: number;
 }
+export interface PlayerFaultInfo {
+  sequence: number;
+  kind: 'session-quarantined' | 'process-terminal';
+  stage: number;
+  platformError: number;
+  attribution: PlayerFaultAttribution;
+}
 export interface PlayerRuntimeStatus {
   state: 'unconfigured' | 'configuring' | 'ready' | 'failed' | 'terminal';
   terminal?: PlayerTerminalInfo;
   recovery?: PlayerRecoveryStatus;
+  faults?: PlayerFaultInfo[];
 }
 class TerminalListener {
   callback: (info: PlayerTerminalInfo) => void;
   delivered: boolean = false;
   constructor(callback: (info: PlayerTerminalInfo) => void) { this.callback = callback; }
+}
+class FaultListener {
+  callback: (info: PlayerFaultInfo) => void;
+  sequence: number = 0;
+  constructor(callback: (info: PlayerFaultInfo) => void) { this.callback = callback; }
+}
+const faultListeners: FaultListener[] = [];
+function notifyFaults(history: PlayerFaultInfo[] | undefined): void {
+  if (history === undefined) return;
+  for (const info of history) {
+    for (const listener of faultListeners.slice()) {
+      if (info.sequence <= listener.sequence) continue;
+      listener.sequence = info.sequence;
+      try { listener.callback(info); } catch (_) {
+        console.error('VidAllPlayer: fault listener failed');
+      }
+    }
+  }
+}
+// 重放有界历史；与某个 Player 的释放生命周期无关，宿主不再需要时应取消订阅。
+export function onPlayerFault(callback: (info: PlayerFaultInfo) => void): () => void {
+  const listener = new FaultListener(callback);
+  faultListeners.push(listener);
+  getPlayerRuntimeStatus();
+  return (): void => { const i = faultListeners.indexOf(listener); if (i >= 0) faultListeners.splice(i, 1); };
 }
 const listeners: TerminalListener[] = [];
 let configuration: string = '';
@@ -51,6 +90,7 @@ export function getPlayerRuntimeStatus(): PlayerRuntimeStatus {
   if (cachedTerminal !== undefined && !preserveHost) return { state: 'terminal', terminal: cachedTerminal };
   const status = JSON.parse(nativeSession.getRuntimeStatus()) as PlayerRuntimeStatus;
   if (status.recovery !== undefined) preserveHost = true;
+  notifyFaults(status.faults);
   if (status.terminal !== undefined) {
     if (cachedTerminal === undefined) notify(status.terminal);
     status.terminal = cachedTerminal;

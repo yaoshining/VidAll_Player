@@ -22,4 +22,4 @@ export {
 
 export { DiagnosticStatus, DiagnosticField, PlayerDiagnosticsFields, PlayerDiagnosticsSnapshot } from './src/main/ets/public/diagnostics';
 
-export { initializePlayerRuntime, getPlayerRuntimeStatus, onPlayerTerminal, PlayerRuntimeOptions, PlayerRuntimeStatus, PlayerRecoveryStatus, PlayerTerminalInfo } from './src/main/ets/public/runtime';
+export { initializePlayerRuntime, getPlayerRuntimeStatus, onPlayerTerminal, onPlayerFault, PlayerRuntimeOptions, PlayerRuntimeStatus, PlayerRecoveryStatus, PlayerTerminalInfo, PlayerFaultAttribution, PlayerFaultInfo } from './src/main/ets/public/runtime';
