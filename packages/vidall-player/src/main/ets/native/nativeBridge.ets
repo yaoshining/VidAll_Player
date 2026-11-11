@@ -337,9 +337,11 @@ export function resolveHdrComputePeak(mode: string | undefined): string {
 
 export function createNativePlayerBridge(subtitleFontsDir?: string, hardwareDecoding?: 'auto' | 'disabled',
   hdrToneMapping?: 'auto' | 'bt.2390' | 'mobius' | 'reinhard' | 'hable' | 'gamma' | 'linear' | 'clip',
-  hdrComputePeak?: 'auto' | 'enabled' | 'disabled'): NativePlayerBridge {
+  hdrComputePeak?: 'auto' | 'enabled' | 'disabled',
+  playbackMode: 'standard' | 'compatible' = 'standard'): NativePlayerBridge {
   assertPlayerRuntimeReady();
+  if (playbackMode !== 'standard' && playbackMode !== 'compatible') throw new Error('INVALID_PLAYBACK_MODE');
   return new HarNativePlayerBridge(nativeSession.createSession(
-    subtitleFontsDir ?? '', resolveHardwareDecoding(hardwareDecoding),
-    resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak)));
+    subtitleFontsDir ?? '', playbackMode === 'compatible' ? 'no' : resolveHardwareDecoding(hardwareDecoding),
+    resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak), playbackMode));
 }

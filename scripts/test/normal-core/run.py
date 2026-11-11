@@ -48,6 +48,8 @@ def main():
     ets_cases = ['unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
     for case in ets_cases:
         run('ets-'+case, ['node', 'native/tests/normal-runtime.test.cjs', case])
+    run('software-release-fence', py+['native/tests/surface-resize/sw.test.py', 'packages/vidall-player/src/main/cpp/napi_init.cpp'])
+    run('compatible-playback', ['node', 'native/tests/host-survival/compatible.test.cjs'])
     run('diagnostics-session', ['node', 'native/tests/diagnostics-session.test.cjs'])
     run('diagnostics-probe-contract', ['node', 'native/tests/diagnostics-device.test.cjs'])
     common = ['clang++', '-std=c++17', '-pthread', '-Irelease/inputs/004-normal-core/include']

@@ -12,6 +12,9 @@ export interface PlayerSurface {
 }
 
 export interface PlayerOptions {
+  // compatible 同时使用软件解码与软件渲染，优先于 hardwareDecoding。
+  // standard 保持现有零拷贝选择；该选项不代表进程终局恢复已获准。
+  playbackMode?: 'standard' | 'compatible';
   eventListener?: (event: PlayerEvent) => void;
   // 仅允许通过真实运行时参数报告的高级显示项；裁剪、去隔行和截图固定不支持。
   advancedVideoOptions?: ('rotation' | 'pixelAspectRatio')[];

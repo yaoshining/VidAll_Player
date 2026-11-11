@@ -33,6 +33,7 @@
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
 #include "render_backend_policy.h"
+#include "release_fence.h"
 #include "session_isolation.h"
 #endif
 
@@ -297,21 +298,16 @@ public:
     ~NativeSession() { vidall::runtime::ParkIfTerminal(); Release(); vidall::runtime::ParkIfTerminal(); }
 
     bool Initialize(const std::string& fontsDir, const std::string& hwdec,
-                    const std::string& toneMapping, const std::string& hdrComputePeak)
+                    const std::string& toneMapping, const std::string& hdrComputePeak,
+                    const std::string& playbackMode = "standard")
     {
-        if (!player_) return false;
+        if (!player_ || (playbackMode != "standard" && playbackMode != "compatible")) return false;
+        const bool compatible = playbackMode == "compatible";
         mpv_set_option_string(player_.get(), "terminal", "no");
         mpv_set_option_string(player_.get(), "config", "no");
-        // Vulkan 必须由不进入驱动初始化路径的证据门禁。目标真机的 vendor GPU 栈提供
-        // libEGL_impl.so，而 API 24 Local Emulator 缺少它；后者不得进入 pl_vulkan_create。
-        // 该 vendor 驱动包（/vendor/lib64/chipsetsdk/）在 HarmonyOS 上是一个整体交付的
-        // 单体包：同时提供 EGL、GLES、Vulkan 与音频栈（见受控构建对 libEGL.so/libvulkan.so/
-        // libohaudio.so 的联合放行）。因此其存在性是判定「vendor GPU 栈完整、适合硬件渲染」
-        // 的单一非侵入式证据：存在 => Vulkan 与 GLES 均视为可用（Vulkan 优先）；不存在 =>
-        // 模拟器无任何 vendor 栈 => 走软件渲染。现实中不存在「有 EGL 但 Vulkan 损坏」的
-        // 中间态，故此处用同一证据同时门禁 vulkanSafe 与 openGlesAvailable 是刻意的。
-        // 若未来出现独立、非侵入式的 Vulkan 专用证据，再分开建模以让 GLES 成为可选中后端。
-        const bool vendorGpuStackAvailable =
+        // 兼容会话在初始化前固定软件渲染，不探测或升级 GPU 后端。
+        // standard 沿用 vendor 栈门禁；库存在只用于选择，不能证明驱动永不故障。
+        const bool vendorGpuStackAvailable = !compatible &&
             access("/vendor/lib64/chipsetsdk/libEGL_impl.so", R_OK) == 0;
         renderBackend_ = vidall::render::SelectRenderBackend(
             {vendorGpuStackAvailable, vendorGpuStackAvailable, true});
@@ -321,7 +317,7 @@ public:
             mpv_set_option_string(player_.get(), "gpu-context", "ohosvk");
         } else {
             // 安全降级使用 libmpv render API；该路径先创建 SW context，再在 GLES 可用时升级。
-            mpv_set_option_string(player_.get(), "vo", "libmpv");
+            if (mpv_set_option_string(player_.get(), "vo", "libmpv") < 0) return false;
         }
         // HDR tone mapping（issue #66）：vo_gpu_next 也支持 tone-mapping/hdr-compute-peak。
         // 显式下发缺省 bt.2390 + auto，让 HDR10(PQ)/HLG/BT.2020/DV 内容确定性 tone map 到 SDR。
@@ -330,7 +326,9 @@ public:
         // 硬件解码：libmpv 编译时 --enable-ohcodec，链接 libnative_media_vdec.so。
         // hwdec 为空时保留 mpv 默认（软件解码）；"auto-safe" 自动选择 ohcodec 硬解后端，
         // 失败时回退软件解码；"no" 强制软件解码。
-        std::string effectiveHwdec = hwdec;
+        std::string effectiveHwdec = compatible ? "no" : hwdec;
+        if (compatible && mpv_set_option_string(player_.get(), "gpu-hwdec-interop", "no") < 0)
+            return false;
         if (renderBackend_ == vidall::render::RenderBackend::Vulkan) {
             if (!hwdec.empty() && hwdec != "no") {
                 isolation_ = vidall::runtime::SessionIsolation::Acquire();
@@ -346,7 +344,7 @@ public:
                 return false;
         }
         if (!effectiveHwdec.empty()) {
-            mpv_set_option_string(player_.get(), "hwdec", effectiveHwdec.c_str());
+            if (mpv_set_option_string(player_.get(), "hwdec", effectiveHwdec.c_str()) < 0) return false;
             hardwareDecodingRequested_.store(effectiveHwdec != "no");
         }
         if (!fontsDir.empty()) {
@@ -1365,9 +1363,9 @@ private:
 
         // 安全降级策略：先创建 SW render context，再在 GLES 能力已确认时升级。
         // 此分支不会设置 Vulkan 选项，也不会进入 pl_vulkan_create。
-        // 策略：先创建 SW render context（永远安全），再尝试升级 GL。
+        // standard 路径先创建 SW context，再按预初始化策略决定是否升级 GL。
         // GL 在模拟器上可能 SIGSEGV，需要安全检测。
-        // 第一步：SW context（保证播放能力）
+        // 第一步：创建 SW context；失败时明确上报，不保证所有媒体均可播放。
         {
             const char* swApi = MPV_RENDER_API_TYPE_SW;
             mpv_render_param swParams[] = {
@@ -1624,6 +1622,7 @@ private:
                 int fence = -1;
                 int requestRc = OH_NativeWindow_NativeWindowRequestBuffer(window_, &buffer, &fence);
                 if (requestRc != 0 || buffer == nullptr) {
+                    if (fence >= 0) close(fence);
                     nativeWindowFailCount++;
                     if (nativeWindowFailCount >= MAX_NATIVE_WINDOW_FAILS) {
                         OH_LOG_Print(LOG_APP, LOG_WARN, LOG_DOMAIN, LOG_TAG, "NativeWindow failed %d times, switching to PixelMap fallback", nativeWindowFailCount);
@@ -1632,6 +1631,15 @@ private:
                     continue;
                 }
                 nativeWindowFailCount = 0;
+                if (!vidall::render::WaitAndCloseReleaseFence(fence)) {
+                    // 未确认可写时不取 handle、不映射、不写入，只归还生产者申请。
+                    int abortRc = OH_NativeWindow_NativeWindowAbortBuffer(window_, buffer);
+                    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
+                        "MpvBuffer release fence failed abortRc=%{public}d", abortRc);
+                    MarkRendererFailed();
+                    Dispatch("error", "MPV display buffer fence failed");
+                    break;
+                }
                 BufferHandle* target = OH_NativeWindow_GetBufferHandleFromNative(buffer);
                 void* mappedAddr = nullptr;
                 bool ownsMapping = false;
@@ -1672,7 +1680,8 @@ private:
                 Region::Rect rect = {0, 0, static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
                 region.rects = &rect;
                 region.rectNumber = 1;
-                int flushRc = OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, fence, region);
+                // CPU 写入已完成；release fence 已消费，不能作为 acquire fence 复用。
+                int flushRc = OH_NativeWindow_NativeWindowFlushBuffer(window_, buffer, -1, region);
                 if (flushRc != 0) {
                     int abortRc = OH_NativeWindow_NativeWindowAbortBuffer(window_, buffer);
                     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, LOG_TAG,
@@ -2001,19 +2010,22 @@ napi_value GetRuntimeStatus(napi_env env, napi_callback_info)
 
 napi_value CreateSession(napi_env env, napi_callback_info info)
 {
-    napi_value args[4] = {nullptr}; size_t argc = 4;
-    std::string fontsDir, hwdec, toneMapping, hdrComputePeak;
+    napi_value args[5] = {nullptr}; size_t argc = 5;
+    std::string fontsDir, hwdec, toneMapping, hdrComputePeak, playbackMode = "standard";
     if (napi_get_cb_info(env, info, &argc, args, nullptr, nullptr) == napi_ok) {
         if (argc >= 1) ReadString(env, args[0], fontsDir);
         if (argc >= 2) ReadString(env, args[1], hwdec);
         if (argc >= 3) ReadString(env, args[2], toneMapping);
         if (argc >= 4) ReadString(env, args[3], hdrComputePeak);
+        if (argc >= 5 && !ReadString(env, args[4], playbackMode)) return nullptr;
     }
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, 0, [=]() mutable -> NativeResult {
+    if (playbackMode != "standard" && playbackMode != "compatible")
+        return NativeResult{false, 0, "INVALID_PLAYBACK_MODE"};
     std::shared_ptr<NativeSession> session(new NativeSession(), DeleteSession);
     if (vidall::runtime::Snapshot().state == 4) return NativeResult{false, 0, "PLAYER_TERMINAL"};
-    if (!session->Initialize(fontsDir, hwdec, toneMapping, hdrComputePeak)) return NativeResult{false, 0, "NATIVE_PLAYBACK_FAILED"};
+    if (!session->Initialize(fontsDir, hwdec, toneMapping, hdrComputePeak, playbackMode)) return NativeResult{false, 0, "NATIVE_PLAYBACK_FAILED"};
     std::lock_guard<std::mutex> lock(gSessionsMutex);
     const std::uint64_t handle = gNextSessionId++;
     gSessions.emplace(handle, std::move(session));

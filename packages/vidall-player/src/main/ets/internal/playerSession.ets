@@ -84,7 +84,7 @@ export class PlayerSession implements VidAllPlayer {
   constructor(options?: PlayerOptions, nativeBridge?: NativePlayerBridge) {
     this.nativeBridge = nativeBridge ?? createNativePlayerBridge(
       options?.subtitleFontsDir, options?.hardwareDecoding,
-      options?.hdrToneMapping, options?.hdrComputePeak);
+      options?.hdrToneMapping, options?.hdrComputePeak, options?.playbackMode);
     this.nativeBridge.subscribe((event) => this.handleNativeBridgeEvent(event));
     if (options?.eventListener !== undefined) {
       this.stateMachine.subscribe(options.eventListener);

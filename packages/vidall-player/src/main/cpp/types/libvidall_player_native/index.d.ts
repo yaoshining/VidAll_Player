@@ -1,5 +1,5 @@
 export type NativeResultCode =
-  'OK' | 'RELEASED' | 'ALREADY_RELEASED' | 'FEATURE_UNSUPPORTED' |
+  'INVALID_PLAYBACK_MODE' | 'OK' | 'RELEASED' | 'ALREADY_RELEASED' | 'FEATURE_UNSUPPORTED' |
   'PLAYER_TERMINAL' | 'RUNTIME_NOT_READY' | 'RUNTIME_CONFIG_INVALID' | 'RUNTIME_CONFIG_CONFLICT' | 'RUNTIME_RESOURCE_FAILED' | 'RUNTIME_ABI_MISMATCH' | 'RUNTIME_SMB_FAILED' | 'RUNTIME_TERMINAL_REGISTER_FAILED' | 'RUNTIME_TERMINAL_ENABLE_FAILED' | 'RUNTIME_MONITOR_FAILED' | 'NATIVE_WORK_CANCELLED' | 'NATIVE_WORK_QUEUE_FAILED' | 'NATIVE_PLAYBACK_FAILED' | 'SURFACE_UNAVAILABLE' | 'RENDER_BACKEND_UNAVAILABLE' | 'INPUT_INVALID';
 
 export interface NativeSessionResult {
@@ -38,7 +38,7 @@ export interface NativeSessionModule {
   configureRuntime(filesDir: string, config: string, deadlineMs: number): Promise<NativeSessionResult>;
   getRuntimeStatus(): string;
   rejectRuntimeResources(): NativeSessionResult;
-  createSession(fontsDir?: string, hwdec?: string, toneMapping?: string, hdrComputePeak?: string): Promise<NativeSessionResult>;
+  createSession(fontsDir?: string, hwdec?: string, toneMapping?: string, hdrComputePeak?: string, playbackMode?: 'standard' | 'compatible'): Promise<NativeSessionResult>;
   releaseSession(handle: number): Promise<NativeSessionResult>;
   attachSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): Promise<NativeSessionResult>;
   resizeSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): Promise<NativeSessionResult>;

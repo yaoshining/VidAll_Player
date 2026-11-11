@@ -33,16 +33,20 @@ struct NativeResult {bool ok;std::uint64_t handle;const char*code;};
 std::atomic<int> creates{0},initializes{0},releases{0},destructs{0};bool terminal=false,configured=false,createRace=false,releaseRace=false;
 namespace vidall::runtime {struct Status{int state;};Status Snapshot(){return {terminal?4:configured?2:0};}const char*AdmissionError(){return terminal?"PLAYER_TERMINAL":configured?nullptr:"RUNTIME_NOT_READY";}void ParkIfTerminal(){if(terminal){puts("FAIL terminal reached destructor");std::abort();}}}
 bool scopedTest=false, slowClose=false;
+std::string receivedMode;
 std::atomic<bool> resumeOld{false}, oldReturned{false};
 std::atomic<int> closedCallbacks{0};
 std::atomic<bool> blockDestructor{false}, destructionDone{false};
 void waitDestruction(){while(!destructionDone.load())std::this_thread::yield();}
-struct NativeSession {std::shared_ptr<vidall::runtime::SessionIsolation> isolation;auto Isolation(){return isolation;}void CloseIsolatedCallbacks(){closedCallbacks++;} bool closed=false;NativeSession(){creates++;if(createRace)terminal=true;}~NativeSession(){while(blockDestructor.load())std::this_thread::yield();destructs++;vidall::runtime::ParkIfTerminal();Release();vidall::runtime::ParkIfTerminal();destructionDone=true;}bool Initialize(const std::string&,const std::string&,const std::string&,const std::string&){initializes++;if(scopedTest)isolation=vidall::runtime::SessionIsolation::Acquire();return true;}void Release(){if(closed)return;closed=true;releases++;if(releaseRace)terminal=true;
+struct NativeSession {std::shared_ptr<vidall::runtime::SessionIsolation> isolation;auto Isolation(){return isolation;}void CloseIsolatedCallbacks(){closedCallbacks++;} bool closed=false;NativeSession(){creates++;if(createRace)terminal=true;}~NativeSession(){while(blockDestructor.load())std::this_thread::yield();destructs++;vidall::runtime::ParkIfTerminal();Release();vidall::runtime::ParkIfTerminal();destructionDone=true;}bool Initialize(const std::string&,const std::string&,const std::string&,const std::string&,const std::string& mode){receivedMode=mode;initializes++;if(scopedTest)isolation=vidall::runtime::SessionIsolation::Acquire();return true;}void Release(){if(closed)return;closed=true;releases++;if(releaseRace)terminal=true;
  if(scopedTest&&isolation){if(!slowClose)isolation->Quarantine();while(!resumeOld.load())std::this_thread::sleep_for(std::chrono::milliseconds(1));isolation->FinishedRelease();oldReturned=true;}}};
 std::mutex gSessionsMutex;std::unordered_map<std::uint64_t,std::shared_ptr<NativeSession>>gSessions;std::uint64_t gNextSessionId=1;
 std::shared_ptr<NativeSession> FindSession(std::uint64_t id){std::lock_guard<std::mutex> lock(gSessionsMutex);auto it=gSessions.find(id);return it==gSessions.end()?nullptr:it->second;}
-int napi_get_cb_info(napi_env,napi_callback_info,size_t*,napi_value*,void*,void*){return napi_ok;}
-bool ReadString(napi_env,napi_value,std::string&){return true;}
+std::vector<std::string> arguments;
+int napi_get_cb_info(napi_env,napi_callback_info,size_t*argc,napi_value*args,void*,void*){
+ *argc=std::min(*argc,arguments.size());for(size_t i=0;i<*argc;i++)args[i]=&arguments[i];return napi_ok;
+}
+bool ReadString(napi_env,napi_value value,std::string& out){if(!value)return false;out=*static_cast<std::string*>(value);return true;}
 bool GetArguments(napi_env,napi_callback_info,size_t,napi_value*,size_t&argc){argc=1;return true;}
 bool ReadHandle(napi_env,napi_value,std::uint64_t&h){h=1;return true;}
 NativeResult last{false,0,"NONE"};napi_value CreateResult(napi_env,NativeResult r){last=r;return nullptr;}
@@ -104,6 +108,17 @@ else if(mode=="cleanup-plain-retained" || mode=="cleanup-plain-terminal"){
  if(terminal){puts("PASS");std::fflush(stdout);std::_Exit(0);}
  waitDestruction();if(destructs!=1||releases!=1)return 1;
 }
+else if(mode=="create-compatible" || mode=="create-invalid-mode" || mode=="create-legacy"){
+ configured=true;arguments={"","auto","",""};
+ if(mode!="create-legacy")arguments.push_back(mode=="create-compatible"?"compatible":"invalid");
+ CreateSession(nullptr,nullptr);if(creates)return 1;run();
+ if(mode=="create-invalid-mode"){
+   if(last.ok||creates||std::string(last.code)!="INVALID_PLAYBACK_MODE")return 1;
+ }else{
+   if(!last.ok||receivedMode!=(mode=="create-compatible"?"compatible":"standard"))return 1;
+   gSessions.clear();waitDestruction();
+ }
+}
 else if(mode=="create-ui"){configured=true;CreateSession(nullptr,nullptr);if(creates){puts("FAIL native create executed synchronously on UI");return 1;}run();if(creates!=1||!last.ok)return 1;gSessions.clear();waitDestruction();}
 else if(mode=="create-terminal-race"){configured=true;createRace=true;CreateSession(nullptr,nullptr);run();if(initializes||destructs||last.ok)return 1;}
 else{configured=true;gSessions[1]=std::shared_ptr<NativeSession>(new NativeSession(),DeleteSession);terminal=mode!="normal-release"&&mode!="release-terminal-race";releaseRace=mode=="release-terminal-race";
@@ -118,7 +133,7 @@ if '--mutant-delete' in sys.argv:
 (out/'harness.cpp').write_text(prefix+functions+main)
 subprocess.run(['clang++','-std=c++17','-pthread','-I'+str(root/'native/runtime'),str(out/'harness.cpp'),'-o',str(out/'test')],check=True)
 rows=[]
-for c in ['create-unconfigured','create-ui','cleanup-isolated','cleanup-plain-blocked','cleanup-plain-retained','cleanup-plain-terminal','isolated-release','slow-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']:
+for c in ['create-compatible','create-invalid-mode','create-legacy','create-unconfigured','create-ui','cleanup-isolated','cleanup-plain-blocked','cleanup-plain-retained','cleanup-plain-terminal','isolated-release','slow-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']:
  p=subprocess.run([str(out/'test'),c],capture_output=True,text=True,timeout=10 if c=='slow-release' else 3);rows.append({'case':c,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr});print(c,p.returncode,p.stdout.strip())
 (out/'results.json').write_text(json.dumps({'sourceSHA256':hashlib.sha256(src.read_bytes()).hexdigest(),'method':'actual-entry-slices-platform-and-session-stubs','results':rows},indent=2)+'\n')
 
