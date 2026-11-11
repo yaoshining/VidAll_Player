@@ -6,6 +6,7 @@ import {
   ExternalSubtitle,
   FrameData,
   MediaSource,
+  PlayerLoadIdentity,
   PlayerEvent,
   PlayerOptions,
   PlayerSurface,
@@ -152,7 +153,7 @@ export class PlayerSession implements VidAllPlayer {
     });
   }
 
-  load(source: MediaSource): Promise<void> {
+  load(source: MediaSource, onIdentity?: (identity: PlayerLoadIdentity) => void): Promise<void> {
     this.diagnosticsRevision++;
     this.pendingFileEnd = undefined;
     const request = ++this.mediaRequest;
@@ -174,13 +175,13 @@ export class PlayerSession implements VidAllPlayer {
       // 串行切源：先终止旧媒体、释放旧 SMB 代理租约并清空轨道与恢复记录，
       // 避免旧连接、旧租约或旧轨道泄漏到新媒体会话。
       this.abortActiveMedia('source-switch');
-      this.stateMachine.advanceEventEpoch();
+      const loadGeneration = this.stateMachine.advanceEventEpoch();
       this.loadedRequest = request;
       this.firstFrameDelivered = false;
       // 重置 position 节流窗口，让新媒体的第一个 position 事件能立即下发，而不是
       // 被上一媒体最后一次 emit 的 100ms 窗口卡住。
       this.lastPositionEmitAtMs = 0;
-      return this.nativeBridge.load(source).then(() => {
+      return this.nativeBridge.load(source, loadGeneration, onIdentity).then(() => {
         if (playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) throw new Error('PLAYER_TERMINAL');
         this.source = source;
         this.tracks = this.createExternalAudioTracks(source.externalAudio).concat(

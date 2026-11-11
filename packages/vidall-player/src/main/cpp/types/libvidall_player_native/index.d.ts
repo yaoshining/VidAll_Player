@@ -43,7 +43,7 @@ export interface NativeSessionModule {
   attachSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): Promise<NativeSessionResult>;
   resizeSurface(handle: number, surfaceId: string, generation: number, width: number, height: number): Promise<NativeSessionResult>;
   detachSurface(handle: number, generation: number): Promise<NativeSessionResult>;
-  load(handle: number, uri: string, headerFields: string, smbUsername: string, smbPassword: string): Promise<NativeSessionResult>;
+  load(handle: number, uri: string, headerFields: string, smbUsername: string, smbPassword: string, loadGeneration?: number): Promise<NativeSessionResult>;
   play(handle: number): Promise<NativeSessionResult>;
   pause(handle: number): Promise<NativeSessionResult>;
   stop(handle: number): Promise<NativeSessionResult>;

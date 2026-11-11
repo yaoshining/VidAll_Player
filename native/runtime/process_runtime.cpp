@@ -15,6 +15,7 @@
 namespace vidall::runtime {
 namespace {
 std::atomic<int> state{0};
+std::atomic<bool> terminalObserved{false};
 std::mutex faultMutex;
 FaultHistory faultHistory;
 std::uint64_t faultSequence = 0;
@@ -61,6 +62,8 @@ void Observe(){
  if(firstAt.load(std::memory_order_acquire)||state.load(std::memory_order_acquire)<2)return;
  mpv_ohcodec_terminal_record r{};r.size=sizeof(r);r.abi_version=MPV_OHCODEC_TERMINAL_ABI_VERSION;
  if(mpv_ohcodec_terminal_snapshot(&r)!=1)return;
+ // 先拒绝旧代操作；归属快照尚在发布时也不能重新放行。
+ terminalObserved.store(true,std::memory_order_release);
  // 不等待其他观察者；首个写者按 release 发布完整快照。
  if(recordWriter.test_and_set(std::memory_order_acquire))return;
  record=r;
@@ -131,6 +134,10 @@ void RejectResources(){int expected=0;if(state.compare_exchange_strong(expected,
 Status Snapshot(){
  Observe();Status s{};s.state=state.load(std::memory_order_acquire);s.deadlineMs=deadline.load();s.firstObservedMs=firstAt.load(std::memory_order_acquire);
  s.preservesHost=terminalPolicy.load()==TerminalPolicy::PreserveHost;
+ if(terminalObserved.load(std::memory_order_acquire)) {
+  s.state=4;
+  if(s.preservesHost)s.recoveryState=1;
+ }
  if(s.firstObservedMs && s.preservesHost)
   s.recoveryState=recoveryReady.load(std::memory_order_acquire)?2:Now()-s.firstObservedMs>=s.deadlineMs?3:1;
  if(s.firstObservedMs){s.state=4;s.platformError=record.platform_error;s.stage=record.stage;s.ownerTag=record.owner_tag;s.faultSession=faultRecord.session_id;s.faultLoad=faultRecord.load_generation;}return s;

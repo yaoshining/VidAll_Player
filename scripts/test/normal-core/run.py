@@ -48,6 +48,9 @@ def main():
     ets_cases = ['fault-notifications', 'constructor-terminal-replay', 'host-recovery', 'unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
     for case in ets_cases:
         run('ets-'+case, ['node', 'native/tests/normal-runtime.test.cjs', case])
+    for case in ['switch', 'queue-failed', 'callback-failed', 'terminal-in-callback', 'invalid', 'legacy']:
+        run('load-identity-'+case, ['node', 'native/tests/host-survival/load-identity.test.cjs', case])
+    run('load-generation-entry', py+['native/tests/host-survival/load-entry.test.py'])
     run('fault-during-close', py+['native/tests/host-survival/fault-close.test.py'])
     run('runtime-napi-entry', py+['native/tests/host-survival/runtime-entry.test.py'])
     run('software-release-fence', py+['native/tests/surface-resize/sw.test.py', 'packages/vidall-player/src/main/cpp/napi_init.cpp'])

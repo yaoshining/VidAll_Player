@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <string>
 static std::atomic<bool> terminal{false},retired{false},allowStop{false},stopped{false};
+static std::atomic<bool> holdFault{false}, faultEntered{false};
 static unsigned version=MPV_HOST_RECOVERY_ABI_VERSION;
 extern "C" {
 uint32_t mpv_ohcodec_terminal_api_version(){return MPV_OHCODEC_TERMINAL_ABI_VERSION;}
@@ -20,7 +21,7 @@ uint32_t mpv_host_recovery_api_version(){return version;}
 #ifndef NO_FAULT_LOAD_ABI
 int mpv_host_loadfile_async(mpv_handle*,uint64_t,uint64_t,const char**){return 0;}
 #endif
-int mpv_host_fault_snapshot(mpv_host_fault_record*r){if(!terminal)return 0;r->session_id=17;r->load_generation=4;return 1;}
+int mpv_host_fault_snapshot(mpv_host_fault_record*r){if(!terminal)return 0;faultEntered=true;while(holdFault)std::this_thread::yield();r->session_id=17;r->load_generation=4;return 1;}
 uint64_t mpv_host_recovery_generation(){return retired?2:1;}
 unsigned mpv_host_recovery_audio_pending(){return stopped?0:1;}
 void mpv_host_recovery_stop_audio(){while(!allowStop)std::this_thread::sleep_for(std::chrono::milliseconds(1));stopped=true;}
@@ -48,7 +49,17 @@ int main(int argc,char**argv){
  assert(vidall::runtime::Configure(argv[2],"[global]\nclient min protocol = SMB2_02\n",1000));
  retired=true;assert(vidall::runtime::CaptureGeneration()==0);
  assert(vidall::runtime::SessionAdmissionError(oldGeneration,true));
- terminal=true;assert(vidall::runtime::Snapshot().state==4);
+ holdFault=true;terminal=true;
+ std::thread observer([]{vidall::runtime::Snapshot();});
+ while(!faultEntered)std::this_thread::yield();
+ // 首写者尚未完成归属快照时，其他线程也必须立即拒绝旧会话。
+ auto publishing=vidall::runtime::Snapshot();assert(publishing.state==4);
+ assert(publishing.firstObservedMs==0&&publishing.recoveryState==1);
+ assert(vidall::runtime::AdmissionError());assert(vidall::runtime::AdmissionError(true));
+ assert(vidall::runtime::CaptureGeneration()==0);
+ holdFault=false;observer.join();
+ for(int i=0;i<1000&&!vidall::runtime::Snapshot().firstObservedMs;i++)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+ assert(vidall::runtime::Snapshot().firstObservedMs>0);
  assert(vidall::runtime::Snapshot().faultSession==17&&vidall::runtime::Snapshot().faultLoad==4);
  history=vidall::runtime::Faults();assert(history.count==16&&history.records[15].scope==2);
  assert(history.records[15].sequence==20&&history.records[15].sessionId==17&&history.records[15].loadGeneration==4);

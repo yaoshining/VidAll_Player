@@ -26,7 +26,7 @@ static thread_local bool isCleanupThread=false;
 static mpv_ohcodec_terminal_config registeredConfig{};
 static std::mutex callbackBlockMutex;static std::condition_variable callbackBlockCondition;static std::atomic<bool>callbackWaiting{false},loggerWaiting{false};
 static void event(const char* name,bool destroy=false){std::lock_guard<std::mutex>l(logMutex);printf("%s %s after_terminal=%d\n",destroy?"DESTROY":"EVENT",name,int(terminal.load()));fflush(stdout);}
-static void terminalNow(){terminal=true;auto status=vidall::runtime::Snapshot();{std::lock_guard<std::mutex>l(logMutex);printf("TERMINAL first_ms=%lld observed_ms=%lld deadline_ms=%u\n",static_cast<long long>(status.firstObservedMs),static_cast<long long>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()),status.deadlineMs);fflush(stdout);}event("terminal");}
+static void terminalNow(){terminal=true;auto status=vidall::runtime::Snapshot();for(int i=0;i<200&&!status.firstObservedMs;i++){std::this_thread::sleep_for(std::chrono::milliseconds(1));status=vidall::runtime::Snapshot();}{std::lock_guard<std::mutex>l(logMutex);printf("TERMINAL first_ms=%lld observed_ms=%lld deadline_ms=%u\n",static_cast<long long>(status.firstObservedMs),static_cast<long long>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()),status.deadlineMs);fflush(stdout);}event("terminal");}
 extern "C" {
 uint32_t mpv_ohcodec_terminal_api_version(){return MPV_OHCODEC_TERMINAL_ABI_VERSION;}
 int mpv_ohcodec_terminal_register(const mpv_ohcodec_terminal_config*c){registeredConfig=*c;return 0;}

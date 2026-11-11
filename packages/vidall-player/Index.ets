@@ -8,6 +8,7 @@ export {
   FrameData,
   MediaSource,
   PlayerError,
+  PlayerLoadIdentity,
   PlayerEvent,
   PlayerEventType,
   PlayerLog,

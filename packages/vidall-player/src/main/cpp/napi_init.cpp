@@ -566,14 +566,16 @@ public:
     }
 
     NativeResult Load(const std::string& uri, const std::string& headerFields,
-                       const std::string& smbUsername, const std::string& smbPassword, std::uint64_t handle)
+                       const std::string& smbUsername, const std::string& smbPassword, std::uint64_t handle,
+                       std::uint64_t loadGeneration = 0)
     {
         if (const char* error = RuntimeAdmissionError()) return {false, handle, error};
         std::lock_guard<std::mutex> lock(lifecycleMutex_);
         if (const char* error = RuntimeAdmissionError()) return {false, handle, error};
         if (released_) return {false, handle, "RELEASED"};
-        // ArkTS 对每次已验证的 load 递增代次，表面暂不可用时也要与它保持同步。
-        const auto request = BeginCompletion();
+        // 被排队拒绝的加载可形成空洞；显式代避免两端计数错位。
+        const auto request = BeginCompletion(loadGeneration);
+        if (!request) return {false, handle, "INPUT_INVALID"};
         if (!rendererReady_ || uri.empty()) {
             InvalidateCompletion();
             return {false, handle, uri.empty() ? "INPUT_INVALID" : "SURFACE_UNAVAILABLE"};
@@ -893,10 +895,13 @@ private:
 
     // 独立窄锁：Load/Stop/Release可持lifecycle锁进入；事件线程绝不反向取lifecycle锁。
     // 唯一嵌套为completion -> callback，只进行非阻塞TSFN投递，不等待MPV/UI。
-    std::uint64_t BeginCompletion()
+    std::uint64_t BeginCompletion(std::uint64_t requested = 0)
     {
         std::lock_guard<std::mutex> lock(completionMutex_);
-        completionEpoch_ = ++eventEpoch_;
+        const auto next = requested ? requested : eventEpoch_.load() + 1;
+        if (next <= eventEpoch_.load() || next > 9007199254740991ULL) return 0;
+        completionEpoch_ = next;
+        eventEpoch_ = next;
         completionEntry_ = -1;
         completionReplied_ = false;
         completionEnded_.clear();
@@ -2286,16 +2291,21 @@ napi_value DetachSurface(napi_env env, napi_callback_info info)
 
 napi_value Load(napi_env env, napi_callback_info info)
 {
-    napi_value args[5] = {nullptr}; size_t argc = 0; std::uint64_t handle = 0;
+    napi_value args[6] = {nullptr};
+    double requestedGeneration = 0; size_t argc = 0; std::uint64_t handle = 0;
     std::string uri; std::string headerFields; std::string smbUsername; std::string smbPassword;
-    if (!GetArguments(env, info, 5, args, argc) || argc != 5 || !ReadHandle(env, args[0], handle) ||
+    if (!GetArguments(env, info, 6, args, argc) || (argc != 5 && argc != 6) || !ReadHandle(env, args[0], handle) ||
         !ReadString(env, args[1], uri) || !ReadString(env, args[2], headerFields) ||
         !ReadString(env, args[3], smbUsername) || !ReadString(env, args[4], smbPassword)) return nullptr;
+    if (argc == 6 && (napi_get_value_double(env, args[5], &requestedGeneration) != napi_ok ||
+        !std::isfinite(requestedGeneration) || requestedGeneration < 1 || requestedGeneration > 9007199254740991.0 ||
+        std::floor(requestedGeneration) != requestedGeneration)) return nullptr;
+    const auto loadGeneration = static_cast<std::uint64_t>(requestedGeneration);
 #if VIDALL_MPV_AVAILABLE
     return QueueNative(env, handle, [=]() mutable -> NativeResult {
     std::shared_ptr<NativeSession> session = FindSession(handle, env);
     if (session != nullptr) {
-        NativeResult result = session->Load(uri, headerFields, smbUsername, smbPassword, handle);
+        NativeResult result = session->Load(uri, headerFields, smbUsername, smbPassword, handle, loadGeneration);
         smbUsername.assign(smbUsername.size(), '\0');
         smbPassword.assign(smbPassword.size(), '\0');
         return result;

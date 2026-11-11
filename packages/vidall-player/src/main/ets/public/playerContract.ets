@@ -1,11 +1,11 @@
 import { PlayerDiagnosticsSnapshot } from './diagnostics';
-import { ExternalAudio, ExternalSubtitle, FrameData, MediaSource, PlayerEvent, PlayerSurface, PlayerTrackKind } from './types';
+import { ExternalAudio, ExternalSubtitle, FrameData, MediaSource, PlayerLoadIdentity, PlayerEvent, PlayerSurface, PlayerTrackKind } from './types';
 
 export interface VidAllPlayer {
   attachSurface(surface: PlayerSurface): Promise<void>;
   resizeSurface(surface: PlayerSurface): Promise<void>;
   detachSurface(generation: number): Promise<void>;
-  load(source: MediaSource): Promise<void>;
+  load(source: MediaSource, onIdentity?: (identity: PlayerLoadIdentity) => void): Promise<void>;
   play(): Promise<void>;
   pause(): Promise<void>;
   seekRelative(seconds: number): Promise<void>;

@@ -8,7 +8,7 @@ def method(name):
     while depth:
         depth+=(source[i]=='{')-(source[i]=='}');i+=1
     return source[at:i]
-names=['std::uint64_t BeginCompletion()', 'void InvalidateCompletion()', 'void CompletionReply(', 'void CompleteFile(', 'void DispatchCompletion(']
+names=['std::uint64_t BeginCompletion(', 'void InvalidateCompletion()', 'void CompletionReply(', 'void CompleteFile(', 'void DispatchCompletion(']
 legacy='--legacy-red' in sys.argv
 methods='' if legacy else '\n'.join(method(n) for n in names)
 start=source.index('            if (event->event_id == MPV_EVENT_END_FILE) {');begin=source.index('{',start);depth=1;i=begin+1
@@ -95,6 +95,10 @@ int main(){
  }
  {Harness h;h.rendererReady_=false;assert(!h.load().ok);h.rendererReady_=true;assert(h.load().ok);h.reply(requested,10);h.end(10);assert(h.sent.size()==1&&h.sent[0].first==2);}
  {Harness h;submitResult=-1;h.load();submitResult=0;h.reply(requested,10);h.end(10);assert(h.sent.empty());}
+ {Harness h;assert(h.Load("same://input","","","",1,3).ok);assert(requested==3&&h.eventEpoch_==3);
+  h.reply(3,10);assert(!h.Load("same://input","","","",1,3).ok);assert(h.eventEpoch_==3);h.end(10);assert(h.sent.size()==1);
+  assert(!h.Load("same://input","","","",1,2).ok);assert(!h.Load("same://input","","","",1,9007199254740992ULL).ok);
+  assert(h.Load("same://input","","","",1,5).ok);assert(requested==5&&h.eventEpoch_==5);}
  {Harness h;auto old=h.BeginCompletion();h.reply(old,10);auto next=h.BeginCompletion();h.reply(next,11);h.end(10,MPV_END_FILE_REASON_ERROR);assert(h.errors.empty());h.end(11,MPV_END_FILE_REASON_ERROR);h.end(11);assert(h.sent.empty()&&h.errors.size()==1&&h.errors[0]==next);}
  {Harness h;auto e=h.BeginCompletion();h.end(10,MPV_END_FILE_REASON_ERROR);h.end(10);h.reply(e,10);assert(h.sent.empty()&&h.errors.size()==1);}
  {Harness h;auto e=h.BeginCompletion();h.end(9);h.reply(e,10);assert(h.sent.empty());h.end(10);assert(h.sent.size()==1);}

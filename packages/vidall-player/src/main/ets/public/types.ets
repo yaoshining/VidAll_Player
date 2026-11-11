@@ -40,6 +40,11 @@ export interface PlayerOptions {
   hdrComputePeak?: 'auto' | 'enabled' | 'disabled';
 }
 
+export interface PlayerLoadIdentity {
+  readonly sessionId: string;
+  readonly loadGeneration: string;
+}
+
 export interface MediaSource {
   kind: 'localFile' | 'http' | 'https' | 'hls' | 'dash' | 'localhostProxy' | 'smb';
   uri: string;

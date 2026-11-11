@@ -2,7 +2,7 @@ import { assertPlayerRuntimeReady, playerTerminalError, capturePlayerRuntimeGene
 import { PlayerDiagnosticsSnapshot } from '../public/diagnostics';
 import { util } from '@kit.ArkTS';
 import nativeSession, { NativeFrameData, NativePlayerEvent, NativeSessionResult } from 'libvidall_player_native.so';
-import { MediaSource, PlayerSurface } from '../public/types';
+import { MediaSource, PlayerSurface, PlayerLoadIdentity } from '../public/types';
 import { PlayerFailure } from '../internal/playerFailure';
 
 export interface DirectSmbCapability {
@@ -30,7 +30,7 @@ export interface NativePlayerBridge {
   attachSurface(surface: PlayerSurface): Promise<void>;
   resizeSurface(surface: PlayerSurface): Promise<void>;
   detachSurface(generation: number): Promise<void>;
-  load(source: MediaSource): Promise<void>;
+  load(source: MediaSource, generation?: number, onIdentity?: (identity: PlayerLoadIdentity) => void): Promise<void>;
   play(): Promise<void>;
   pause(): Promise<void>;
   stop(): Promise<void>;
@@ -137,6 +137,7 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   private readonly runtimeGeneration: number;
   private readonly compatible: boolean;
   private handle: number = 0;
+  private loadGeneration: number = 0;
   private readonly ready: Promise<number>;
   private released: boolean = false;
   private readonly listeners: Array<(event: NativeBridgeEvent) => void> = [];
@@ -182,11 +183,29 @@ class HarNativePlayerBridge implements NativePlayerBridge {
     return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.detachSurface(handle, generation));
   }
 
-  load(source: MediaSource): Promise<void> {
+  load(source: MediaSource, requestedGeneration?: number,
+    onIdentity?: (identity: PlayerLoadIdentity) => void): Promise<void> {
     const credentials = extractSmbCredentials(source);
-    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.load(
-      handle, source.uri, buildHttpHeaderFieldsOption(source.headers),
-      credentials.username, credentials.password));
+    const uri = source.uri;
+    const headers = buildHttpHeaderFieldsOption(source.headers);
+    return this.run((handle: number): Promise<NativeSessionResult> => {
+      const generation = requestedGeneration ?? this.loadGeneration + 1;
+      if (!Number.isSafeInteger(generation) || generation <= this.loadGeneration) {
+        throw nativeFailure({ ok: false, handle, code: 'INPUT_INVALID' });
+      }
+      this.loadGeneration = generation;
+      // 先同步绑定本次调用的媒体身份，再让原生开始任何加载工作。
+      if (onIdentity !== undefined) {
+        try { onIdentity({ sessionId: handle.toString(), loadGeneration: generation.toString() }); }
+        catch (_) {
+          throw new PlayerFailure({ domain: 'lifecycle', code: 'LOAD_IDENTITY_REJECTED',
+            message: '无法登记本次播放。', retryable: false, context: {} });
+        }
+      }
+      assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
+      if (this.released) throw nativeFailure({ ok: false, handle, code: 'RELEASED' });
+      return nativeSession.load(handle, uri, headers, credentials.username, credentials.password, generation);
+    });
   }
 
   play(): Promise<void> {
