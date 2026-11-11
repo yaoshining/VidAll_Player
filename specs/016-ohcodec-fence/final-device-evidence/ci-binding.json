@@ -1,0 +1,18 @@
+{
+  "head": "2ad7fdd3a8182bbb009319c8bdbef8ba846e4818",
+  "mergePreview": "c034b98b55b2103a9aa2811095f539ffc44ee3f7",
+  "run": 42927679634,
+  "runner": "iMac self-hosted",
+  "harSHA256": "8cc1e1c9d34c2f79a091d67ce210bb557dd530505670bb40d64c42cca9a6c49e",
+  "libraries": {
+    "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libmpv.so": "c1997eee1f1190aca663e49ef86e98b96a1403cf5e2f99b16158cd217ef7d56a",
+    "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libvidall_player_native.so": "96d62ea499a18d66e951873b85e505ff091ccbe33d42cc019949b65ae56c0dd3"
+  }
+}

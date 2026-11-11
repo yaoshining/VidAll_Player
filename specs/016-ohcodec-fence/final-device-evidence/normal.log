@@ -1,0 +1,181 @@
+2026-11-11 08:14:05 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] open index=2 requested=mpv restart=true
+2026-11-11 08:14:05 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] choose=mpv
+2026-11-11 08:14:05 13834-15197/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[ffmpeg/demuxer]: mov,mp4,m4a,3gp,3g2,mj2: moov atom not found
+2026-11-11 08:14:05 13834-13834/hdc E/A00000/com.yao.vidalltv/[MpvPlayerAdapter]: error 事件: domain=native code=NATIVE_PLAYBACK_FAILED msg=播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:06 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:07 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:08 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:09 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:10 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:11 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:12 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:13 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:14 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:15 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:16 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:17 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:18 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:19 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:20 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:21 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:22 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:23 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:24 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:25 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:14:26 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 播放失败 播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 08:15:06 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 健康片 已打开
+2026-11-11 08:15:07 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=559275742 op=signal-release rc=0 fence=101
+2026-11-11 08:15:07 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=559327926 op=signal-release rc=0 fence=102
+2026-11-11 08:15:07 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=559559190 op=signal-release rc=0 fence=103
+2026-11-11 08:15:07 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=559670813 op=signal-release rc=0 fence=106
+2026-11-11 08:15:07 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=559744421 op=signal-release rc=0 fence=109
+2026-11-11 08:15:07 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=559827288 op=signal-release rc=0 fence=101
+2026-11-11 08:15:07 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=559926450 op=signal-release rc=0 fence=112
+2026-11-11 08:15:07 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560019223 op=signal-release rc=0 fence=102
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560095081 op=signal-release rc=0 fence=115
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560189841 op=signal-release rc=0 fence=103
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560286926 op=signal-release rc=0 fence=118
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560358114 op=signal-release rc=0 fence=121
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560454459 op=signal-release rc=0 fence=124
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560543359 op=signal-release rc=0 fence=106
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560617248 op=signal-release rc=0 fence=112
+2026-11-11 08:15:08 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] audio phase=clip-1/0 backend=mpv playing=true from=0 to=1250 peaks=0.0619,0.0619,0.0619,0.0619,0.0619,0.0619,0.0619,0.0000,0.0307,0.0322,0.0375,0.0406,0.0458,0.0494,0.0483,0.0489,0.0489,0.0486,0.0503,0.0466,0.0508,0.0479,0.0492,0.0529,0.0492,0.0510,0.0507,0.0501,0.0514,0.0490,0.0503,0.0536
+2026-11-11 08:15:08 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-1/0 backend=mpv playing=true from=0 to=1250 peaks=0.0619,0.0619,0.0619,0.0619,0.0619,0.0619,0.0619,0.0000,0.0307,0.0322,0.0375,0.0406,0.0458,0.0494,0.0483,0.0489,0.0489,0.0486,0.0503,0.0466,0.0508,0.0479,0.0492,0.0529,0.0492,0.0510,0.0507,0.0501,0.0514,0.0490,0.0503,0.0536
+2026-11-11 08:15:08 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:15:08 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560707256 op=signal-release rc=0 fence=115
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560782851 op=signal-release rc=0 fence=127
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560872984 op=signal-release rc=0 fence=118
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=560959921 op=signal-release rc=0 fence=101
+2026-11-11 08:15:08 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561038842 op=signal-release rc=0 fence=103
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561127646 op=signal-release rc=0 fence=109
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561216507 op=signal-release rc=0 fence=112
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561306254 op=signal-release rc=0 fence=115
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561376791 op=signal-release rc=0 fence=127
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561468200 op=signal-release rc=0 fence=102
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561559178 op=signal-release rc=0 fence=101
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561629325 op=signal-release rc=0 fence=121
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561721107 op=signal-release rc=0 fence=115
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561813472 op=signal-release rc=0 fence=106
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561883450 op=signal-release rc=0 fence=112
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=561977667 op=signal-release rc=0 fence=103
+2026-11-11 08:15:09 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562058217 op=signal-release rc=0 fence=121
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562127200 op=signal-release rc=0 fence=102
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562219162 op=signal-release rc=0 fence=106
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562309536 op=signal-release rc=0 fence=127
+2026-11-11 08:15:10 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] audio phase=clip-1/1 backend=mpv playing=true from=1250 to=2917 peaks=0.0507,0.0509,0.0537,0.0507,0.0529,0.0516,0.0533,0.0532,0.0518,0.0530,0.0527,0.0562,0.0546,0.0506,0.0534,0.0514,0.0545,0.0504,0.0527,0.0553,0.0529,0.0534,0.0547,0.0540,0.0535,0.0516,0.0537,0.0534,0.0529,0.0508,0.0533,0.0562
+2026-11-11 08:15:10 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-1/1 backend=mpv playing=true from=1250 to=2917 peaks=0.0507,0.0509,0.0537,0.0507,0.0529,0.0516,0.0533,0.0532,0.0518,0.0530,0.0527,0.0562,0.0546,0.0506,0.0534,0.0514,0.0545,0.0504,0.0527,0.0553,0.0529,0.0534,0.0547,0.0540,0.0535,0.0516,0.0537,0.0534,0.0529,0.0508,0.0533,0.0562
+2026-11-11 08:15:10 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:15:10 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562381748 op=signal-release rc=0 fence=112
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562474050 op=signal-release rc=0 fence=101
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562563105 op=signal-release rc=0 fence=115
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562631573 op=signal-release rc=0 fence=109
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562721958 op=signal-release rc=0 fence=106
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562807929 op=signal-release rc=0 fence=127
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562899220 op=signal-release rc=0 fence=112
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=562966788 op=signal-release rc=0 fence=124
+2026-11-11 08:15:10 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563058173 op=signal-release rc=0 fence=121
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563150176 op=signal-release rc=0 fence=127
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563219738 op=signal-release rc=0 fence=102
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563313526 op=signal-release rc=0 fence=106
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563381208 op=signal-release rc=0 fence=115
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563473517 op=signal-release rc=0 fence=103
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563556738 op=signal-release rc=0 fence=124
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563651223 op=signal-release rc=0 fence=112
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563716517 op=signal-release rc=0 fence=101
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563809524 op=signal-release rc=0 fence=106
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563897865 op=signal-release rc=0 fence=127
+2026-11-11 08:15:11 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=563966430 op=signal-release rc=0 fence=102
+2026-11-11 08:15:11 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] audio phase=clip-1/2 backend=mpv playing=true from=2917 to=4583 peaks=0.0541,0.0520,0.0548,0.0527,0.0549,0.0528,0.0529,0.0527,0.0534,0.0561,0.0543,0.0519,0.0540,0.0530,0.0545,0.0528,0.0530,0.0537,0.0534,0.0530,0.0543,0.0533,0.0536,0.0530,0.0545,0.0530,0.0538,0.0529,0.0538,0.0533,0.0545,0.0537
+2026-11-11 08:15:11 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-1/2 backend=mpv playing=true from=2917 to=4583 peaks=0.0541,0.0520,0.0548,0.0527,0.0549,0.0528,0.0529,0.0527,0.0534,0.0561,0.0543,0.0519,0.0540,0.0530,0.0545,0.0528,0.0530,0.0537,0.0534,0.0530,0.0543,0.0533,0.0536,0.0530,0.0545,0.0530,0.0538,0.0529,0.0538,0.0533,0.0545,0.0537
+2026-11-11 08:15:11 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:15:11 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:15:12 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=564066748 op=signal-release rc=0 fence=112
+2026-11-11 08:15:12 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=564152309 op=signal-release rc=0 fence=115
+2026-11-11 08:15:12 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=564218638 op=signal-release rc=0 fence=103
+2026-11-11 08:15:12 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=564307748 op=signal-release rc=0 fence=124
+2026-11-11 08:15:12 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=564394906 op=signal-release rc=0 fence=109
+2026-11-11 08:15:12 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=564481525 op=signal-release rc=0 fence=101
+2026-11-11 08:15:12 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=564552449 op=signal-release rc=0 fence=115
+2026-11-11 08:15:12 13834-16992/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=564643755 op=signal-release rc=0 fence=118
+2026-11-11 08:15:18 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 关闭 7 秒后列表可用=true 片号=1
+2026-11-11 08:15:18 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY list active=true index=1
+2026-11-11 08:16:18 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 健康片 已打开
+2026-11-11 08:16:18 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=630577633 op=signal-release rc=0 fence=76
+2026-11-11 08:16:18 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=630624374 op=signal-release rc=0 fence=104
+2026-11-11 08:16:18 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=630853373 op=signal-release rc=0 fence=105
+2026-11-11 08:16:18 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=630955733 op=signal-release rc=0 fence=106
+2026-11-11 08:16:18 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631043379 op=signal-release rc=0 fence=109
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631123668 op=signal-release rc=0 fence=112
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631221103 op=signal-release rc=0 fence=115
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631318908 op=signal-release rc=0 fence=76
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631396758 op=signal-release rc=0 fence=118
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631487970 op=signal-release rc=0 fence=105
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631580370 op=signal-release rc=0 fence=104
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631655355 op=signal-release rc=0 fence=121
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631746247 op=signal-release rc=0 fence=106
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631844531 op=signal-release rc=0 fence=109
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=631912558 op=signal-release rc=0 fence=112
+2026-11-11 08:16:19 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] audio phase=clip-1/0 backend=mpv playing=true from=0 to=1167 peaks=0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0285,0.0270,0.0371,0.0406,0.0432,0.0507,0.0489,0.0483,0.0486,0.0478,0.0497,0.0481,0.0498,0.0453,0.0506,0.0505,0.0508,0.0473,0.0503,0.0492,0.0511,0.0499,0.0503,0.0542,0.0517
+2026-11-11 08:16:19 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-1/0 backend=mpv playing=true from=0 to=1167 peaks=0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0285,0.0270,0.0371,0.0406,0.0432,0.0507,0.0489,0.0483,0.0486,0.0478,0.0497,0.0481,0.0498,0.0453,0.0506,0.0505,0.0508,0.0473,0.0503,0.0492,0.0511,0.0499,0.0503,0.0542,0.0517
+2026-11-11 08:16:19 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:16:19 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:16:19 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632004755 op=signal-release rc=0 fence=76
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632077613 op=signal-release rc=0 fence=118
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632168340 op=signal-release rc=0 fence=121
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632255125 op=signal-release rc=0 fence=115
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632337765 op=signal-release rc=0 fence=104
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632417700 op=signal-release rc=0 fence=109
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632509206 op=signal-release rc=0 fence=121
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632601671 op=signal-release rc=0 fence=76
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632672674 op=signal-release rc=0 fence=112
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632765134 op=signal-release rc=0 fence=105
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632855379 op=signal-release rc=0 fence=76
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=632925793 op=signal-release rc=0 fence=106
+2026-11-11 08:16:20 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633016571 op=signal-release rc=0 fence=121
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633107143 op=signal-release rc=0 fence=118
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633176104 op=signal-release rc=0 fence=109
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633261509 op=signal-release rc=0 fence=115
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633352999 op=signal-release rc=0 fence=106
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633424216 op=signal-release rc=0 fence=124
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633513584 op=signal-release rc=0 fence=118
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633605233 op=signal-release rc=0 fence=104
+2026-11-11 08:16:21 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] audio phase=clip-1/1 backend=mpv playing=true from=1167 to=2833 peaks=0.0509,0.0538,0.0501,0.0530,0.0515,0.0533,0.0527,0.0525,0.0536,0.0530,0.0519,0.0547,0.0506,0.0534,0.0525,0.0523,0.0564,0.0532,0.0550,0.0519,0.0529,0.0537,0.0533,0.0535,0.0535,0.0526,0.0531,0.0534,0.0530,0.0520,0.0530,0.0551
+2026-11-11 08:16:21 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-1/1 backend=mpv playing=true from=1167 to=2833 peaks=0.0509,0.0538,0.0501,0.0530,0.0515,0.0533,0.0527,0.0525,0.0536,0.0530,0.0519,0.0547,0.0506,0.0534,0.0525,0.0523,0.0564,0.0532,0.0550,0.0519,0.0529,0.0537,0.0533,0.0535,0.0535,0.0526,0.0531,0.0534,0.0530,0.0520,0.0530,0.0551
+2026-11-11 08:16:21 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:16:21 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633676260 op=signal-release rc=0 fence=105
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633770220 op=signal-release rc=0 fence=115
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633858801 op=signal-release rc=0 fence=124
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=633927277 op=signal-release rc=0 fence=112
+2026-11-11 08:16:21 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634018813 op=signal-release rc=0 fence=76
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634101599 op=signal-release rc=0 fence=104
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634194174 op=signal-release rc=0 fence=109
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634265734 op=signal-release rc=0 fence=106
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634356967 op=signal-release rc=0 fence=121
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634444127 op=signal-release rc=0 fence=112
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634513326 op=signal-release rc=0 fence=105
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634608089 op=signal-release rc=0 fence=76
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634676523 op=signal-release rc=0 fence=115
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634772200 op=signal-release rc=0 fence=124
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634850217 op=signal-release rc=0 fence=105
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=634938409 op=signal-release rc=0 fence=109
+2026-11-11 08:16:22 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635018132 op=signal-release rc=0 fence=104
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635100936 op=signal-release rc=0 fence=106
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635194418 op=signal-release rc=0 fence=112
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635266863 op=signal-release rc=0 fence=121
+2026-11-11 08:16:23 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] audio phase=clip-1/2 backend=mpv playing=true from=2833 to=4500 peaks=0.0546,0.0520,0.0536,0.0517,0.0549,0.0511,0.0529,0.0537,0.0533,0.0561,0.0531,0.0531,0.0540,0.0518,0.0545,0.0528,0.0553,0.0537,0.0533,0.0524,0.0543,0.0539,0.0541,0.0534,0.0543,0.0538,0.0533,0.0538,0.0535,0.0530,0.0528,0.0532
+2026-11-11 08:16:23 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-1/2 backend=mpv playing=true from=2833 to=4500 peaks=0.0546,0.0520,0.0536,0.0517,0.0549,0.0511,0.0529,0.0537,0.0533,0.0561,0.0531,0.0531,0.0540,0.0518,0.0545,0.0528,0.0553,0.0537,0.0533,0.0524,0.0543,0.0539,0.0541,0.0534,0.0543,0.0538,0.0533,0.0538,0.0535,0.0530,0.0528,0.0532
+2026-11-11 08:16:23 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:16:23 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635361166 op=signal-release rc=0 fence=109
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635444671 op=signal-release rc=0 fence=105
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635520250 op=signal-release rc=0 fence=124
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635605408 op=signal-release rc=0 fence=104
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635688719 op=signal-release rc=0 fence=106
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635779240 op=signal-release rc=0 fence=115
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635847841 op=signal-release rc=0 fence=109
+2026-11-11 08:16:23 13834-18795/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P28_DRAIN t=635943840 op=signal-release rc=0 fence=105
+2026-11-11 08:16:30 13834-13834/hdc I/A03D00/com.yao.vidalltv/JSAPP: [Offline84] 关闭 7 秒后列表可用=true 片号=1
+2026-11-11 08:16:30 13834-13834/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY list active=true index=1
