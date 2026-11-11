@@ -18,6 +18,7 @@ code=r'''
 #include <unistd.h>
 typedef int OH_AudioStream_Result;
 typedef int OH_AudioStream_State;
+#define AUDIOSTREAM_ERROR_ILLEGAL_STATE 2
 typedef struct {int state;} OH_AudioRenderer;
 typedef int OH_AudioStreamBuilder;
 enum {AUDIOSTREAM_SUCCESS=0,AUDIOSTREAM_TYPE_RENDERER=1,AUDIOSTREAM_USAGE_MOVIE=2,
@@ -51,7 +52,7 @@ SETTER(OH_AudioStreamBuilder_SetSampleFormat)
 static int register_callbacks(struct ao*a){(void)a;return !strcmp(mode,"callback-fail")?-1:0;}
 static int OH_AudioStreamBuilder_GenerateRenderer(OH_AudioStreamBuilder*b,OH_AudioRenderer**r){(void)b;if(!strcmp(mode,"generate-block"))gate();if(!strcmp(mode,"generate-fail"))return -1;*r=&renderer;return 0;}
 static int OH_AudioRenderer_GetCurrentState(OH_AudioRenderer*r,int*s){*s=r->state;return 0;}
-static int OH_AudioRenderer_Stop(OH_AudioRenderer*r){stops++;r->state=AUDIOSTREAM_STATE_STOPPED;return 0;}
+static int OH_AudioRenderer_Stop(OH_AudioRenderer*r){stops++;r->state=AUDIOSTREAM_STATE_STOPPED;return !strcmp(mode,"stop-error-stopped")?AUDIOSTREAM_ERROR_ILLEGAL_STATE:0;}
 static int OH_AudioRenderer_Release(OH_AudioRenderer*r){(void)r;released++;if(!strcmp(mode,"release-block")||!strcmp(mode,"release-destroy-block"))gate();return !strcmp(mode,"release-fail")?-1:0;}
 static int OH_AudioStreamBuilder_Destroy(OH_AudioStreamBuilder*b){(void)b;destroyed++;destroy_entered=true;while(destroy_blocked)usleep(1000);return !strcmp(mode,"destroy-fail")?-1:0;}
 /* FUNCTIONS */
@@ -79,6 +80,13 @@ int main(int argc,char**argv){
   mp_host_stop_retired_audio();assert(mp_host_audio_pending()==0);uninit(&a);assert(released==1&&destroyed==1);return 0;
  }
  assert(init(&a)==0);assert(p.renderer&&p.builder&&p.recovery_token);
+ if(!strcmp(mode,"stop-error-stopped")){
+  renderer.state=AUDIOSTREAM_STATE_RUNNING;mp_host_retire_all();
+  mp_host_stop_retired_audio();assert(stops==1&&mp_host_audio_pending()==0);
+  assert(!mp_host_audio_control_lock(p.recovery_token));
+  uninit(&a);assert(released==1&&destroyed==1&&!p.recovery_token);
+  assert(!p.renderer&&!p.builder&&mp_host_audio_pending()==0);return 0;
+ }
  if(!strcmp(mode,"release-destroy-block")){
   blocked=true;destroy_blocked=true;pthread_t closing,stopping;
   assert(!pthread_create(&closing,NULL,dispose,&a));wait_for(&entered);
@@ -121,5 +129,5 @@ code=code.replace('destroyed==strcmp(mode,"create-fail")!=0','destroyed==(strcmp
 with tempfile.TemporaryDirectory() as d:
  p=Path(d);(p/'test.c').write_text(code)
  subprocess.run(['clang','-std=gnu11','-pthread','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-I'+str(root/'native/mpv'),str(p/'test.c'),str(root/'native/mpv/host_recovery.c'),'-o',str(p/'test')],check=True)
- for case in sys.argv[2:] or ['normal','create-fail','callback-fail','generate-fail','generate-block','release-block','release-fail','destroy-fail','destroy-block','release-destroy-block']:
+ for case in sys.argv[2:] or ['normal','create-fail','callback-fail','generate-fail','generate-block','release-block','release-fail','destroy-fail','destroy-block','release-destroy-block','stop-error-stopped']:
   subprocess.run([str(p/'test'),case],check=True,timeout=5);print(case,'PASS',flush=True)

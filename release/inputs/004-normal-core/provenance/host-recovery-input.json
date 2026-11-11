@@ -33,6 +33,10 @@
     {
       "path": "native/patches/phase30/0007-preserve-audio-quiescence.patch",
       "sha256": "1dc9055798f11245affb3d4ed7b4a6c710855f578eb85ef885ebbcd8a14d0e2b"
+    },
+    {
+      "path": "native/patches/phase30/0008-confirm-returned-audio-stop.patch",
+      "sha256": "dc7a638a2a7bcbe0fac0ed57a7f3aaff7173e67648075ecf702d031e14723bc7"
     }
   ],
   "addedSources": [

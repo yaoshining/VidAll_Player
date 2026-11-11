@@ -42,6 +42,36 @@ class Inputs(unittest.TestCase):
   (self.repo/'change.patch').write_text('bad')
   with self.assertRaises(ValueError):self.prepare()
   self.assertFalse(self.output.exists())
+ def test_returned_audio_stop_patch_is_locked_and_applied(self):
+  # 实际 0008 补丁必须经与正式构建相同的锁定入口应用，不能只测手改临时源码。
+  name='audio/out/ao_ohaudio.c';audio=self.mpv/name;audio.parent.mkdir(parents=True)
+  original='''static int stop_for_recovery(void *opaque)
+{
+    OH_AudioRenderer *renderer = opaque;
+    OH_AudioStream_State state;
+    if (OH_AudioRenderer_GetCurrentState(renderer, &state) != AUDIOSTREAM_SUCCESS) return -1;
+    if (state == AUDIOSTREAM_STATE_PREPARED || state == AUDIOSTREAM_STATE_STOPPED) return 0;
+    if (OH_AudioRenderer_Stop(renderer) != AUDIOSTREAM_SUCCESS) return -1;
+    return OH_AudioRenderer_GetCurrentState(renderer, &state) == AUDIOSTREAM_SUCCESS &&
+        state == AUDIOSTREAM_STATE_STOPPED ? 0 : -1;
+}
+'''
+  audio.write_text(original);base=json.loads(self.base.read_text())
+  base['files'].append(row(audio,'sources/mpv/'+name));self.base.write_text(json.dumps(base))
+  self.lock['baselineManifestSHA256']=sha(self.base)
+  rel='native/patches/phase30/0008-confirm-returned-audio-stop.patch'
+  patch=self.repo/rel;patch.parent.mkdir(parents=True);patch.write_bytes((ROOT/rel).read_bytes())
+  self.lock['patches'].append({'path':rel,'sha256':sha(patch)})
+  self.prepare();derived=(self.output/'sources/mpv'/name).read_text()
+  self.assertEqual(derived.count('OH_AudioRenderer_Stop(renderer);'),1)
+  self.assertNotIn('if (OH_AudioRenderer_Stop(renderer)',derived)
+  self.assertEqual(derived.count('OH_AudioRenderer_GetCurrentState(renderer, &state)'),2)
+  self.assertEqual(audio.read_text(),original)
+  index=json.loads((self.output/'package.json').read_text())
+  self.assertEqual(index['hostRecovery']['patches'][-1],self.lock['patches'][-1])
+  patch.write_text('tampered');self.output=self.root/'tampered-output'
+  with self.assertRaisesRegex(ValueError,'输入摘要不匹配'):self.prepare()
+  self.assertFalse(self.output.exists())
  def test_bad_baseline(self):
   self.base.write_text('{}')
   with self.assertRaises(ValueError):self.prepare()

@@ -109,3 +109,7 @@ T037：独立关闭故障探针复用 Spec 016 的 `inject-wait.patch` 接缝，
 T038：T036/T037 之后的完整 Ubuntu 门禁首次执行暴露既有 audio-domain.test.c 使用 usleep 未声明；先记录该编译红测，改为显式 POSIX.1-2008 nanosleep（处理中断），保留 C11、-Wall/-Wextra/-Werror 与所有行为断言。仅修测试可移植性，生产核心与 HAR 不变；完整 Ubuntu 结果单独复验。
 
 T039：全量宿主已经94项成功，收证仍按旧49项拒绝；先以真实摘要与回归fixture复现，维护显式名称/expectedExit清单并严格匹配。不能仅放宽为大于某个数量，不能以新增通过项抵消旧项缺失。源码/上下文、公开日志与失败禁止绿色保持原规则。
+
+T040：两次 Azure Ubuntu 镜像 DNS 失败均只下载 clang/llvm/llvm-runtime 三个元包；对应官方 runner 镜像已包含实际 LLVM18工具。先对工具选择器写正负例，检查三工具存在/可执行/版本再追加 GITHUB_PATH；不可用时仍执行原 apt 安装，不换源、不降低编译/宿主门禁。用于手动与自动完整宿主工作流，保留失败证据。
+
+T041：以真实 stop_for_recovery 的“Stop 返回错误但随后状态为STOPPED”分支红测开始；增加仍RUNNING、状态查询错误、未返回时不查询的负例。最小修改只在返回后重查状态并按既有STOPPED标准确认，不重试Stop、不调用Release。作为Player mpv补丁重建锁定输入/核心与CI HAR，FFmpeg保持原预编译SDK；永久平台阻塞与真机音频验收仍开放。

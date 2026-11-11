@@ -1,11 +1,11 @@
 {
-  "runRoot": "/private/tmp/vidall-host-recovery-t035-build",
+  "runRoot": "/private/tmp/vidall-host-recovery-t041-build",
   "freshRootVerified": true,
   "configuration": {
     "profile": "stable-target-prefix-macro-map-origin-staging",
     "stablePrefix": "/usr/local",
     "ffmpegRelative": "mpv/source/_staged/ffmpeg",
-    "packageSHA256": "60e24caba7b2bbd5cfc72dd572fcd5f5c747ac09343d6e75bf345e3a6413a650",
+    "packageSHA256": "5d223ee219cc9ebdffb00101ece9cdc1112835dd24b04bfa6d929bf8d1236dbb",
     "toolHashes": {
       "meson": "2ac5f65bc3760309298f8cab1c8abd2773633a5c0e1470a22f7aa7940c0e2084",
       "ninja": "4e2125bd4c149186d6715a3d46ca294fc58ff9dbae8b3444c8e9330941276b57",
@@ -47,7 +47,7 @@
     "target": "aarch64-linux-ohos",
     "linkerTraceDiagnostic": true
   },
-  "artifactPath": "/private/tmp/vidall-host-recovery-t035-build/install/usr/local/lib/libmpv.so",
+  "artifactPath": "/private/tmp/vidall-host-recovery-t041-build/install/usr/local/lib/libmpv.so",
   "linkInputs": [
     {
       "path": "sdk/llvm/lib/aarch64-linux-ohos/libc++_shared.so",
@@ -231,7 +231,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_ohaudio.c.o",
-      "sha256": "c97dc7765f189812f811170b83811f204f99513efac1e1702f03b1b9bdcae8d3"
+      "sha256": "9d2a160e8229e2819480f1fa61143d42eaa801bc55e56cfc6e6d8e44a15bcbbb"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_pcm.c.o",
@@ -1063,7 +1063,7 @@
     }
   ],
   "artifactHashes": {
-    "mpv": "5aa3d663b13289a7d6ab7ede6a0ac40dbd42b37642c9a93d0da11dc71f445b79",
+    "mpv": "ee78bf290d9697ff825eb3f4590d09120474834eec9edb11eb53ea83fbcb5267",
     "libplacebo": "a0c1e102b3403e84ca464dea4573fa16180b9b654c6f07325635e7370f808d57"
   },
   "allocatedSections": {
@@ -1081,7 +1081,7 @@
       "address": 656,
       "size": 304056,
       "allocated": true,
-      "sha256": "b1dc580f5c1de9698769acca501c35c548cb52fbd339b4fa174cd5b190e105b8"
+      "sha256": "3f097a19d51134cf3ec5eabfbca8c0093fd4427e81da014f4fc60db95713771a"
     },
     ".gnu.version": {
       "type": 1879048191,
@@ -1129,7 +1129,7 @@
       "address": 1354032,
       "size": 853296,
       "allocated": true,
-      "sha256": "34aad8747e8c0cd4877bfc35f83cf33a982521deef196700469218909845df0a"
+      "sha256": "004e3d473efb221fd636f5c381bf798f6e650679bb9d5d49379810a7b3cfb85d"
     },
     ".rela.plt": {
       "type": 4,
@@ -1161,7 +1161,7 @@
       "address": 4670720,
       "size": 115012,
       "allocated": true,
-      "sha256": "dce3f74adab8831848a61430dfab24c3c8f055735d95f1b555337a24a67a90f9"
+      "sha256": "e527720cfdb7c8e6792df553ce42886f7922710c4bd4a59ab1bff15eaabe1a61"
     },
     ".eh_frame": {
       "type": 1,
@@ -1169,20 +1169,20 @@
       "address": 4785736,
       "size": 522884,
       "allocated": true,
-      "sha256": "9a0985150b3f3c658c0b4440955da14ab40bf70b93325445c9d977b01bf63d73"
+      "sha256": "1c10b648d34d2165fe93e2b6149b8cfc89dce3f2399d42e896200ce5e09e519a"
     },
     ".text": {
       "type": 1,
       "flags": 6,
       "address": 5312716,
-      "size": 9729980,
+      "size": 9729968,
       "allocated": true,
-      "sha256": "cfb57997f6692549c4f74e07e303596363b0fb56e650c5a47397c7cdcda0872d"
+      "sha256": "6da8194304a8ebda06665e0e9d41dc3c5c48666c300541c0afc7ce4fc50b8a49"
     },
     ".init": {
       "type": 1,
       "flags": 6,
-      "address": 15042696,
+      "address": 15042684,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1190,7 +1190,7 @@
     ".fini": {
       "type": 1,
       "flags": 6,
-      "address": 15042716,
+      "address": 15042704,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1233,7 +1233,7 @@
       "address": 15678856,
       "size": 704,
       "allocated": true,
-      "sha256": "cfad5386060801f7f7e3a1020f33c18f8f7695ebb6d6420af70f08cd148357d7"
+      "sha256": "43593ff6b4d5ac558a1db394a98833e218364260c3cc4aac2b310d1ccffc5c35"
     },
     ".got": {
       "type": 1,

@@ -46,8 +46,16 @@ jobs:
         run: |
           set -euo pipefail
           {
-            sudo apt-get update
-            sudo apt-get install -y clang llvm cmake ripgrep
+            if ! python3 -B scripts/test/normal-core/select-llvm18.py; then
+              sudo apt-get update
+              sudo apt-get install -y clang llvm
+              python3 -B scripts/test/normal-core/select-llvm18.py
+            fi
+            if ! command -v cmake >/dev/null 2>&1 || ! command -v rg >/dev/null 2>&1; then
+              sudo apt-get update
+              sudo apt-get install -y cmake ripgrep
+            fi
+            cmake --version
             rg --version
             npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
           } 2>&1 | tee "$CI_OUT/work/dependencies.log"
@@ -56,6 +64,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 -B scripts/test/normal-core/select-llvm18.test.py 2>&1 | tee "$CI_OUT/work/llvm-selection-tests.log"
           node scripts/test/device-package/session.test.cjs 2>&1 | tee "$CI_OUT/work/device-session-tests.log"
           node scripts/test/device-package/journal.test.cjs 2>&1 | tee "$CI_OUT/work/device-journal-tests.log"
           node scripts/test/device-package/platform.test.cjs 2>&1 | tee "$CI_OUT/work/device-platform-tests.log"

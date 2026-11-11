@@ -238,3 +238,32 @@ T036/T037 作为“验收准备”完成，不关闭 T007/T009/T013/T017/T018。
 先以94项成功fixture复现旧汇总拒绝，再保留10种完整性负例：缺失、额外、重复、同数替换、跳过、禁用、改预期退出码、失败项、摘要失败、缺日志，以及原源码变化拒绝。29项 CI 合同测试通过；真实 Ubuntu 94项摘要在新检查器下只读核验通过，原工作流失败状态未改写。完整 CI 复验仍单独记录；未改变生产/平台行为。
 
 T039 首轮远端复验 43032827813 attempt 1 在依赖安装阶段失败：Azure Ubuntu 镜像 DNS 解析失败（Temporary failure resolving azure.archive.ubuntu.com），退出100，合同和宿主测试均未执行。没有修改依赖来源或跳过门禁；仅重跑该失败 job 并保留原尝试日志。对应 f0bf68b 的 iMac 工作流 43032804843 已成功。
+
+
+## T041 Stop 返回后的停止状态确认（2026-11-11）
+
+按 S15 先扩展真实 `stop_for_recovery` 提取测试及音频生命周期测试。使用 T035 锁定源运行新用例，两项均红：Stop 返回 `AUDIOSTREAM_ERROR_ILLEGAL_STATE` 后直接返回，未执行第二次状态查询；即使平台替身已进入 STOPPED，旧槽仍为 pending。原始红测分别保存在本机 `/tmp/vidall-audio-t041-control-red.log`、`/tmp/vidall-audio-t041-lifecycle-red.log`，这不是实际设备上发生同一错误的证据。
+
+新增 Player mpv 补丁 `native/patches/phase30/0008-confirm-returned-audio-stop.patch`，SHA-256 `dc7a638a2a7bcbe0fac0ed57a7f3aaff7173e67648075ecf702d031e14723bc7`。最小修改是在 Stop 已返回后继续原有状态查询，仅明确 STOPPED 才确认静止；不重试 Stop、不调用 Release，不改变旧代控制锁、quiescence 发布、资源预算或硬解终局锁。派生 `audio/out/ao_ohaudio.c` 的 SHA-256 从 `2f786bc3d4745e2dcf14ea127719a678d5faddf34f6c70951387a40d2c4f51ae` 变为 `69d5e06197000ebbf709e2a66f45438100701be092df49051cb888f2c082fa2e`。
+
+本地主机真实函数提取回归结果：
+
+- 6 个控制场景在 ASan/UBSan 下通过：原正常控制、Stop 返错但后查 STOPPED、返错仍 RUNNING、后查失败、后查仅 PREPARED、Stop 阻塞。阻塞用例确认 Stop 未返回期间只有第一次状态查询、pending 保持且扫描未结束；返回后才执行第二次查询。重复扫描不再次调用 Stop。
+- 11 个生命周期场景在 ASan/UBSan 下通过，保留原初始化、Release/Builder 失败与阻塞、并发清理断言；新增 Stop 返错但确认 STOPPED 后可按原顺序释放、预算正常归还的场景。
+- 8 项输入派生检查通过。新增用例通过 `prepare-host-recovery-input.py` 的真实 `prepare()` 入口按来源锁应用实际 0008 补丁，确认源输入不变、派生清单记录补丁，以及补丁篡改时拒绝发布目录；未增加跳过来源锁的入口。
+
+对应命令为 `python3 -B native/tests/host-survival/audio-control.test.py /tmp/vidall-audio-t041-source`、`python3 -B native/tests/host-survival/audio-lifecycle.test.py /tmp/vidall-audio-t041-source`、`python3 -B native/tests/host-survival/prepare-input.test.py`。绿测日志为本机 `/tmp/vidall-audio-t041-{control,lifecycle,prepare}-green.log`；本机索引 `/tmp/vidall-audio-t041-evidence.json` 记录全部日志及修改文件哈希。这些 `/tmp` 文件是本地临时证据，不是仓库已提交附件，不能据其存在宣称 CI 或设备验收通过。
+
+0008 已纳入正式来源锁并成功派生完整输入，`package.json` SHA-256 为 `5d223ee219cc9ebdffb00101ece9cdc1112835dd24b04bfa6d929bf8d1236dbb`；派生源摘要已与上述实际测试源核对一致。完整 mpv/libplacebo 构建、来源审计、HAR 与 CI 结果由后续记录补齐，本段不提前宣称通过。FFmpeg 仍消费原预编译 SDK，未修改或构建。
+
+本修复只消除“Stop 已返回错误，但随后已能明确确认停止”的误拒绝。Stop 永久不返回、返回后仍活动或状态查询失败时，不能仅据观察超时伪造 ready；Renderer Release 未确认且没有其他已确认的静止事实时，同样保持拒绝。T035 已确认 Renderer Release 后的 Builder 失败处理，以及已确认静止不因后续清理失败而撤销的规则保持不变。真实系统声音、旧新音频不重叠、焦点释放/打断与手动恢复、OHCodec/Vulkan 故障及 API 19 TV 正式文件入口仍未验收，T007/T009/T013/T017/T018 保持开放。
+
+### T040 工具选择与 T041 核心重建预验证
+
+- T040 11 项真实进程选择器测试、手动工作流 14 个及自动工作流 35 个变异均通过。三个工具完成可执行性、成功退出及明确 LLVM18 版本检查后才写入 GITHUB_PATH；失败仍安装并复检。未跳过 npm、LLVM_NM、94 项宿主或最终收证。远端完整结果待追加。
+- T041 从锁定输入重新交叉构建 mpv/libplacebo，实际机器为 MacBook Pro / Darwin arm64。输入包 SHA-256 `5d223ee219cc9ebdffb00101ece9cdc1112835dd24b04bfa6d929bf8d1236dbb`，libmpv `ee78bf290d9697ff825eb3f4590d09120474834eec9edb11eb53ea83fbcb5267`，64 项公开导出。仅启用 handoffTrace，所有故障注入/实验宏关闭；非 mpv 运行库逐字节不变，FFmpeg 未改动或重建。
+- 正式源码派生、静态外部依赖审计、31 项正常核心来源测试、2 项生产输入测试及 8 项恢复输入测试通过。本次构建源码的音频中断、旧回调、数据、控制及生命周期回归通过，后两项包含 ASan/UBSan。
+- 完整本地 HAR 编译通过，九个 ARM64 库；本地 HAR SHA-256 `59e97d0a126160ed2771747cb79ded3bbbb4c890e685e5ff2481f5b22ff2ab35`，只作预验证，最终交付仍须使用 iMac Actions 原始 HAR。
+- 只读独立审核未发现阻塞问题。Spec Kit 前置检查通过；对照宪章第四/六/八/十条复核：主线程不新增阻塞、资源预算与静止事实不放宽、先红测再实现、源/构建/设备分层。R3、T007/T009/T017 的真实硬件和音频验收仍未完成，不用本地或 CI 结果替代。
+
+T041 最终本地统一门禁 94/94 通过（`/tmp/vidall-host-survival-host-gate-t041/work/summary.json`），含真实 NativeSession 入口、进程终局和父链变异拒绝。远端 CI 仍独立记录。
