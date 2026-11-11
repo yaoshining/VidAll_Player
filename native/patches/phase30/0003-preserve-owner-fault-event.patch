@@ -1,0 +1,75 @@
+--- a/player/client.c
++++ b/player/client.c
+@@ -138,6 +138,7 @@
+     int num_events;         // number of readable events
+     int reserved_events;    // number of entries reserved for replies
+     size_t async_counter;   // pending other async events
++    mpv_event critical_event; // 独立保留首个 owner 故障，不占普通队列名额。
+     bool choked;            // recovering from queue overflow
+     bool destroying;        // pending destruction; no API accesses allowed
+     bool hook_pending;      // hook events are returned after draining properties
+@@ -792,6 +793,34 @@
+     mp_wakeup_core(mpctx);
+ }
+ 
++// 仅用于不可恢复的 owner 故障。由 client 锁保护，独立于队列容量和事件 mask。
++void mp_client_broadcast_critical(struct mp_client_api *api, int event, void *data)
++{
++    mp_mutex_lock(&api->lock);
++    for (int n = 0; n < api->num_clients; n++) {
++        struct mpv_handle *ctx = api->clients[n];
++        mp_mutex_lock(&ctx->lock);
++        if (!ctx->critical_event.event_id) {
++            ctx->critical_event = (mpv_event){.event_id = event, .data = data};
++            dup_event_data(&ctx->critical_event);
++            talloc_steal(ctx, ctx->critical_event.data);
++        }
++        wakeup_client(ctx);
++        mp_mutex_unlock(&ctx->lock);
++    }
++    mp_mutex_unlock(&api->lock);
++}
++
++static bool gen_critical_event(struct mpv_handle *ctx)
++{
++    if (!ctx->critical_event.event_id)
++        return false;
++    *ctx->cur_event = ctx->critical_event;
++    talloc_steal(ctx->cur_event, ctx->cur_event->data);
++    ctx->critical_event = (mpv_event){0};
++    return true;
++}
++
+ // If client_name == NULL, then broadcast and free the event.
+ int mp_client_send_event(struct MPContext *mpctx, const char *client_name,
+                          uint64_t reply_userdata, int event, void *data)
+@@ -908,6 +937,8 @@
+     talloc_free_children(event);
+ 
+     while (1) {
++        if (gen_critical_event(ctx))
++            break;
+         if (ctx->queued_wakeup)
+             deadline = 0;
+         // Recover from overflow.
+--- a/player/client.h
++++ b/player/client.h
+@@ -36,6 +36,7 @@
+ struct mp_log *mp_client_get_log(struct mpv_handle *ctx);
+ struct mpv_global *mp_client_get_global(struct mpv_handle *ctx);
+ 
++void mp_client_broadcast_critical(struct mp_client_api *api, int event, void *data);
+ void mp_client_broadcast_event_external(struct mp_client_api *api, int event,
+                                         void *data);
+ 
+--- a/video/out/hwdec/hwdec_ohcodec.c
++++ b/video/out/hwdec/hwdec_ohcodec.c
+@@ -169,7 +169,7 @@
+     snprintf(phase, sizeof(phase), "%d", stage);
+     char *args[] = {"vidall-ohcodec-quarantined", phase, err};
+     mpv_event_client_message event = {.num_args = 3, .args = (const char **)args};
+-    mp_client_broadcast_event_external(hw->global->client_api, MPV_EVENT_CLIENT_MESSAGE, &event);
++    mp_client_broadcast_critical(hw->global->client_api, MPV_EVENT_CLIENT_MESSAGE, &event);
+     // 留在当前栈上，父级不能继续销毁 Vulkan 设备、Surface 或解码器。
+     static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+     static pthread_cond_t parked = PTHREAD_COND_INITIALIZER;

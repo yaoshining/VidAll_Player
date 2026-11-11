@@ -1,0 +1,319 @@
+{
+  "normal.log": [
+    {
+      "time": "2026-11-11 08:15:08",
+      "pid": "13834",
+      "samples": 32,
+      "nonzero": 31,
+      "peak": 0.0619,
+      "phase": "clip-1/0",
+      "fromMs": 0,
+      "toMs": 1250
+    },
+    {
+      "time": "2026-11-11 08:15:10",
+      "pid": "13834",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0562,
+      "phase": "clip-1/1",
+      "fromMs": 1250,
+      "toMs": 2917
+    },
+    {
+      "time": "2026-11-11 08:15:11",
+      "pid": "13834",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0561,
+      "phase": "clip-1/2",
+      "fromMs": 2917,
+      "toMs": 4583
+    },
+    {
+      "time": "2026-11-11 08:16:19",
+      "pid": "13834",
+      "samples": 32,
+      "nonzero": 25,
+      "peak": 0.0542,
+      "phase": "clip-1/0",
+      "fromMs": 0,
+      "toMs": 1167
+    },
+    {
+      "time": "2026-11-11 08:16:21",
+      "pid": "13834",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0564,
+      "phase": "clip-1/1",
+      "fromMs": 1167,
+      "toMs": 2833
+    },
+    {
+      "time": "2026-11-11 08:16:23",
+      "pid": "13834",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0561,
+      "phase": "clip-1/2",
+      "fromMs": 2833,
+      "toMs": 4500
+    }
+  ],
+  "cleanup.log": [
+    {
+      "time": "2026-11-11 08:15:50",
+      "pid": "13834",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0547
+    }
+  ],
+  "destroy.log": [
+    {
+      "time": "2026-11-11 08:23:53",
+      "pid": "30199",
+      "samples": 32,
+      "nonzero": 31,
+      "peak": 0.0531,
+      "phase": "clip-0/0",
+      "fromMs": 0,
+      "toMs": 1000
+    },
+    {
+      "time": "2026-11-11 08:23:54",
+      "pid": "30199",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0553,
+      "phase": "clip-0/1",
+      "fromMs": 1000,
+      "toMs": 2667
+    },
+    {
+      "time": "2026-11-11 08:23:56",
+      "pid": "30199",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0562,
+      "phase": "clip-0/2",
+      "fromMs": 2667,
+      "toMs": 4333
+    },
+    {
+      "time": "2026-11-11 08:24:18",
+      "pid": "30199",
+      "samples": 32,
+      "nonzero": 31,
+      "peak": 0.0536,
+      "phase": "clip-1/0",
+      "fromMs": 0,
+      "toMs": 1250
+    },
+    {
+      "time": "2026-11-11 08:24:20",
+      "pid": "30199",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0562,
+      "phase": "clip-1/1",
+      "fromMs": 1250,
+      "toMs": 3000
+    },
+    {
+      "time": "2026-11-11 08:24:21",
+      "pid": "30199",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0553,
+      "phase": "clip-1/2",
+      "fromMs": 3000,
+      "toMs": 4667
+    }
+  ],
+  "stop.log": [
+    {
+      "time": "2026-11-11 08:22:19",
+      "pid": "27417",
+      "samples": 32,
+      "nonzero": 31,
+      "peak": 0.0538,
+      "phase": "clip-0/0",
+      "fromMs": 0,
+      "toMs": 917
+    },
+    {
+      "time": "2026-11-11 08:22:21",
+      "pid": "27417",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0551,
+      "phase": "clip-0/1",
+      "fromMs": 917,
+      "toMs": 2583
+    },
+    {
+      "time": "2026-11-11 08:22:23",
+      "pid": "27417",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0561,
+      "phase": "clip-0/2",
+      "fromMs": 2583,
+      "toMs": 4250
+    },
+    {
+      "time": "2026-11-11 08:22:42",
+      "pid": "27417",
+      "samples": 32,
+      "nonzero": 31,
+      "peak": 0.0542,
+      "phase": "clip-1/0",
+      "fromMs": 0,
+      "toMs": 1250
+    },
+    {
+      "time": "2026-11-11 08:22:44",
+      "pid": "27417",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0564,
+      "phase": "clip-1/1",
+      "fromMs": 1250,
+      "toMs": 2917
+    },
+    {
+      "time": "2026-11-11 08:22:46",
+      "pid": "27417",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0553,
+      "phase": "clip-1/2",
+      "fromMs": 2917,
+      "toMs": 4583
+    }
+  ],
+  "vulkan.log": [
+    {
+      "time": "2026-11-11 08:17:37",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 31,
+      "peak": 0.0531,
+      "phase": "clip-0/0",
+      "fromMs": 0,
+      "toMs": 1000
+    },
+    {
+      "time": "2026-11-11 08:17:39",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0553,
+      "phase": "clip-0/1",
+      "fromMs": 1000,
+      "toMs": 2667
+    },
+    {
+      "time": "2026-11-11 08:17:40",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0553,
+      "phase": "clip-0/2",
+      "fromMs": 2667,
+      "toMs": 4333
+    },
+    {
+      "time": "2026-11-11 08:18:13",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0588,
+      "phase": "clip-1/0",
+      "fromMs": 0,
+      "toMs": 1250
+    },
+    {
+      "time": "2026-11-11 08:18:15",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0576,
+      "phase": "clip-1/1",
+      "fromMs": 1250,
+      "toMs": 2917
+    },
+    {
+      "time": "2026-11-11 08:18:16",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.056,
+      "phase": "clip-1/2",
+      "fromMs": 2917,
+      "toMs": 4750
+    },
+    {
+      "time": "2026-11-11 08:18:46",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 31,
+      "peak": 0.0572,
+      "phase": "clip-0/0",
+      "fromMs": 0,
+      "toMs": 1250
+    },
+    {
+      "time": "2026-11-11 08:18:48",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0578,
+      "phase": "clip-0/1",
+      "fromMs": 1250,
+      "toMs": 2917
+    },
+    {
+      "time": "2026-11-11 08:18:50",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0571,
+      "phase": "clip-0/2",
+      "fromMs": 2917,
+      "toMs": 4583
+    },
+    {
+      "time": "2026-11-11 08:20:59",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 31,
+      "peak": 0.0593,
+      "phase": "clip-1/0",
+      "fromMs": 0,
+      "toMs": 1250
+    },
+    {
+      "time": "2026-11-11 08:21:01",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0577,
+      "phase": "clip-1/1",
+      "fromMs": 1250,
+      "toMs": 2917
+    },
+    {
+      "time": "2026-11-11 08:21:02",
+      "pid": "20464",
+      "samples": 32,
+      "nonzero": 32,
+      "peak": 0.0562,
+      "phase": "clip-1/2",
+      "fromMs": 2917,
+      "toMs": 4583
+    }
+  ]
+}

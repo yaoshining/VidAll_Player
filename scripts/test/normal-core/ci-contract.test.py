@@ -145,7 +145,7 @@ class Contracts(unittest.TestCase):
 
  def test_host_finish_rejects_post_context_change(self):
   m=module('ci-evidence');identity=module('ci-context');self.repo();before=identity.snapshot(self.root);out=self.root/'evidence';(out/'work').mkdir(parents=True);(out/'suite/public').mkdir(parents=True)
-  (out/'work/context.json').write_text(json.dumps({'passed':True,**before}));checks=[{'name':'c'+str(i),'passed':True,'exit':0,'expectedExit':0} for i in range(47)]
+  (out/'work/context.json').write_text(json.dumps({'passed':True,**before}));checks=[{'name':'c'+str(i),'passed':True,'exit':0,'expectedExit':0} for i in range(47)]+[{'name':name,'passed':True,'exit':0,'expectedExit':0} for name in ('isolation-compile','session-isolation')]
   (out/'suite/public/summary.json').write_text(json.dumps({'passed':True,'checks':checks}));(out/'suite/public/source-identities.json').write_text('{}')
   for c in checks:(out/'suite/public'/(c['name']+'.log')).write_text('PASS')
   (out/'suite/public/index.json').write_text('{}');steps={s:{'outcome':'success'} for s in ['context','dependencies','contracts','host']}

@@ -1,0 +1,26 @@
+2026-11-11 07:35:58 65452-1242/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[cplayer]: Opening failed or was aborted: /data/storage/el2/base/haps/entry/cache/broken.mp4
+2026-11-11 07:35:58 65452-1242/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[cplayer]: Running hook: ytdl_hook/on_load_fail
+2026-11-11 07:35:58 65452-1242/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[ffmpeg/demuxer]: mov,mp4,m4a,3gp,3g2,mj2: moov atom not found
+2026-11-11 07:35:58 65452-1242/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[file]: Opening /data/storage/el2/base/haps/entry/cache/broken.mp4
+2026-11-11 07:35:58 65452-1242/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[lavf]: avformat_open_input() failed
+2026-11-11 07:35:58 65452-65452/hdc E/A00000/com.yao.vidalltv/[MpvPlayerAdapter]: error 事件: domain=native code=NATIVE_PLAYBACK_FAILED msg=播放失败。请检查网络和播放来源后重试，或返回选择其他视频。
+2026-11-11 07:35:58 65452-65452/hdc I/A00000/com.yao.vidalltv/[MpvPlayerAdapter]: state 事件: error
+2026-11-11 07:36:32 65452-2821/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: hwdec-current: ohcodec
+2026-11-11 07:36:33 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-1/0 backend=mpv playing=true from=0 to=917 peaks=0.0537,0.0537,0.0537,0.0537,0.0537,0.0537,0.0537,0.0537,0.0537,0.0537,0.0537,0.0000,0.0307,0.0322,0.0375,0.0406,0.0458,0.0494,0.0483,0.0489,0.0486,0.0486,0.0503,0.0466,0.0508,0.0479,0.0492,0.0529,0.0492,0.0510,0.0507,0.0501
+2026-11-11 07:36:33 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 07:36:35 65452-2821/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P27_VK t=3677463360 op=acquire mapper=[address] image=[address] window=[address] buffer=[address] seq=97255391 fence=-1 pts=2.583333333 token=[address]
+2026-11-11 07:36:35 65452-2821/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P27_VK t=3677465564 op=hold mapper=[address] seq=97255395 held=1 fence=103
+2026-11-11 07:36:35 65452-2821/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P27_VK t=3677465585 op=release-begin mapper=[address] image=[address] buffer=[address] seq=97255395 seqrc=0 fence=103 reason=replacement
+2026-11-11 07:36:35 65452-2821/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P27_VK t=3677465778 op=release-end mapper=[address] image=[address] buffer=[address] seq=97255395 rc=0
+2026-11-11 07:36:35 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-1/1 backend=mpv playing=true from=917 to=2583 peaks=0.0514,0.0490,0.0531,0.0536,0.0507,0.0509,0.0537,0.0507,0.0530,0.0516,0.0533,0.0532,0.0518,0.0530,0.0527,0.0562,0.0531,0.0506,0.0534,0.0513,0.0545,0.0504,0.0527,0.0553,0.0526,0.0534,0.0547,0.0540,0.0533,0.0516,0.0537,0.0534
+2026-11-11 07:36:35 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 07:36:36 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-1/2 backend=mpv playing=true from=2583 to=4417 peaks=0.0529,0.0508,0.0533,0.0562,0.0541,0.0545,0.0548,0.0526,0.0538,0.0528,0.0520,0.0527,0.0534,0.0529,0.0543,0.0519,0.0538,0.0530,0.0545,0.0528,0.0530,0.0553,0.0534,0.0530,0.0543,0.0533,0.0537,0.0530,0.0545,0.0538,0.0533,0.0538
+2026-11-11 07:36:36 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 07:36:58 65452-3698/hdc I/A0D001/com.yao.vidalltv/VidAllPlayerNative: hwdec-current: ohcodec
+2026-11-11 07:36:59 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-0/0 backend=mpv playing=true from=0 to=1250 peaks=0.0529,0.0529,0.0529,0.0529,0.0529,0.0529,0.0000,0.0285,0.0270,0.0371,0.0406,0.0432,0.0507,0.0483,0.0483,0.0486,0.0478,0.0497,0.0466,0.0498,0.0453,0.0506,0.0505,0.0508,0.0473,0.0503,0.0513,0.0511,0.0499,0.0489,0.0542,0.0517
+2026-11-11 07:36:59 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 07:37:01 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-0/1 backend=mpv playing=true from=1250 to=2917 peaks=0.0509,0.0538,0.0501,0.0530,0.0515,0.0533,0.0527,0.0525,0.0551,0.0530,0.0519,0.0546,0.0506,0.0534,0.0525,0.0523,0.0544,0.0532,0.0550,0.0529,0.0529,0.0537,0.0533,0.0535,0.0527,0.0526,0.0531,0.0529,0.0530,0.0520,0.0530,0.0551
+2026-11-11 07:37:01 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 07:37:03 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY audio phase=clip-0/2 backend=mpv playing=true from=2917 to=4583 peaks=0.0546,0.0537,0.0536,0.0517,0.0536,0.0511,0.0532,0.0537,0.0533,0.0544,0.0531,0.0531,0.0526,0.0518,0.0537,0.0528,0.0553,0.0538,0.0533,0.0524,0.0543,0.0539,0.0541,0.0534,0.0543,0.0538,0.0533,0.0538,0.0535,0.0530,0.0545,0.0532
+2026-11-11 07:37:03 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY hw=active fmt=nv12 renderer=vulkan
+2026-11-11 07:37:10 65452-65452/hdc I/A0D001/com.yao.vidalltv/FenceVerify: FENCE_VERIFY list active=true index=0

@@ -3,9 +3,9 @@
   "sha256": "1f098c60c8836c88ecfbe6779c6e281058fa0e4746c9b9ea0e8f6140dd53c2ee",
   "arguments": [
     "--input-root",
-    "review5/fixed-package",
+    "/private/tmp/vidall-ffmpeg11/package",
     "--run-root",
-    "review5/fixed",
+    "/private/tmp/vidall-ffmpeg11/mpv-build",
     "--sdk",
     "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native",
     "--meson",
@@ -15,7 +15,7 @@
     "--pkg-config",
     "/opt/homebrew/bin/pkg-config",
     "--jobs",
-    "8",
+    "6",
     "--stable-prefix",
     "/usr/local",
     "--handoff-trace"

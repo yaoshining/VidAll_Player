@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "004-normal-core-phase30-a-issue89",
+  "id": "004-normal-core-phase30-a-session-close-recovery",
   "formalArtifactAllowed": false,
   "architecture": "arm64-v8a",
   "compileDefinitions": [
@@ -9,28 +9,28 @@
   "libraries": [
     {
       "path": "arm64-v8a/libavfilter.so.11",
-      "sha256": "5a24ea30d953d46cdda186bdceda67eb9466695ff226cbf39ce547ffbb684c7a",
-      "size": 3943016
+      "sha256": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "size": 3942968
     },
     {
       "path": "arm64-v8a/libavformat.so.62",
-      "sha256": "38b106ae9b53e825bedc6bc8e9168c8fa85e08bf6a044b905d9db1aef4b86839",
-      "size": 19264368
+      "sha256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "size": 19264304
     },
     {
       "path": "arm64-v8a/libswscale.so.9",
-      "sha256": "fd9e91bf07c0bfab8ecc241c45f7dc840932ee05403bc26cae3b918228d1adec",
-      "size": 738688
+      "sha256": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "size": 738672
     },
     {
       "path": "arm64-v8a/libavcodec.so.62",
-      "sha256": "62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a",
-      "size": 12306216
+      "sha256": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "size": 12305456
     },
     {
       "path": "arm64-v8a/libmpv.so",
-      "sha256": "b6af0c892115b95f355b411a42bb26c4fedb1f1ed3c0a9bde258eab741bf86bd",
-      "size": 15717112
+      "sha256": "c1997eee1f1190aca663e49ef86e98b96a1403cf5e2f99b16158cd217ef7d56a",
+      "size": 15718232
     },
     {
       "path": "arm64-v8a/libc++_shared.so",
@@ -39,13 +39,13 @@
     },
     {
       "path": "arm64-v8a/libswresample.so.6",
-      "sha256": "7963e4fb098ebc093e0b672918b190f79d7160d407b632ccb2a5d52f3b6c5810",
-      "size": 91736
+      "sha256": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "size": 91704
     },
     {
       "path": "arm64-v8a/libavutil.so.60",
-      "sha256": "14a5e6d4cebf66a0e3e2ee4ada6fb8a6f9d6937bdc8dba7fbcacf5be11fe0b43",
-      "size": 683384
+      "sha256": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "size": 683352
     }
   ],
   "headers": [
@@ -83,23 +83,23 @@
   "evidence": [
     {
       "path": "provenance/mpv-run-summary.json",
-      "sha256": "90278739c4eed48cb756f907203151e8be03a6a7e3922ce0f795c839d9270eb9",
-      "size": 148034
+      "sha256": "1b2539e63c676de7115f971dac8b99c6b8ee392969ec8939712701236c0b2b93",
+      "size": 148044
     },
     {
       "path": "provenance/mpv-link-inputs.json",
-      "sha256": "9c90e6206147fc26619926ed9a06677fc8e971766fe7bbf8f79a25f214f0425a",
+      "sha256": "309e92e9ea5bd1fda966278c833487af58fc4e2bcadc0acadaf79d78eae2bf24",
       "size": 38617
     },
     {
       "path": "provenance/mpv-build-profile.json",
-      "sha256": "303996178265d329fef5f7009907d4e0adecb2d5f67fe59c073e0092ef1c0f69",
-      "size": 380
+      "sha256": "2439c1633538baa792cf217ca8a00c4c8bc9381035aa346d5bb76b940f7c3a29",
+      "size": 385
     },
     {
       "path": "provenance/mpv-script-identity.json",
-      "sha256": "2df7a8763c52663f564d4ab599b033818d35a126da3619638786d7ec3f05c484",
-      "size": 605
+      "sha256": "30359ecc7444b00a4604092c8601e2bac7e5f523d6f47c8974bd440b70963050",
+      "size": 645
     },
     {
       "path": "provenance/mpv-tools.json",
@@ -108,28 +108,43 @@
     },
     {
       "path": "provenance/normal-compile-binding.json",
-      "sha256": "8e3852a358d1e069223cb3ec369b2fa7e9728c12870fc50e89e0a620db653ad2",
-      "size": 15765
+      "sha256": "5379cf1f3ad8ee6bfb4e979eb4864661fb8a21dc71dc03e6621b8f1330e3d742",
+      "size": 23692
     },
     {
       "path": "provenance/source-lock.json",
-      "sha256": "3aeb3afaa7dc4706b3e7206ef27e0ee0c69ac0086a27fe083e9d41832cf3d5cd",
-      "size": 2896962
+      "sha256": "2cab2d94414e81e0ba513ca53143011f05741c23a01e53e2b88b7c9289275065",
+      "size": 2897950
     },
     {
       "path": "provenance/sbom.json",
-      "sha256": "5abe74e618b93643da902b7899f54f54aef055ad50ba42f3176eee6b3b9fe514",
-      "size": 3197
+      "sha256": "e87d723526c1d4660887fcba44b7e7307e67e541398c44e18563cf018e48ed98",
+      "size": 3296
     },
     {
       "path": "provenance/normal-library-binding.json",
-      "sha256": "6b6e7739bb678fbc5a90ece81bfb15d5430a03216aee69ab06e6b0faa55f19a4",
+      "sha256": "b0e829825928b8a8ff52a97542b3ccdfaf3606e356a52e3906b35694d7700105",
       "size": 718
     },
     {
       "path": "provenance/samba-resource-audit.json",
-      "sha256": "9417458d3d308e6b601ce2b408dc82596528d4a471052548cd45735b7106955c",
+      "sha256": "62bf0d7e8f42f1f318ce7c56850bb51f18bc8b555aa706b8a36ce5e92c8c1149",
       "size": 4050
+    },
+    {
+      "path": "provenance/ffmpeg-recovery-sdk.json",
+      "sha256": "7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf",
+      "size": 38641
+    },
+    {
+      "path": "provenance/ffmpeg-recovery-merge.json",
+      "sha256": "3695ec4419c31999ade8fb947b24b465760f7e62ee54579ea5ee5c1ec9e81b6f",
+      "size": 17138
+    },
+    {
+      "path": "provenance/ffmpeg-recovery-compatibility.json",
+      "sha256": "5ef0794dc3bf73464fd0c19252643a1fce21ad62b520a56b5027e7206bd5bd10",
+      "size": 3242
     }
   ],
   "licenses": [
@@ -1241,5 +1256,9 @@
     }
   ],
   "compileEvidence": "provenance/normal-compile-binding.json",
-  "producerBinding": "provenance/normal-library-binding.json"
+  "producerBinding": "provenance/normal-library-binding.json",
+  "ffmpegRecovery": "provenance/ffmpeg-recovery-sdk.json",
+  "ffmpegRecoveryMerge": "provenance/ffmpeg-recovery-merge.json",
+  "compileDefinitionsScope": "libmpv.so",
+  "ffmpegCompileDefinitions": []
 }

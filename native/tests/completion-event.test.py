@@ -29,6 +29,7 @@ if not legacy:
 
 
 code=r'''
+#include "session_isolation.h"
 #include <atomic>
 #include <mutex>
 #include <vector>
@@ -42,7 +43,7 @@ code=r'''
 #include <condition_variable>
 #include <chrono>
 struct Handle {void* get(){return nullptr;}};
-struct Event {std::string type,message;uint64_t epoch,sequence,generation;};
+struct Event {std::string type,message;uint64_t epoch,sequence,generation;std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<std::atomic<bool>> callbackOpen;};
 static constexpr int napi_tsfn_nonblocking=0,napi_ok=0;
 static uint64_t requested=0;static int submitResult=0;
 static std::function<void()> onSubmit;
@@ -52,6 +53,8 @@ static int test_command_async(void*,uint64_t userdata,const char**){requested=us
 namespace vidall { namespace runtime { std::atomic<bool> terminal{false};const char* AdmissionError(){return terminal?"terminal":nullptr;} } }
 class Harness {
 public:
+std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
+std::shared_ptr<std::atomic<bool>> callbackOpen_;
 std::mutex completionMutex_,callbackMutex_,lifecycleMutex_;void* eventTsfn_=this;bool rendererReady_=true;std::atomic<uint64_t> eventEpoch_{0},generation_{1},eventSequence_{0};std::atomic<bool> released_{false};
 uint64_t completionEpoch_=0,completionGeneration_=0;int64_t completionEntry_=-1;bool completionReplied_=false;std::vector<mpv_event_end_file> completionEnded_;bool mpvInitialized_=true;int64_t activeEntry=-1;
 static std::string EscapeMpvOptionValue(const std::string& input){return input;}
@@ -108,6 +111,6 @@ if legacy:
     code=before+'int main(){Harness h;mpv_event_end_file end{};end.reason=MPV_END_FILE_REASON_EOF;end.playlist_entry_id=10;mpv_event event{};event.event_id=MPV_EVENT_END_FILE;event.data=&end;h.process(&event);assert(h.sent.size()==1 && "normal EOF must deliver completed");}'
 with tempfile.TemporaryDirectory(prefix='completion-contract-') as out:
  p=pathlib.Path(out);(p/'test.cpp').write_text(code)
- subprocess.run([os.environ.get('CXX','c++'),'-std=c++17','-pthread','-I'+str(ROOT/'release/inputs/004-normal-core/include'),str(p/'test.cpp'),'-o',str(p/'test')],check=True)
+ subprocess.run([os.environ.get('CXX','c++'),'-std=c++17','-pthread','-I'+str(ROOT/'native/runtime'),'-I'+str(ROOT/'release/inputs/004-normal-core/include'),str(p/'test.cpp'),'-o',str(p/'test')],check=True)
  subprocess.run([str(p/'test')],check=True)
 print('PASS actual Load/Stop/COMMAND_REPLY/END_FILE/DispatchCompletion (NAPI投递替身), Release源码顺序: EOF唯一、非EOF、reply身份/格式、重载、晚到、失效与线程交错')

@@ -1,0 +1,35 @@
+2026-11-11 08:15:28 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY surface ready
+2026-11-11 08:15:37 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY state=preparing
+2026-11-11 08:15:37 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY ready handle=4 hwdec=no surface=6777458393163
+2026-11-11 08:15:37 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY state=playing
+2026-11-11 08:15:38 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY videoParams=32<address>|no|||||||12.000000|0||0|||vulkan
+2026-11-11 08:15:38 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY videoParams=32<address>|no|yuv420p|8|bt.709|bt.1886|bt.601|SDR|12.000000|0|1.778|0|limited||vulkan
+2026-11-11 08:15:38 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":83,"durationMs":22000}
+2026-11-11 08:15:39 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":750,"durationMs":22000}
+2026-11-11 08:15:39 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":1583,"durationMs":22000}
+2026-11-11 08:15:40 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":2417,"durationMs":22000}
+2026-11-11 08:15:41 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":3250,"durationMs":22000}
+2026-11-11 08:15:42 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":4083,"durationMs":22000}
+2026-11-11 08:15:43 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":4917,"durationMs":22000}
+2026-11-11 08:15:44 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":5750,"durationMs":22000}
+2026-11-11 08:15:44 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":6583,"durationMs":22000}
+2026-11-11 08:15:45 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":7417,"durationMs":22000}
+2026-11-11 08:15:46 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":8250,"durationMs":22000}
+2026-11-11 08:15:47 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":9083,"durationMs":22000}
+2026-11-11 08:15:48 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":9917,"durationMs":22000}
+2026-11-11 08:15:49 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":10750,"durationMs":22000}
+2026-11-11 08:15:49 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY position={"positionMs":11583,"durationMs":22000}
+2026-11-11 08:15:50 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY audio peaks=0.0531,0.0537,0.0536,0.0537,0.0537,0.0540,0.0537,0.0547,0.0536,0.0529,0.0540,0.0532,0.0536,0.0537,0.0533,0.0534,0.0527,0.0536,0.0532,0.0535,0.0535,0.0532,0.0533,0.0536,0.0533,0.0533,0.0532,0.0534,0.0536,0.0533,0.0533,0.0532
+2026-11-11 08:15:50 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY terminate requested beats=126
+2026-11-11 08:15:50 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY exit code=0 elapsedMs=13 beats=127
+2026-11-11 08:15:50 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=130
+2026-11-11 08:15:51 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=140
+2026-11-11 08:15:52 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=150
+2026-11-11 08:15:53 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=160
+2026-11-11 08:15:54 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=170
+2026-11-11 08:15:55 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=180
+2026-11-11 08:15:56 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=190
+2026-11-11 08:15:57 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=200
+2026-11-11 08:15:58 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=210
+2026-11-11 08:15:59 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=220
+2026-11-11 08:16:00 13834-13834/hdc I/A0D001/com.yao.vidalltv/CleanupVerify: CLEANUP_VERIFY UI alive exited=true beats=230

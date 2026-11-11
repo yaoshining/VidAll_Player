@@ -53890,13 +53890,34 @@
     "baselineInputSHA256": "ba6747a77f6d4a18d2cd004f0301b2cb6f1aa940be1fa2bad0b1bd38bcd78fc4",
     "baselineLibmpvSHA256": "1a469850c99635671281ddadc3c35e65121efda3da5382745cc3c33c8ddaaa31",
     "baselineSourceLockSHA256": "e09d5473e57e26474e0a0cd3177f7a9d3871e9e1c7bb9a0fd83516ee959c3e7a",
-    "patchedInputSHA256": "2fb2e87a351f30faa567f14d58bfe7e1d068d66136ddd7133817ca3308cac051",
+    "patchedInputSHA256": "d4448347f0defcf6ccb326fd30ddead0edd4eff8137da41749d4a4032c477813",
     "patch": "native/patches/mpv/0001-ohaudio-legacy-interrupt.patch",
     "patchSHA256": "fd91b22df8e46b49acb3b120e1f38bfd3bad4d8c12e7d95e2f26d1256a161e72",
-    "baselineStaticLibplaceboSHA256": "4124ab8e1d7a64beeda1419b7ddc99c309cef4c0ad9e2b44c4928ada1c1ff1d4"
+    "baselineStaticLibplaceboSHA256": "4124ab8e1d7a64beeda1419b7ddc99c309cef4c0ad9e2b44c4928ada1c1ff1d4",
+    "additionalPatches": [
+      {
+        "patch": "native/patches/phase30/0001-close-untransferred-release-fence.patch",
+        "patchSHA256": "1a7f71893d223a2d40aa0cc9ada7a9d44e8780478e2664e294ff2ed7363bca2f"
+      },
+      {
+        "patch": "native/patches/phase30/0002-isolate-ohcodec-owner.patch",
+        "patchSHA256": "64e9b858a02cf76fbdc9ead77f260df9a564dd0ec609cedb589ee19d72b399a2"
+      },
+      {
+        "patch": "native/patches/phase30/0003-preserve-owner-fault-event.patch",
+        "patchSHA256": "4282a983d0a90f3ca0585602a6a4f69634d26d3e2b54bd999c6bce69d89a0eac"
+      }
+    ]
   },
   "baselineRuntimeHap": {
     "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase31-normal-validation-attempt01/artifacts/normal-a.hap",
     "sha256": "e2caf1ab58fb833968c789b885dfa1d7d1ced86b9bf270816872e65ded1773dc"
+  },
+  "ffmpegRuntime": {
+    "manifest": "ffmpeg-recovery-sdk.json",
+    "manifestSHA256": "7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf",
+    "mergeBinding": "ffmpeg-recovery-merge.json",
+    "mergeCommit": "32887363cb103163fe6557ca64c05539ad6d73f2",
+    "scope": "当前六个 FFmpeg 运行库；其余历史 FFmpeg 路径/摘要仍描述 mpv 原始编译输入。"
   }
 }

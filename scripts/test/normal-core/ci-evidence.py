@@ -25,7 +25,7 @@ def finish(out,steps,mode):
  if mode=='host':
   if not read(work/'schema-result.json').get('passed'):errors.append('Actions schema/作用域门禁缺失或失败')
   suite=out/'suite/public';summary=read(suite/'summary.json');checks=summary.get('checks',[])
-  if not summary.get('passed') or len(checks)!=47 or not all(r.get('passed') and r.get('exit')==r.get('expectedExit') for r in checks):errors.append('宿主47项检查未全部通过')
+  if not summary.get('passed') or len(checks)!=49 or not {'isolation-compile','session-isolation'} <= {r.get('name') for r in checks} or not all(r.get('passed') and r.get('exit')==r.get('expectedExit') for r in checks):errors.append('宿主49项检查未全部通过')
   if not (suite/'source-identities.json').is_file():errors.append('宿主源码身份缺失')
   if any(not (suite/(r.get('name','')+'.log')).is_file() for r in checks):errors.append('宿主检查日志缺失')
   for item in suite.rglob('*'):

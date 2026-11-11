@@ -1,0 +1,236 @@
+--- a/options/options.h
++++ b/options/options.h
+@@ -7,6 +7,7 @@
+ #include "common/common.h"
+ 
+ typedef struct mp_vo_opts {
++    bool ohcodec_session_isolation;
+     struct m_obj_settings *video_driver_list;
+ 
+     bool taskbar_progress;
+--- a/options/options.c
++++ b/options/options.c
+@@ -120,6 +120,7 @@
+ 
+ static const m_option_t mp_vo_opt_list[] = {
+     {"vo", OPT_SETTINGSLIST(video_driver_list, &vo_obj_list), .flags = UPDATE_VO},
++    {"ohcodec-session-isolation", OPT_BOOL(ohcodec_session_isolation)},
+     {"taskbar-progress", OPT_BOOL(taskbar_progress)},
+     {"drag-and-drop", OPT_CHOICE(drag_and_drop, {"no", -2}, {"auto", -1},
+         {"replace", DND_REPLACE},
+--- a/video/out/hwdec/hwdec_ohcodec.h
++++ b/video/out/hwdec/hwdec_ohcodec.h
+@@ -54,6 +54,7 @@
+     /* Surface/owner-scoped terminal state: a release failure forbids a new
+      * OHCodec producer on this Surface even after the decoder is recreated. */
+     bool surface_invalid;
++    bool isolated;
+ #ifdef MP_OHCODEC_HANDOFF_TRACE
+     uint64_t trace_owner, trace_consumer;
+ #endif
+@@ -82,6 +83,7 @@
+ void ohcodec_terminal_barrier(struct mp_log *log, const char *site);
+ #endif
+ 
++void ohcodec_owner_fault(struct ra_hwdec *hw, int error, int stage);
+ bool ohcodec_surface_init(struct ohcodec_surface *surface,
+                           OH_NativeImage *image);
+ void ohcodec_surface_destroy(struct ohcodec_surface *surface);
+--- a/video/out/hwdec/hwdec_ohcodec.c
++++ b/video/out/hwdec/hwdec_ohcodec.c
+@@ -10,6 +10,11 @@
+ #include <libavutil/hwcontext_oh.h>
+ #include <native_window/graphic_error_code.h>
+ 
++#include "common/global.h"
++#include "options/options.h"
++#include "player/client.h"
++#include "video/out/gpu/context.h"
++#include "video/out/vo.h"
+ #include "config.h"
+ #include "hwdec_ohcodec.h"
+ #include "ohcodec_terminal.h"
+@@ -151,14 +156,53 @@
+     return ref;
+ }
+ 
++// 未归还的平台资源及操作线程共同占用名额，只有正常销毁才能释放。
++static atomic_uint isolated_owners;
++
++void ohcodec_owner_fault(struct ra_hwdec *hw, int error, int stage)
++{
++    struct ohcodec_priv *owner = hw->priv;
++    if (!owner->isolated || !hw->global->client_api)
++        mp_ohcodec_terminal_enter(error, stage, (uintptr_t)hw);
++    char err[24], phase[24];
++    snprintf(err, sizeof(err), "%d", error);
++    snprintf(phase, sizeof(phase), "%d", stage);
++    char *args[] = {"vidall-ohcodec-quarantined", phase, err};
++    mpv_event_client_message event = {.num_args = 3, .args = (const char **)args};
++    mp_client_broadcast_event_external(hw->global->client_api, MPV_EVENT_CLIENT_MESSAGE, &event);
++    // 留在当前栈上，父级不能继续销毁 Vulkan 设备、Surface 或解码器。
++    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
++    static pthread_cond_t parked = PTHREAD_COND_INITIALIZER;
++    pthread_mutex_lock(&mutex);
++    for (;;)
++        pthread_cond_wait(&parked, &mutex);
++}
++
++static void release_slot(struct ohcodec_priv *p)
++{
++    if (p->isolated) {
++        p->isolated = false;
++        atomic_fetch_sub(&isolated_owners, 1);
++    }
++}
++
+ static int init(struct ra_hwdec *hw)
+ {
+     struct ohcodec_priv *p = hw->priv;
+ 
++    if (hw->ra_ctx->vo && hw->ra_ctx->vo->opts->ohcodec_session_isolation) {
++        unsigned count = atomic_load(&isolated_owners);
++        do {
++            if (count >= 2)
++                return -1;
++        } while (!atomic_compare_exchange_weak(&isolated_owners, &count, count + 1));
++        p->isolated = true;
++    }
+     for (int i = 0; interop_inits[i] && !p->surface; i++)
+         interop_inits[i](hw);
+ 
+     if (!p->surface || !p->interop) {
++        release_slot(p);
+         MP_VERBOSE(hw, "OHCodec Surface hwdec requires compatible GL or Vulkan.\n");
+         return -1;
+     }
+@@ -170,6 +214,7 @@
+     };
+     if (!p->hwctx.av_device_ref) {
+         p->interop->owner_uninit(hw);
++        release_slot(p);
+         return -1;
+     }
+     hwdec_devices_add(hw->devs, &p->hwctx);
+@@ -183,6 +228,7 @@
+     // Decoder and device disappear before listener/NativeImage/GPU objects.
+     av_buffer_unref(&p->hwctx.av_device_ref);
+     p->interop->owner_uninit(hw);
++    release_slot(p);
+ }
+ 
+ static int mapper_init(struct ra_hwdec_mapper *mapper)
+@@ -316,7 +362,7 @@
+ #ifdef MP_OHCODEC_DIAGNOSTIC
+         ohcodec_terminal_barrier(mapper->log, "drain-retained");
+ #endif
+-        mp_ohcodec_terminal_enter(p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED, (uintptr_t)mapper->owner);
++        ohcodec_owner_fault(mapper->owner, p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED);
+         return OHCODEC_DRAIN_UNSAFE;
+     }
+     int error = 0;
+@@ -338,7 +384,7 @@
+         ohcodec_terminal_barrier(mapper->log, "drain-unsafe");
+ #endif
+     if (result == OHCODEC_DRAIN_UNSAFE)
+-        mp_ohcodec_terminal_enter(error, MP_OHCODEC_TERMINAL_DRAIN, (uintptr_t)mapper->owner);
++        ohcodec_owner_fault(mapper->owner, error, MP_OHCODEC_TERMINAL_DRAIN);
+     return result;
+ }
+ 
+--- a/video/out/vo_gpu_next.c
++++ b/video/out/vo_gpu_next.c
+@@ -2199,7 +2199,7 @@
+         struct ra_hwdec *owner = ohcodec_hwdec_find(p->hwdec_ctx.hwdecs,
+                                                     p->hwdec_ctx.num_hwdecs);
+         if (owner && owner->resource_retained)
+-            mp_ohcodec_terminal_enter(-1, MP_OHCODEC_TERMINAL_LATE, (uintptr_t)owner);
++            ohcodec_owner_fault(owner, -1, MP_OHCODEC_TERMINAL_LATE);
+     }
+     pl_queue_destroy(&p->queue); // destroy this first
+     for (int i = 0; i < MP_ARRAY_SIZE(p->osd_state.entries); i++)
+--- a/video/out/hwdec/hwdec_ohcodec_pl.c
++++ b/video/out/hwdec/hwdec_ohcodec_pl.c
+@@ -577,6 +577,8 @@
+         mapper_release(mapper);
+     else if (v->window_buffer)
+         release_window_buffer(mapper, -1);
++    if (p->terminal_drain_error)
++        ohcodec_owner_fault(mapper->owner, p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED);
+     if (v->gpu)
+         pl_gpu_finish(v->gpu);
+     while (v->imports) {
+@@ -630,6 +632,17 @@
+         }
+     }
+ 
++    // 先领取替换缓冲，但在旧帧完成交接之前不提交新图像给 Vulkan。
++    v->release_reason = "replacement";
++    if (v->current) {
++        mapper_release(mapper);
++        if (p->terminal_drain_error) {
++            release_acquired_buffer(mapper, wb, fence_fd, "replacement-cancelled");
++            ohcodec_owner_fault(mapper->owner, p->terminal_drain_error, MP_OHCODEC_TERMINAL_RETAINED);
++            return NATIVE_ERROR_UNKNOWN;
++        }
++    }
++
+     VkResult vkres = v->acquire_image(v->vk->device, e->image, fence_fd,
+                                       e->acquire_sem, VK_NULL_HANDLE);
+     if (vkres != VK_SUCCESS) {
+@@ -646,12 +659,6 @@
+         .qf = VK_QUEUE_FAMILY_EXTERNAL,
+         .semaphore = { .sem = e->acquire_sem },
+     ));
+-
+-    // Match the official consumer pipeline: acquire the replacement first,
+-    // then return the previously displayed buffer to the Surface queue.
+-    v->release_reason = "replacement";
+-    if (v->current)
+-        mapper_release(mapper);
+ 
+     e->busy = true;
+     v->current = e;
+@@ -693,7 +700,7 @@
+ {
+     struct ohcodec_mapper_priv *p = mapper->priv;
+     struct vk_mapper *v = p->priv;
+-    if (!v || !v->current)
++    if (!v || !v->current || p->terminal_drain_error)
+         return;
+ 
+     struct vk_import *e = v->current;
+@@ -713,14 +720,17 @@
+                 p27_monotonic_us(), res, fence_fd);
+         if (res != VK_SUCCESS) {
+             MP_ERR(mapper, "vkQueueSignalReleaseImageOHOS failed: %d\n", res);
+-            fence_fd = -1;
+-            pl_gpu_finish(v->gpu);
++            if (fence_fd >= 0)
++                close(fence_fd);
++            p->terminal_drain_error = res;
++            return;
+         } else {
+             v->external_release_inflight = true;
+         }
+     } else {
+         MP_ERR(mapper, "Failed to hold OHCodec external image for release\n");
+-        pl_gpu_finish(v->gpu);
++        p->terminal_drain_error = -1;
++        return;
+     }
+ 
+     MP_INFO(mapper, "P27_VK t=%"PRId64" op=hold mapper=%p seq=%u held=%d fence=%d\n", p27_monotonic_us(), mapper, e->seq, held, fence_fd);
+@@ -750,6 +760,12 @@
+ #endif
+     MP_INFO(mapper, "P28_DRAIN t=%"PRId64" op=begin reason=%d current=%p window=%p\n",
+             p27_monotonic_us(), reason, (void *)v->current, (void *)v->window_buffer);
++    if (p->terminal_drain_error) {
++        if (platform_error)
++            *platform_error = p->terminal_drain_error;
++        return OHCODEC_DRAIN_UNSAFE;
++    }
++
+     /* 1. Complete libplacebo-tracked work for every queued/current image. */
+     pl_gpu_finish(v->gpu);
+     MP_INFO(mapper, "P28_DRAIN t=%"PRId64" op=gpu-finish-done\n",

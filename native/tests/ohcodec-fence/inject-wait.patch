@@ -1,0 +1,31 @@
+--- a/video/out/hwdec/hwdec_ohcodec_pl.c
++++ b/video/out/hwdec/hwdec_ohcodec_pl.c
+@@ -1,3 +1,5 @@
++#include <hilog/log.h>
++#include <errno.h>
+ #include "ohcodec_terminal.h"
+ #include <stdatomic.h>
+ #include <stdlib.h>
+@@ -144,6 +146,22 @@
+                    (int)getpid(), stage, real_rc, effective_rc);
+     return effective_rc;
+ #else
++    static atomic_uint closes;
++    if (real_rc == 0 && reason == OHCODEC_DRAIN_REASON_CLOSE && !strcmp(stage, "wait")) {
++        unsigned n = atomic_fetch_add(&closes, 1);
++        if (n == 1) {
++            OH_LOG_Print(LOG_APP, LOG_INFO, 0xd001, "VidAllFenceProbe",
++                "FENCE_PROBE late-close begin real=0 pid=%{public}ld", (long)getpid());
++            struct timespec remaining = {.tv_sec = 7};
++            while (nanosleep(&remaining, &remaining) < 0 && errno == EINTR) {}
++            OH_LOG_Print(LOG_APP, LOG_INFO, 0xd001, "VidAllFenceProbe",
++                "FENCE_PROBE late-close completed real=0 pid=%{public}ld", (long)getpid());
++        } else if (n == 0 || n == 2) {
++            OH_LOG_Print(LOG_APP, LOG_ERROR, 0xd001, "VidAllFenceProbe",
++                "FENCE_PROBE wait real=0 injected=-4 reason=%{public}d pid=%{public}ld", reason, (long)getpid());
++            return VK_ERROR_DEVICE_LOST;
++        }
++    }
+     return real_rc;
+ #endif
+ }

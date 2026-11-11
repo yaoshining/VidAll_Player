@@ -11,6 +11,25 @@ class BindingTests(unittest.TestCase):
  def mutated(self,change):
   d=json.loads((BASE/'manifest.json').read_text());change(d)
   return audit.verify(BASE,d)
+ def test_current_ffmpeg_recovery_is_required(self):
+  manifest=json.loads((BASE/'manifest.json').read_text())
+  self.assertEqual(manifest.get('ffmpegRecovery'), 'provenance/ffmpeg-recovery-sdk.json')
+ def test_missing_ffmpeg_recovery_binding(self):
+  self.assertIn('FFmpeg 恢复 SDK 绑定缺失',self.mutated(lambda d:d.pop('ffmpegRecovery',None)))
+ def test_wrong_ffmpeg_recovery_binding(self):
+  self.assertTrue(self.mutated(lambda d:d.update(ffmpegRecovery='README.md')))
+ def test_missing_ffmpeg_merge_binding(self):
+  self.assertIn('FFmpeg 合并绑定缺失',self.mutated(lambda d:d.pop('ffmpegRecoveryMerge',None)))
+ def test_old_ffmpeg_cannot_claim_recovery(self):
+  def old(d):
+   next(r for r in d['libraries'] if r['path'].endswith('libavcodec.so.62'))['sha256']='62331a15718a231f323ca0e8957272b7b1fc3eb48bf1e91d85a86760af15652a'
+  self.assertTrue(any('FFmpeg 运行库未绑定恢复 SDK' in e for e in self.mutated(old)))
+ def test_forged_ffmpeg_sdk(self):
+  self.assertIn('FFmpeg 恢复 SDK 身份不匹配',self.changed_file('provenance/ffmpeg-recovery-sdk.json',lambda d:d.update(diagnosticInjection=True)))
+ def test_forged_ffmpeg_merge(self):
+  self.assertIn('FFmpeg 合并绑定身份不匹配',self.changed_file('provenance/ffmpeg-recovery-merge.json',lambda d:d.update(mergeCommit='0'*40)))
+ def test_ffmpeg_cannot_inherit_mpv_trace(self):
+  self.assertIn('FFmpeg 与 mpv 编译宏范围混淆',self.mutated(lambda d:d.update(ffmpegCompileDefinitions=['MP_OHCODEC_HANDOFF_TRACE=1'])))
  def test_missing_manifest(self):
   with tempfile.TemporaryDirectory() as t:self.assertIn('清单缺失',audit.verify(Path(t)))
  def test_legacy_interrupt_imports(self):

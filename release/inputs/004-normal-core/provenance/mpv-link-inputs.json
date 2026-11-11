@@ -469,7 +469,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/options_options.c.o",
-    "sha256": "d8f142a27595c10146c2418e2c3518c7ce162be38c8c64a7424259cb7d5cb6a9"
+    "sha256": "ad64ede067a97eebcdbb9a4f910683c0f6f5c43a3f4d0db66632f70d72a7e6db"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/options_parse_commandline.c.o",
@@ -529,11 +529,11 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_audio.c.o",
-    "sha256": "8847b59c77575cf0499c4254e5b6610b6b4f91b7429d68c8dde7c9df0a52ca1c"
+    "sha256": "ac72e3a77fc2170b8c7863ea6c5358f335a7494c69a1fbcf69ff452ffb27ec59"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_client.c.o",
-    "sha256": "1c12312380f7713f6d9c78617b6ae8947a1a616c97717414e832f86ee9393485"
+    "sha256": "ecf7faf55b157777093ecae80e7c822888d2908bd220dbfcf34c9006203be6dd"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_clipboard_clipboard-vo.c.o",
@@ -545,7 +545,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_command.c.o",
-    "sha256": "77ef1f31b3f8c798234dc67a9c2a6377d020a4d2e4193b9e61f7286117f617df"
+    "sha256": "27245441d086eccd662c7bc349b8a9088c4958f3ec2f2520b41e87499383b36b"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_configfiles.c.o",
@@ -569,7 +569,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_misc.c.o",
-    "sha256": "0867660c8d0a170a824ced0b46e36b7fa7a149aae8ca442874a0be0b8302c5fa"
+    "sha256": "0f39404c2ea81acdd02a6f958c2fda6693942383e43fee325ad701730fbfa251"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_osd.c.o",
@@ -577,7 +577,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_playloop.c.o",
-    "sha256": "44f8d16d841d5d7c9aa7c3a75702df1bdab0a559c790b677a5f9e79404d4517b"
+    "sha256": "e73686eabe47a7533ce519fc948d41f51ff7f53254699b63b9525bb20326b4e3"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_screenshot.c.o",
@@ -593,7 +593,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/player_video.c.o",
-    "sha256": "ad910283a0e5b7bea807e6308efaa203296e305a01771eb599f897f49373ae7c"
+    "sha256": "bdb52ad99772f435d47364703ab5139361ff2b84986847d65dec7dee06d08b2e"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/stream_cookies.c.o",
@@ -769,7 +769,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_aspect.c.o",
-    "sha256": "10bd17f1351690f207513afec9b10ce66efcc6a4f55a40b8c46f72e538340412"
+    "sha256": "0d497d66190da09095c496ba7afe6c7b45c180645ebe230c556f74cc73190a5f"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_bitmap_packer.c.o",
@@ -809,7 +809,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_gpu_next_context.c.o",
-    "sha256": "1fd06ba3aab346434f9be9677e56fb355cc8f87c26406a525fa8dfa72bede790"
+    "sha256": "968ad3252d8da876b9587e83e8f56e85d54b5430104587479f71d236f3ea7bff"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_gpu_osd.c.o",
@@ -841,7 +841,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_gpu_video.c.o",
-    "sha256": "73980f71a850a9e8bd3e8a64ef0550654d81cb847f8ec7520292ac18bda5627d"
+    "sha256": "1bcbebacc346d26c5fbe904ff632d69a6d59515477c8dc59b0e8052934ebe937"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_gpu_video_shaders.c.o",
@@ -849,7 +849,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_ohcodec.c.o",
-    "sha256": "8732b810bf1ecaf59b8367af08c2c6dbfd6eb215bd54535eaa685ef231ee3ef0"
+    "sha256": "9120a1b1875303c55fbf1c79e69b0e4f4b8a55cdae7dd47404896301a86b840f"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_ohcodec_gl.c.o",
@@ -857,7 +857,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_ohcodec_pl.c.o",
-    "sha256": "8dd1dd0d30aebf8d6ba12f1a3022318c055918b5d67b71a1c7d777302de976ac"
+    "sha256": "12f45898eef2cf00f1ce22440f456a6124b8be16f7d46eddf12d945b06d64499"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_hwdec_hwdec_vulkan.c.o",
@@ -877,7 +877,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_ohos_common.c.o",
-    "sha256": "8e8a075f7c0acfff922ba5b60882620e2222d600eab73191f24cf27837c9fda0"
+    "sha256": "7808174bdacfb1e5fc508aad2f66d987c4b64ecc7e3502a7a2856dd47dc8d455"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_opengl_common.c.o",
@@ -885,7 +885,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_opengl_context.c.o",
-    "sha256": "85693946a6dbae182e3c3f6be6fd641291cfaab1624c70ef1f59806816b305cc"
+    "sha256": "3883ab00c0557952a6cb1f8ecb27dfa832293b2059c2b7a41d6a69bb3b13a4d8"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_opengl_context_ohos.c.o",
@@ -921,7 +921,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_vo.c.o",
-    "sha256": "3f4688d0d46faae06a25d8394a82c86071eacd8692b3a7ee3367b0fe91514ef1"
+    "sha256": "f0927f7fa867ceaa3b0c24fd45aebfd1da7f389d2f909d31cf55ee3500e9ade4"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_vo_gpu.c.o",
@@ -929,7 +929,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_vo_gpu_next.c.o",
-    "sha256": "9a8ac1d067c9f831d1f8012ae5663329e244b452231beee8d8e6bd3a8e52a500"
+    "sha256": "a60175e724eb7e1f3f495b696339aea622fee664ac907901dfd18ee7d78bda2a"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_vo_image.c.o",
@@ -953,11 +953,11 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_vo_tct.c.o",
-    "sha256": "3dcf7a2e30a9a4f9878dd87acaec56bd3737465f5c3bdb04194c8852d5a10ae9"
+    "sha256": "6804790663386df2b0cba67090d3ef6b8d9c29aeefdfab959c36ff56d3f6c972"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_vulkan_context.c.o",
-    "sha256": "110ee94866b80830b21ca0be55a3e73668d0b7dcd49640c42f7b90a9e1fbc7e6"
+    "sha256": "0e79f5878ccbf96239815119ecbc5305e79461107250e74bc9ed32be1acbba1b"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_vulkan_context_display.c.o",
@@ -973,7 +973,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_out_win_state.c.o",
-    "sha256": "ad8d3b1a08371c39dc284c62e32bf8363f227e1bee0ea7ca17fbc75e92685beb"
+    "sha256": "4abbcf84db4c701ab967c91375f9f8f47c722b8f32a3eeb5beaaca128374e98a"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/video_repack.c.o",

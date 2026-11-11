@@ -1,0 +1,12 @@
+--- a/video/out/hwdec/hwdec_ohcodec_pl.c
++++ b/video/out/hwdec/hwdec_ohcodec_pl.c
+@@ -796,6 +796,9 @@
+         MP_INFO(mapper, "P28_DRAIN t=%"PRId64" op=queue-wait-idle rc=%d\n",
+                 p27_monotonic_us(), wait);
+         if (wait != VK_SUCCESS) {
++            // 导出的 FD 尚未移交 Surface。保留 buffer 和导入对象，关闭本地句柄。
++            if (fence_fd >= 0)
++                close(fence_fd);
+             MP_ERR(mapper, "OHCodec drain: queue wait idle failed: %d\n", wait);
+             if (platform_error)
+                 *platform_error = wait;

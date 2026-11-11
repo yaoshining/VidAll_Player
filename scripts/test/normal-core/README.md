@@ -27,7 +27,7 @@ python3 -B scripts/test/normal-core/run.py --out /tmp/vidall-normal-core-evidenc
 
 专用工作流 `.github/workflows/normal-core.yml` 在 main 目标 PR、main/集成/文档分支 push、手动和 merge_group 事件运行。PR 默认测试 GitHub 两父 merge SHA，并核对 base/head；merge_group 校验 head 与 base 祖先关系。仓库未启用 merge queue 时不宣称已有远端 merge_group 结果。推送仍须用户批准精确 SHA。
 
-宿主 job 运行现有47项检查（包括工具/编译步骤，不等于47测试用例）和新增 CI 契约。self-hosted macos/deveco job 不读取签名，只用 `devecocli build clean` 和 `devecocli build --modules vidall_player@default` 构建当前 bridge/ArkTS，消费已有固定八库，不重建 producer。fork PR 不进入受控 runner，组合结果将明确失败/待受控验证，不能将跳过视为成功。旧 test-player、build-libmpv 工作流职责不变。
+宿主 job 运行现有49项检查（包括工具/编译步骤，不等于49测试用例）和新增 CI 契约。self-hosted macos/deveco job 不读取签名，只用 `devecocli build clean` 和 `devecocli build --modules vidall_player@default` 构建当前 bridge/ArkTS，消费已有固定八库，不重建 producer。fork PR 不进入受控 runner，组合结果将明确失败/待受控验证，不能将跳过视为成功。旧 test-player、build-libmpv 工作流职责不变。
 
 `ci-target.py` 先记录源码和固定八库字节，执行一次 `DEVECO_CLI_DEBUG=1 devecocli build clean`，从实际 ToolProvider 日志选择 Studio，再严格核验并绑定 `DEVECO_CLI_STUDIO_PATH`；`ci-toolchain-lock.json` 锁定 API24/6.1.1.115 metadata 与实际 clang/nm/readelf 哈希。缺少工具、探测歧义、工具漂移或实际 compile_commands 使用其他 clang/sysroot 均失败，不修改运行器默认 SDK。clean 发生在 SDK 身份核验之前，只清隔离工程生成物；文档 catalog 不可作为工具选择证据，缺失/歧义时不继续 build。clean 后遗留 HAR、bridge 或 compile_commands 会失败；本次 HAR 必须有固定八库及本次真实 ARM64 bridge。
 
