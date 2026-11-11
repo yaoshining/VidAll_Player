@@ -1,6 +1,6 @@
 # Player 与 TV 的恢复接口职责
 
-状态：实现及宿主验证中；新接口尚未随完整 CI HAR 交付。消费端跟进 [VidAll_TV #372](https://github.com/yaoshining/vidall-tv/issues/372)，关联 #370，独立于 #371。
+状态：新接口已随 01b2ad3 的完整 iMac CI 候选 HAR 交付，见 [最新交付](../latest-delivery.md)；真实硬解、系统音频与目标 TV 验收仍未完成。消费端跟进 [VidAll_TV #372](https://github.com/yaoshining/vidall-tv/issues/372)，关联 #370，独立于 #371。
 
 ## 播放方式
 

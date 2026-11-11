@@ -208,3 +208,17 @@ T035 本地完整统一门禁共 91 项全部通过，外部来源审计、31 �
 - T035 的 builder 失败/阻塞只在宿主真实函数回归注入；这次模拟器注入的是全局终局管理器，不能把二者混为同一次设备验证。仍缺真实 OHCodec/Vulkan、可听音频/系统焦点、连续硬件隔离上限和 API 19 TV 正式入口。平台 Stop/Release 永久不返回时的恢复限制仍未消除，未提 PR。
 
 T034 最终边界复查另补版本别名负例：先复现额外 mpv_initialize@UNEXPECTED 被去重隐藏，再保留原始导出条目计数，5 组契约测试通过；当前正常 ELF 完整静态重验通过且输出与原结果逐字节相同。此项只收紧检查和更新检查器来源锁，不改 01b2ad3 的播放器源码、核心或 CI HAR；没有将后续验证记录提交冒称为 HAR 源提交。
+
+
+## T036/T037 硬件验收探针准备（2026-11-11）
+
+先补 S14/spec、plan、tasks，再实施三项真实流程/页面回归。T036 首次红测复现首片仍固定 compatible；后续红测覆盖清理失败仍写 summary、终局后新兼容会话漏释放、旧首帧串到新会话、B/C 复用 Surface。修正后首片默认 standard 且必须实际 OHCodec/Vulkan，三个实例分别使用独立 Surface；离页取消异步创建，旧回调按实例代拒绝，新兼容会话即使全局 terminal 仍释放。公开 API 和生产实现不变。
+
+T037 使用真实 mapper close/wait 接缝，保留 owner 隔离，不用关闭生产保护制造 global 故障。独立 fault 历史核对 A/C 不可变身份；B 晚关闭要在本轮同 PID 原始日志确认完成后才允许 C，并由 C 实际硬解再次证明名额归还；两个隔离名额用尽后 D 请求 standard、实际必须 hwdec=no。页面返回、独立 Surface、UI 心跳、离页交错和成功摘要边界已有红绿回归。`release()` 完成始终不是安全回收证明。
+
+- 三项新自动化和完整统一门禁 94/94 通过，见 device-evidence/host-gate-t037.json。独立只读审查指出的五项探针缺陷均已回归修正。目标 ArkTS 初轮分别指出接口方法对象字面量和任意类型 throw 不允许；改为明确函数属性及 Error 后编译通过，没有跳过类型检查。
+- T036 最终 hardware-first 在 API 19 模拟器 PID 17950 实际 software/no，正确报告 HARDWARE_PATH_REQUIRED，无成功摘要。显式 software-control 在 PID 20091 收到全局终局后保持进程，旧操作拒绝，恢复代 2，B/C 两个独立新 Surface 续播，共 3 首帧、复播错误 0。两份 HAP 九库逐一匹配原独立定时诊断 HAR d78e84b7…，见 api19-t036-hardware.json / api19-t036-software.json。
+- T037 输入副本仅改变 mapper 注入与 Hilog 链接依赖；package SHA-256 8ce987d3f6119b8052a52c98e6a9fd0d1da89ace47f233c3c499dddd455f03b9。MacBook Pro / Darwin arm64 完整重建 mpv/libplacebo、精确 64 导出和静态检查通过；mpv 为 b0ae948109746913e55bfbd5eacf0f5108b9651a66f761a9f22b0d84d047087e，FFmpeg 六库未改。Player 工程完整诊断 HAR SHA-256 26453c1f25e93862b312ef65e22d1b80b464a6d078983a7ffed79b61c4579e3e，非 CI 交付。独立消费者原包接入后，PID 16510 在 software/no 正确拒绝硬件门槛，未触发 mapper 注入，见 api19-t037-fence-negative.json。
+- 6b4dfe5 的 iMac 工作流 43026349300 已完成成功；正式交付记录仍明确绑定原候选 01b2ad3。本轮只新增验收准备、测试和记录，不改变正常核心或 FFmpeg，也不把本地诊断 HAR 当作 iMac CI 原包。
+
+T036/T037 作为“验收准备”完成，不关闭 T007/T009/T013/T017/T018。当前可连接设备仍只有 API 19 TV 模拟器；没有真实 OHCodec/Vulkan 正向、可听音频、系统焦点/打断、真实硬件隔离上限或 VidAll_TV 正式入口结论，尚未提交验收通过 PR。已有平台 Stop/Release 永久不返回的明确限制未被本轮探针掩盖。

@@ -101,3 +101,7 @@ T034：当前全局终局诊断补丁只增加内部注入函数，不再增加 
 T035：先覆盖 renderer Release 已成功、Builder_Destroy 失败或阻塞的真实音频函数红测，再将音频静止事实与对象清理完成状态分开记录。成功释放 renderer 后发布不可逆的本槽静止事实；残留资源与失败清理仍保留槽及 AO，不归还预算、不并发销毁。恢复线程与释放线程交错也须观察静止事实，不能被已无音频的 builder 清理卡住；未知 renderer 状态仍阻止恢复。修改后重建 mpv、更新来源绑定和完整 CI HAR，不改变 FFmpeg。
 
 T035 平台依据：官方 [OH_AudioRenderer_Release](https://developer.huawei.com/consumer/en/doc/harmonyos-references/capi-native-audiorenderer-h/) 与 [OH_AudioStreamBuilder_Destroy](https://developer.huawei.com/consumer/en/doc/harmonyos-references/capi-native-audiostreambuilder-h/) 分别释放输出流与构造器，均自 API 10 提供。本次只在 Release 返回 AUDIOSTREAM_SUCCESS 或从未创建 renderer 时确认静止，不把其他返回值或超时作为成功。
+
+T036：现 recovery-terminal 首片固定 compatible，不能作为真机硬解恢复入口。先添加实际诊断字段资格门槛及模式选择回归，再提供 hardware-first 配置：首片 standard 且首帧后证明 ohcodec/vulkan，终局后只能新建 compatible 与新 Surface。保留 software-control 作为模拟器对照，记录不同配置与 fixture 哈希，不把对照成功写成硬件通过。定时终局仍直接使用 load 身份，不能验证 decoder→mp_image→last_src 归属。
+
+T037：独立关闭故障探针复用 Spec 016 的 `inject-wait.patch` 接缝，保留生产 owner 隔离。先对宿主可执行的流程/断言红测，再连接 standard 首片硬件资格、不可变加载身份、释放故障后的独立故障历史、第二会话硬解播放、晚关闭完成、第二次隔离及名额上限后的软件回退。真实 mapper 注入和全局终局探针不混为一条证据；没有目标设备时，只交付已构建的探针及模拟器拒绝硬件通过的负例，验收任务仍开放。
