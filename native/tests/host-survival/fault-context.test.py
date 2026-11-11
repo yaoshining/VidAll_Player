@@ -69,8 +69,12 @@ int main(void){
  assert(observed_session==0&&observed_load==0);
  owner.isolated=false;priv.last_src=&old;if(!setjmp(escaped))ohcodec_mapper_fault(&mapper,-7,2);
  assert(observed_scope==2&&observed_session==17&&observed_load==4);
+ owner.isolated=true;if(!setjmp(escaped))ohcodec_owner_fault(&hw,-7,2);
+ assert(observed_scope==1&&observed_session==0&&observed_load==0);
+ owner.isolated=false;if(!setjmp(escaped))ohcodec_owner_fault(&hw,-7,2);
+ assert(observed_scope==2&&observed_session==0&&observed_load==0);
 }
-'''.replace('/* FUNCTIONS */',function('player/client.c','mpv_host_loadfile_async')+'\n'+function('video/out/hwdec/hwdec_ohcodec.c','ohcodec_mapper_fault'))
+'''.replace('/* FUNCTIONS */',function('player/client.c','mpv_host_loadfile_async')+'\n'+'\n'.join(function('video/out/hwdec/hwdec_ohcodec.c',n) for n in ['ohcodec_fault_context','ohcodec_mapper_fault','ohcodec_owner_fault']))
 with tempfile.TemporaryDirectory() as d:
  p=Path(d);(p/'test.c').write_text(code)
  subprocess.run(['clang','-std=c11','-pthread','-Wall','-Wextra','-Werror','-I'+str(root/'native/mpv'),str(p/'test.c'),'-o',str(p/'test')],check=True)

@@ -72,3 +72,7 @@ T024 待实现：PlayerSession 在校验通过并推进加载代后，经 bridge
 T024 公共调用采用向后兼容的可选第二参数：`load(source, onIdentity?)`。每次调用的回调闭包直接绑定对应稳定媒体 ID，不让宿主根据全局页面状态猜测。回执的 sessionId/loadGeneration 为只读十进制字符串；回调同步执行，必须在其中同步建立映射，异常则以 LOAD_IDENTITY_REJECTED 拒绝本次加载且不提交 mpv。回调之后再检查运行代。PlayerSession 显式传递已推进的加载代，NAPI 六参数入口校验 JS 安全整数；旧五参数保留自动递增。允许跳过被队列拒绝或回调拒绝的加载代，拒绝回退/复用及溢出，不改变旧完成事件的身份判断。
 
 T025：完整门禁暴露多个终局观察者竞争。先以阻塞归属快照的确定性测试验证：首写者未发布完整记录期间其他线程不得返回 ready 或放行旧代，且不得等待首写者。完整记录仍以独立 release 标志发布，音频恢复等待完整记录；父级计时用例等待有限时间获取实际首次观察时间，不把 0 当作时钟原点。
+
+完整目标编译发现 vo_gpu_next 的无 mapper 关闭路径仍调用 owner 入口；T013 补保留该入口并显式报告 unknown，不能借 owner/current entry 推测媒体。先补入口测试，复用故障投递逻辑，再完整重建。
+
+T026：API 19 TV 模拟器安装的 HAR 九库匹配，但初始化返回 RUNTIME_RECOVERY_UNAVAILABLE。新增局部加载/全局符号不可见回归；恢复符号必须从已链接的实际 mpv 映像解析，不能仅依赖 RTLD_DEFAULT。以 dladdr 定位已有 terminal ABI 所在映像，再用 RTLD_NOLOAD 取得句柄，禁止加载另一份核心；Load 扩展共用同一解析规则。

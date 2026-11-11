@@ -1,0 +1,93 @@
+"""编译真实 OHAudio 初始化/释放函数，覆盖退休与平台阻塞竞争；平台为替身。"""
+from pathlib import Path
+import re, subprocess, sys, tempfile
+root=Path(__file__).resolve().parents[3]
+source=(Path(sys.argv[1])/'audio/out/ao_ohaudio.c').read_text()
+def function(name):
+ m=re.search(r'^static [\w *]+\b'+name+r'\([^;]*?\)\s*\n\{.*?^\}',source,re.M|re.S)
+ assert m,name
+ return m[0]
+code=r'''
+#include "host_recovery.h"
+#include <assert.h>
+#include <pthread.h>
+#include <stdatomic.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+typedef int OH_AudioStream_Result;
+typedef int OH_AudioStream_State;
+typedef struct {int state;} OH_AudioRenderer;
+typedef int OH_AudioStreamBuilder;
+enum {AUDIOSTREAM_SUCCESS=0,AUDIOSTREAM_TYPE_RENDERER=1,AUDIOSTREAM_USAGE_MOVIE=2,
+ AUDIOSTREAM_SAMPLE_U8,AUDIOSTREAM_SAMPLE_S16LE,AUDIOSTREAM_SAMPLE_S32LE,AUDIOSTREAM_SAMPLE_F32LE,
+ AF_FORMAT_U8,AF_FORMAT_S16,AF_FORMAT_S32,AF_FORMAT_FLOAT,
+ AUDIOSTREAM_STATE_PREPARED,AUDIOSTREAM_STATE_STOPPED,AUDIOSTREAM_STATE_RUNNING};
+struct priv {OH_AudioRenderer*renderer;OH_AudioStreamBuilder*builder;unsigned long long recovery_generation,recovery_token;int encoding_type;};
+struct global {unsigned long long host_generation;};
+struct ao {struct priv*priv;struct global*global;struct {int num;} channels;int samplerate,format;};
+static const char*mode;static int builder;
+static OH_AudioRenderer renderer={AUDIOSTREAM_STATE_PREPARED};
+static atomic_bool entered,blocked,parked,finished;static int released,destroyed,stops,unbound;
+#define MP_ERR(...) ((void)0)
+#define MPCLAMP(v,lo,hi) ((v)<(lo)?(lo):(v)>(hi)?(hi):(v))
+#define MP_TIME_MS_TO_NS(v) ((v)*1000000LL)
+static int af_fmt_is_int(int f){return f!=AF_FORMAT_FLOAT;}
+static int af_fmt_to_bytes(int f){return f==AF_FORMAT_S32?4:2;}
+static int af_fmt_from_planar(int f){return f;}
+static void reset_timing(struct priv*p){(void)p;}
+static void unbind_legacy(struct priv*p){(void)p;unbound++;}
+static void mp_sleep_ns(long long ns){(void)ns;parked=true;usleep(1000);}
+static void gate(void){entered=true;while(blocked)usleep(1000);}
+static int OH_AudioStreamBuilder_Create(OH_AudioStreamBuilder**b,int type){(void)type;if(!strcmp(mode,"create-fail"))return -1;*b=&builder;return 0;}
+#define SETTER(name) static int name(OH_AudioStreamBuilder*b,int value){(void)b;(void)value;return 0;}
+SETTER(OH_AudioStreamBuilder_SetChannelCount)
+SETTER(OH_AudioStreamBuilder_SetSamplingRate)
+SETTER(OH_AudioStreamBuilder_SetEncodingType)
+SETTER(OH_AudioStreamBuilder_SetRendererInfo)
+SETTER(OH_AudioStreamBuilder_SetSampleFormat)
+static int register_callbacks(struct ao*a){(void)a;return !strcmp(mode,"callback-fail")?-1:0;}
+static int OH_AudioStreamBuilder_GenerateRenderer(OH_AudioStreamBuilder*b,OH_AudioRenderer**r){(void)b;if(!strcmp(mode,"generate-block"))gate();if(!strcmp(mode,"generate-fail"))return -1;*r=&renderer;return 0;}
+static int OH_AudioRenderer_GetCurrentState(OH_AudioRenderer*r,int*s){*s=r->state;return 0;}
+static int OH_AudioRenderer_Stop(OH_AudioRenderer*r){stops++;r->state=AUDIOSTREAM_STATE_STOPPED;return 0;}
+static int OH_AudioRenderer_Release(OH_AudioRenderer*r){(void)r;released++;if(!strcmp(mode,"release-block"))gate();return !strcmp(mode,"release-fail")?-1:0;}
+static int OH_AudioStreamBuilder_Destroy(OH_AudioStreamBuilder*b){(void)b;destroyed++;return !strcmp(mode,"destroy-fail")?-1:0;}
+/* FUNCTIONS */
+static void*initialize(void*p){assert(init(p)==0);finished=true;return NULL;}
+static void*dispose(void*p){uninit(p);finished=true;return NULL;}
+static void wait_for(atomic_bool*flag){for(int i=0;i<2000&&!atomic_load(flag);i++)usleep(1000);assert(atomic_load(flag));}
+int main(int argc,char**argv){
+ assert(argc==2);mode=argv[1];struct priv p={0};struct global g={mp_host_generation()};struct ao a={&p,&g,{2},48000,AF_FORMAT_S16};
+ if(!strcmp(mode,"create-fail")||!strcmp(mode,"callback-fail")||!strcmp(mode,"generate-fail")){
+  assert(init(&a)==-1);assert(!p.renderer&&!p.builder&&!p.recovery_token);assert(!released);
+  assert(destroyed==strcmp(mode,"create-fail")!=0);mp_host_retire_all();assert(mp_host_audio_pending()==0);return 0;
+ }
+ if(!strcmp(mode,"generate-block")){
+  blocked=true;pthread_t t;assert(!pthread_create(&t,NULL,initialize,&a));wait_for(&entered);
+  mp_host_retire_all();assert(mp_host_audio_pending()==1);mp_host_stop_retired_audio();assert(mp_host_audio_pending()==1);
+  blocked=false;pthread_join(t,NULL);assert(finished&&!mp_host_audio_control_lock(p.recovery_token));
+  mp_host_stop_retired_audio();assert(mp_host_audio_pending()==0);uninit(&a);assert(released==1&&destroyed==1);return 0;
+ }
+ assert(init(&a)==0);assert(p.renderer&&p.builder&&p.recovery_token);
+ if(!strcmp(mode,"release-fail")||!strcmp(mode,"destroy-fail")||!strcmp(mode,"release-block")){
+  blocked=true;pthread_t t;assert(!pthread_create(&t,NULL,dispose,&a));
+  if(!strcmp(mode,"release-block"))wait_for(&entered);else wait_for(&parked);
+  mp_host_retire_all();assert(mp_host_audio_pending()==1&&!finished);
+  // 平台阻塞或失败不占注册表锁；其他独立槽仍可登记，runtime 保持 pending。
+  unsigned long long fresh=mp_host_audio_begin(mp_host_generation());assert(fresh);
+  if(!strcmp(mode,"release-block")){blocked=false;pthread_join(t,NULL);assert(finished&&mp_host_audio_pending()==0);return 0;}
+  assert(p.recovery_token&&unbound==1);assert(!strcmp(mode,"release-fail")?p.renderer!=NULL:p.renderer==NULL);
+  _Exit(0); // 验证失败保留后结束测试进程，不让仍保留的栈对象被析构。
+ }
+ uninit(&a);assert(released==1&&destroyed==1&&!p.recovery_token&&!p.renderer&&!p.builder);
+ uninit(&a);assert(released==1&&destroyed==1);mp_host_retire_all();assert(mp_host_audio_pending()==0);
+}
+'''.replace('/* FUNCTIONS */','\n'.join(function(n) for n in ['release_for_recovery','uninit','stop_for_recovery','init']))
+# 保留 C 断言括号，避免比较运算结合次序误判期望值。
+code=code.replace('destroyed==strcmp(mode,"create-fail")!=0','destroyed==(strcmp(mode,"create-fail")!=0)')
+with tempfile.TemporaryDirectory() as d:
+ p=Path(d);(p/'test.c').write_text(code)
+ subprocess.run(['clang','-std=gnu11','-pthread','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-I'+str(root/'native/mpv'),str(p/'test.c'),str(root/'native/mpv/host_recovery.c'),'-o',str(p/'test')],check=True)
+ for case in ['normal','create-fail','callback-fail','generate-fail','generate-block','release-block','release-fail','destroy-fail']:
+  subprocess.run([str(p/'test'),case],check=True,timeout=5);print(case,'PASS',flush=True)

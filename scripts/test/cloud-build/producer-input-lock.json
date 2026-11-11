@@ -1,23 +1,26 @@
 {
   "schemaVersion": 1,
-  "acceptedDelivery": "004-normal-core-phase30-a-session-close-recovery",
+  "acceptedDelivery": "004-normal-core-phase30-host-survival",
   "producerLatestNormalFullCloudRebuildVerified": false,
   "files": {
-    "manifest.json": "98c688f102be1f3be369cf2534e8cad47bfdbead1aaf673119c3d6ac60d27036",
-    "provenance/source-lock.json": "2cab2d94414e81e0ba513ca53143011f05741c23a01e53e2b88b7c9289275065",
-    "provenance/normal-library-binding.json": "b0e829825928b8a8ff52a97542b3ccdfaf3606e356a52e3906b35694d7700105",
-    "provenance/normal-compile-binding.json": "5379cf1f3ad8ee6bfb4e979eb4864661fb8a21dc71dc03e6621b8f1330e3d742",
+    "manifest.json": "386573a1474b66ae03d3de59bb875ff14bfe00083bb5c6580148e11dd15f7eff",
+    "provenance/source-lock.json": "cd73631ba35e73d779a98c1a58735fd70c397ee351e7ded8fc1e0b0014ff450a",
+    "provenance/normal-library-binding.json": "862e36a9c19eb3e9dcd22e58f51fb10ec0e3cf2b4b785c10622327356737d89e",
+    "provenance/normal-compile-binding.json": "ea65a811b87e04fa2a44d3b2beb0e5dc49fb0f99fec22f4a394adf15a42faebb",
     "arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
     "arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
     "arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
     "arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
-    "arm64-v8a/libmpv.so": "c1997eee1f1190aca663e49ef86e98b96a1403cf5e2f99b16158cd217ef7d56a",
+    "arm64-v8a/libmpv.so": "814e4f02ced52a15a213fd9a0c54f37ffbbe6ca466df758bd04ab0a9fa901beb",
     "arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
     "arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
     "arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
     "provenance/ffmpeg-recovery-sdk.json": "7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf",
     "provenance/ffmpeg-recovery-merge.json": "3695ec4419c31999ade8fb947b24b465760f7e62ee54579ea5ee5c1ec9e81b6f",
-    "provenance/ffmpeg-recovery-compatibility.json": "5ef0794dc3bf73464fd0c19252643a1fce21ad62b520a56b5027e7206bd5bd10"
+    "provenance/ffmpeg-recovery-compatibility.json": "5ef0794dc3bf73464fd0c19252643a1fce21ad62b520a56b5027e7206bd5bd10",
+    "provenance/host-recovery-input.json": "a25e7a759d3dfbee046fe66b317af4cce27abf622655d73748f45ee19931ec14",
+    "provenance/host-recovery-static-validation.json": "b9cd2c2ecd0ae075c035e28e40cce98bd96b5eac7bd4310fce9b43f0c349560b",
+    "provenance/host-recovery-input-check.json": "3794923f59563b018e361417660735a15f008036e79eeab4814d81283a3b768c"
   },
   "formalArtifactAllowed": false
 }

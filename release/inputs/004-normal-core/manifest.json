@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "004-normal-core-phase30-a-session-close-recovery",
+  "id": "004-normal-core-phase30-host-survival",
   "formalArtifactAllowed": false,
   "architecture": "arm64-v8a",
   "compileDefinitions": [
@@ -29,8 +29,8 @@
     },
     {
       "path": "arm64-v8a/libmpv.so",
-      "sha256": "c1997eee1f1190aca663e49ef86e98b96a1403cf5e2f99b16158cd217ef7d56a",
-      "size": 15718232
+      "sha256": "814e4f02ced52a15a213fd9a0c54f37ffbbe6ca466df758bd04ab0a9fa901beb",
+      "size": 15723928
     },
     {
       "path": "arm64-v8a/libc++_shared.so",
@@ -83,38 +83,38 @@
   "evidence": [
     {
       "path": "provenance/mpv-run-summary.json",
-      "sha256": "1b2539e63c676de7115f971dac8b99c6b8ee392969ec8939712701236c0b2b93",
-      "size": 148044
+      "sha256": "9a3d17fcdecd5bd222b576cc4914fd172d129d5b5a29db9a94f2eca36f235bc4",
+      "size": 148434
     },
     {
       "path": "provenance/mpv-link-inputs.json",
-      "sha256": "309e92e9ea5bd1fda966278c833487af58fc4e2bcadc0acadaf79d78eae2bf24",
-      "size": 38617
+      "sha256": "739cc91fe319ead5796016b352260faf86fd915d50593b587f3383ec9ed87e9a",
+      "size": 38773
     },
     {
       "path": "provenance/mpv-build-profile.json",
-      "sha256": "2439c1633538baa792cf217ca8a00c4c8bc9381035aa346d5bb76b940f7c3a29",
-      "size": 385
+      "sha256": "965a99bba58f02d94cc4e5322af7711e128f7cf8f8dbd06886a3abf81f40623f",
+      "size": 393
     },
     {
       "path": "provenance/mpv-script-identity.json",
-      "sha256": "30359ecc7444b00a4604092c8601e2bac7e5f523d6f47c8974bd440b70963050",
-      "size": 645
+      "sha256": "2535d0774883c9ee52fede859f465f481d5d73840d9668586f3d7131ca465dfd",
+      "size": 699
     },
     {
       "path": "provenance/mpv-tools.json",
-      "sha256": "08f1a53109d7152189d769734f5d7788f3960da8583104a56d07630428e0c148",
-      "size": 2298
+      "sha256": "8d4e23b050d7207fb1c787b314f21442a38beca5c4a8ce8f5de60297b7656947",
+      "size": 2295
     },
     {
       "path": "provenance/normal-compile-binding.json",
-      "sha256": "5379cf1f3ad8ee6bfb4e979eb4864661fb8a21dc71dc03e6621b8f1330e3d742",
-      "size": 23692
+      "sha256": "ea65a811b87e04fa2a44d3b2beb0e5dc49fb0f99fec22f4a394adf15a42faebb",
+      "size": 30340
     },
     {
       "path": "provenance/source-lock.json",
-      "sha256": "2cab2d94414e81e0ba513ca53143011f05741c23a01e53e2b88b7c9289275065",
-      "size": 2897950
+      "sha256": "cd73631ba35e73d779a98c1a58735fd70c397ee351e7ded8fc1e0b0014ff450a",
+      "size": 2900480
     },
     {
       "path": "provenance/sbom.json",
@@ -123,7 +123,7 @@
     },
     {
       "path": "provenance/normal-library-binding.json",
-      "sha256": "b0e829825928b8a8ff52a97542b3ccdfaf3606e356a52e3906b35694d7700105",
+      "sha256": "862e36a9c19eb3e9dcd22e58f51fb10ec0e3cf2b4b785c10622327356737d89e",
       "size": 718
     },
     {
@@ -145,6 +145,21 @@
       "path": "provenance/ffmpeg-recovery-compatibility.json",
       "sha256": "5ef0794dc3bf73464fd0c19252643a1fce21ad62b520a56b5027e7206bd5bd10",
       "size": 3242
+    },
+    {
+      "path": "provenance/host-recovery-input.json",
+      "sha256": "a25e7a759d3dfbee046fe66b317af4cce27abf622655d73748f45ee19931ec14",
+      "size": 1818
+    },
+    {
+      "path": "provenance/host-recovery-static-validation.json",
+      "sha256": "b9cd2c2ecd0ae075c035e28e40cce98bd96b5eac7bd4310fce9b43f0c349560b",
+      "size": 25894
+    },
+    {
+      "path": "provenance/host-recovery-input-check.json",
+      "sha256": "3794923f59563b018e361417660735a15f008036e79eeab4814d81283a3b768c",
+      "size": 250
     }
   ],
   "licenses": [
@@ -1242,7 +1257,13 @@
       "mpv_ohcodec_terminal_api_version",
       "mpv_ohcodec_terminal_register",
       "mpv_ohcodec_terminal_enable",
-      "mpv_ohcodec_terminal_snapshot"
+      "mpv_ohcodec_terminal_snapshot",
+      "mpv_host_recovery_api_version",
+      "mpv_host_recovery_generation",
+      "mpv_host_recovery_audio_pending",
+      "mpv_host_recovery_stop_audio",
+      "mpv_host_loadfile_async",
+      "mpv_host_fault_snapshot"
     ],
     "libavformat.so.62": [
       "ohcodec_smb_runtime_configure_v1"

@@ -3,13 +3,13 @@
 import hashlib,json,os,subprocess,sys
 from pathlib import Path
 # 固定已审查生产者证据的身份，不能只信任待验清单自报。
-BINDING_SHA='b0e829825928b8a8ff52a97542b3ccdfaf3606e356a52e3906b35694d7700105'
-COMPILE_SHA='5379cf1f3ad8ee6bfb4e979eb4864661fb8a21dc71dc03e6621b8f1330e3d742'
-SOURCE_LOCK_SHA='2cab2d94414e81e0ba513ca53143011f05741c23a01e53e2b88b7c9289275065'
+BINDING_SHA='862e36a9c19eb3e9dcd22e58f51fb10ec0e3cf2b4b785c10622327356737d89e'
+COMPILE_SHA='ea65a811b87e04fa2a44d3b2beb0e5dc49fb0f99fec22f4a394adf15a42faebb'
+SOURCE_LOCK_SHA='cd73631ba35e73d779a98c1a58735fd70c397ee351e7ded8fc1e0b0014ff450a'
 RESOURCE_AUDIT_SHA='62bf0d7e8f42f1f318ce7c56850bb51f18bc8b555aa706b8a36ce5e92c8c1149'
 FFMPEG_SDK_SHA='7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf'
 FFMPEG_MERGE_SHA='3695ec4419c31999ade8fb947b24b465760f7e62ee54579ea5ee5c1ec9e81b6f'
-MIN_EXPORTS={'libmpv.so':{'mpv_create','mpv_initialize','mpv_client_api_version','mpv_ohcodec_terminal_api_version','mpv_ohcodec_terminal_register','mpv_ohcodec_terminal_enable','mpv_ohcodec_terminal_snapshot'},'libavformat.so.62':{'ohcodec_smb_runtime_configure_v1'}}
+MIN_EXPORTS={'libmpv.so':{'mpv_create','mpv_initialize','mpv_client_api_version','mpv_ohcodec_terminal_api_version','mpv_ohcodec_terminal_register','mpv_ohcodec_terminal_enable','mpv_ohcodec_terminal_snapshot','mpv_host_recovery_api_version','mpv_host_recovery_generation','mpv_host_recovery_audio_pending','mpv_host_recovery_stop_audio','mpv_host_loadfile_async','mpv_host_fault_snapshot'},'libavformat.so.62':{'ohcodec_smb_runtime_configure_v1'}}
 NAMES={'libmpv.so','libavcodec.so.62','libavfilter.so.11','libavformat.so.62','libavutil.so.60','libswresample.so.6','libswscale.so.9','libc++_shared.so'}
 ROOT=Path(__file__).resolve().parents[2]
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -86,8 +86,9 @@ def verify(base,manifest=None,verify_external=False):
  if compilation.is_file() and sha(compilation)==COMPILE_SHA:
   c=json.loads(compilation.read_text()); observed=c.get('observedMacros',{})
   if observed!={'TRACE':True,'TEST':False,'DIAGNOSTIC':False,'EXPERIMENT':False,'RETURN_REPLACEMENT':False}:errors.append('实际编译宏不是正常组合')
-  # 此记录描述 mpv 的原始编译及当时 FFmpeg 输入；当前六库由恢复 SDK 单独锁定。
-  commands=[r.get('command','') for r in c.get('translationUnits',[])]+[c.get('ffmpegExplicitFlags','')]
+  # 本次只编译 mpv；FFmpeg 编译宏不能从旧构建记录推断。
+  commands=[r.get('command','') for r in c.get('translationUnits',[])]
+  if c.get('ffmpegInputManifestSHA256')!=FFMPEG_SDK_SHA or 'ffmpegExplicitFlags' in c:errors.append('mpv 链接 SDK 来源错误')
   if len(commands)<3 or any('-DMP_OHCODEC_HANDOFF_TRACE=1' not in x for x in commands):errors.append('实际编译 TRACE 证据不足')
   if any(any(s in x for s in ['-DMP_OHCODEC_DIAGNOSTIC','-DMP_OHCODEC_LIFECYCLE_EXPERIMENT','-DMP_OHCODEC_HANDOFF_TEST','-DMP_OHCODEC_TEST']) for x in commands):errors.append('实际编译含故障宏')
   if c.get('mpvLibrarySHA256')!={Path(r['path']).name:r['sha256'] for r in libs}.get('libmpv.so'):errors.append('编译产物绑定错误')
@@ -99,6 +100,17 @@ def verify(base,manifest=None,verify_external=False):
   for item in [update, *update.get('additionalPatches', [])]:
    patch=ROOT/item['patch']
    if not patch.is_file() or sha(patch)!=item['patchSHA256']:errors.append('主线 mpv 补丁与来源锁不匹配 '+item['patch'])
+  recovery=lock.get('hostRecovery',{})
+  recovery_lock=base/'provenance/host-recovery-input.json'
+  if recovery.get('inputLock')!='host-recovery-input.json' or not recovery_lock.is_file() or sha(recovery_lock)!=recovery.get('inputLockSHA256'):
+   errors.append('宿主恢复输入锁缺失或不匹配')
+  else:
+   inputs=json.loads(recovery_lock.read_text())
+   if inputs.get('ffmpegManifestSHA256')!=FFMPEG_SDK_SHA:errors.append('宿主恢复 SDK 不匹配')
+   for item in inputs.get('patches',[])+inputs.get('addedSources',[])+recovery.get('tooling',[]):
+    path=ROOT/item['path']
+    if not path.is_file() or sha(path)!=item['sha256']:errors.append('宿主恢复构建来源不匹配 '+item['path'])
+   if recovery.get('libmpvSHA256')!=sha(base/'arm64-v8a/libmpv.so'):errors.append('恢复核心库绑定不匹配')
   if verify_external:
    for row in lock['exactReferences']:
     p=Path(row['path'])

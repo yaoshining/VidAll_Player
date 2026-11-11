@@ -1,0 +1,47 @@
+{
+  "baselineManifestSHA256": "ba6747a77f6d4a18d2cd004f0301b2cb6f1aa940be1fa2bad0b1bd38bcd78fc4",
+  "ffmpegManifestSHA256": "7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf",
+  "patches": [
+    {
+      "path": "native/patches/mpv/0001-ohaudio-legacy-interrupt.patch",
+      "sha256": "fd91b22df8e46b49acb3b120e1f38bfd3bad4d8c12e7d95e2f26d1256a161e72"
+    },
+    {
+      "path": "native/patches/phase30/0001-close-untransferred-release-fence.patch",
+      "sha256": "1a7f71893d223a2d40aa0cc9ada7a9d44e8780478e2664e294ff2ed7363bca2f"
+    },
+    {
+      "path": "native/patches/phase30/0002-isolate-ohcodec-owner.patch",
+      "sha256": "64e9b858a02cf76fbdc9ead77f260df9a564dd0ec609cedb589ee19d72b399a2"
+    },
+    {
+      "path": "native/patches/phase30/0003-preserve-owner-fault-event.patch",
+      "sha256": "4282a983d0a90f3ca0585602a6a4f69634d26d3e2b54bd999c6bce69d89a0eac"
+    },
+    {
+      "path": "native/patches/phase30/0004-host-audio-generation.patch",
+      "sha256": "e2d1a7040d119e9afd81beb8f5e320d4ae8773b363c616f36a2b3386ff685cc4"
+    },
+    {
+      "path": "native/patches/phase30/0005-fault-media-context.patch",
+      "sha256": "2528fd8c8bda7cfa59467a63c13336b70a429d629bbaf52e7a86f85b8354e087"
+    }
+  ],
+  "addedSources": [
+    {
+      "path": "native/mpv/host_recovery.c",
+      "target": "common/host_recovery.c",
+      "sha256": "b533a42f18bb77579010bbbedba7ce8669316330958741d3dcbbb61f0bf5b8a9"
+    },
+    {
+      "path": "native/mpv/host_recovery.h",
+      "target": "common/host_recovery.h",
+      "sha256": "a1e6e7412f73e5457666c7416ec198810e40a250446231ea41729a770e3239cc"
+    },
+    {
+      "path": "native/mpv/host_recovery_api.h",
+      "target": "common/host_recovery_api.h",
+      "sha256": "e09bc8464b6e32b9e85921964e4b419203ce5346b63013b7dcfe6b715681128c"
+    }
+  ]
+}

@@ -26,6 +26,8 @@ struct FaultHistory { std::array<FaultRecord,16> records{}; unsigned count = 0; 
 void RecordSessionFault(int platformError, unsigned stage, std::uint64_t sessionId, std::uint64_t loadGeneration);
 FaultHistory Faults();
 const char* Configure(const std::string& filesDir, const std::string& config, unsigned deadlineMs, TerminalPolicy policy = TerminalPolicy::ControlledAppExit);
+// 从已链接的 mpv 映像查找可选扩展，不加载另一份播放器核心。
+void* ResolveMpvSymbol(const char* name);
 Status Snapshot();
 void RejectResources();
 const char* AdmissionError(bool recoverySession = false);

@@ -13,6 +13,23 @@
 #include <sys/stat.h>
 #include <unistd.h>
 namespace vidall::runtime {
+void* ResolveMpvSymbol(const char* name) {
+ Dl_info origin{};
+ if(dladdr(reinterpret_cast<void*>(&mpv_ohcodec_terminal_api_version), &origin) && origin.dli_fname) {
+  void* handle=dlopen(origin.dli_fname,RTLD_NOW|RTLD_NOLOAD);
+  if(handle) {
+   void* symbol=dlsym(handle,name);
+   dlclose(handle); // 链接依赖仍持有映像；只归还本次查找引用。
+   return symbol;
+  }
+ }
+#ifndef __OHOS__
+ // 宿主测试把核心替身静态链接在可执行文件中，部分系统不能 dlopen 自身。
+ return dlsym(RTLD_DEFAULT,name);
+#else
+ return nullptr;
+#endif
+}
 namespace {
 std::atomic<int> state{0};
 std::atomic<bool> terminalObserved{false};
@@ -41,12 +58,12 @@ struct RecoveryApi {
  void* loadFile = nullptr;
 } recovery;
 bool HasRecoveryAbi() {
- recovery.version = reinterpret_cast<uint32_t(*)()>(dlsym(RTLD_DEFAULT,"mpv_host_recovery_api_version"));
- recovery.generation = reinterpret_cast<uint64_t(*)()>(dlsym(RTLD_DEFAULT,"mpv_host_recovery_generation"));
- recovery.pending = reinterpret_cast<unsigned(*)()>(dlsym(RTLD_DEFAULT,"mpv_host_recovery_audio_pending"));
- recovery.stopAudio = reinterpret_cast<void(*)()>(dlsym(RTLD_DEFAULT,"mpv_host_recovery_stop_audio"));
- recovery.faultSnapshot = reinterpret_cast<int(*)(mpv_host_fault_record*)>(dlsym(RTLD_DEFAULT,"mpv_host_fault_snapshot"));
- recovery.loadFile = dlsym(RTLD_DEFAULT,"mpv_host_loadfile_async");
+ recovery.version = reinterpret_cast<uint32_t(*)()>(ResolveMpvSymbol("mpv_host_recovery_api_version"));
+ recovery.generation = reinterpret_cast<uint64_t(*)()>(ResolveMpvSymbol("mpv_host_recovery_generation"));
+ recovery.pending = reinterpret_cast<unsigned(*)()>(ResolveMpvSymbol("mpv_host_recovery_audio_pending"));
+ recovery.stopAudio = reinterpret_cast<void(*)()>(ResolveMpvSymbol("mpv_host_recovery_stop_audio"));
+ recovery.faultSnapshot = reinterpret_cast<int(*)(mpv_host_fault_record*)>(ResolveMpvSymbol("mpv_host_fault_snapshot"));
+ recovery.loadFile = ResolveMpvSymbol("mpv_host_loadfile_async");
  return recovery.version && recovery.generation && recovery.pending && recovery.stopAudio && recovery.faultSnapshot && recovery.loadFile &&
      recovery.version() == MPV_HOST_RECOVERY_ABI_VERSION;
 }
@@ -177,6 +194,7 @@ const char* SessionAdmissionError(std::uint64_t generation,bool compatible){
 
 #else
 namespace vidall::runtime {
+void* ResolveMpvSymbol(const char*){return nullptr;}
 void RecordSessionFault(int,unsigned,std::uint64_t,std::uint64_t){}
 FaultHistory Faults(){return {};}
 const char* Configure(const std::string&,const std::string&,unsigned,TerminalPolicy){return "FEATURE_UNSUPPORTED";}

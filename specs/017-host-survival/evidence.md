@@ -93,3 +93,25 @@ T024 已按红绿流程补齐真实 PlayerSession/bridge 和 NAPI 入口测试�
 修正文档整理时 evidence.md 被 data-model 内容覆盖的问题，恢复此前真实验证记录。当前仍缺完整新核心来源绑定、iMac CI HAR、实际设备音画与 API 19 TV 验收；没有以宿主替身或本地构建替代。
 
 gate-19 完整 80 项通过（`/tmp/vidall-host-survival-host-gate-19/work/summary.json`），保留所有父级保护与三组负向变异校验。Spec Kit prerequisites 通过；宪章复查仍不勾选 CI/设备/整体资源验收。
+
+
+## 锁定恢复核心与完整本地 HAR
+
+2026-11-11：全量目标编译首次发现 vo_gpu_next 无 mapper 关闭路径遗漏 owner 故障入口（undeclared ohcodec_owner_fault）；保留入口并使用 unknown 归属，先补红测再实现。全新输入重建后完成 mpv/libplacebo ARM64 编译、链接、静态审计和构建后源树检查。输入 manifest SHA-256 `7699508b628c536b92685a6b561fba780b9f1b57c1793c0304aaa186bcbe9916`，libmpv SHA-256 `814e4f02ced52a15a213fd9a0c54f37ffbbe6ca466df758bd04ab0a9fa901beb`；64 个公开符号（包含六个恢复接口）、253 个链接输入、56 个 libplacebo 成员。实际机器 MacBook Pro / Darwin arm64，非 iMac CI 或云端 Mac。
+
+Player 工程现维护输入准备脚本及导入的 mpv 构建/审计工具；补丁与新增源码逐项锁定，预编译 FFmpeg SDK 原始 217 项先全部校验，目标输入只覆盖 SDK，不构建 FFmpeg。七个准备脚本用例覆盖 SDK 符号链接转普通文件、正常替换、新源码、摘要篡改、路径越界和失败不留半成品。静态来源/ABI 审计通过；新增输入契约三例先红后绿，全部 31 个来源正负例通过。
+
+同一派生源执行原 #89 中断回归，以及实际 OHAudio 数据回调/控制/生命周期函数。生命周期的 normal、create-fail、callback-fail、generate-fail、generate-block、release-block、release-fail、destroy-fail 八例在 ASan/UBSan 下通过：迟到初始化仍被计入 pending，失败释放保留回调宿主与预算，平台调用阻塞不持全局登记锁。仍不能因此认定真实焦点释放或平台 Stop 一定返回。
+
+包含上述新核心的本地 HAR 已通过 `devecocli build --product default --modules vidall_player@deveco26`。该产物现真正含恢复 ABI，仍只是本地预验证，未交付 TV。主机八十项、真实入口测试、目标编译三层证据均不替代设备音画。当前无连接设备；已列出 API 19 TV 模拟器但本轮尚未执行。
+
+
+## API 19 模拟器暴露的接口加载问题
+
+API 19 TV 模拟器 `VidAll_Issue89_TV_API19` 安装本地九库 HAR，实际 HAP 的 libmpv 哈希匹配新核心，初始化却返回 RUNTIME_RECOVERY_UNAVAILABLE。不是旧库缓存：新库确有六导出及 ABI 0x00020000。首轮局部加载宿主测试在 macOS 下仍可通过 RTLD_DEFAULT；补全“全局符号不可见、同一依赖句柄可见”的平台边界后复现失败。T026 改为 dladdr 定位已链接 terminal ABI 的映像，RTLD_NOLOAD 获取同一库句柄，恢复 ABI 与 Load 扩展共用解析，不加载另一份核心。回归先红后绿；重新构建/安装后，模拟器同进程 PID 4282 已完成 runtime ready → 坏片 error → release → 新正常视频 firstFrame → 暂停/手动恢复。未退出、无崩溃记录。
+
+完整 gate-20 共 81 项中只有 native-entry 未通过：测试在析构函数体刚进入时就认为预算已归还。已增加最后析构的完成标记，等待成员和预算实际销毁，再验证名额复用；未放宽生产预算。gate-21 全部 81 项通过。T026 后 gate-22 另行记录。
+
+设备基础探针尚未整体通过：首次缺少媒体资源；补资源后定位接口加载问题；修复加载后长 GOP 合成素材在 seek 时落到 16.67 s，而旧探针预期 20 s 附近，得到 SEEK_NOT_ADVANCING。下一轮使用明确定义每秒关键帧的 30 秒合成素材匹配原 seek 用例前提，不把该失败删去。上述初步结果不含全局终局注入、不证明真机零拷贝，也没有对外宣称声音已验收。
+
+gate-22 完整 82 项通过，包含新恢复输入及局部符号加载回归、父级保护和负向变异。完整本地 HAR 再构建通过；CI 与设备整体验收仍不升级。

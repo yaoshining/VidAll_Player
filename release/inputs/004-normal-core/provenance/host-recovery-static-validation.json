@@ -1,0 +1,820 @@
+{
+  "artifact": {
+    "path": "/private/tmp/vidall-host-recovery-locked-build/install/usr/local/lib/libmpv.so",
+    "sha256": "814e4f02ced52a15a213fd9a0c54f37ffbbe6ca466df758bd04ab0a9fa901beb",
+    "sizeBytes": 15723928
+  },
+  "symbolCompanion": {
+    "path": "/private/tmp/vidall-host-recovery-locked-build/mpv/install-unstripped.so",
+    "sha256": "bd5e3832dd1609d0d765b3cef13fad7e608b4251f7ade84620215cbd451fb5b6",
+    "sizeBytes": 24109872
+  },
+  "allAllocatedSectionsExactlyBound": true,
+  "driverTable": {
+    "address": 15275584,
+    "size": 24
+  },
+  "registration": {
+    "registered": true,
+    "name": "ohcodec",
+    "descriptor": 15303704,
+    "deviceType": 14,
+    "mapper": 15303664,
+    "callbacks": {
+      "driverInit": 6335208,
+      "mapperInit": 6335784,
+      "mapperMap": 6336228
+    },
+    "runtimeVerified": false
+  },
+  "callbackSymbols": {
+    "driverInit": {
+      "address": 6335208,
+      "size": 472,
+      "names": [
+        "init"
+      ]
+    },
+    "mapperInit": {
+      "address": 6335784,
+      "size": 144,
+      "names": [
+        "mapper_init"
+      ]
+    },
+    "mapperMap": {
+      "address": 6336228,
+      "size": 568,
+      "names": [
+        "mapper_map"
+      ]
+    }
+  },
+  "interopInitBinding": {
+    "kind": "compiler-unrolled direct BL calls from registered driver init",
+    "targets": {
+      "ohcodec_interop_gl_init": {
+        "address": 6374032,
+        "calls": [
+          6335372
+        ]
+      },
+      "ohcodec_interop_pl_init": {
+        "address": 6404360,
+        "calls": [
+          6335356
+        ]
+      }
+    }
+  },
+  "nativeEffectiveCalls": {
+    "hwdec_ohcodec.c": {
+      "OH_NativeImage_AcquireNativeWindow": {
+        "target": 15050112,
+        "calls": [
+          6333424
+        ]
+      },
+      "OH_NativeImage_SetOnFrameAvailableListener": {
+        "target": 15050128,
+        "calls": [
+          6333452
+        ]
+      }
+    },
+    "hwdec_ohcodec_gl.c": {
+      "OH_NativeImage_Create": {
+        "target": 15050416,
+        "calls": [
+          6374372
+        ]
+      },
+      "OH_NativeImage_UpdateSurfaceImage": {
+        "target": 15050448,
+        "calls": [
+          6375080
+        ]
+      }
+    },
+    "hwdec_ohcodec_pl.c": {
+      "OH_ConsumerSurface_Create": {
+        "target": 15050704,
+        "calls": [
+          6404636
+        ]
+      },
+      "OH_ConsumerSurface_SetDefaultUsage": {
+        "target": 15050720,
+        "calls": [
+          6404660
+        ]
+      },
+      "OH_NativeImage_AcquireNativeWindowBuffer": {
+        "target": 15050848,
+        "calls": [
+          6406792
+        ]
+      },
+      "OH_NativeImage_ReleaseNativeWindowBuffer": {
+        "target": 15050880,
+        "calls": [
+          6406912,
+          6411532
+        ]
+      },
+      "vkGetDeviceProcAddr": {
+        "target": 15050816,
+        "calls": [
+          6406000,
+          6406028,
+          6406056,
+          6406084
+        ]
+      },
+      "pl_vulkan_wrap": {
+        "target": 9621268,
+        "calls": [
+          6408340
+        ]
+      }
+    }
+  },
+  "release": {
+    "versionedImport": "av_ohcodec_release_buffer@LIBAVCODEC_62",
+    "plt": 15050192,
+    "renderOneCalls": [
+      6336356
+    ],
+    "scope": "adjacent MOV W1,#1 + direct BL in bound registered mapper map function"
+  },
+  "api": {
+    "version": "2.5",
+    "function": {
+      "address": 5799020,
+      "size": 12
+    },
+    "rawBytes": "a00080524000a072c0035fd6",
+    "publicCount": 64,
+    "publicSymbols": [
+      "mpv_abort_async_command",
+      "mpv_client_api_version",
+      "mpv_client_id",
+      "mpv_client_name",
+      "mpv_command",
+      "mpv_command_async",
+      "mpv_command_node",
+      "mpv_command_node_async",
+      "mpv_command_ret",
+      "mpv_command_string",
+      "mpv_create",
+      "mpv_create_client",
+      "mpv_create_weak_client",
+      "mpv_del_property",
+      "mpv_destroy",
+      "mpv_error_string",
+      "mpv_event_name",
+      "mpv_event_to_node",
+      "mpv_free",
+      "mpv_free_node_contents",
+      "mpv_get_property",
+      "mpv_get_property_async",
+      "mpv_get_property_osd_string",
+      "mpv_get_property_string",
+      "mpv_get_time_ns",
+      "mpv_get_time_us",
+      "mpv_get_wakeup_pipe",
+      "mpv_hook_add",
+      "mpv_hook_continue",
+      "mpv_host_fault_snapshot",
+      "mpv_host_loadfile_async",
+      "mpv_host_recovery_api_version",
+      "mpv_host_recovery_audio_pending",
+      "mpv_host_recovery_generation",
+      "mpv_host_recovery_stop_audio",
+      "mpv_initialize",
+      "mpv_load_config_file",
+      "mpv_observe_property",
+      "mpv_ohcodec_terminal_api_version",
+      "mpv_ohcodec_terminal_enable",
+      "mpv_ohcodec_terminal_register",
+      "mpv_ohcodec_terminal_snapshot",
+      "mpv_render_context_create",
+      "mpv_render_context_free",
+      "mpv_render_context_get_info",
+      "mpv_render_context_render",
+      "mpv_render_context_report_swap",
+      "mpv_render_context_set_parameter",
+      "mpv_render_context_set_update_callback",
+      "mpv_render_context_update",
+      "mpv_request_event",
+      "mpv_request_log_messages",
+      "mpv_set_option",
+      "mpv_set_option_string",
+      "mpv_set_property",
+      "mpv_set_property_async",
+      "mpv_set_property_string",
+      "mpv_set_wakeup_callback",
+      "mpv_stream_cb_add_ro",
+      "mpv_terminate_destroy",
+      "mpv_unobserve_property",
+      "mpv_wait_async_requests",
+      "mpv_wait_event",
+      "mpv_wakeup"
+    ],
+    "preservedBaselineSymbols": [
+      "mpv_abort_async_command",
+      "mpv_client_api_version",
+      "mpv_client_id",
+      "mpv_client_name",
+      "mpv_command",
+      "mpv_command_async",
+      "mpv_command_node",
+      "mpv_command_node_async",
+      "mpv_command_ret",
+      "mpv_command_string",
+      "mpv_create",
+      "mpv_create_client",
+      "mpv_create_weak_client",
+      "mpv_del_property",
+      "mpv_destroy",
+      "mpv_error_string",
+      "mpv_event_name",
+      "mpv_event_to_node",
+      "mpv_free",
+      "mpv_free_node_contents",
+      "mpv_get_property",
+      "mpv_get_property_async",
+      "mpv_get_property_osd_string",
+      "mpv_get_property_string",
+      "mpv_get_time_ns",
+      "mpv_get_time_us",
+      "mpv_get_wakeup_pipe",
+      "mpv_hook_add",
+      "mpv_hook_continue",
+      "mpv_initialize",
+      "mpv_load_config_file",
+      "mpv_observe_property",
+      "mpv_render_context_create",
+      "mpv_render_context_free",
+      "mpv_render_context_get_info",
+      "mpv_render_context_render",
+      "mpv_render_context_report_swap",
+      "mpv_render_context_set_parameter",
+      "mpv_render_context_set_update_callback",
+      "mpv_render_context_update",
+      "mpv_request_event",
+      "mpv_request_log_messages",
+      "mpv_set_option",
+      "mpv_set_option_string",
+      "mpv_set_property",
+      "mpv_set_property_async",
+      "mpv_set_property_string",
+      "mpv_set_wakeup_callback",
+      "mpv_stream_cb_add_ro",
+      "mpv_terminate_destroy",
+      "mpv_unobserve_property",
+      "mpv_wait_async_requests",
+      "mpv_wait_event",
+      "mpv_wakeup"
+    ],
+    "extensionSymbols": [
+      "mpv_host_fault_snapshot",
+      "mpv_host_loadfile_async",
+      "mpv_host_recovery_api_version",
+      "mpv_host_recovery_audio_pending",
+      "mpv_host_recovery_generation",
+      "mpv_host_recovery_stop_audio",
+      "mpv_ohcodec_terminal_api_version",
+      "mpv_ohcodec_terminal_enable",
+      "mpv_ohcodec_terminal_register",
+      "mpv_ohcodec_terminal_snapshot"
+    ],
+    "handoffTestBuild": false
+  },
+  "bridgeClosures": {
+    "tv": {
+      "input": "/private/tmp/vidall-host-recovery-locked-input/baseline/tv-har/libvidall_player_native.so",
+      "sha256": "caaa94d86f2845b75a41220411fae9a7efdea79273d8acfa1aee10bbe387aa14",
+      "requiredCount": 20,
+      "required": [
+        "mpv_command_async",
+        "mpv_create",
+        "mpv_free",
+        "mpv_free_node_contents",
+        "mpv_get_property",
+        "mpv_get_property_string",
+        "mpv_initialize",
+        "mpv_observe_property",
+        "mpv_render_context_create",
+        "mpv_render_context_free",
+        "mpv_render_context_render",
+        "mpv_render_context_set_update_callback",
+        "mpv_render_context_update",
+        "mpv_request_log_messages",
+        "mpv_set_option_string",
+        "mpv_set_property",
+        "mpv_set_property_string",
+        "mpv_terminate_destroy",
+        "mpv_wait_event",
+        "mpv_wakeup"
+      ],
+      "missing": []
+    },
+    "player": {
+      "input": "/private/tmp/vidall-host-recovery-locked-input/baseline/player-har/libvidall_player_native.so",
+      "sha256": "a4291fcd0b7e60d941e384bfefda481f28ed938e11e35e80c99aa22f758a9fd4",
+      "requiredCount": 18,
+      "required": [
+        "mpv_command_async",
+        "mpv_create",
+        "mpv_free",
+        "mpv_get_property_string",
+        "mpv_initialize",
+        "mpv_observe_property",
+        "mpv_render_context_create",
+        "mpv_render_context_free",
+        "mpv_render_context_render",
+        "mpv_render_context_set_update_callback",
+        "mpv_render_context_update",
+        "mpv_request_log_messages",
+        "mpv_set_option_string",
+        "mpv_set_property",
+        "mpv_set_property_string",
+        "mpv_terminate_destroy",
+        "mpv_wait_event",
+        "mpv_wakeup"
+      ],
+      "missing": []
+    }
+  },
+  "ffmpegClosures": {
+    "avcodec": {
+      "importCount": 262,
+      "missing": []
+    },
+    "avutil": {
+      "importCount": 0,
+      "missing": []
+    },
+    "avfilter": {
+      "importCount": 286,
+      "missing": []
+    },
+    "swresample": {
+      "importCount": 31,
+      "missing": []
+    },
+    "swscale": {
+      "importCount": 42,
+      "missing": []
+    },
+    "avformat": {
+      "importCount": 379,
+      "missing": []
+    },
+    "mpv": {
+      "importCount": 247,
+      "missing": []
+    }
+  },
+  "mpvFFmpegImports": [
+    "av_base64_encode@LIBAVUTIL_60",
+    "av_buffer_alloc@LIBAVUTIL_60",
+    "av_buffer_create@LIBAVUTIL_60",
+    "av_buffer_is_writable@LIBAVUTIL_60",
+    "av_buffer_pool_get@LIBAVUTIL_60",
+    "av_buffer_pool_init@LIBAVUTIL_60",
+    "av_buffer_pool_uninit@LIBAVUTIL_60",
+    "av_buffer_ref@LIBAVUTIL_60",
+    "av_buffer_unref@LIBAVUTIL_60",
+    "av_buffersink_get_frame_flags@LIBAVFILTER_11",
+    "av_buffersink_get_frame_rate@LIBAVFILTER_11",
+    "av_buffersrc_add_frame@LIBAVFILTER_11",
+    "av_buffersrc_get_nb_failed_requests@LIBAVFILTER_11",
+    "av_buffersrc_parameters_alloc@LIBAVFILTER_11",
+    "av_buffersrc_parameters_set@LIBAVFILTER_11",
+    "av_calloc@LIBAVUTIL_60",
+    "av_channel_layout_check@LIBAVUTIL_60",
+    "av_channel_layout_copy@LIBAVUTIL_60",
+    "av_channel_layout_default@LIBAVUTIL_60",
+    "av_channel_layout_describe@LIBAVUTIL_60",
+    "av_channel_layout_from_mask@LIBAVUTIL_60",
+    "av_channel_layout_uninit@LIBAVUTIL_60",
+    "av_chroma_location_enum_to_pos@LIBAVUTIL_60",
+    "av_chroma_location_name@LIBAVUTIL_60",
+    "av_codec_get_id@LIBAVFORMAT_62",
+    "av_codec_is_decoder@LIBAVCODEC_62",
+    "av_codec_is_encoder@LIBAVCODEC_62",
+    "av_codec_iterate@LIBAVCODEC_62",
+    "av_color_primaries_name@LIBAVUTIL_60",
+    "av_color_range_name@LIBAVUTIL_60",
+    "av_color_space_name@LIBAVUTIL_60",
+    "av_color_transfer_name@LIBAVUTIL_60",
+    "av_cpu_count@LIBAVUTIL_60",
+    "av_d2q@LIBAVUTIL_60",
+    "av_default_item_name@LIBAVUTIL_60",
+    "av_demuxer_iterate@LIBAVFORMAT_62",
+    "av_dict_copy@LIBAVUTIL_60",
+    "av_dict_free@LIBAVUTIL_60",
+    "av_dict_get@LIBAVUTIL_60",
+    "av_dict_set@LIBAVUTIL_60",
+    "av_dict_set_int@LIBAVUTIL_60",
+    "av_display_rotation_get@LIBAVUTIL_60",
+    "av_display_rotation_set@LIBAVUTIL_60",
+    "av_div_q@LIBAVUTIL_60",
+    "av_dovi_alloc@LIBAVUTIL_60",
+    "av_dovi_find_level@LIBAVUTIL_60",
+    "av_dynamic_hdr_plus_alloc@LIBAVUTIL_60",
+    "av_dynamic_hdr_plus_from_t35@LIBAVUTIL_60",
+    "av_filter_iterate@LIBAVFILTER_11",
+    "av_find_input_format@LIBAVFORMAT_62",
+    "av_find_nearest_q_idx@LIBAVUTIL_60",
+    "av_find_program_from_stream@LIBAVFORMAT_62",
+    "av_frame_alloc@LIBAVUTIL_60",
+    "av_frame_clone@LIBAVUTIL_60",
+    "av_frame_copy_props@LIBAVUTIL_60",
+    "av_frame_free@LIBAVUTIL_60",
+    "av_frame_get_side_data@LIBAVUTIL_60",
+    "av_frame_make_writable@LIBAVUTIL_60",
+    "av_frame_new_side_data@LIBAVUTIL_60",
+    "av_frame_new_side_data_from_buf@LIBAVUTIL_60",
+    "av_frame_ref@LIBAVUTIL_60",
+    "av_frame_unref@LIBAVUTIL_60",
+    "av_free@LIBAVUTIL_60",
+    "av_freep@LIBAVUTIL_60",
+    "av_gcd@LIBAVUTIL_60",
+    "av_get_bits_per_sample@LIBAVCODEC_62",
+    "av_get_pix_fmt@LIBAVUTIL_60",
+    "av_get_pix_fmt_name@LIBAVUTIL_60",
+    "av_get_planar_sample_fmt@LIBAVUTIL_60",
+    "av_get_profile_name@LIBAVCODEC_62",
+    "av_get_sample_fmt_name@LIBAVUTIL_60",
+    "av_guess_codec@LIBAVFORMAT_62",
+    "av_guess_format@LIBAVFORMAT_62",
+    "av_hwdevice_ctx_alloc@LIBAVUTIL_60",
+    "av_hwdevice_ctx_create@LIBAVUTIL_60",
+    "av_hwdevice_ctx_init@LIBAVUTIL_60",
+    "av_hwdevice_get_hwframe_constraints@LIBAVUTIL_60",
+    "av_hwdevice_get_type_name@LIBAVUTIL_60",
+    "av_hwframe_constraints_free@LIBAVUTIL_60",
+    "av_hwframe_ctx_alloc@LIBAVUTIL_60",
+    "av_hwframe_ctx_init@LIBAVUTIL_60",
+    "av_hwframe_get_buffer@LIBAVUTIL_60",
+    "av_hwframe_map@LIBAVUTIL_60",
+    "av_hwframe_transfer_data@LIBAVUTIL_60",
+    "av_hwframe_transfer_get_formats@LIBAVUTIL_60",
+    "av_image_get_buffer_size@LIBAVUTIL_60",
+    "av_image_get_linesize@LIBAVUTIL_60",
+    "av_interleaved_write_frame@LIBAVFORMAT_62",
+    "av_lfg_init@LIBAVUTIL_60",
+    "av_log2@LIBAVUTIL_60",
+    "av_log_default_callback@LIBAVUTIL_60",
+    "av_log_set_callback@LIBAVUTIL_60",
+    "av_lzo1x_decode@LIBAVUTIL_60",
+    "av_malloc@LIBAVUTIL_60",
+    "av_malloc_array@LIBAVUTIL_60",
+    "av_mallocz@LIBAVUTIL_60",
+    "av_md5_sum@LIBAVUTIL_60",
+    "av_muxer_iterate@LIBAVFORMAT_62",
+    "av_new_packet@LIBAVCODEC_62",
+    "av_ohcodec_release_buffer@LIBAVCODEC_62",
+    "av_opt_get@LIBAVUTIL_60",
+    "av_opt_get_int@LIBAVUTIL_60",
+    "av_opt_get_q@LIBAVUTIL_60",
+    "av_opt_next@LIBAVUTIL_60",
+    "av_opt_set@LIBAVUTIL_60",
+    "av_opt_set_chlayout@LIBAVUTIL_60",
+    "av_opt_set_dict2@LIBAVUTIL_60",
+    "av_opt_set_double@LIBAVUTIL_60",
+    "av_opt_set_int@LIBAVUTIL_60",
+    "av_packet_add_side_data@LIBAVCODEC_62",
+    "av_packet_alloc@LIBAVCODEC_62",
+    "av_packet_clone@LIBAVCODEC_62",
+    "av_packet_copy_props@LIBAVCODEC_62",
+    "av_packet_free@LIBAVCODEC_62",
+    "av_packet_new_side_data@LIBAVCODEC_62",
+    "av_packet_ref@LIBAVCODEC_62",
+    "av_packet_rescale_ts@LIBAVCODEC_62",
+    "av_packet_side_data_add@LIBAVCODEC_62",
+    "av_packet_side_data_get@LIBAVCODEC_62",
+    "av_packet_side_data_name@LIBAVCODEC_62",
+    "av_packet_unref@LIBAVCODEC_62",
+    "av_parser_close@LIBAVCODEC_62",
+    "av_parser_init@LIBAVCODEC_62",
+    "av_parser_parse2@LIBAVCODEC_62",
+    "av_pix_fmt_count_planes@LIBAVUTIL_60",
+    "av_pix_fmt_desc_get@LIBAVUTIL_60",
+    "av_pix_fmt_swap_endianness@LIBAVUTIL_60",
+    "av_probe_input_format2@LIBAVFORMAT_62",
+    "av_random_bytes@LIBAVUTIL_60",
+    "av_read_frame@LIBAVFORMAT_62",
+    "av_reduce@LIBAVUTIL_60",
+    "av_rescale_q@LIBAVUTIL_60",
+    "av_seek_frame@LIBAVFORMAT_62",
+    "av_sha_alloc@LIBAVUTIL_60",
+    "av_sha_final@LIBAVUTIL_60",
+    "av_sha_init@LIBAVUTIL_60",
+    "av_sha_update@LIBAVUTIL_60",
+    "av_strdup@LIBAVUTIL_60",
+    "av_strerror@LIBAVUTIL_60",
+    "av_timecode_make_mpeg_tc_string@LIBAVUTIL_60",
+    "av_timecode_make_smpte_tc_string2@LIBAVUTIL_60",
+    "av_timecode_make_string@LIBAVUTIL_60",
+    "av_ts_make_time_string2@LIBAVUTIL_60",
+    "av_uuid_parse@LIBAVUTIL_60",
+    "av_uuid_unparse@LIBAVUTIL_60",
+    "av_version_info@LIBAVUTIL_60",
+    "av_vkfmt_from_pixfmt@LIBAVUTIL_60",
+    "av_write_frame@LIBAVFORMAT_62",
+    "av_write_trailer@LIBAVFORMAT_62",
+    "avcodec_align_dimensions2@LIBAVCODEC_62",
+    "avcodec_alloc_context3@LIBAVCODEC_62",
+    "avcodec_decode_subtitle2@LIBAVCODEC_62",
+    "avcodec_default_get_buffer2@LIBAVCODEC_62",
+    "avcodec_descriptor_get@LIBAVCODEC_62",
+    "avcodec_descriptor_get_by_name@LIBAVCODEC_62",
+    "avcodec_find_best_pix_fmt_of_list@LIBAVCODEC_62",
+    "avcodec_find_decoder@LIBAVCODEC_62",
+    "avcodec_find_decoder_by_name@LIBAVCODEC_62",
+    "avcodec_find_encoder@LIBAVCODEC_62",
+    "avcodec_find_encoder_by_name@LIBAVCODEC_62",
+    "avcodec_flush_buffers@LIBAVCODEC_62",
+    "avcodec_free_context@LIBAVCODEC_62",
+    "avcodec_get_hw_config@LIBAVCODEC_62",
+    "avcodec_get_hw_frames_parameters@LIBAVCODEC_62",
+    "avcodec_get_supported_config@LIBAVCODEC_62",
+    "avcodec_is_open@LIBAVCODEC_62",
+    "avcodec_open2@LIBAVCODEC_62",
+    "avcodec_parameters_alloc@LIBAVCODEC_62",
+    "avcodec_parameters_copy@LIBAVCODEC_62",
+    "avcodec_parameters_free@LIBAVCODEC_62",
+    "avcodec_parameters_from_context@LIBAVCODEC_62",
+    "avcodec_parameters_to_context@LIBAVCODEC_62",
+    "avcodec_profile_name@LIBAVCODEC_62",
+    "avcodec_receive_frame@LIBAVCODEC_62",
+    "avcodec_receive_packet@LIBAVCODEC_62",
+    "avcodec_send_frame@LIBAVCODEC_62",
+    "avcodec_send_packet@LIBAVCODEC_62",
+    "avcodec_version@LIBAVCODEC_62",
+    "avfilter_filter_pad_count@LIBAVFILTER_11",
+    "avfilter_get_by_name@LIBAVFILTER_11",
+    "avfilter_graph_alloc@LIBAVFILTER_11",
+    "avfilter_graph_alloc_filter@LIBAVFILTER_11",
+    "avfilter_graph_config@LIBAVFILTER_11",
+    "avfilter_graph_create_filter@LIBAVFILTER_11",
+    "avfilter_graph_dump@LIBAVFILTER_11",
+    "avfilter_graph_free@LIBAVFILTER_11",
+    "avfilter_graph_parse2@LIBAVFILTER_11",
+    "avfilter_graph_send_command@LIBAVFILTER_11",
+    "avfilter_init_str@LIBAVFILTER_11",
+    "avfilter_inout_free@LIBAVFILTER_11",
+    "avfilter_link@LIBAVFILTER_11",
+    "avfilter_pad_get_name@LIBAVFILTER_11",
+    "avfilter_pad_get_type@LIBAVFILTER_11",
+    "avfilter_version@LIBAVFILTER_11",
+    "avformat_alloc_context@LIBAVFORMAT_62",
+    "avformat_close_input@LIBAVFORMAT_62",
+    "avformat_find_stream_info@LIBAVFORMAT_62",
+    "avformat_flush@LIBAVFORMAT_62",
+    "avformat_free_context@LIBAVFORMAT_62",
+    "avformat_get_mov_audio_tags@LIBAVFORMAT_62",
+    "avformat_get_mov_video_tags@LIBAVFORMAT_62",
+    "avformat_get_riff_audio_tags@LIBAVFORMAT_62",
+    "avformat_get_riff_video_tags@LIBAVFORMAT_62",
+    "avformat_init_output@LIBAVFORMAT_62",
+    "avformat_network_init@LIBAVFORMAT_62",
+    "avformat_new_stream@LIBAVFORMAT_62",
+    "avformat_open_input@LIBAVFORMAT_62",
+    "avformat_version@LIBAVFORMAT_62",
+    "avformat_write_header@LIBAVFORMAT_62",
+    "avio_alloc_context@LIBAVFORMAT_62",
+    "avio_close@LIBAVFORMAT_62",
+    "avio_close_dyn_buf@LIBAVFORMAT_62",
+    "avio_closep@LIBAVFORMAT_62",
+    "avio_context_free@LIBAVFORMAT_62",
+    "avio_enum_protocols@LIBAVFORMAT_62",
+    "avio_flush@LIBAVFORMAT_62",
+    "avio_open2@LIBAVFORMAT_62",
+    "avio_open@LIBAVFORMAT_62",
+    "avio_open_dyn_buf@LIBAVFORMAT_62",
+    "avio_read_partial@LIBAVFORMAT_62",
+    "avio_seek@LIBAVFORMAT_62",
+    "avio_seek_time@LIBAVFORMAT_62",
+    "avio_size@LIBAVFORMAT_62",
+    "avio_write@LIBAVFORMAT_62",
+    "avsubtitle_free@LIBAVCODEC_62",
+    "avutil_version@LIBAVUTIL_60",
+    "swr_alloc@LIBSWRESAMPLE_6",
+    "swr_close@LIBSWRESAMPLE_6",
+    "swr_convert@LIBSWRESAMPLE_6",
+    "swr_free@LIBSWRESAMPLE_6",
+    "swr_get_delay@LIBSWRESAMPLE_6",
+    "swr_get_out_samples@LIBSWRESAMPLE_6",
+    "swr_init@LIBSWRESAMPLE_6",
+    "swr_set_channel_mapping@LIBSWRESAMPLE_6",
+    "swr_set_compensation@LIBSWRESAMPLE_6",
+    "swresample_version@LIBSWRESAMPLE_6",
+    "sws_alloc_context@LIBSWSCALE_9",
+    "sws_freeContext@LIBSWSCALE_9",
+    "sws_freeFilter@LIBSWSCALE_9",
+    "sws_getCoefficients@LIBSWSCALE_9",
+    "sws_getDefaultFilter@LIBSWSCALE_9",
+    "sws_init_context@LIBSWSCALE_9",
+    "sws_isSupportedInput@LIBSWSCALE_9",
+    "sws_isSupportedOutput@LIBSWSCALE_9",
+    "sws_scale@LIBSWSCALE_9",
+    "sws_setColorspaceDetails@LIBSWSCALE_9",
+    "swscale_version@LIBSWSCALE_9"
+  ],
+  "nativeImports": [
+    "OH_AudioRenderer_Flush",
+    "OH_AudioRenderer_GetAudioTimestampInfo",
+    "OH_AudioRenderer_GetCurrentState",
+    "OH_AudioRenderer_GetVolume",
+    "OH_AudioRenderer_Pause",
+    "OH_AudioRenderer_Release",
+    "OH_AudioRenderer_SetVolume",
+    "OH_AudioRenderer_Start",
+    "OH_AudioRenderer_Stop",
+    "OH_AudioStreamBuilder_Create",
+    "OH_AudioStreamBuilder_Destroy",
+    "OH_AudioStreamBuilder_GenerateRenderer",
+    "OH_AudioStreamBuilder_SetChannelCount",
+    "OH_AudioStreamBuilder_SetEncodingType",
+    "OH_AudioStreamBuilder_SetRendererCallback",
+    "OH_AudioStreamBuilder_SetRendererInfo",
+    "OH_AudioStreamBuilder_SetRendererWriteDataCallback",
+    "OH_AudioStreamBuilder_SetSampleFormat",
+    "OH_AudioStreamBuilder_SetSamplingRate",
+    "OH_ConsumerSurface_Create",
+    "OH_ConsumerSurface_SetDefaultUsage",
+    "OH_GetSdkApiVersion",
+    "OH_NativeBuffer_FromNativeWindowBuffer",
+    "OH_NativeBuffer_GetConfig",
+    "OH_NativeBuffer_GetSeqNum",
+    "OH_NativeBuffer_Reference",
+    "OH_NativeBuffer_Unreference",
+    "OH_NativeImage_AcquireNativeWindow",
+    "OH_NativeImage_AcquireNativeWindowBuffer",
+    "OH_NativeImage_Create",
+    "OH_NativeImage_Destroy",
+    "OH_NativeImage_GetSurfaceId",
+    "OH_NativeImage_ReleaseNativeWindowBuffer",
+    "OH_NativeImage_SetOnFrameAvailableListener",
+    "OH_NativeImage_UnsetOnFrameAvailableListener",
+    "OH_NativeImage_UpdateSurfaceImage",
+    "OH_NativeWindow_CreateNativeWindowFromSurfaceId",
+    "OH_NativeWindow_DestroyNativeWindow",
+    "OH_NativeWindow_GetSurfaceId",
+    "OH_NativeWindow_NativeObjectReference",
+    "OH_NativeWindow_NativeObjectUnreference",
+    "OH_NativeWindow_NativeWindowHandleOpt",
+    "OH_NativeWindow_SetColorSpace",
+    "OH_NativeWindow_SetMetadataValue",
+    "eglBindAPI",
+    "eglChooseConfig",
+    "eglCreateContext",
+    "eglCreateWindowSurface",
+    "eglDestroyContext",
+    "eglDestroySurface",
+    "eglGetConfigAttrib",
+    "eglGetCurrentContext",
+    "eglGetCurrentDisplay",
+    "eglGetDisplay",
+    "eglGetError",
+    "eglGetProcAddress",
+    "eglInitialize",
+    "eglMakeCurrent",
+    "eglQueryString",
+    "eglSwapBuffers",
+    "eglSwapInterval",
+    "vkAllocateMemory",
+    "vkBindImageMemory",
+    "vkCreateDisplayPlaneSurfaceKHR",
+    "vkCreateImage",
+    "vkCreateImageView",
+    "vkCreateSampler",
+    "vkCreateSamplerYcbcrConversion",
+    "vkCreateSemaphore",
+    "vkCreateSurfaceOHOS",
+    "vkDestroyImage",
+    "vkDestroyImageView",
+    "vkDestroySampler",
+    "vkDestroySamplerYcbcrConversion",
+    "vkDestroySemaphore",
+    "vkDestroySurfaceKHR",
+    "vkEnumeratePhysicalDevices",
+    "vkFreeMemory",
+    "vkGetDeviceProcAddr",
+    "vkGetDeviceQueue",
+    "vkGetDisplayModePropertiesKHR",
+    "vkGetDisplayPlaneSupportedDisplaysKHR",
+    "vkGetInstanceProcAddr",
+    "vkGetPhysicalDeviceDisplayPlanePropertiesKHR",
+    "vkGetPhysicalDeviceDisplayPropertiesKHR",
+    "vkGetPhysicalDeviceMemoryProperties",
+    "vkGetPhysicalDeviceProperties",
+    "vkGetPhysicalDeviceProperties2",
+    "vkGetPhysicalDeviceQueueFamilyProperties2"
+  ],
+  "needed": [
+    "libc++_shared.so",
+    "libz.so",
+    "libavcodec.so.62",
+    "libavfilter.so.11",
+    "libavformat.so.62",
+    "libavutil.so.60",
+    "libvulkan.so",
+    "libc.so",
+    "libswresample.so.6",
+    "libswscale.so.9",
+    "libohaudio.so",
+    "libdeviceinfo_ndk.z.so",
+    "libnative_buffer.so",
+    "libnative_image.so",
+    "libnative_window.so",
+    "libEGL.so"
+  ],
+  "producerInputs": {
+    "avcodec": {
+      "path": "/private/tmp/vidall-host-recovery-locked-build/mpv/source/_staged/ffmpeg/lib/libavcodec.so.62",
+      "sha256": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "soname": [
+        "libavcodec.so.62"
+      ],
+      "needed": [
+        "libswresample.so.6",
+        "libavutil.so.60",
+        "libnative_media_vdec.so",
+        "libnative_media_venc.so",
+        "libnative_media_acodec.so",
+        "libnative_media_codecbase.so",
+        "libnative_media_core.so",
+        "libnative_window.so",
+        "libc.so"
+      ]
+    },
+    "avutil": {
+      "path": "/private/tmp/vidall-host-recovery-locked-build/mpv/source/_staged/ffmpeg/lib/libavutil.so.60",
+      "sha256": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "soname": [
+        "libavutil.so.60"
+      ],
+      "needed": [
+        "libc.so"
+      ]
+    },
+    "avfilter": {
+      "path": "/private/tmp/vidall-host-recovery-locked-build/mpv/source/_staged/ffmpeg/lib/libavfilter.so.11",
+      "sha256": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "soname": [
+        "libavfilter.so.11"
+      ],
+      "needed": [
+        "libswscale.so.9",
+        "libavformat.so.62",
+        "libavcodec.so.62",
+        "libswresample.so.6",
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    "swresample": {
+      "path": "/private/tmp/vidall-host-recovery-locked-build/mpv/source/_staged/ffmpeg/lib/libswresample.so.6",
+      "sha256": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "soname": [
+        "libswresample.so.6"
+      ],
+      "needed": [
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    "swscale": {
+      "path": "/private/tmp/vidall-host-recovery-locked-build/mpv/source/_staged/ffmpeg/lib/libswscale.so.9",
+      "sha256": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "soname": [
+        "libswscale.so.9"
+      ],
+      "needed": [
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    "avformat": {
+      "path": "/private/tmp/vidall-host-recovery-locked-build/mpv/source/_staged/ffmpeg/lib/libavformat.so.62",
+      "sha256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "soname": [
+        "libavformat.so.62"
+      ],
+      "needed": [
+        "libavcodec.so.62",
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    }
+  },
+  "runtimeExecuted": false,
+  "deviceAcceptance": false,
+  "lifecycleSafetyProven": false
+}

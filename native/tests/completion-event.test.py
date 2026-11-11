@@ -57,7 +57,7 @@ static std::function<void()> onSubmit;
 extern "C" int test_command_async(mpv_handle*,uint64_t userdata,const char**){requested=userdata;if(onSubmit)onSubmit();return submitResult;}
 #define RTLD_DEFAULT nullptr
 static int host_load(mpv_handle*p,uint64_t generation,uint64_t session,const char**args){boundSession=session;hostCalls++;return test_command_async(p,generation,args);}
-static void* dlsym(void*,const char*name){assert(!strcmp(name,"mpv_host_loadfile_async"));return legacyCore?nullptr:reinterpret_cast<void*>(host_load);}
+namespace vidall::runtime { static void* ResolveMpvSymbol(const char*name){assert(!strcmp(name,"mpv_host_loadfile_async"));return legacyCore?nullptr:reinterpret_cast<void*>(host_load);} }
 namespace vidall { namespace runtime { std::atomic<bool> terminal{false};const char* AdmissionError(){return terminal?"terminal":nullptr;} } }
 class Harness {
 public:

@@ -1,0 +1,61 @@
+{
+  "source": "ohos_ijkplayer Phase30 封存构建工具，仅导入 mpv/libplacebo 与静态审计部分",
+  "changes": "validate_one.py 增加六个公开恢复接口白名单；FFmpeg 编译脚本未导入。",
+  "files": [
+    {
+      "path": "fresh_build.py",
+      "originalSHA256": "1f098c60c8836c88ecfbe6779c6e281058fa0e4746c9b9ea0e8f6140dd53c2ee",
+      "importedSHA256": "1f098c60c8836c88ecfbe6779c6e281058fa0e4746c9b9ea0e8f6140dd53c2ee"
+    },
+    {
+      "path": "validate_one.py",
+      "originalSHA256": "dc5882ef18ef24cffdcc7dfbfb8ad43f334a1e543c509f81834a1453deab786c",
+      "importedSHA256": "4ce5e48cc427f00748c7b98f18c7105e03bafed4890d1a11eb811ecffb9f04ce"
+    },
+    {
+      "path": "collect_run.py",
+      "originalSHA256": "6db79bf667da10f68f019deedd1c882f3847cba617fbed2db412810832b0065f",
+      "importedSHA256": "6db79bf667da10f68f019deedd1c882f3847cba617fbed2db412810832b0065f"
+    },
+    {
+      "path": "path_policy.py",
+      "originalSHA256": "97cd316fcb7760a23fb4c16d53623e4a8eeaf52d7ce1aa4a4feda15f3ab8ec88",
+      "importedSHA256": "97cd316fcb7760a23fb4c16d53623e4a8eeaf52d7ce1aa4a4feda15f3ab8ec88"
+    },
+    {
+      "path": "repro_gate.py",
+      "originalSHA256": "7149f15845cdca7d63779d308772b44b69c5f41d4b77d8265cbe023113f3c2ec",
+      "importedSHA256": "7149f15845cdca7d63779d308772b44b69c5f41d4b77d8265cbe023113f3c2ec"
+    },
+    {
+      "path": "relocation_gate.py",
+      "originalSHA256": "88a64ef44856f8bf2290c3d0254d6435a9b5b57ebebca0d6fb3caa1ece018e5d",
+      "importedSHA256": "88a64ef44856f8bf2290c3d0254d6435a9b5b57ebebca0d6fb3caa1ece018e5d"
+    },
+    {
+      "path": "vendor/abi_helpers.py",
+      "originalSHA256": "889b2bd8298df0903e1f5bea5b73a1efb248348104e541e64376c1f5ac6c9be3",
+      "importedSHA256": "889b2bd8298df0903e1f5bea5b73a1efb248348104e541e64376c1f5ac6c9be3"
+    },
+    {
+      "path": "vendor/input_gate.py",
+      "originalSHA256": "b1879577bc8455a1f59f5c55252a46b7529f22c45330409c00dff3cdd21bbe2a",
+      "importedSHA256": "b1879577bc8455a1f59f5c55252a46b7529f22c45330409c00dff3cdd21bbe2a"
+    },
+    {
+      "path": "vendor/interop_gate.py",
+      "originalSHA256": "4500934cbee853ba81867e9c8de8d7504c8e6804cc08c0f7ad8a039d94ee4cc4",
+      "importedSHA256": "4500934cbee853ba81867e9c8de8d7504c8e6804cc08c0f7ad8a039d94ee4cc4"
+    },
+    {
+      "path": "vendor/portable_elf.py",
+      "originalSHA256": "c4fd31dbf0343603f198c114afb4192dae6c1a8c3c938c4b68cd8d20a43f59d2",
+      "importedSHA256": "c4fd31dbf0343603f198c114afb4192dae6c1a8c3c938c4b68cd8d20a43f59d2"
+    },
+    {
+      "path": "vendor/registration_gate.py",
+      "originalSHA256": "5206ebf20b741651b9714c0ecf7a639caa606763019da0a3d37397349caf00bf",
+      "importedSHA256": "5206ebf20b741651b9714c0ecf7a639caa606763019da0a3d37397349caf00bf"
+    }
+  ]
+}

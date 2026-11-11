@@ -595,7 +595,7 @@ public:
         std::lock_guard<std::mutex> terminalLock(completionMutex_);
         const char* command[] = {"loadfile", uri.c_str(), "replace", nullptr};
         using HostLoad = int (*)(mpv_handle*, std::uint64_t, std::uint64_t, const char**);
-        static const auto hostLoad = reinterpret_cast<HostLoad>(dlsym(RTLD_DEFAULT, "mpv_host_loadfile_async"));
+        static const auto hostLoad = reinterpret_cast<HostLoad>(vidall::runtime::ResolveMpvSymbol("mpv_host_loadfile_async"));
         const int submitted = hostLoad ? hostLoad(player_.get(), request, handle, command) :
             mpv_command_async(player_.get(), request, command);
         if (submitted < 0) {

@@ -49,8 +49,9 @@ std::string receivedMode;
 std::atomic<bool> resumeOld{false}, oldReturned{false};
 std::atomic<int> closedCallbacks{0};
 std::atomic<bool> blockDestructor{false}, destructionDone{false},blockInitialize{false},initializeEntered{false};
+std::atomic<int> completedDestructs{0};
 void waitDestruction(){while(!destructionDone.load())std::this_thread::yield();}
-struct NativeSession {std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment=vidall::runtime::EnvironmentLifetime::Current(nullptr);
+struct NativeSession {struct CompletionMarker {~CompletionMarker(){completedDestructs++;}} completionMarker;std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment=vidall::runtime::EnvironmentLifetime::Current(nullptr);
 void SetEnvironment(std::shared_ptr<vidall::runtime::EnvironmentLifetime> value){environment=std::move(value);}
 auto Environment()const{return environment;}
 const std::uint64_t born=vidall::runtime::CaptureGeneration();bool compatible=false;
@@ -151,9 +152,9 @@ else if(mode=="occupied-compatible-pool"){
  CreateSession(nullptr,nullptr);run();if(last.ok||creates!=4||std::string(last.code)!="SESSION_RESOURCE_LIMIT")return 1;
  selectedHandle=3;ReleaseSession(nullptr,nullptr);run();
  if(!last.ok||FindSession(3))return 1;
- while(destructs!=1)std::this_thread::yield();
+ while(completedDestructs!=1)std::this_thread::yield();
  CreateSession(nullptr,nullptr);run();if(!last.ok||creates!=5)return 1;
- CleanupTest(nullptr);while(destructs!=3)std::this_thread::yield();
+ CleanupTest(nullptr);while(completedDestructs!=3)std::this_thread::yield();
  if(gSessions.size()!=2)return 1;
  puts("PASS");std::fflush(stdout);std::_Exit(0);
 }

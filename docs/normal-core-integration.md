@@ -1,32 +1,49 @@
-## 独立正常核心接入分支的迁移约束
+# 正常核心与宿主存活接入
 
-本分支保留原有播放 API 签名，但新增进程初始化前置条件。所有 Player 创建之前必须从根入口初始化；仅显式接受受控退出策略的宿主可使用该组合：
+Spec 017 候选增加 `preserve-host`。默认播放仍为 OHCodec/Vulkan 零拷贝硬解；全局终局后保持主应用和列表存活，安全条件满足后可新建软件兼容实例。当前实现、主机和本地构建已验证，CI/设备结果见 [Spec 017 证据](../specs/017-host-survival/evidence.md)，未完成项不能视为交付通过。
+
+## 初始化与恢复
+
+所有 Player 创建前先初始化：
 
 ```typescript
-import { initializePlayerRuntime, onPlayerTerminal, createPlayer } from '@vidall/player';
+import { initializePlayerRuntime, getPlayerRuntimeStatus, createPlayer } from '@vidall/player';
 
 await initializePlayerRuntime(context, {
-  terminalPolicy: 'controlled-app-exit',
+  terminalPolicy: 'preserve-host',
   deadlineMs: 3000
-});
-const unsubscribe = onPlayerTerminal((info) => {
-  // 立即提示故障并禁止重建播放器；只读缓存诊断。
-  // 不再调用普通 release/join/mpv。宿主应受控结束整个应用，用户再打开。
-  context.getApplicationContext().killAllProcesses(true);
 });
 const player = createPlayer();
 ```
 
-deadlineMs 为必需整数，范围 1000–10000ms。native 首次终局锁存后独立计时，宿主回调或 UI 未响应也不会延后；截止到达执行进程退出。该行为必须由宿主明确选择，不会默认启用。初始化同配置幂等，不同配置拒绝；失败状态锁存，不能继续创建播放器。
+`deadlineMs` 是 1000–10000 ms 的整数。preserve-host 下它只决定等待状态是否显示为 timeout，不调用 `_Exit`，也不解除全局硬解安全锁。必须使用包含恢复 ABI `0x00020000` 的完整 HAR；旧核心或缺失接口会返回 `RUNTIME_RECOVERY_UNAVAILABLE`，不会偷偷切回退出策略。初始化同配置幂等、不同配置拒绝。
 
-正常路径仍按原契约等待准备事件后播放，并在结束时 release。终局后所有实例拒绝新播放/命令，已有诊断快照标为 cached-terminal；无快照时返回错误，不能把旧值冒充新采样。示例的故障提示、应用保屏释放与退出编排见 `fixtures/normal-core-consumer`。
+`onPlayerTerminal` 用于更新失败状态和导航，**不要调用 killAllProcesses**。终局后旧实例不可再用；释放/放弃旧实例不等待尚未确认安全的 GPU 资源。`getPlayerRuntimeStatus()` 的 state 保持 terminal，recovery.state 独立表示：pending 等待旧音频停止；timeout 超过观察期限但继续保留资源；ready 已确认旧音频停止。ready 后用 `createPlayer({ playbackMode: 'compatible' })` 创建新实例并附加新 Surface。普通模式在本次进程中始终拒绝新建；重启进程后未标记视频重新优先硬解。
 
-**TV 本轮未接入。** 后续 TV 需增加上述启动与终局接管，同时原子移除旧六库并换成包含九库的新 HAR，禁止混装；旧候选仍保留。Player target22/compatible15、TV target22/compatible19 未改。平台符号声明审计不等于低版本真机验收；当前正常组合只在 API24 目标验证。原仓 entry 示例本轮未迁移到必需初始化，不能用其构建代替新 SDK 消费证明。独立消费者才是本轮实际根入口验证工程。
+compatible 强制软件解码与软件渲染，绕过 Vulkan/EGL/OHCodec interop。原 `hardwareDecoding: 'disabled'` 只控制解码器，不等于兼容恢复。新实例仍按既有事件合同加载、等待准备、播放及释放；恢复成功须以实际首帧与音频确认，不能仅凭 create/load Promise 成功显示“已切换兼容模式”。若旧音频平台 Stop 永久不返回或不能确认停止，保持 pending/timeout，不强行释放或假称续播成功；这是当前安全恢复的实际限制，R3 设备验收仍未完成。
 
-该分支仍为候选接入验证，formalArtifactAllowed=false；无正式发布或 TV 替换授权。
+原 `controlled-app-exit` 仅为既有消费者保留，其期限仍触发退出；VidAll_TV 新接入须显式选择 preserve-host。旧 `fixtures/normal-core-consumer/terminal` 是该旧合同的回归夹具，不是 TV 新接入示例。
 
-### 单视频的 OHCodec/Vulkan 故障
+## 故障归属与单视频记忆
 
-VidAll_Player 为硬解实例保留独立工作线程和最多两个同时占用的硬解名额。旧实例无法确认 GPU 已完成时，旧 Surface、解码器和 Vulkan 对象保留在原实例中；用户可返回列表并用新的播放器和 Surface 播放另一部视频。两个名额都被占用时，新建实例使用软件解码，正常释放名额后后续新实例可再次使用硬解。原有进程终局回调继续处理无法归属某个受保护实例的进程级故障。FFmpeg 的 Stop/Destroy 失败对后续硬解创建的影响单独追踪。
+`player.load(source, onIdentity?)` 的可选回调在原生提交前同步收到只读 `{ sessionId, loadGeneration }`，两个值为十进制字符串。TV 在该次调用的闭包中登记到稳定媒体 ID；回调抛错取消加载，返回 `LOAD_IDENTITY_REJECTED`。回执只表示分配身份，不表示播放成功。队列拒绝允许留下代号空洞，不复用或倒退。
 
-使用 `SessionIsolation` 的会话，其普通命令等待超过 5 秒后向调用方返回超时。名额耗尽后创建的软件解码会话没有隔离器，命令在 NAPI 后台工作中直接执行，不保证 5 秒内返回。超时不表示已提交操作失败或被取消，操作之后仍可能完成；宿主应避免盲目重试，例如重试 `SeekRelative` 可能导致两次跳转都生效。关闭请求在独立线程中保留；即使前台已返回列表，旧实例仍须完成真实的 mpv 关闭才归还名额。明确的 GPU 交接故障继续隔离。
+用 `onPlayerFault` 接收独立于 Player 生命周期的故障历史：最多 16 条，按 sequence 去重，可取消订阅；关闭后的失败仍可报告。known 归属才可写入该视频的兼容标记，unknown 不得按当前页面猜测。Player 不保存 URL 黑名单；TV 负责有界身份映射、持久化、提示、导航和用户重试，见 [TV #372](https://github.com/yaoshining/vidall-tv/issues/372)。其他视频仅因本次进程临时使用兼容模式，不能被记成失败。消费端 #371 的手动选集暂停标记独立处理。
+
+每次打开至多自动切换一次；兼容失败仍可返回列表，不自动无限重试。自动切换和连播不能解除用户暂停或未结束的音频打断。
+
+## 资源与迟到操作
+
+可归属的硬解会话故障保留原 Surface、解码器和 Vulkan 对象，最多两个硬解隔离名额；有名额的新实例仍可硬解。名额耗尽后的普通软件解码不应被当作全局终局后的纯软件渲染恢复。
+
+全部会话创建前申请预算：标准 6、故障前兼容 2、故障后恢复 2；正常释放可归还，超时/隔离保留不归还。常规/关闭/恢复工作预算分别为 32/8/8，ArkTS 队列最多 64。每会话独立有界执行器使创建/命令/关闭的前台等待最多 5 秒；全局配置独立单执行器。超时不等于平台操作取消，禁止盲目重试相对 seek 等操作。上限到达明确失败，不增加无界线程或强行释放未知状态资源。
+
+旧代的排队回调不得进入新会话；NAPI 环境关闭和同地址复用也不能接管旧句柄。旧音频数据回调退休后静音，停止确认与释放有独立登记，平台阻塞不占全局登记锁。仍需设备验证真实音频焦点及系统服务行为。
+
+## 架构、产物与迁移
+
+本候选完整播放核心仅支持 `arm64-v8a`，HAR 含 Player 桥与八个依赖，共九库。x86_64 的旧探针不具备播放能力，不能混入旧 Player 桥来宣称兼容。VidAll_TV 如仍发布 x86_64，当前完整 HAR 尚不能覆盖该架构，需另行取得匹配的上游 FFmpeg x86_64 SDK 并由 Player 构建；不得静默删掉消费端声明。
+
+迁移时核对 CI 原始 HAR 与源提交/九库哈希，一次性替换旧 HAR 和重复六库；不要在 TV 重打包 Player。完成初始化、加载身份登记、独立故障订阅和兼容新实例流程后，分别验证正常播放、音频打断与手动恢复、切集、退出重开、故障后返回并再播另一部、连续故障上限。API 24 或宿主替身不替代 API 19 TV 正式文件入口验收。
+
+普通分支最终 HAR 来自 iMac 自托管 GitHub Actions；本轮 mpv/libplacebo 交叉构建在 MacBook Pro / Darwin arm64 完成，FFmpeg 使用上游预编译恢复 SDK。最终交付须同时记录这两层来源，不能把 iMac 或本地构建称作云端 Mac。

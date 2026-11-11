@@ -1,5 +1,5 @@
 {
-  "source": "Phase30 A + VidAll_Player #89",
+  "source": "Phase30 A + VidAll_Player Spec 017 宿主恢复",
   "exactReferences": [
     {
       "path": "/Users/yaoshining/DevEcoStudioProjects/ohos_ijkplayer/out/phase30-consumer-handoff/target-input-locks/input-package/package.json",
@@ -53918,6 +53918,65 @@
     "manifestSHA256": "7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf",
     "mergeBinding": "ffmpeg-recovery-merge.json",
     "mergeCommit": "32887363cb103163fe6557ca64c05539ad6d73f2",
-    "scope": "当前六个 FFmpeg 运行库；其余历史 FFmpeg 路径/摘要仍描述 mpv 原始编译输入。"
+    "scope": "当前六个 FFmpeg 运行库及 Spec 017 mpv 链接输入均使用已交付恢复 SDK；历史 exactReferences 保留原基线来源。"
+  },
+  "hostRecovery": {
+    "inputLock": "host-recovery-input.json",
+    "inputLockSHA256": "a25e7a759d3dfbee046fe66b317af4cce27abf622655d73748f45ee19931ec14",
+    "preparedInputSHA256": "7699508b628c536b92685a6b561fba780b9f1b57c1793c0304aaa186bcbe9916",
+    "abiVersion": "0x00020000",
+    "buildOrigin": "local",
+    "buildMachine": "MacBook Pro / Darwin arm64",
+    "libmpvSHA256": "814e4f02ced52a15a213fd9a0c54f37ffbbe6ca466df758bd04ab0a9fa901beb",
+    "tooling": [
+      {
+        "path": "native/tooling/normal-core/collect_run.py",
+        "sha256": "6db79bf667da10f68f019deedd1c882f3847cba617fbed2db412810832b0065f"
+      },
+      {
+        "path": "native/tooling/normal-core/fresh_build.py",
+        "sha256": "1f098c60c8836c88ecfbe6779c6e281058fa0e4746c9b9ea0e8f6140dd53c2ee"
+      },
+      {
+        "path": "native/tooling/normal-core/origins.json",
+        "sha256": "cc9152f0c8610cce941a559576ea6171c5f7faf5b6a4a93f3938ec7312d74768"
+      },
+      {
+        "path": "native/tooling/normal-core/path_policy.py",
+        "sha256": "97cd316fcb7760a23fb4c16d53623e4a8eeaf52d7ce1aa4a4feda15f3ab8ec88"
+      },
+      {
+        "path": "native/tooling/normal-core/relocation_gate.py",
+        "sha256": "88a64ef44856f8bf2290c3d0254d6435a9b5b57ebebca0d6fb3caa1ece018e5d"
+      },
+      {
+        "path": "native/tooling/normal-core/repro_gate.py",
+        "sha256": "7149f15845cdca7d63779d308772b44b69c5f41d4b77d8265cbe023113f3c2ec"
+      },
+      {
+        "path": "native/tooling/normal-core/validate_one.py",
+        "sha256": "4ce5e48cc427f00748c7b98f18c7105e03bafed4890d1a11eb811ecffb9f04ce"
+      },
+      {
+        "path": "native/tooling/normal-core/vendor/abi_helpers.py",
+        "sha256": "889b2bd8298df0903e1f5bea5b73a1efb248348104e541e64376c1f5ac6c9be3"
+      },
+      {
+        "path": "native/tooling/normal-core/vendor/input_gate.py",
+        "sha256": "b1879577bc8455a1f59f5c55252a46b7529f22c45330409c00dff3cdd21bbe2a"
+      },
+      {
+        "path": "native/tooling/normal-core/vendor/interop_gate.py",
+        "sha256": "4500934cbee853ba81867e9c8de8d7504c8e6804cc08c0f7ad8a039d94ee4cc4"
+      },
+      {
+        "path": "native/tooling/normal-core/vendor/portable_elf.py",
+        "sha256": "c4fd31dbf0343603f198c114afb4192dae6c1a8c3c938c4b68cd8d20a43f59d2"
+      },
+      {
+        "path": "native/tooling/normal-core/vendor/registration_gate.py",
+        "sha256": "5206ebf20b741651b9714c0ecf7a639caa606763019da0a3d37397349caf00bf"
+      }
+    ]
   }
 }
