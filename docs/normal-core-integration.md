@@ -22,6 +22,8 @@ const player = createPlayer();
 
 compatible 强制软件解码与软件渲染，绕过 Vulkan/EGL/OHCodec interop。原 `hardwareDecoding: 'disabled'` 只控制解码器，不等于兼容恢复。新实例仍按既有事件合同加载、等待准备、播放及释放；恢复成功须以实际首帧与音频确认，不能仅凭 create/load Promise 成功显示“已切换兼容模式”。若旧音频平台 Stop 永久不返回或不能确认停止，保持 pending/timeout，不强行释放或假称续播成功；这是当前安全恢复的实际限制，R3 设备验收仍未完成。
 
+已确认 renderer 释放后，后续 builder 清理失败或阻塞不再阻止恢复 ready；builder、AO 与登记槽仍被保留并占用预算。ready 只证明旧音频已静止，不代表旧资源全部归还，宿主仍须使用新实例与新 Surface。
+
 原 `controlled-app-exit` 仅为既有消费者保留，其期限仍触发退出；VidAll_TV 新接入须显式选择 preserve-host。旧 `fixtures/normal-core-consumer/terminal` 是该旧合同的回归夹具，不是 TV 新接入示例。
 
 ## 故障归属与单视频记忆

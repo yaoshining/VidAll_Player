@@ -198,3 +198,13 @@ T032 最终本地统一门禁：`/tmp/vidall-host-survival-host-gate-t032/work/s
 锁定输入 60e24caba7b2bbd5cfc72dd572fcd5f5c747ac09343d6e75bf345e3a6413a650 在 MacBook Pro / Darwin arm64 完整构建 mpv/libplacebo，所有编译、静态检查及输入不变检查通过。mpv SHA-256 为 5aa3d663b13289a7d6ab7ede6a0ac40dbd42b37642c9a93d0da11dc71f445b79，公开符号仍为 64，libplacebo 哈希不变；FFmpeg 预编译六库未修改或重建。完整宿主、HAR 与 CI 结果在后续完成后补记，不预先沿用 8ca9bef 的通过结论。
 
 T035 本地完整统一门禁共 91 项全部通过，外部来源审计、31 项来源正负例、2 项交付锁测试通过。完整本地 HAR 构建通过并核对 ARM64 九库；mpv 为 5aa3d663…，本地 HAR 哈希 873d7c776cdd24a15241bec4773bab96dbeea521be72986b21392a97b5bc9d5e，仅供预验证。CI 原包与设备结果仍须补齐。
+
+
+## 01b2ad3 CI 与 API 19 软件复验（2026-11-11）
+
+- iMac 工作流 43024630552 完整通过；实际 runner yaoshiningdeiMac / self-hosted / macOS / X64。原始 HAR 为 fddf4216751e9899594cc439fd304edf64c428f58b59b5d12055198237d350b3，附件 13856632429，九库逐一核对。Ubuntu 工作流 43024633104 的新旧音频、尺寸/旋转/播完和完整宿主回归通过；本地干净提交 14 CTest/2 JS 也通过。
+- CI 原包 standard / compatible 在 API 19 TV 模拟器分别保持 PID 23135 / 20202，坏片返回、首帧、暂停/手动恢复、20 秒跳转、释放重开均通过，各 2 首帧、0 后续探针错误；实际 software/no，不代表系统音频打断。签名 HAP 九库完全匹配 CI HAR。
+- 新独立诊断核心 bb4e8760… 已通过完整构建、静态及来源检查；诊断 HAR d78e84b7… 在 PID 5131 注入终局后保持宿主、新 Surface 两次续播、总 3 首帧。正常/诊断包分别记录，不修改 CI 原包。
+- T035 的 builder 失败/阻塞只在宿主真实函数回归注入；这次模拟器注入的是全局终局管理器，不能把二者混为同一次设备验证。仍缺真实 OHCodec/Vulkan、可听音频/系统焦点、连续硬件隔离上限和 API 19 TV 正式入口。平台 Stop/Release 永久不返回时的恢复限制仍未消除，未提 PR。
+
+T034 最终边界复查另补版本别名负例：先复现额外 mpv_initialize@UNEXPECTED 被去重隐藏，再保留原始导出条目计数，5 组契约测试通过；当前正常 ELF 完整静态重验通过且输出与原结果逐字节相同。此项只收紧检查和更新检查器来源锁，不改 01b2ad3 的播放器源码、核心或 CI HAR；没有将后续验证记录提交冒称为 HAR 源提交。

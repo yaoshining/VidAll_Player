@@ -13,10 +13,13 @@ def require_public_api(exports, baseline):
     baseline = list(baseline)
     if len(baseline) != 54 or len(set(baseline)) != 54:
         raise ValueError('基线公开 ABI 必须为 54 个独立符号')
-    exports = {name.split('@')[0] for name in exports}
+    exports = [name.split('@')[0] for name in exports]
     if any(name.startswith(('mp_host_', 'mp_ohcodec_terminal_', 'host_probe_')) for name in exports):
         raise ValueError('内部恢复或诊断符号不得导出')
-    public = {name for name in exports if name.startswith('mpv_')}
+    entries = [name for name in exports if name.startswith('mpv_')]
+    if len(entries) != 64:
+        raise ValueError('公开 mpv 导出必须恰好为 64 项，不接受重复版本别名')
+    public = set(entries)
     expected = set(baseline) | EXTENSION_SYMBOLS
     if len(expected) != 64 or public != expected:
         raise ValueError(f'公开 ABI 不匹配：缺失 {sorted(expected-public)}，多余 {sorted(public-expected)}')

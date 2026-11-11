@@ -26,6 +26,8 @@ TV 维护稳定媒体身份和有界标记存储。Player 不持久化视频黑�
 
 进程状态永久保持 terminal；另有 recovery.state：pending 表示等待旧音频停止，timeout 表示超过观察期限但仍保留资源，ready 表示旧音频已静止且允许新代兼容会话。deadlineMs 在 preserve-host 下只是状态观察期限，不结束进程、不清除硬解锁。宿主查询可见 timeout 后变为 ready。
 
+renderer 已确认释放后的 builder 清理失败不撤销音频静止事实，允许恢复 ready；未清理对象及登记槽仍占用原预算。Release 未确认时不可采用此路径。ready 不能作为旧实例或 Surface 可复用的证明。
+
 ready 后销毁/放弃旧 Player，对新 Player 显式指定 playbackMode=compatible。代际由 Player 捕获，宿主不伪造或更新实例代。旧实例操作仍返回 PLAYER_TERMINAL；ready 前新兼容创建返回 PLAYER_RECOVERY_PENDING。标准硬解创建始终被拒绝。新兼容实例正常释放可以归还名额。
 
 旧 GPU/解码资源不强行释放。旧音频和焦点必须停止影响新播放，旧回调代关闭，待完成请求有界返回；旧线程和保留对象必须受总预算约束。只有验证这些条件后才能开放不退出宿主的新初始化策略。错误切换最多自动尝试一次；新播放应有画面及独立音频，兼容失败允许返回列表。达到上限不能靠无限保留或移除保护来满足续播。

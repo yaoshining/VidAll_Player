@@ -39,6 +39,11 @@ class PublicApiGateTest(unittest.TestCase):
             with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                 require_public_api(set(API['publicSymbols']), invalid)
 
+    def test_duplicate_versioned_export_does_not_hide_extra_entry(self):
+        with self.assertRaises(ValueError):
+            require_public_api(set(API['publicSymbols']) | {'mpv_initialize@UNEXPECTED'},
+                               API['preservedBaselineSymbols'])
+
 
 if __name__ == '__main__':
     unittest.main()

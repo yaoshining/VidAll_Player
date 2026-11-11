@@ -4,25 +4,25 @@
 
 ## 原始产物与来源
 
-- 源提交：`8ca9befc6cd2aa77638bb526f2d255f23667a1aa`。
-- [下载原始 CI HAR 附件](https://github.com/yaoshining/VidAll_Player/actions/runs/43021111873/artifacts/13854484645)，其中 `vidall_player.har` 未经消费端重打包。
-- HAR SHA-256：`d9ecad900726510c56f72dd2f4496b6827851a4736d7577ee51e172e721d4937`。
-- [HAR 构建](https://github.com/yaoshining/VidAll_Player/actions/runs/43021111873)：实际机器 `yaoshiningdeiMac`，self-hosted / macOS / X64；不是云端 Mac。
-- mpv/libplacebo 核心在 MacBook Pro / Darwin arm64 交叉构建。mpv SHA-256：`46cd4112ac963a935773d70fe8fec4254753c9ceade6f546c6433c40318815e7`，恢复 ABI `0x00020000`。FFmpeg 沿用上游预编译恢复 SDK，本轮未修改或构建。
-- [逐库 SHA-256 与来源记录](device-evidence/imac-delivery-8ca9bef.json)。HAR 仅支持完整 ARM64 播放，共九库。x86_64 旧探针不能用于播放；TV 如继续声明该架构，需另行补齐匹配 SDK/核心，不能静默删除声明或混入旧桥。
+- 源提交：`01b2ad3a7041877b33e586b962a64385e10e027f`。
+- [下载原始 CI HAR 附件](https://github.com/yaoshining/VidAll_Player/actions/runs/43024630552/artifacts/13856632429)，其中 `vidall_player.har` 未经消费端重打包。
+- HAR SHA-256：`fddf4216751e9899594cc439fd304edf64c428f58b59b5d12055198237d350b3`。
+- [HAR 构建](https://github.com/yaoshining/VidAll_Player/actions/runs/43024630552)：实际机器 `yaoshiningdeiMac`，self-hosted / macOS / X64；不是云端 Mac。
+- mpv/libplacebo 核心在 MacBook Pro / Darwin arm64 交叉构建。mpv SHA-256：`5aa3d663b13289a7d6ab7ede6a0ac40dbd42b37642c9a93d0da11dc71f445b79`，恢复 ABI `0x00020000`。FFmpeg 沿用上游预编译恢复 SDK，本轮未修改或构建。
+- [逐库 SHA-256 与来源记录](device-evidence/imac-delivery-01b2ad3.json)。HAR 仅支持完整 ARM64 播放，共九库。x86_64 旧探针不能用于播放；TV 如继续声明该架构，需另行补齐匹配 SDK/核心，不能静默删除声明或混入旧桥。
 
 ## 验证结果
 
 | 层次 | 结果 | 边界 |
 | --- | --- | --- |
-| 宿主 | 90 项统一门禁、31 项来源正负例、14 项 CTest 和 2 项诊断 JS 通过 | 平台调用部分为替身 |
-| [Ubuntu CI](https://github.com/yaoshining/VidAll_Player/actions/runs/43021149158) | 音频中断、旧回调隔离、音频生命周期、尺寸/旋转/播完及旧宿主检查通过 | 不证明系统焦点或真实声音 |
+| 宿主 | 91 项统一门禁、31 项来源正负例、14 项 CTest 和 2 项诊断 JS 通过 | 平台调用部分为替身 |
+| [Ubuntu CI](https://github.com/yaoshining/VidAll_Player/actions/runs/43024633104) | 音频中断、旧回调隔离、音频生命周期、尺寸/旋转/播完及旧宿主检查通过 | 不证明系统焦点或真实声音 |
 | iMac CI | HAR、独立消费者九库、缺失 API 负例、Hypium 编译通过 | Hypium 未在设备执行 |
 | API 19 TV 模拟器，CI 原包 | standard / compatible 坏片返回、正常首帧、暂停/恢复、跳转和释放重开通过 | 实际均为 software/no |
-| API 19 TV 模拟器，本地诊断包 | 全局终局注入后保持 PID，旧会话拒绝，新兼容会话连续两次播放有首帧 | 定时注入不是 GPU/fence 故障；诊断静态旧导出断言未通过，不能用于正式交付 |
+| API 19 TV 模拟器，本地诊断包 | 全局终局注入后保持 PID，旧会话拒绝，新兼容会话连续两次播放有首帧 | 定时注入不是 GPU/fence 故障；诊断完整构建/静态检查通过，仍不能用于正式交付 |
 | 目标真机 | 未完成 | 尚缺零拷贝故障、可听音频、系统打断和连续隔离上限验收；API 24 不能替代 API 19 TV |
 
-最新模拟器记录分别见 [标准模式](device-evidence/api19-ci-standard-8ca9bef.json)、[显式兼容模式](device-evidence/api19-ci-compatible-8ca9bef.json) 和 [全局终局诊断](device-evidence/api19-injected-global-8ca9bef.json)。
+最新模拟器记录分别见 [标准模式](device-evidence/api19-ci-standard-01b2ad3.json)、[显式兼容模式](device-evidence/api19-ci-compatible-01b2ad3.json) 和 [全局终局诊断](device-evidence/api19-injected-global-01b2ad3.json)。
 
 ## TV 迁移步骤
 
@@ -34,3 +34,5 @@
 6. 从 API 19 TV 正式文件入口继续验证正常播放、音频打断/手动恢复、切集、退出重开、故障后返回、再播其他视频及连续故障上限，分别保存包哈希、PID、音画与原生日志。
 
 若平台音频 Stop 永久阻塞或无法确认停止，当前实现仍须保持 pending/timeout，不能强行释放或假报续播成功。这是尚未消除的实际限制，不代表已放宽“全局故障后也能继续播放”的要求。
+
+本候选新增 T035：renderer 已确认释放后，builder 清理失败或阻塞不再误挡兼容恢复；残留对象及槽预算仍保留。平台 Stop/Release 未确认的限制保持不变，设备上尚未注入 builder 故障；该边界目前由真实生产函数的宿主回归覆盖。
