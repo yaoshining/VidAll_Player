@@ -43,7 +43,7 @@ code=r'''
 #include <condition_variable>
 #include <chrono>
 struct Handle {void* get(){return nullptr;}};
-struct Event {std::string type,message;uint64_t epoch,sequence,generation;std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<std::atomic<bool>> callbackOpen;};
+struct Event {std::string type,message;uint64_t epoch,sequence,generation;std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<std::atomic<bool>> callbackOpen;uint64_t runtimeGeneration;bool compatible;};
 static constexpr int napi_tsfn_nonblocking=0,napi_ok=0;
 static uint64_t requested=0;static int submitResult=0;
 static std::function<void()> onSubmit;
@@ -53,6 +53,8 @@ static int test_command_async(void*,uint64_t userdata,const char**){requested=us
 namespace vidall { namespace runtime { std::atomic<bool> terminal{false};const char* AdmissionError(){return terminal?"terminal":nullptr;} } }
 class Harness {
 public:
+uint64_t runtimeGeneration_=1;bool compatible_=false;
+const char* RuntimeAdmissionError(){return vidall::runtime::AdmissionError();}
 std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
 std::shared_ptr<std::atomic<bool>> callbackOpen_;
 std::mutex completionMutex_,callbackMutex_,lifecycleMutex_;void* eventTsfn_=this;bool rendererReady_=true;std::atomic<uint64_t> eventEpoch_{0},generation_{1},eventSequence_{0};std::atomic<bool> released_{false};

@@ -41,7 +41,7 @@ registry = driver[driver.index('static pthread_rwlock_t legacy_lock'):driver.ind
 parts = [
     function(ao, 'ao_add_events'), function(ao, 'ao_query_and_reset_events'),
     function(ao, 'ao_request_pause'), function(ao, 'ao_is_per_file'), registry,
-    function(driver, 'uninit'), function(driver, 'legacy_write'),
+    function(driver, 'release_for_recovery'), function(driver, 'uninit'), function(driver, 'legacy_write'),
     function(driver, 'legacy_interrupt'), function(driver, 'register_callbacks'),
     function(source('player/playloop.c'), 'get_internal_paused'),
     function(source('player/playloop.c'), 'update_internal_pause_state'),
@@ -57,5 +57,5 @@ with tempfile.TemporaryDirectory() as td:
     td = Path(td)
     program = (here / 'harness.c').read_text().replace('/* PRODUCTION */', '\n'.join(parts))
     (td / 'test.c').write_text(program.replace('/* BINDING */', binding))
-    subprocess.run(['cc', '-std=gnu11', '-pthread', '-Wall', '-Werror', str(td / 'test.c'), '-o', str(td / 'test')], check=True)
+    subprocess.run(['cc', '-std=gnu11', '-pthread', '-Wall', '-Werror', '-I'+str(here.parents[1]/'mpv'), str(td / 'test.c'), str(here.parents[1]/'mpv/host_recovery.c'), '-o', str(td / 'test')], check=True)
     subprocess.run([str(td / 'test')], check=True, timeout=10)

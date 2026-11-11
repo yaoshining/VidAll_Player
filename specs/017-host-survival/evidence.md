@@ -30,3 +30,36 @@
 3. 原两个隔离名额不覆盖全部软件会话/线程，需 T004 总预算设计；未改变 deadline、全局硬解禁令或强行释放策略。
 4. `devecocli device list` 当前无连接设备；未执行本轮模拟器/真机音画测试。无 API 19 TV 验收。
 5. 未推送本次分支、未创建 PR、无新 CI HAR；TV 不应接入本地包作为最终交付。
+
+## 第二个实现切片：终局等待与会话预算
+
+T015 的 queue.test.cjs 实现前因队列无上限等待超时失败；实现后覆盖 64 项上限、终局立即拒绝、禁止启动排队旧操作、晚到完成、普通错误后继续和名额复用。PlayerSession 在终局传递 PLAYER_TERMINAL，正常 release 仍为 RELEASED。测试中原先刻意悬挂的 attach 请求现在可拒绝，因此测试明确消费并检查该拒绝。
+
+T016 的真实 NAPI session-budget 用例实现前失败；实现后标准 6 + 兼容 2 上限、保留独立兼容额度、后台析构未结束时不归还和真正结束后复用均通过。SessionBudget 对象置于 NativeSession 首个成员，在原生成员释放后才销毁。未改原有两个 OHCodec 名额。
+
+新增队列首次 ArkTS 编译发现构造器参数属性不被支持，已改为显式字段与赋值；没有使用 any 或关闭检查。原生工作队列预算、mpv 内音频停用和故障归属尚待完成；这些基础不构成全局恢复验收。
+
+第二轮统一门禁运行了 52 项，其中 diagnostics-session 因新队列及时拒绝改变了旧诊断请求的错误码而失败。保持原测试断言，在 PlayerSession 映射生命周期已变化的诊断为 DIAGNOSTICS_STALE，进程终局仍优先 PLAYER_TERMINAL；定向复验 diagnostics-session 和队列测试均通过。完整门禁需在后续原生恢复改动后再次运行，不把这轮标为 52/52。
+
+## mpv 音频隔离进行中
+
+新增 native/mpv/host_recovery.c 与头文件，以及 0004-host-audio-generation.patch 草案。登记表/代管理真实 C 测试覆盖旧代禁入、初始化在途、Stop 阻塞时新代及快照不阻塞、Stop/Release 失败不归还、16 槽上限、过期 token 和首次终局后不再次推进代。先缺失实现红测，再实现通过。
+
+在独立临时 mpv 源副本应用本仓原有补丁，再接入新机制。audio-control.test.py 提取真实 stop_for_recovery/start/set_pause/reset 编译执行，先缺失 stop_for_recovery 失败，后通过正常暂停恢复、旧代禁启动、准备态及 Stop 失败测试。使用 OHOS SDK 对完整 ao_ohaudio.c、ohcodec_terminal.c 和新模块做语法编译通过；未做完整 mpv 链接。main.c 的独立语法检查因旧编译数据库 libplacebo include 路径失效而未完成，后续正式重建解决依赖路径。
+
+草案尚未加入正式生产来源锁，也未接入公共恢复 ABI 和 native runtime；已有 HAR 中的 libmpv 没有改变。原音频中断完整回归需适配提取测试以涵盖新资源控制，不能声称本轮 mpv 已交付。待完成项包括回调音频数据与初始化/释放并发测试、复现来源构建、runtime 音频静止安全门与设备焦点验收。未修改 FFmpeg。
+
+
+## 代际准入、队列与核心重建预验证
+
+2026-11-11：gate-6 为 59 项通过，gate-7 为 61 项通过，gate-8 为 62 项通过，gate-9 为 64 项通过；这些是宿主门禁，不是目标设备证据。原 diagnostics-session 失败已修正，完整门禁后续通过。新增 native runtime 测试真实等待 3100 ms（旧期限 1000 ms）且 Stop 保持阻塞，进程仍存活、旧代始终拒绝；释放 Stop 后只允许新兼容代，核心代推进但 terminal record 尚未发布的窗口仍拒绝创建。旧/缺失恢复 ABI 被拒绝。
+
+NAPI 与 ArkTS 的 preserve-host 已贯通：真实入口切片覆盖旧/新配置签名、参数截断边界、pending/ready/timeout 状态；真实 ArkTS 会话覆盖旧代失败、新代兼容播放状态及释放。原生 Callback 测试用 ASan/UBSan 验证旧代已排队事件不进入 JS，新兼容代仍可投递。真实 NAPI 清理入口能够保留旧代且析构新兼容代。底层 mpv 和平台仍用替身，不能据此声称实际音画已通过。
+
+常规软件执行池 6、兼容执行池 2 与硬解池 2 分开；5 秒关闭超时不归还旧任务/会话预算，新兼容实例可处理命令。工作入口常规 32、关闭 8、恢复 8；预算同时由后台操作持有。恢复预留用例先因常规队列已满失败，接入独立池后复验。创建时 mpv_create/配置仍需专用执行审查，跨 NAPI 环境清理归属仍待实现，因此 T004 保持未完成。
+
+独立临时输入逐文件校验 Phase30 A 的 mpv/依赖及已交付 FFmpeg SDK（217 项），应用既有与本轮 mpv 补丁并加入恢复模块；没有修改或重建 FFmpeg。OHOS SDK 完成 libplacebo + mpv ARM64 编译和链接，得到本地 libmpv SHA-256 `6f60048b51b814fbf8f0958966345dd818964d20a64d084c549d6b676db2d06e`。生产者旧静态门禁因只允许 4 个旧扩展接口拒绝新接口；在独立工具副本明确加入 4 个恢复接口、继续禁止内部 mp_host_* 导出后，62 个公开接口、原桥接 ABI 与 FFmpeg 闭包静态检查通过。没有把失败日志改成成功，也没有修改 ohos_ijkplayer 工程。该工具副本与重建输入尚待纳入本工程正式来源流程；库尚未替换交付目录。
+
+以重建源码执行原 #89 音频中断测试：保留全部既有断言，接入真实恢复登记模块和新的释放返回值，再增加退休音频忽略中断断言，通过。#84 真实 Load/Stop/完成事件测试通过。本轮 HAR 已完成本地 ArkTS/native 编译；首次因匿名对象类型不符合 ArkTS 规范失败，改为命名 PlayerRecoveryStatus 后通过。此 HAR 仍含旧 libmpv，所以 preserve-host 会明确返回 RUNTIME_RECOVERY_UNAVAILABLE，不能交给 TV 当作新恢复产物。
+
+仍缺：可靠故障会话/媒体归属、创建执行与跨环境生命周期、音频回调/释放更完整竞争验证、正式核心来源锁和交付更新、iMac CI HAR、目标设备恢复音画。没有 PR、没有新 CI HAR、没有 API 19 TV 通过结论。

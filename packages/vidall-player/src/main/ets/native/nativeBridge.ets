@@ -1,4 +1,4 @@
-import { assertPlayerRuntimeReady, playerTerminalError } from '../public/runtime';
+import { assertPlayerRuntimeReady, playerTerminalError, capturePlayerRuntimeGeneration } from '../public/runtime';
 import { PlayerDiagnosticsSnapshot } from '../public/diagnostics';
 import { util } from '@kit.ArkTS';
 import nativeSession, { NativeFrameData, NativePlayerEvent, NativeSessionResult } from 'libvidall_player_native.so';
@@ -134,25 +134,29 @@ export function extractSmbCredentials(source: MediaSource): SmbCredentials {
 }
 
 class HarNativePlayerBridge implements NativePlayerBridge {
+  private readonly runtimeGeneration: number;
+  private readonly compatible: boolean;
   private handle: number = 0;
   private readonly ready: Promise<number>;
   private released: boolean = false;
   private readonly listeners: Array<(event: NativeBridgeEvent) => void> = [];
 
-  constructor(result: Promise<NativeSessionResult>) {
+  constructor(result: Promise<NativeSessionResult>, generation: number, compatible: boolean) {
+    this.runtimeGeneration = generation;
+    this.compatible = compatible;
     this.ready = result.then(async (created: NativeSessionResult): Promise<number> => {
-      assertPlayerRuntimeReady();
+      assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
       if (!created.ok || created.handle <= 0) throw nativeFailure(created);
       this.handle = created.handle;
       try {
         this.requireResult(nativeSession.setEventCallback(this.handle, (event: NativePlayerEvent): void => {
-        if (this.released || playerTerminalError() !== undefined) return;
+        if (this.released || playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) return;
         const listeners = this.listeners.slice();
         for (let index = 0; index < listeners.length; index++) listeners[index](event);
         }));
       } catch (error) {
         // 非终局的半创建失败由真正的 native release 回收；终局保留整个对象。
-        if (playerTerminalError() === undefined) await nativeSession.releaseSession(this.handle);
+        if (playerTerminalError(this.runtimeGeneration, this.compatible) === undefined) await nativeSession.releaseSession(this.handle);
         throw error as Error;
       }
       return this.handle;
@@ -234,13 +238,13 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 
   async release(): Promise<void> {
-    const fatal = playerTerminalError();
+    const fatal = playerTerminalError(this.runtimeGeneration, this.compatible);
     if (fatal !== undefined) throw fatal;
     if (this.released) return;
     const handle = await this.ready;
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     const result: NativeSessionResult = await nativeSession.releaseSession(handle);
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     if (!result.ok && result.code !== 'ALREADY_RELEASED') throw nativeFailure(result);
     this.released = true;
     this.listeners.splice(0, this.listeners.length);
@@ -257,16 +261,16 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 
   async getDiagnostics(): Promise<PlayerDiagnosticsSnapshot> {
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     await this.ready;
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     if (this.released) throw new Error('DIAGNOSTICS_RELEASED');
     const encoded: string = await nativeSession.getDiagnostics(this.handle);
     return JSON.parse(encoded) as PlayerDiagnosticsSnapshot;
   }
 
   getFrameData(): FrameData | null {
-    if (playerTerminalError() !== undefined || this.handle === 0 || this.released) return null;
+    if (playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined || this.handle === 0 || this.released) return null;
     const result: NativeFrameData | null = nativeSession.getFrameData(this.handle);
     if (result === null || result === undefined) {
       return null;
@@ -280,12 +284,12 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 
   private async run(operation: (handle: number) => Promise<NativeSessionResult>): Promise<void> {
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     const handle = await this.ready;
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     if (this.released) throw nativeFailure({ ok: false, handle, code: 'RELEASED' });
     const result: NativeSessionResult = await operation(handle);
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     if (!result.ok) throw nativeFailure(result);
   }
 
@@ -338,10 +342,12 @@ export function resolveHdrComputePeak(mode: string | undefined): string {
 export function createNativePlayerBridge(subtitleFontsDir?: string, hardwareDecoding?: 'auto' | 'disabled',
   hdrToneMapping?: 'auto' | 'bt.2390' | 'mobius' | 'reinhard' | 'hable' | 'gamma' | 'linear' | 'clip',
   hdrComputePeak?: 'auto' | 'enabled' | 'disabled',
-  playbackMode: 'standard' | 'compatible' = 'standard'): NativePlayerBridge {
-  assertPlayerRuntimeReady();
+  playbackMode: 'standard' | 'compatible' = 'standard', capturedGeneration?: number): NativePlayerBridge {
+  const compatible = playbackMode === 'compatible';
+  const generation = capturedGeneration ?? capturePlayerRuntimeGeneration(compatible);
+  assertPlayerRuntimeReady(generation, compatible);
   if (playbackMode !== 'standard' && playbackMode !== 'compatible') throw new Error('INVALID_PLAYBACK_MODE');
   return new HarNativePlayerBridge(nativeSession.createSession(
     subtitleFontsDir ?? '', playbackMode === 'compatible' ? 'no' : resolveHardwareDecoding(hardwareDecoding),
-    resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak), playbackMode));
+    resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak), playbackMode), generation, compatible);
 }

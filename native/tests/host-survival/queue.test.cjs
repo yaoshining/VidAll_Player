@@ -1,0 +1,25 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const ts=require(process.env.TYPESCRIPT_PATH||'/Applications/DevEco-Studio.app/Contents/plugins/codelinter/node_modules/typescript');
+require.extensions['.ets']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,f);
+const {CommandQueue}=require('../../../packages/vidall-player/src/main/ets/internal/commandQueue.ets');
+const tick=()=>new Promise(r=>setImmediate(r));
+const bounded=p=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error('TEST_TIMEOUT')),200))]);
+(async()=>{
+ const q=new CommandQueue();let finish,started=0;
+ const pending=[q.enqueue(()=>{started++;return new Promise(r=>finish=r);})];
+ for(let i=1;i<64;i++)pending.push(q.enqueue(async()=>{started++;}));
+ const rejected=pending.map(p=>assert.rejects(p,/PLAYER_TERMINAL/));
+ await assert.rejects(bounded(q.enqueue(async()=>{})),e=>e.playerError?.code==='COMMAND_QUEUE_FULL');
+ await tick();assert.equal(started,1);
+ q.close(new Error('PLAYER_TERMINAL'));
+ await bounded(Promise.all(rejected));
+ await assert.rejects(q.enqueue(async()=>{}),/PLAYER_TERMINAL/);
+ finish();await tick();assert.equal(started,1,'晚到完成不得启动旧排队命令');
+ const normal=new CommandQueue(),order=[];
+ const a=normal.enqueue(async()=>{order.push(1);throw Error('ordinary');});
+ const b=normal.enqueue(async()=>{order.push(2);});
+ await assert.rejects(a,/ordinary/);await b;assert.deepEqual(order,[1,2]);
+ for(let i=0;i<100;i++)await normal.enqueue(async()=>{});
+ normal.close();await assert.rejects(normal.enqueue(async()=>{}));
+ console.log('PASS 命令总数上限、终局立即返回、晚到隔离、串行失败及名额复用');
+})().catch(e=>{console.error(e);process.exitCode=1;});

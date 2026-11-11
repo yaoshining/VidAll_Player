@@ -38,6 +38,7 @@ int mpv_set_property_string(int*,const char* k,const char* v){++propertyCalls;op
 void OH_LOG_Print(int,int,int,const char*,const char*,...){}
 struct NativeResult{bool ok;std::uint64_t handle;const char* code;};
 class Session { public:
+const char* RuntimeAdmissionError(){return vidall::runtime::AdmissionError();}
 std::mutex lifecycleMutex_,rendererMutex_;bool released_=false,rendererReady_=true;
 std::uint64_t generation_=1;std::atomic<uint64_t> surfaceSessionHandle_{9};
 vidall::render::RenderBackend renderBackend_=vidall::render::RenderBackend::Vulkan;

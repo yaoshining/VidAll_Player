@@ -3,7 +3,7 @@ import { util } from '@kit.ArkTS';
 import nativeSession, { NativeSessionResult } from 'libvidall_player_native.so';
 
 export interface PlayerRuntimeOptions {
-  terminalPolicy: 'controlled-app-exit';
+  terminalPolicy: 'controlled-app-exit' | 'preserve-host';
   deadlineMs: number;
 }
 export interface PlayerTerminalInfo {
@@ -13,9 +13,14 @@ export interface PlayerTerminalInfo {
   deadlineMs: number;
   ownerTag: string;
 }
+export interface PlayerRecoveryStatus {
+  state: 'pending' | 'ready' | 'timeout';
+  generation: number;
+}
 export interface PlayerRuntimeStatus {
   state: 'unconfigured' | 'configuring' | 'ready' | 'failed' | 'terminal';
   terminal?: PlayerTerminalInfo;
+  recovery?: PlayerRecoveryStatus;
 }
 class TerminalListener {
   callback: (info: PlayerTerminalInfo) => void;
@@ -26,10 +31,11 @@ const listeners: TerminalListener[] = [];
 let configuration: string = '';
 let pending: Promise<PlayerRuntimeStatus> | undefined;
 let timer: number = -1;
+let preserveHost: boolean = false;
 let cachedTerminal: PlayerTerminalInfo | undefined;
 function notify(info: PlayerTerminalInfo): void {
-  cachedTerminal = info;
-  if (timer >= 0) { clearInterval(timer); timer = -1; }
+  if (cachedTerminal === undefined) cachedTerminal = info;
+  if (!preserveHost && timer >= 0) { clearInterval(timer); timer = -1; }
   const current = listeners.slice();
   for (const listener of current) {
     if (!listener.delivered) {
@@ -42,9 +48,13 @@ function notify(info: PlayerTerminalInfo): void {
   }
 }
 export function getPlayerRuntimeStatus(): PlayerRuntimeStatus {
-  if (cachedTerminal !== undefined) return { state: 'terminal', terminal: cachedTerminal };
+  if (cachedTerminal !== undefined && !preserveHost) return { state: 'terminal', terminal: cachedTerminal };
   const status = JSON.parse(nativeSession.getRuntimeStatus()) as PlayerRuntimeStatus;
-  if (status.terminal !== undefined) notify(status.terminal);
+  if (status.recovery !== undefined) preserveHost = true;
+  if (status.terminal !== undefined) {
+    if (cachedTerminal === undefined) notify(status.terminal);
+    status.terminal = cachedTerminal;
+  }
   return status;
 }
 export function onPlayerTerminal(callback: (info: PlayerTerminalInfo) => void): () => void {
@@ -54,15 +64,33 @@ export function onPlayerTerminal(callback: (info: PlayerTerminalInfo) => void): 
   if (status.terminal !== undefined) notify(status.terminal);
   return (): void => { const i = listeners.indexOf(listener); if (i >= 0) listeners.splice(i, 1); };
 }
-export function assertPlayerRuntimeReady(): void {
+// generation 在实例创建时固定，不能在每个命令上改用当前全局代。
+export function capturePlayerRuntimeGeneration(compatible: boolean = false): number {
   const status = getPlayerRuntimeStatus();
-  if (status.state !== 'ready') throw new Error(status.state === 'terminal' ? 'PLAYER_TERMINAL' : 'RUNTIME_NOT_READY');
+  if (status.state === 'ready') return 1;
+  if (status.state === 'terminal' && compatible && status.recovery !== undefined) {
+    if (status.recovery.state === 'ready' && status.recovery.generation > 1) return status.recovery.generation;
+    throw new Error('PLAYER_RECOVERY_PENDING');
+  }
+  throw new Error(status.state === 'terminal' ? 'PLAYER_TERMINAL' : 'RUNTIME_NOT_READY');
 }
-export function playerTerminalError(): Error | undefined {
-  return getPlayerRuntimeStatus().state === 'terminal' ? new Error('PLAYER_TERMINAL') : undefined;
+export function assertPlayerRuntimeReady(generation: number = 1, compatible: boolean = false): void {
+  const status = getPlayerRuntimeStatus();
+  const error = terminalError(status, generation, compatible);
+  if (error !== undefined) throw error;
+  if (status.state !== 'ready' && status.state !== 'terminal') throw new Error('RUNTIME_NOT_READY');
+}
+export function playerTerminalError(generation: number = 1, compatible: boolean = false): Error | undefined {
+  return terminalError(getPlayerRuntimeStatus(), generation, compatible);
+}
+function terminalError(status: PlayerRuntimeStatus, generation: number, compatible: boolean): Error | undefined {
+  if (status.state !== 'terminal') return undefined;
+  if (compatible && generation > 1 && status.recovery?.state === 'ready' &&
+    status.recovery.generation === generation) return undefined;
+  return new Error('PLAYER_TERMINAL');
 }
 export function initializePlayerRuntime(context: common.Context, options: PlayerRuntimeOptions): Promise<PlayerRuntimeStatus> {
-  if (options.terminalPolicy !== 'controlled-app-exit' || !Number.isInteger(options.deadlineMs) ||
+  if ((options.terminalPolicy !== 'controlled-app-exit' && options.terminalPolicy !== 'preserve-host') || !Number.isInteger(options.deadlineMs) ||
     options.deadlineMs < 1000 || options.deadlineMs > 10000 || !context.filesDir) {
     return Promise.reject(new Error('RUNTIME_CONFIG_INVALID'));
   }
@@ -73,12 +101,13 @@ export function initializePlayerRuntime(context: common.Context, options: Player
     if (pending !== undefined) return pending;
   }
   configuration = key;
+  preserveHost = options.terminalPolicy === 'preserve-host';
   pending = (async (): Promise<PlayerRuntimeStatus> => {
     let resource: Uint8Array;
     try { resource = await context.resourceManager.getRawFileContent('vidall-runtime/smb.conf'); }
     catch (_) { nativeSession.rejectRuntimeResources(); throw new Error('RUNTIME_RESOURCE_FAILED'); }
     const text = new util.TextDecoder('utf-8').decodeToString(resource);
-    const result: NativeSessionResult = await nativeSession.configureRuntime(context.filesDir, text, options.deadlineMs);
+    const result: NativeSessionResult = await nativeSession.configureRuntime(context.filesDir, text, options.deadlineMs, options.terminalPolicy);
     if (!result.ok) throw new Error(result.code);
     assertPlayerRuntimeReady();
     if (timer < 0) timer = setInterval(() => { getPlayerRuntimeStatus(); }, 50);

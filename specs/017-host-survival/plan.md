@@ -30,3 +30,23 @@
 源码审查发现 SwRenderLoop 未等待 RequestBuffer 返回的 release fence 就 CPU 写入，并把同一 fence 交给 FlushBuffer。依据 [官方 NativeWindow API](https://developer.huawei.com/consumer/en/doc/harmonyos-references/capi-external-window-h/) 与 [OpenHarmony NativeWindow 指南](https://github.com/openharmony/docs/blob/master/en/application-dev/graphics/native-window-guidelines.md)，生产者须先等待 release fence，并在不再使用时关闭；CPU 同步写完后提交 -1，不能复用 release fence。
 
 T014 先测试真实 SwRenderLoop：已就绪 fence、未就绪超时、错误 fd、RequestBuffer 失败及原暂停 resize/Flush 重试。实现固定总计 50 ms 的 poll 等待（EINTR/EAGAIN 不重置期限），失败时不读取/映射/写入缓冲区，归还已申请的 buffer 并上报失败；正常路径关闭 release fd 后 CPU 写入，再以 -1 提交。无新平台 API，NativeWindow 相关接口自 API 8 可用。此等待仅在渲染线程，不占 UI；不证明 NativeWindow 自身调用永不阻塞，整体预算仍由 T004/T009 负责。
+
+## 异步队列收敛
+
+T015：每个 ArkTS 会话最多接纳 64 个在途及排队命令；超过返回 COMMAND_QUEUE_FULL，不创建额外执行链。终局关闭队列时，立即拒绝所有公开 Promise，未执行任务不再启动；已经进入 native 的操作仍由原生层持有，不能把 JS 拒绝当作原生资源释放。正常操作保持串行和错误后可继续。晚到完成不得重新兑现已拒绝的请求。此项不是原生线程预算的替代。
+
+T016：创建 mpv 前申请会话预算，standard 最多 6、compatible 独立保留 2。预算覆盖初始化、已注册、后台析构和隔离保留状态，只在真正析构后归还。硬解原有 2 名额另行保留。超额返回 SESSION_RESOURCE_LIMIT，不创建对象、不退出宿主。兼容池用于避免标准会话占满所有创建额度；软件本身也连续发生不可释放故障时仍必须有界拒绝，不伪造资源归还。此上限仅限定会话数量，不代替原生任务队列及音频安全门。
+
+## mpv 音频隔离设计
+
+T017 在 Player 管理的 mpv 扩展中增加实例代与有界音频登记表（16 项）。mpv 实例创建时捕获代，首次全局终局推进进程代；旧代不能再创建/启动音频，写回调立即停止提供旧声音。音频初始化先登记 BUILDING，完成 GenerateRenderer 后才发布，避免初始化与终局竞争被漏计。
+
+停止旧 renderer 由独立恢复工作线程执行，不从终局 handler 调用 mpv core/VO，也不持登记表全局锁调用平台。每个 renderer 的 Start/Pause/Stop/Release 用自身控制锁串行；回调不拿此锁，避免 Stop 等回调死锁。恢复准入必须观察到所有旧代音频已停止或安全释放；不能将静音等同于焦点已释放。Stop 失败/阻塞保留占用并上报恢复未就绪，不假装成功。API 10 已有 OH_AudioRenderer_Stop/GetCurrentState，符合 API 19；依据官方 native_audiorenderer.h 文档核对。真实系统焦点和 Stop 延迟仍待设备验证。
+
+登记 token 含单调身份及槽索引，旧 token 不能操作复用槽。真正 Release 完成后才清空槽。新代与旧代控制锁分离；宿主快照不等待单个 renderer 的平台调用。该模块由本工程集成到 mpv，不修改 FFmpeg。
+
+T018：native runtime 新增 preserve-host 策略，启用前校验独立恢复 ABI，旧核心不支持时拒绝初始化。旧 controlled-app-exit 默认契约保留用于兼容与回归。独立恢复线程执行旧音频停止，monitor 保持有界观察；非退出策略绝不执行 _Exit。终局后旧会话继续拒绝操作和保留 GPU 资源，只有“新创建、纯软件、音频已静止”的恢复代获得准入。超过原截止时间只报告恢复尚未就绪，不杀宿主、不重置硬解锁。原生内部先验证，再贯穿 NAPI/ArkTS；没有完成逐会话准入前不公开新初始化选项。
+
+T004 执行池切片：除原有 2 个硬解隔离线程，普通软件会话使用独立 6 名额执行池，兼容会话使用独立 2 名额执行池。每个实例同时最多一个在途操作及一个待关闭任务，等待调用方最多 5 秒，超时不归还后台实例/线程名额。硬解池耗尽时不把软件工作直接放入 NAPI 共用线程执行。工作请求入口仍需另加总排队预算；此执行池切片单独通过不能视为总预算已完成。
+
+原生入口排队预算：常规操作/诊断共 32 项，关闭预留 8 项，恢复通道预留 8 项。预算覆盖 NAPI 队列、执行中的独立任务以及超时后仍在运行的后台操作；只有所有引用结束才归还，不随公开 Promise 超时清零。常规、关闭、诊断与恢复预留已接通；创建本身的专用执行和跨环境生命周期仍待审查，不能提前宣称总预算和全局设备恢复完成。

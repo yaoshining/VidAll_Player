@@ -26,9 +26,9 @@ def extract(text,signature):
  raise ValueError(signature)
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--out',type=Path,required=True);ap.add_argument('--mutate',choices=['destroy-guards','deadline-exit','deadline-missing','deadline-immediate']);ap.add_argument('--case',action='append');args=ap.parse_args();out=args.out;out.mkdir(parents=True,exist_ok=True)
- source=ROOT/'packages/vidall-player/src/main/cpp/napi_init.cpp';text=source.read_text();signatures=['NativeSession()','~NativeSession()','void Release()','void InvalidateCompletion()','void StopRendererLocked()','void DestroyRenderer()','void CloseCallbackLocked()','void CloseIsolatedCallbacks()','void DeleteSession(NativeSession* session)','void CleanupSessions(void*)'];parts={s:extract(text,s) for s in signatures}
+ source=ROOT/'packages/vidall-player/src/main/cpp/napi_init.cpp';text=source.read_text();signatures=['bool IsRecoverySession()','const char* RuntimeAdmissionError()','NativeSession()','~NativeSession()','void Release()','void InvalidateCompletion()','void StopRendererLocked()','void DestroyRenderer()','void CloseCallbackLocked()','void CloseIsolatedCallbacks()','void DeleteSession(NativeSession* session)','void CleanupSessions(void*)'];parts={s:extract(text,s) for s in signatures}
  original_parts=dict(parts)
- if args.mutate=='destroy-guards':parts['void DestroyRenderer()']=parts['void DestroyRenderer()'].replace('vidall::runtime::ParkIfTerminal();','')
+ if args.mutate=='destroy-guards':parts['void DestroyRenderer()']=parts['void DestroyRenderer()'].replace('vidall::runtime::ParkIfTerminal(IsRecoverySession());','')
  shell=(Path(__file__).parent/'shell.cpp').read_text()
  for sig,code in parts.items():shell=shell.replace('/* EXTRACT '+sig+' */',code)
  (out/'actual.cpp').write_text(shell)

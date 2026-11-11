@@ -1,4 +1,4 @@
-import { assertPlayerRuntimeReady } from './runtime';
+import { capturePlayerRuntimeGeneration } from './runtime';
 import { PlayerOptions } from './types';
 import { VidAllPlayer } from './playerContract';
 import { PlayerSession } from '../internal/playerSession';
@@ -6,6 +6,6 @@ import { PlayerSession } from '../internal/playerSession';
 export { VidAllPlayer } from './playerContract';
 
 export function createPlayer(options?: PlayerOptions): VidAllPlayer {
-  assertPlayerRuntimeReady();
+  capturePlayerRuntimeGeneration(options?.playbackMode === 'compatible');
   return new PlayerSession(options);
 }

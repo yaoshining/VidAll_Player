@@ -1,5 +1,6 @@
 // 宿主只替换平台边界。注册、事件合并和播放器消费逻辑由测试从 mpv 原样编译。
 #include <assert.h>
+#include "host_recovery.h"
 #include <errno.h>
 #include <stdbool.h>
 #include <stdatomic.h>
@@ -19,7 +20,7 @@ typedef struct {
     int32_t (*OH_AudioRenderer_OnInterruptEvent)(OH_AudioRenderer *, void *, int, int);
 } OH_AudioRenderer_Callbacks;
 /* BINDING */
-struct priv { OH_AudioStreamBuilder *builder; OH_AudioRenderer *renderer; struct legacy_binding legacy; };
+struct priv { unsigned long long recovery_token,recovery_generation; OH_AudioStreamBuilder *builder; OH_AudioRenderer *renderer; struct legacy_binding legacy; };
 struct ao { struct priv *priv; atomic_uint events_; bool per_file;
             void (*wakeup_cb)(void *); void *wakeup_ctx; };
 struct MPOpts { bool pause; int gapless_audio; };
@@ -49,9 +50,10 @@ static unsigned unloaded;
 #define MP_TRACE(...) ((void)0)
 enum { AUDIOSTREAM_SUCCESS, AUDIOSTREAM_ERROR_SYSTEM = 3 };
 static void reset_timing(struct priv *p) {}
-static int OH_AudioRenderer_GetUnderflowCount(void *r, uint32_t *n) { *n=0; return 0; }
-static void OH_AudioRenderer_Release(void *r) {}
-static void OH_AudioStreamBuilder_Destroy(void *b) {}
+static int OH_AudioRenderer_Release(void *r) {return 0;}
+static int OH_AudioStreamBuilder_Destroy(void *b) {return 0;}
+#define MP_TIME_MS_TO_NS(v) ((v)*1000000LL)
+static void mp_sleep_ns(long long ns) {assert(!"意外进入释放失败保留路径");}
 static void uninit_audio_out(struct MPContext *ctx) { unloaded++; ctx->ao=NULL; }
 
 static int OH_GetSdkApiVersion(void) { return sdk; }
@@ -129,7 +131,7 @@ static void *release_thread(void *ao) {
 
 int main(void)
 {
-    struct priv p = {0};
+    struct priv p = {.recovery_generation=mp_host_generation(),.recovery_token=mp_host_audio_begin(mp_host_generation())};
     struct ao old = {.priv=&p, .wakeup_cb=wake}, next = {.priv=&p, .wakeup_cb=wake};
     struct MPOpts opts = {0};
     struct MPContext ctx = {.ao=&old, .opts=&opts};
@@ -268,4 +270,8 @@ int main(void)
     assert(register_callbacks(&old) == result);
     uninit(&old);
     assert(legacy_bindings == NULL);
+    result=0;assert(register_callbacks(&old)==0);
+    mp_host_retire_all();previous_wakes=wakes;
+    callbacks.OH_AudioRenderer_OnInterruptEvent(NULL,user,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
+    assert(wakes==previous_wakes);uninit(&old);assert(legacy_bindings==NULL);
 }

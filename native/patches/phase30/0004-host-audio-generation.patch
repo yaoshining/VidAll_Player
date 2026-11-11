@@ -1,0 +1,261 @@
+diff --git a/audio/out/ao_ohaudio.c b/audio/out/ao_ohaudio.c
+index 820899b..d69f656 100644
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -20,6 +20,8 @@
+  */
+ 
+ #include "ao.h"
++#include "common/global.h"
++#include "common/host_recovery.h"
+ #include "internal.h"
+ #include "common/msg.h"
+ #include "audio/format.h"
+@@ -39,6 +41,7 @@ struct legacy_binding {
+ };
+ 
+ struct priv {
++    unsigned long long recovery_token, recovery_generation;
+     OH_AudioStreamBuilder* builder;
+     OH_AudioRenderer *renderer;
+     int64_t last_query;
+@@ -101,26 +104,33 @@ static void reset_timing(struct priv *p)
+     p->timestamp_valid = false;
+ }
+ 
+-static void uninit(struct ao* ao)
++static int release_for_recovery(void *opaque)
+ {
+-    struct priv* p = ao->priv;
+-
+-    unbind_legacy(p);
++    struct ao *ao = opaque;
++    struct priv *p = ao->priv;
+     if (p->renderer) {
+-        uint32_t underflows;
+-        if (OH_AudioRenderer_GetUnderflowCount(p->renderer, &underflows) ==
+-            AUDIOSTREAM_SUCCESS)
+-            MP_TRACE(ao, "OHAudio underflows: %u\n", underflows);
+-        OH_AudioRenderer_Release(p->renderer);
++        if (OH_AudioRenderer_Release(p->renderer) != AUDIOSTREAM_SUCCESS) return -1;
+         p->renderer = NULL;
+     }
+-
+     if (p->builder) {
+-        OH_AudioStreamBuilder_Destroy(p->builder);
++        if (OH_AudioStreamBuilder_Destroy(p->builder) != AUDIOSTREAM_SUCCESS) return -1;
+         p->builder = NULL;
+     }
+-
+     reset_timing(p);
++    return 0;
++}
++
++static void uninit(struct ao* ao)
++{
++    struct priv *p = ao->priv;
++    unbind_legacy(p);
++    if (!p->recovery_token) return;
++    if (!mp_host_audio_remove(p->recovery_token, release_for_recovery, ao)) {
++        // 平台释放失败：保留回调宿主与 renderer，不能返回后释放 ao。
++        // 宿主有界执行器负责停止等待；保留预算不归还。
++        for (;;) mp_sleep_ns(MP_TIME_MS_TO_NS(100));
++    }
++    p->recovery_token = 0;
+ }
+ 
+ static OH_AudioData_Callback_Result audio_on_write_callback(
+@@ -131,6 +141,10 @@ static OH_AudioData_Callback_Result audio_on_write_callback(
+ {
+     struct ao* ao = userData;
+     struct priv* p = ao->priv;
++    if (mp_host_is_retired(p->recovery_generation)) {
++        memset(audioData, ao->format == AF_FORMAT_U8 ? 128 : 0, audioDataSize);
++        return AUDIO_DATA_CALLBACK_RESULT_VALID;
++    }
+ 
+     int samples = audioDataSize / ao->sstride;
+     int64_t now = mp_time_ns();
+@@ -174,6 +188,8 @@ static OH_AudioData_Callback_Result audio_on_write_callback(
+         MP_TIME_S_TO_NS(samples + p->queued_frames) / ao->samplerate;
+     ao_read_data(ao, &audioData, samples, end_time, NULL, true, true);
+     p->written_frames += samples;
++    if (mp_host_is_retired(p->recovery_generation))
++        memset(audioData, ao->format == AF_FORMAT_U8 ? 128 : 0, audioDataSize);
+ 
+     return AUDIO_DATA_CALLBACK_RESULT_VALID;
+ }
+@@ -196,7 +212,7 @@ static int32_t legacy_interrupt(OH_AudioRenderer *renderer, void *user,
+     if (hint == AUDIOSTREAM_INTERRUPT_HINT_PAUSE || hint == AUDIOSTREAM_INTERRUPT_HINT_STOP) {
+         pthread_rwlock_rdlock(&legacy_lock);
+         struct ao *ao = lookup_legacy(user);
+-        if (ao)
++        if (ao && !mp_host_is_retired(((struct priv *)ao->priv)->recovery_generation))
+             ao_request_pause(ao);
+         pthread_rwlock_unlock(&legacy_lock);
+     }
+@@ -221,10 +237,24 @@ static OH_AudioStream_Result register_callbacks(struct ao *ao)
+     return OH_AudioStreamBuilder_SetRendererCallback(p->builder, callbacks, token);
+ }
+ 
++static int stop_for_recovery(void *opaque)
++{
++    OH_AudioRenderer *renderer = opaque;
++    OH_AudioStream_State state;
++    if (OH_AudioRenderer_GetCurrentState(renderer, &state) != AUDIOSTREAM_SUCCESS) return -1;
++    if (state == AUDIOSTREAM_STATE_PREPARED || state == AUDIOSTREAM_STATE_STOPPED) return 0;
++    if (OH_AudioRenderer_Stop(renderer) != AUDIOSTREAM_SUCCESS) return -1;
++    return OH_AudioRenderer_GetCurrentState(renderer, &state) == AUDIOSTREAM_SUCCESS &&
++        state == AUDIOSTREAM_STATE_STOPPED ? 0 : -1;
++}
++
+ static int init(struct ao* ao)
+ {
+     struct priv* p = ao->priv;
+     OH_AudioStream_Result res = 0;
++    p->recovery_generation = ao->global->host_generation;
++    p->recovery_token = mp_host_audio_begin(p->recovery_generation);
++    if (!p->recovery_token) return -1;
+ 
+     res = OH_AudioStreamBuilder_Create(&p->builder, AUDIOSTREAM_TYPE_RENDERER);
+ 
+@@ -281,6 +311,7 @@ static int init(struct ao* ao)
+         goto error;
+     }
+ 
++    if (!mp_host_audio_publish(p->recovery_token, stop_for_recovery, p->renderer)) goto error;
+     reset_timing(p);
+ 
+     return 0;
+@@ -289,7 +320,7 @@ error:
+     return -1;
+ }
+ 
+-static int control(struct ao *ao, enum aocontrol cmd, void *arg)
++static int control_unlocked(struct ao *ao, enum aocontrol cmd, void *arg)
+ {
+     struct priv *p = ao->priv;
+     float volume;
+@@ -318,33 +349,45 @@ static int control(struct ao *ao, enum aocontrol cmd, void *arg)
+     return CONTROL_OK;
+ }
+ 
+-static void reset(struct ao *ao)
++static int control(struct ao *ao, enum aocontrol cmd, void *arg)
+ {
+     struct priv *p = ao->priv;
++    if (!mp_host_audio_control_lock(p->recovery_token)) return CONTROL_ERROR;
++    int result = control_unlocked(ao, cmd, arg);
++    mp_host_audio_control_unlock(p->recovery_token);
++    return result;
++}
+ 
++static void reset(struct ao *ao)
++{
++    struct priv *p = ao->priv;
++    if (!mp_host_audio_control_lock(p->recovery_token)) return;
+     OH_AudioRenderer_Pause(p->renderer);
+     OH_AudioRenderer_Flush(p->renderer);
+     reset_timing(p);
++    mp_host_audio_control_unlock(p->recovery_token);
+ }
+ 
+ static bool set_pause(struct ao *ao, bool paused)
+ {
+     struct priv *p = ao->priv;
+-
+-    if (paused) {
+-        OH_AudioRenderer_Pause(p->renderer);
+-    } else {
++    if (!mp_host_audio_control_lock(p->recovery_token)) return false;
++    OH_AudioStream_Result result;
++    if (paused) result = OH_AudioRenderer_Pause(p->renderer);
++    else {
+         p->last_query = 0;
+-        OH_AudioRenderer_Start(p->renderer);
++        result = OH_AudioRenderer_Start(p->renderer);
+     }
+-    return true;
++    mp_host_audio_control_unlock(p->recovery_token);
++    return result == AUDIOSTREAM_SUCCESS;
+ }
+ 
+ static void start(struct ao *ao)
+ {
+     struct priv *p = ao->priv;
+-
++    if (!mp_host_audio_control_lock(p->recovery_token)) return;
+     OH_AudioRenderer_Start(p->renderer);
++    mp_host_audio_control_unlock(p->recovery_token);
+ }
+ 
+ #define OPT_BASE_STRUCT struct priv
+diff --git a/common/global.h b/common/global.h
+index c05b70e..9787e32 100644
+--- a/common/global.h
++++ b/common/global.h
+@@ -5,6 +5,7 @@
+ // The only purpose of this is to make mpv library-safe.
+ // Think hard before adding new members.
+ struct mpv_global {
++    unsigned long long host_generation;
+     struct mp_log *log;
+     struct m_config_shadow *config;
+     struct mp_client_api *client_api;
+diff --git a/meson.build b/meson.build
+index 9a461d6..d79ecf7 100644
+--- a/meson.build
++++ b/meson.build
+@@ -487,7 +487,7 @@ if features['ohos']
+                      cc.find_library('native_buffer'),
+                      cc.find_library('native_image'),
+                      cc.find_library('native_window')]
+-    sources += files('audio/out/ao_ohaudio.c',
++    sources += files('common/host_recovery.c', 'audio/out/ao_ohaudio.c',
+                      'video/out/ohos_common.c',
+                      'video/out/hwdec/hwdec_ohcodec.c',
+                      'video/out/hwdec/ohcodec_terminal.c',
+diff --git a/player/main.c b/player/main.c
+index 37eb6b1..3495084 100644
+--- a/player/main.c
++++ b/player/main.c
+@@ -24,6 +24,9 @@
+ #include <locale.h>
+ 
+ #include "config.h"
++#if HAVE_OHOS
++#include "common/host_recovery.h"
++#endif
+ 
+ #include <libplacebo/config.h>
+ 
+@@ -285,6 +288,9 @@ struct MPContext *mp_create(void)
+     mp_mutex_init(&mpctx->abort_lock);
+ 
+     mpctx->global = talloc_zero(mpctx, struct mpv_global);
++#if HAVE_OHOS
++    mpctx->global->host_generation = mp_host_generation();
++#endif
+ 
+     demux_packet_pool_init(mpctx->global);
+     stats_global_init(mpctx->global);
+diff --git a/video/out/hwdec/ohcodec_terminal.c b/video/out/hwdec/ohcodec_terminal.c
+index e11eb82..0cf39a7 100644
+--- a/video/out/hwdec/ohcodec_terminal.c
++++ b/video/out/hwdec/ohcodec_terminal.c
+@@ -1,6 +1,7 @@
+ /* 进程寿命终局管理：不借用 mpv/VO/log 对象，不自行终止宿主。 */
+ #define _POSIX_C_SOURCE 200809L
+ #include "ohcodec_terminal.h"
++#include "common/host_recovery.h"
+ #include <pthread.h>
+ #include <stdatomic.h>
+ #include <errno.h>
+@@ -73,6 +74,7 @@ void mp_ohcodec_terminal_enter(int error,int stage,uintptr_t owner_tag) {
+     atomic_fetch_or_explicit(&admission,CLOSED,memory_order_acq_rel);
+     int expected=0;
+     if(atomic_compare_exchange_strong_explicit(&publication,&expected,1,memory_order_acq_rel,memory_order_acquire)) {
++        mp_host_retire_all();
+         record=(struct mp_ohcodec_terminal_record){.platform_error=error,.stage=stage,.owner_tag=owner_tag};
+         atomic_store_explicit(&publication,2,memory_order_release);
+         /* 发布不等待任何播放/创建锁；此锁仅由睡眠中的通知线程短持有。 */

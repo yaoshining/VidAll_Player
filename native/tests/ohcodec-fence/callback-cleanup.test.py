@@ -51,9 +51,14 @@ int napi_create_object(napi_env,napi_value*){objects++;return 0;}
 int napi_set_named_property(napi_env,napi_value,const char*,napi_value){return 0;}
 int napi_create_int64(napi_env,int64_t,napi_value*){return 0;}
 int napi_call_function(napi_env,napi_value,napi_value,size_t,napi_value*,napi_value*){calls++;return 0;}
+namespace vidall::runtime {
+bool terminal=false;
+const char* SessionAdmissionError(uint64_t born,bool compatible){return !terminal||(born==2&&compatible)?nullptr:"PLAYER_TERMINAL";}
+}
 class NativeSession {
 public:
 @@EVENT@@;
+uint64_t runtimeGeneration_=1;bool compatible_=false;
 std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
 std::shared_ptr<std::atomic<bool>> callbackOpen_=std::make_shared<std::atomic<bool>>(true);
 std::mutex callbackMutex_;
@@ -84,6 +89,11 @@ int main(int argc,char**argv){
   s.CloseIsolatedCallbacks();s.Dispatch("error","");assert(queue.empty());
  }else if(mode=="null-env"){
   NativeSession s;s.Dispatch("error","");drain(true);assert(calls==0&&objects==0);
+ }else if(mode=="recovery"){
+  NativeSession old;old.Dispatch("position","");old.Dispatch("error","");
+  vidall::runtime::terminal=true;drain();assert(calls==0&&objects==0);
+  NativeSession fresh;fresh.runtimeGeneration_=2;fresh.compatible_=true;
+  fresh.Dispatch("position","");drain();assert(calls==1&&objects==1);
  }else if(mode=="quarantined"){
   NativeSession s;s.isolation_=vidall::runtime::SessionIsolation::Acquire();
   s.Dispatch("position","");s.Dispatch("error","");s.isolation_->Quarantine();drain();assert(calls==1);
@@ -96,7 +106,7 @@ with tempfile.TemporaryDirectory(prefix='callback-cleanup-') as out:
     subprocess.run(['clang++', '-std=c++17', '-pthread', '-fsanitize=address,undefined',
                     '-I' + str(ROOT / 'native/runtime'), str(path / 'test.cpp'), '-o', str(path / 'test')], check=True, timeout=120)
     results = []
-    for case in ['queued', 'owner', 'replace', 'normal', 'null-env', 'quarantined']:
+    for case in ['recovery', 'queued', 'owner', 'replace', 'normal', 'null-env', 'quarantined']:
         result = subprocess.run([str(path / 'test'), case], capture_output=True, text=True, timeout=5)
         print(case, result.returncode, result.stderr.strip())
         results.append(result.returncode)

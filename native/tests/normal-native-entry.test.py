@@ -15,6 +15,8 @@ subprocess.run([sys.executable,'-B',str(root/'native/tests/ohcodec-fence/callbac
 functions=s[s.index('struct NativeWork {'):s.index('napi_value ConfigureRuntime(')]+'\n'+'\n'.join(function(x) for x in ['napi_value CreateSession(', 'napi_value ReleaseSession(', 'void CleanupSessions('])
 prefix=r'''
 #include "session_isolation.h"
+#include "session_budget.h"
+#include "work_budget.h"
 #include <memory>
 #include <mutex>
 #include <unordered_map>
@@ -31,15 +33,24 @@ using napi_env=void*;using napi_value=void*;using napi_callback_info=void*;using
 const int napi_ok=0;
 struct NativeResult {bool ok;std::uint64_t handle;const char*code;};
 std::atomic<int> creates{0},initializes{0},releases{0},destructs{0};bool terminal=false,configured=false,createRace=false,releaseRace=false;
-namespace vidall::runtime {struct Status{int state;};Status Snapshot(){return {terminal?4:configured?2:0};}const char*AdmissionError(){return terminal?"PLAYER_TERMINAL":configured?nullptr:"RUNTIME_NOT_READY";}void ParkIfTerminal(){if(terminal){puts("FAIL terminal reached destructor");std::abort();}}}
+bool preserve=false,recoveryReady=false;
+namespace vidall::runtime {struct Status{int state;};Status Snapshot(){return {terminal?4:configured?2:0};}
+const char* AdmissionError(bool recovery=false){if(terminal&&preserve&&recovery)return recoveryReady?nullptr:"PLAYER_RECOVERY_PENDING";return terminal?"PLAYER_TERMINAL":configured?nullptr:"RUNTIME_NOT_READY";}
+std::uint64_t CaptureGeneration(){return terminal?(preserve&&recoveryReady?2:0):configured?1:0;}
+const char* SessionAdmissionError(std::uint64_t born,bool compatible){if(terminal&&born==2&&compatible)return AdmissionError(true);return born==1?AdmissionError():"RUNTIME_NOT_READY";}
+void ParkIfTerminal(bool recovery=false){if(terminal&&!(preserve&&recoveryReady&&recovery)){puts("FAIL terminal reached destructor");std::abort();}}}
 bool scopedTest=false, slowClose=false;
 std::string receivedMode;
 std::atomic<bool> resumeOld{false}, oldReturned{false};
 std::atomic<int> closedCallbacks{0};
 std::atomic<bool> blockDestructor{false}, destructionDone{false};
 void waitDestruction(){while(!destructionDone.load())std::this_thread::yield();}
-struct NativeSession {std::shared_ptr<vidall::runtime::SessionIsolation> isolation;auto Isolation(){return isolation;}void CloseIsolatedCallbacks(){closedCallbacks++;} bool closed=false;NativeSession(){creates++;if(createRace)terminal=true;}~NativeSession(){while(blockDestructor.load())std::this_thread::yield();destructs++;vidall::runtime::ParkIfTerminal();Release();vidall::runtime::ParkIfTerminal();destructionDone=true;}bool Initialize(const std::string&,const std::string&,const std::string&,const std::string&,const std::string& mode){receivedMode=mode;initializes++;if(scopedTest)isolation=vidall::runtime::SessionIsolation::Acquire();return true;}void Release(){if(closed)return;closed=true;releases++;if(releaseRace)terminal=true;
- if(scopedTest&&isolation){if(!slowClose)isolation->Quarantine();while(!resumeOld.load())std::this_thread::sleep_for(std::chrono::milliseconds(1));isolation->FinishedRelease();oldReturned=true;}}};
+struct NativeSession {const std::uint64_t born=vidall::runtime::CaptureGeneration();bool compatible=false;
+std::uint64_t RuntimeGeneration()const{return born;}
+const char* RuntimeAdmissionError()const{return vidall::runtime::SessionAdmissionError(born,compatible);}
+bool IsRecoverySession()const{return born>1&&compatible;}
+std::shared_ptr<vidall::runtime::SessionBudget> budget;void SetBudget(std::shared_ptr<vidall::runtime::SessionBudget> b){budget=std::move(b);}std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<vidall::runtime::SessionIsolation> executor;auto Isolation(){return isolation;}auto Executor(){return executor?executor:isolation;}void CloseIsolatedCallbacks(){closedCallbacks++;} bool closed=false;NativeSession(){creates++;if(createRace)terminal=true;}~NativeSession(){while(blockDestructor.load())std::this_thread::yield();destructs++;vidall::runtime::ParkIfTerminal(IsRecoverySession());Release();vidall::runtime::ParkIfTerminal(IsRecoverySession());destructionDone=true;}bool Initialize(const std::string&,const std::string&,const std::string&,const std::string&,const std::string& mode){receivedMode=mode;compatible=mode=="compatible";initializes++;if(scopedTest){if(mode=="compatible")executor=vidall::runtime::SessionIsolation::Acquire(vidall::runtime::SessionIsolation::Pool::Compatible);else isolation=vidall::runtime::SessionIsolation::Acquire();}return true;}void Release(){if(closed)return;closed=true;releases++;if(releaseRace)terminal=true;
+ if(scopedTest&&Executor()){if(!slowClose)Executor()->Quarantine();while(!resumeOld.load())std::this_thread::sleep_for(std::chrono::milliseconds(1));Executor()->FinishedRelease();oldReturned=true;}}};
 std::mutex gSessionsMutex;std::unordered_map<std::uint64_t,std::shared_ptr<NativeSession>>gSessions;std::uint64_t gNextSessionId=1;
 std::shared_ptr<NativeSession> FindSession(std::uint64_t id){std::lock_guard<std::mutex> lock(gSessionsMutex);auto it=gSessions.find(id);return it==gSessions.end()?nullptr:it->second;}
 std::vector<std::string> arguments;
@@ -61,20 +72,22 @@ void run(){auto current=jobs;jobs.clear();for(auto*w:current){std::thread t([=]{
 '''
 main=r'''
 int main(int argc,char**argv){std::string mode=argv[1];if(mode=="create-unconfigured"){CreateSession(nullptr,nullptr);if(creates||!jobs.empty()) {puts("FAIL created before runtime");return 1;}}
-else if(mode=="isolated-release" || mode=="slow-release"){
- configured=true;scopedTest=true;slowClose=mode=="slow-release";
- CreateSession(nullptr,nullptr);run();if(!last.ok||last.handle!=1||!FindSession(1)->Isolation())return 1;
+else if(mode=="isolated-release" || mode=="slow-release" || mode=="compatible-slow-release"){
+ configured=true;scopedTest=true;slowClose=mode!="isolated-release";bool compatible=mode=="compatible-slow-release";
+ if(compatible)arguments={"","no","","","compatible"};
+ CreateSession(nullptr,nullptr);run();if(!last.ok||last.handle!=1||!FindSession(1)->Executor())return 1;
  auto before=std::chrono::steady_clock::now();
  ReleaseSession(nullptr,nullptr);if(releases!=0)return 1;run();
  auto elapsed=std::chrono::steady_clock::now()-before;
  if(slowClose&&(elapsed<std::chrono::milliseconds(4800)||elapsed>std::chrono::milliseconds(6500)))return 1;
  if(!last.ok||FindSession(1)||closedCallbacks!=1||destructs||oldReturned)return 1;
- CreateSession(nullptr,nullptr);run();if(!last.ok||last.handle!=2||!FindSession(2)->Isolation())return 1;
+ CreateSession(nullptr,nullptr);run();if(!last.ok||last.handle!=2||!FindSession(2)->Executor())return 1;
  QueueNative(nullptr,2,[]{return NativeResult{true,2,"SECOND_SESSION"};});run();
  if(!last.ok||std::string(last.code)!="SECOND_SESSION"||terminal)return 1;
- if(vidall::runtime::SessionIsolation::Acquire())return 1;
+ auto pool=compatible?vidall::runtime::SessionIsolation::Pool::Compatible:vidall::runtime::SessionIsolation::Pool::Hardware;
+ if(vidall::runtime::SessionIsolation::Acquire(pool))return 1;
  resumeOld=true;while(!oldReturned.load())std::this_thread::yield();
- if(bool(vidall::runtime::SessionIsolation::Acquire())!=slowClose)return 1;
+ if(bool(vidall::runtime::SessionIsolation::Acquire(pool))!=slowClose)return 1;
  // Test process ends with an intentionally retained generation, as on the device.
  puts("PASS");std::fflush(stdout);std::_Exit(0);
 }
@@ -108,6 +121,66 @@ else if(mode=="cleanup-plain-retained" || mode=="cleanup-plain-terminal"){
  if(terminal){puts("PASS");std::fflush(stdout);std::_Exit(0);}
  waitDestruction();if(destructs!=1||releases!=1)return 1;
 }
+else if(mode=="recovery-reserve"){
+ configured=true;preserve=true;
+ for(int i=0;i<32;i++)QueueNative(nullptr,0,[]{std::abort();return NativeResult{};});
+ terminal=true;recoveryReady=true;arguments={"","no","","","compatible"};
+ CreateSession(nullptr,nullptr);if(jobs.size()!=33)return 1;run();if(!last.ok)return 1;
+ for(int i=0;i<8;i++)QueueNative(nullptr,1,[]{return NativeResult{true,1,"RECOVERY"};});
+ if(jobs.size()!=8)return 1;
+ QueueNative(nullptr,1,[]{std::abort();return NativeResult{};});
+ if(jobs.size()!=8||last.ok||std::string(last.code)!="NATIVE_WORK_QUEUE_FULL")return 1;
+ run();CleanupSessions(nullptr);waitDestruction();if(destructs!=1)return 1;
+}
+else if(mode=="recovery-generation"){
+ configured=true;preserve=true;arguments={"","no","","","compatible"};
+ CreateSession(nullptr,nullptr);run();if(!last.ok)return 1;
+ terminal=true;CreateSession(nullptr,nullptr);run();
+ if(last.ok||creates!=1||std::string(last.code)!="PLAYER_RECOVERY_PENDING")return 1;
+ recoveryReady=true;arguments[4]="standard";CreateSession(nullptr,nullptr);run();
+ if(last.ok||creates!=1)return 1;
+ arguments[4]="compatible";CreateSession(nullptr,nullptr);run();
+ if(!last.ok||last.handle!=2||creates!=2)return 1;
+ QueueNative(nullptr,1,[]{std::abort();return NativeResult{};});run();
+ if(last.ok||std::string(last.code)!="PLAYER_TERMINAL")return 1;
+ QueueNative(nullptr,2,[]{return NativeResult{true,2,"NEW_SESSION"};});run();
+ if(!last.ok||std::string(last.code)!="NEW_SESSION")return 1;
+ CleanupSessions(nullptr);
+ if(gSessions.size()!=1||!FindSession(1)||FindSession(2)||closedCallbacks!=2)return 1;
+ waitDestruction();if(destructs!=1)return 1;
+ puts("PASS");std::fflush(stdout);std::_Exit(0);
+}
+else if(mode=="work-budget"){
+ configured=true;
+ for(int i=0;i<32;i++)QueueNative(nullptr,0,[]{return NativeResult{true,0,"OK"};});
+ if(jobs.size()!=32)return 1;
+ QueueNative(nullptr,0,[]{return NativeResult{true,0,"UNEXPECTED"};});
+ if(jobs.size()!=32||last.ok||std::string(last.code)!="NATIVE_WORK_QUEUE_FULL")return 1;
+ for(int i=0;i<8;i++)QueueNative(nullptr,0,[]{return NativeResult{true,0,"OK"};},true,true);
+ if(jobs.size()!=40)return 1;
+ QueueNative(nullptr,0,[]{return NativeResult{true,0,"UNEXPECTED"};},true,true);
+ if(jobs.size()!=40||last.ok)return 1;
+ run();QueueNative(nullptr,0,[]{return NativeResult{true,0,"REUSED"};});run();
+ if(!last.ok||std::string(last.code)!="REUSED")return 1;
+}
+else if(mode=="session-budget"){
+ configured=true;
+ for(int i=0;i<6;i++){CreateSession(nullptr,nullptr);run();if(!last.ok)return 1;}
+ CreateSession(nullptr,nullptr);run();if(last.ok||creates!=6||std::string(last.code)!="SESSION_RESOURCE_LIMIT")return 1;
+ arguments={"","no","","","compatible"};
+ for(int i=0;i<2;i++){CreateSession(nullptr,nullptr);run();if(!last.ok)return 1;}
+ CreateSession(nullptr,nullptr);run();if(last.ok||creates!=8)return 1;
+ blockDestructor=true;gSessions.clear();arguments.clear();
+ CreateSession(nullptr,nullptr);run();if(last.ok||creates!=8)return 1;
+ blockDestructor=false;while(destructs.load()!=8)std::this_thread::yield();
+ // 等预算从真正完成的析构归还，不能只等析构入口计数。
+ for(int i=0;i<1000;i++){
+   CreateSession(nullptr,nullptr);run();if(last.ok)break;
+   std::this_thread::sleep_for(std::chrono::milliseconds(1));
+ }
+ if(!last.ok)return 1;
+ gSessions.clear();puts("PASS");std::fflush(stdout);std::_Exit(0);
+}
 else if(mode=="create-compatible" || mode=="create-invalid-mode" || mode=="create-legacy"){
  configured=true;arguments={"","auto","",""};
  if(mode!="create-legacy")arguments.push_back(mode=="create-compatible"?"compatible":"invalid");
@@ -133,8 +206,8 @@ if '--mutant-delete' in sys.argv:
 (out/'harness.cpp').write_text(prefix+functions+main)
 subprocess.run(['clang++','-std=c++17','-pthread','-I'+str(root/'native/runtime'),str(out/'harness.cpp'),'-o',str(out/'test')],check=True)
 rows=[]
-for c in ['create-compatible','create-invalid-mode','create-legacy','create-unconfigured','create-ui','cleanup-isolated','cleanup-plain-blocked','cleanup-plain-retained','cleanup-plain-terminal','isolated-release','slow-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']:
- p=subprocess.run([str(out/'test'),c],capture_output=True,text=True,timeout=10 if c=='slow-release' else 3);rows.append({'case':c,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr});print(c,p.returncode,p.stdout.strip())
+for c in ['recovery-reserve','recovery-generation','work-budget','compatible-slow-release','session-budget','create-compatible','create-invalid-mode','create-legacy','create-unconfigured','create-ui','cleanup-isolated','cleanup-plain-blocked','cleanup-plain-retained','cleanup-plain-terminal','isolated-release','slow-release','release-terminal','cleanup-terminal','create-terminal-race','release-terminal-race','normal-release']:
+ p=subprocess.run([str(out/'test'),c],capture_output=True,text=True,timeout=10 if c in ['slow-release','compatible-slow-release'] else 3);rows.append({'case':c,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr});print(c,p.returncode,p.stdout.strip())
 (out/'results.json').write_text(json.dumps({'sourceSHA256':hashlib.sha256(src.read_bytes()).hexdigest(),'method':'actual-entry-slices-platform-and-session-stubs','results':rows},indent=2)+'\n')
 
 passed=all(row['exit']==0 and row['stdout'].strip()=='PASS' and 'FAIL' not in row['stdout']+row['stderr'] for row in rows)

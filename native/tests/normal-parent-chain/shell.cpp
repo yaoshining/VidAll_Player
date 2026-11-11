@@ -50,8 +50,13 @@ public:
  // 最先声明、最后销毁：等待后台析构真实完成再结束正常路径测试进程。
  struct DestructionMarker { ~DestructionMarker(){destructionDone=true;} } destructionMarker_;
  std::shared_ptr<std::atomic<bool>> callbackOpen_;
- std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
+ std::shared_ptr<vidall::runtime::SessionIsolation> isolation_, executor_;
  std::shared_ptr<vidall::runtime::SessionIsolation> Isolation() const { return isolation_; }
+ std::shared_ptr<vidall::runtime::SessionIsolation> Executor() const { return executor_; }
+ const std::uint64_t runtimeGeneration_=vidall::runtime::CaptureGeneration();
+ bool compatible_=false;
+ /* EXTRACT bool IsRecoverySession() */
+ /* EXTRACT const char* RuntimeAdmissionError() */
  /* EXTRACT NativeSession() */
  /* EXTRACT ~NativeSession() */
  /* EXTRACT void Release() */

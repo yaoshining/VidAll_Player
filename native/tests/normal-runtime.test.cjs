@@ -4,10 +4,11 @@ const fs = require('node:fs');
 const Module = require('node:module');
 const ts = require(process.env.TYPESCRIPT_PATH || '/Applications/DevEco-Studio.app/Contents/plugins/codelinter/node_modules/typescript');
 let state = 'unconfigured';
+let recovery,configuredPolicy;
 let creates = 0, configurations = 0, nativeReleases = 0, callbackFailure = false;
 const native = new Proxy({
-  getRuntimeStatus: () => JSON.stringify({state, terminal: state === 'terminal' ? {stage:1,platformError:-4,firstObservedMs:100,deadlineMs:3000,ownerTag:'1'} : undefined}),
-  configureRuntime: async () => { configurations++;state='ready'; return {ok:true,handle:0,code:'OK'}; },
+  getRuntimeStatus: () => JSON.stringify({state, recovery, terminal: state === 'terminal' ? {stage:1,platformError:-4,firstObservedMs:100,deadlineMs:3000,ownerTag:'1'} : undefined}),
+  configureRuntime: async (_root,_text,_deadline,policy) => { configuredPolicy=policy;configurations++;state='ready'; return {ok:true,handle:0,code:'OK'}; },
   rejectRuntimeResources:()=>{state='failed';return {ok:false,handle:0,code:'RUNTIME_RESOURCE_FAILED'};},
   createSession: async () => {creates++;return {ok:true,handle:1,code:'OK'};},
   setEventCallback:()=>({ok:!callbackFailure,handle:1,code:callbackFailure?'NATIVE_PLAYBACK_FAILED':'OK'}),
@@ -27,7 +28,29 @@ const tick=()=>new Promise(r=>setImmediate(r));
 async function bounded(p){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error('TEST_TIMEOUT')),150))]);}
 async function main(){
   const which=process.argv[2];
-  if(which==='bridge-callback-fail') {
+  if(which==='host-recovery') {
+    const context={filesDir:'/private/app',resourceManager:{getRawFileContent:async()=>new TextEncoder().encode('[global]\nclient min protocol = SMB2_02\n')}};
+    await runtime.initializePlayerRuntime(context,{terminalPolicy:'preserve-host',deadlineMs:3000});
+    assert.equal(configuredPolicy,'preserve-host');
+    const old=createPlayer({playbackMode:'compatible'});await old.attachSurface({componentId:'old',generation:1,width:10,height:10});
+    state='terminal';recovery={state:'pending',generation:0};runtime.getPlayerRuntimeStatus();
+    assert.equal(old.stateMachine.getState(),'error');
+    assert.throws(()=>createPlayer({playbackMode:'compatible'}),/PLAYER_RECOVERY_PENDING/);
+    recovery={state:'ready',generation:2};
+    assert.throws(()=>createPlayer(),/PLAYER_TERMINAL/);
+    let freshEvent;native.setEventCallback=(_h,cb)=>{freshEvent=cb;return {ok:true,handle:1,code:'OK'};};
+    const fresh=createPlayer({playbackMode:'compatible'});
+    await fresh.attachSurface({componentId:'fresh',generation:1,width:10,height:10});
+    await fresh.load({kind:'localFile',uri:'file:///test.mp4'});
+    freshEvent({type:'state',message:'preparing',eventEpoch:1,sequence:1,surfaceGeneration:1});
+    await fresh.play();
+    freshEvent({type:'state',message:'playing',eventEpoch:1,sequence:2,surfaceGeneration:1});
+    assert.equal(fresh.stateMachine.getState(),'playing');
+    assert.notEqual(fresh.stateMachine.getState(),'error');
+    await assert.rejects(old.play(),/PLAYER_TERMINAL/);
+    await fresh.release();assert.equal(nativeReleases,1);
+    assert.equal(runtime.getPlayerRuntimeStatus().state,'terminal');
+  } else if(which==='bridge-callback-fail') {
     state='ready';callbackFailure=true;const {createNativePlayerBridge}=require('../../packages/vidall-player/src/main/ets/native/nativeBridge.ets');
     const bridge=createNativePlayerBridge();await assert.rejects(bridge.attachSurface({componentId:'s',generation:1,width:1,height:1}));await tick();assert.equal(nativeReleases,1);
   } else if(which==='bridge-create-fail') {
@@ -92,7 +115,7 @@ async function main(){
     state='ready';let releases=0,commands=0;
     const bridge=new Proxy({subscribe:()=>()=>{},attachSurface:()=>new Promise(()=>{}),release:()=>{releases++;return Promise.resolve();},setPropertyString:()=>{commands++;return Promise.resolve();}}, {get:(o,k)=>o[k]||(()=>Promise.resolve())});
     const player=new PlayerSession(undefined,bridge);
-    if(which==='fatal-queue' || which==='fatal-diagnostics') {player.attachSurface({componentId:'s',generation:1,width:1,height:1});await tick();}
+    if(which==='fatal-queue' || which==='fatal-diagnostics') {player.attachSurface({componentId:'s',generation:1,width:1,height:1}).catch(e=>assert.match(e.message,/PLAYER_TERMINAL/));await tick();}
     state='terminal';
     if(which==='fatal-release') {
       await assert.rejects(bounded(player.release()),/PLAYER_TERMINAL/);assert.equal(releases,0);

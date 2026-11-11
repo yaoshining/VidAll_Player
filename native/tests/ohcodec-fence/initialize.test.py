@@ -27,8 +27,9 @@ int mpv_set_option_string(void*,const char *key,const char *value) {
  return (fail&&std::string(key)=="ohcodec-session-isolation") || failOption==key ? -1 : 0;
 }
 struct Harness {
+ bool compatible_=false;
  std::shared_ptr<int> player_=std::make_shared<int>(1);
- std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
+ std::shared_ptr<vidall::runtime::SessionIsolation> isolation_,executor_;
  vidall::render::RenderBackend renderBackend_;
  std::atomic<bool> hardwareDecodingRequested_{false};
  /* METHOD */
@@ -39,7 +40,7 @@ int main() {
  gpu=true;options.clear();
  { Harness h;assert(h.Initialize("","auto","","","compatible"));
    assert(h.renderBackend_==vidall::render::RenderBackend::Software);
-   assert(!h.isolation_&&!h.hardwareDecodingRequested_);
+   assert(h.executor_&&!h.isolation_&&!h.hardwareDecodingRequested_);
    assert(options.at("hwdec")=="no"&&options.at("vo")=="libmpv"&&options.at("gpu-hwdec-interop")=="no");
    assert(!options.count("gpu-api")&&!options.count("gpu-context")&&!options.count("ohcodec-session-isolation")); }
  { Harness h;assert(!h.Initialize("","auto","","","misspelled")); }
