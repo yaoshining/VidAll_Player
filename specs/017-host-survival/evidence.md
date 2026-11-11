@@ -171,3 +171,15 @@ T032 新增 0006-isolate-legacy-audio-callbacks.patch（SHA-256 d35a126644500e41
 T032 最终本地统一门禁：`/tmp/vidall-host-survival-host-gate-t032/work/summary.json` 共 90 项全部通过，含父级真实关闭链、三组负向变异及公开日志检查；当前完整 HAR 含 ARM64 九库，libmpv 为上述新哈希。旧 14 项 CTest/2 项 JS 要求干净提交快照，将在提交后执行，尚未将其写为通过。
 
 提交 bed3bdb 的旧门禁实际 14 项 CTest 均 Passed，但汇总脚本只认旧格式而拒绝，后两项 JS 尚未运行。T033 新增解析红绿测试后兼容本机 `100% tests passed out of 14`，同时拒绝跳过、禁用、失败及错误计数；4 项包装器测试通过。完整门禁随后用新干净提交复跑，不把首次汇总失败记作整体通过。
+
+
+## 8ca9bef CI 与 API 19 软件复验（2026-11-11）
+
+- 干净提交 8ca9bef 的旧宿主包装器完整通过：14 项 CTest 和 2 项诊断 JS，记录在 `/tmp/vidall-host-survival-legacy-8ca9bef/work/legacy-native-result.json`。
+- Ubuntu 工作流 43021149158 全部通过：锁定交付音频源码、原中断、新 legacy 生命周期、audio-data/control/lifecycle、尺寸/旋转/软件绘制/播完及完整旧宿主回归。
+- iMac 自托管工作流 43021111873 全部通过，实际 runner 为 yaoshiningdeiMac / macOS X64；包含完整 HAR、独立消费者九库、缺失 API 负例和 Hypium 编译。Hypium 未在设备执行。原始 HAR SHA-256 为 d9ecad900726510c56f72dd2f4496b6827851a4736d7577ee51e172e721d4937，详见 device-evidence/imac-delivery-8ca9bef.json。
+- 原始 CI HAR standard 探针：API 19 TV 模拟器 PID 29677，坏片失败返回、正常首帧、暂停/手动恢复、20 秒跳转、释放重开，2 次首帧、0 探针错误。模拟器实际 backend=software、hwdec=no。
+- 同一原始 HAR compatible 探针：PID 3526，上述路径再次通过，2 次首帧、0 探针错误；签名 HAP 九库逐一匹配原始 CI HAR。
+- 当前桥和 T032 核心的独立本地诊断包：PID 2479，定时进入真实全局终局管理器，旧操作拒绝、约 150 ms 后恢复代 ready、新 Surface 连续两次软件播放，合计 3 次首帧、0 探针错误；超过原 3 秒退出期限后仍为同一 PID。硬解锁持续 terminal。诊断 HAR/库哈希与正常 CI 原包分开保存，且原诊断静态验证器仍因历史测试导出断言失败；不称其为正式门禁通过。
+
+以上没有证明实际可听音频、系统焦点抢占/手动恢复、GPU/fence 故障或 API 19 TV 正式文件入口通过。T3 浏览器打开及登录请求均返回 parent_not_active（The calling provider no longer owns an active thread run），Dia 原云调试登录页已关闭；当前无法继续云真机操作。未提交 PR，T007/T009/T013/T017/T018 保持未完成。
