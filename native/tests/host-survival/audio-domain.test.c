@@ -1,12 +1,19 @@
+#define _POSIX_C_SOURCE 200809L
 #include "host_recovery.h"
 #include <assert.h>
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <errno.h>
+#include <time.h>
+// 严格 C11 的 Linux 也显式声明等待 API；中断不能缩短同步轮询间隔。
+static void wait_one_ms(void){
+ struct timespec delay={0,1000000};
+ while(nanosleep(&delay,&delay)<0)assert(errno==EINTR);
+}
 static int stopped,released;
 static atomic_bool block,entered,scan_done;
-static int stop(void *p){assert(p);entered=true;while(block)usleep(1000);stopped++;return *(int*)p;}
+static int stop(void *p){assert(p);entered=true;while(block)wait_one_ms();stopped++;return *(int*)p;}
 static int release(void *p){assert(p);released++;return 0;}
 static int release_failed(void *p){assert(p);return -1;}
 static void *worker(void *p){(void)p;mp_host_stop_retired_audio();scan_done=true;return NULL;}
@@ -18,13 +25,13 @@ int main(void){
  mp_host_retire_all();assert(mp_host_is_retired(old));assert(!mp_host_audio_begin(old));
  // 普通控制调用尚未归还锁：本轮跳过，不能假报停止或丢掉下轮 Stop。
  pthread_t busy;pthread_create(&busy,NULL,worker,NULL);
- for(int i=0;i<1000&&!scan_done;i++)usleep(1000);
+ for(int i=0;i<1000&&!scan_done;i++)wait_one_ms();
  assert(scan_done);pthread_join(busy,NULL);
  assert(!stopped&&mp_host_audio_pending()==2); // a 活动，b 初始化在途。
  mp_host_audio_control_unlock(a);
  assert(!mp_host_audio_control_lock(a));
  assert(mp_host_audio_pending()==2); // BUILDING 不能冒充已经停止。
- block=true;pthread_t t;pthread_create(&t,NULL,worker,NULL);while(!entered)usleep(1000);
+ block=true;pthread_t t;pthread_create(&t,NULL,worker,NULL);while(!entered)wait_one_ms();
  unsigned long long fresh=mp_host_generation(),c=mp_host_audio_begin(fresh);
  assert(c&&mp_host_audio_publish(c,stop,&ok));
  assert(mp_host_audio_control_lock(c));mp_host_audio_control_unlock(c);

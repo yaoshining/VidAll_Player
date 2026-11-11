@@ -222,3 +222,10 @@ T037 使用真实 mapper close/wait 接缝，保留 owner 隔离，不用关闭�
 - 6b4dfe5 的 iMac 工作流 43026349300 已完成成功；正式交付记录仍明确绑定原候选 01b2ad3。本轮只新增验收准备、测试和记录，不改变正常核心或 FFmpeg，也不把本地诊断 HAR 当作 iMac CI 原包。
 
 T036/T037 作为“验收准备”完成，不关闭 T007/T009/T013/T017/T018。当前可连接设备仍只有 API 19 TV 模拟器；没有真实 OHCodec/Vulkan 正向、可听音频、系统焦点/打断、真实硬件隔离上限或 VidAll_TV 正式入口结论，尚未提交验收通过 PR。已有平台 Stop/Release 永久不返回的明确限制未被本轮探针掩盖。
+
+
+## T038 宿主测试的 Linux C11 兼容性（2026-11-11）
+
+1e074cf 的 iMac 工作流 43030767166 全部通过。手动 Ubuntu 全量宿主工作流 43030937319 首轮失败：93 个已执行步骤中仅 audio-domain-compile 失败（随后 audio-domain 未执行），原因是严格 C11 下 usleep 未声明；三项新探针回归全部通过。原 CI 失败保留，不把本地 94 项通过改写为该次 CI 通过。
+
+仅将 audio-domain.test.c 的毫秒等待改为显式 POSIX.1-2008 nanosleep 并重试 EINTR；原控制锁、旧代音频、资源上限和过期 token 断言全部保留。相同 C11/-Wall/-Wextra/-Werror 命令在本地编译及运行通过；完整 Ubuntu 复验待后续工作流结果。此修改不涉及生产 mpv、FFmpeg、公开 ABI 或硬件验收结论。

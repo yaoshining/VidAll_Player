@@ -105,3 +105,5 @@ T035 平台依据：官方 [OH_AudioRenderer_Release](https://developer.huawei.c
 T036：现 recovery-terminal 首片固定 compatible，不能作为真机硬解恢复入口。先添加实际诊断字段资格门槛及模式选择回归，再提供 hardware-first 配置：首片 standard 且首帧后证明 ohcodec/vulkan，终局后只能新建 compatible 与新 Surface。保留 software-control 作为模拟器对照，记录不同配置与 fixture 哈希，不把对照成功写成硬件通过。定时终局仍直接使用 load 身份，不能验证 decoder→mp_image→last_src 归属。
 
 T037：独立关闭故障探针复用 Spec 016 的 `inject-wait.patch` 接缝，保留生产 owner 隔离。先对宿主可执行的流程/断言红测，再连接 standard 首片硬件资格、不可变加载身份、释放故障后的独立故障历史、第二会话硬解播放、晚关闭完成、第二次隔离及名额上限后的软件回退。真实 mapper 注入和全局终局探针不混为一条证据；没有目标设备时，只交付已构建的探针及模拟器拒绝硬件通过的负例，验收任务仍开放。
+
+T038：T036/T037 之后的完整 Ubuntu 门禁首次执行暴露既有 audio-domain.test.c 使用 usleep 未声明；先记录该编译红测，改为显式 POSIX.1-2008 nanosleep（处理中断），保留 C11、-Wall/-Wextra/-Werror 与所有行为断言。仅修测试可移植性，生产核心与 HAR 不变；完整 Ubuntu 结果单独复验。
