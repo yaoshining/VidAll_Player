@@ -267,3 +267,14 @@ T039 首轮远端复验 43032827813 attempt 1 在依赖安装阶段失败：Azur
 - 只读独立审核未发现阻塞问题。Spec Kit 前置检查通过；对照宪章第四/六/八/十条复核：主线程不新增阻塞、资源预算与静止事实不放宽、先红测再实现、源/构建/设备分层。R3、T007/T009/T017 的真实硬件和音频验收仍未完成，不用本地或 CI 结果替代。
 
 T041 最终本地统一门禁 94/94 通过（`/tmp/vidall-host-survival-host-gate-t041/work/summary.json`），含真实 NativeSession 入口、进程终局和父链变异拒绝。远端 CI 仍独立记录。
+
+### T039–T041 远端 CI 与当前诊断复验
+
+源提交 `d4a059b3117a23d70aa0832d00ed7161fd8c6d5a`：
+
+- [完整 Ubuntu 门禁](https://github.com/yaoshining/VidAll_Player/actions/runs/43038250441) 成功，包括94项宿主及最终收证。实际工具路径 `/usr/lib/llvm-18/bin`，clang/clang++/llvm-nm 均18.1.3；先前两次 apt DNS 失败保留为失败历史。
+- [音频及既有功能回归](https://github.com/yaoshining/VidAll_Player/actions/runs/43038251489) 成功，包含当前锁定音频源、音频中断/恢复、尺寸/旋转/播完、14项CTest和2项JS。下载音频身份记录确认 mpv `ee78bf…5267` 与 ao_ohaudio.c `69d5e0…fa2e`，与交付输入完全一致。本地干净提交的旧宿主套件也通过。
+- [iMac HAR 流程](https://github.com/yaoshining/VidAll_Player/actions/runs/43038228044) 成功，包含完整HAR、缺失公共API负例、独立消费者九库及Hypium编译。实际运行器 `yaoshiningdeiMac`，非云端Mac；原始包下载核验记录另见最新交付文档。
+- [当前诊断包的API19模拟器复验](device-evidence/api19-injected-global-d4a059b.json)：同一PID21377，终局退休旧代，ready generation2，独立新Surface连开两会话，共三次首帧，恢复后错误为0。诊断HAR为本地完整构建，SHA `6d79c863a73be3f852186be90710ae49e3038ef8fe7851a28813e6a6693bfedf`；仅software-control/定时注入，未替代真实硬解、可听音频及TV正式文件入口验收。
+
+当前 iMac 原始 HAR（SHA `a8ce9ee5d73a47ed4a4eed0f9fdb22664cc4db7b43a34fbf0aecc625ab3da1d3`）已分别以 standard/compatible 整包接入独立消费工程，在 API19 TV 模拟器通过坏片失败、后续首帧、暂停恢复、seek、释放重开；每组两次首帧且后续错误0。HAP九库与原HAR逐库完全一致。具体PID/包/素材/fixture哈希见 `device-evidence/api19-ci-{standard,compatible}-d4a059b.json`，仍为软件路径和探针入口。

@@ -1,28 +1,28 @@
 # Spec 017 最新验收候选
 
-此候选已完成 Player 实现、自动化回归和 CI 构建，**尚未完成真实 OHCodec/Vulkan、可听音频及 API 19 TV 正式文件入口验收，暂未提 PR**。普通播放仍优先零拷贝硬解；显式 `preserve-host` 保留主应用，全局终局后只有满足旧音频停止安全条件的新兼容实例可继续播放。
+此候选已完成本轮 Player 修改、自动化回归和 CI 构建，**尚未完成真实 OHCodec/Vulkan、可听音频及 API 19 TV 正式文件入口验收，暂未提 PR**。普通播放仍优先零拷贝硬解；显式 `preserve-host` 保留主应用，全局终局后只有满足旧音频停止安全条件的新兼容实例可继续播放。
 
 ## 原始产物与来源
 
-- 源提交：`01b2ad3a7041877b33e586b962a64385e10e027f`。
-- [下载原始 CI HAR 附件](https://github.com/yaoshining/VidAll_Player/actions/runs/43024630552/artifacts/13856632429)，其中 `vidall_player.har` 未经消费端重打包。
-- HAR SHA-256：`fddf4216751e9899594cc439fd304edf64c428f58b59b5d12055198237d350b3`。
-- [HAR 构建](https://github.com/yaoshining/VidAll_Player/actions/runs/43024630552)：实际机器 `yaoshiningdeiMac`，self-hosted / macOS / X64；不是云端 Mac。
-- mpv/libplacebo 核心在 MacBook Pro / Darwin arm64 交叉构建。mpv SHA-256：`5aa3d663b13289a7d6ab7ede6a0ac40dbd42b37642c9a93d0da11dc71f445b79`，恢复 ABI `0x00020000`。FFmpeg 沿用上游预编译恢复 SDK，本轮未修改或构建。
-- [逐库 SHA-256 与来源记录](device-evidence/imac-delivery-01b2ad3.json)。HAR 仅支持完整 ARM64 播放，共九库。x86_64 旧探针不能用于播放；TV 如继续声明该架构，需另行补齐匹配 SDK/核心，不能静默删除声明或混入旧桥。
+- 源提交：`d4a059b3117a23d70aa0832d00ed7161fd8c6d5a`。
+- [下载原始 CI HAR 附件](https://github.com/yaoshining/VidAll_Player/actions/runs/43038228044/artifacts/13864581509)，其中 `vidall_player.har` 未经消费端重打包。
+- HAR SHA-256：`a8ce9ee5d73a47ed4a4eed0f9fdb22664cc4db7b43a34fbf0aecc625ab3da1d3`。
+- [HAR 构建](https://github.com/yaoshining/VidAll_Player/actions/runs/43038228044)：实际机器 `yaoshiningdeiMac`，self-hosted / macOS / X64；不是云端 Mac。
+- mpv/libplacebo 核心在 MacBook Pro / Darwin arm64 交叉构建。mpv SHA-256：`ee78bf290d9697ff825eb3f4590d09120474834eec9edb11eb53ea83fbcb5267`，恢复 ABI `0x00020000`。FFmpeg 沿用上游预编译恢复 SDK，本轮未修改或构建。
+- [逐库 SHA-256 与来源记录](device-evidence/imac-delivery-d4a059b.json)。HAR 仅支持完整 ARM64 播放，共九库。x86_64 旧探针不能用于播放；TV 如继续声明该架构，需另行补齐匹配 SDK/核心，不能静默删除声明或混入旧桥。
 
 ## 验证结果
 
 | 层次 | 结果 | 边界 |
 | --- | --- | --- |
-| 宿主 | 91 项统一门禁、31 项来源正负例、14 项 CTest 和 2 项诊断 JS 通过 | 平台调用部分为替身 |
-| [Ubuntu CI](https://github.com/yaoshining/VidAll_Player/actions/runs/43024633104) | 音频中断、旧回调隔离、音频生命周期、尺寸/旋转/播完及旧宿主检查通过 | 不证明系统焦点或真实声音 |
+| 宿主 | 94 项统一门禁、31 项来源正负例、14 项 CTest 和 2 项诊断 JS 通过 | 平台调用部分为替身 |
+| [Ubuntu CI](https://github.com/yaoshining/VidAll_Player/actions/runs/43038251489) | 音频中断、旧回调隔离、音频生命周期、尺寸/旋转/播完及旧宿主检查通过 | 不证明系统焦点或真实声音 |
 | iMac CI | HAR、独立消费者九库、缺失 API 负例、Hypium 编译通过 | Hypium 未在设备执行 |
 | API 19 TV 模拟器，CI 原包 | standard / compatible 坏片返回、正常首帧、暂停/恢复、跳转和释放重开通过 | 实际均为 software/no |
 | API 19 TV 模拟器，本地诊断包 | 全局终局注入后保持 PID，旧会话拒绝，新兼容会话连续两次播放有首帧 | 定时注入不是 GPU/fence 故障；诊断完整构建/静态检查通过，仍不能用于正式交付 |
 | 目标真机 | 未完成 | 尚缺零拷贝故障、可听音频、系统打断和连续隔离上限验收；API 24 不能替代 API 19 TV |
 
-最新模拟器记录分别见 [标准模式](device-evidence/api19-ci-standard-01b2ad3.json)、[显式兼容模式](device-evidence/api19-ci-compatible-01b2ad3.json) 和 [全局终局诊断](device-evidence/api19-injected-global-01b2ad3.json)。
+最新模拟器记录分别见 [标准模式](device-evidence/api19-ci-standard-d4a059b.json)、[显式兼容模式](device-evidence/api19-ci-compatible-d4a059b.json) 和 [全局终局诊断](device-evidence/api19-injected-global-d4a059b.json)。
 
 ## TV 迁移步骤
 
@@ -35,4 +35,6 @@
 
 若平台音频 Stop 永久阻塞或无法确认停止，当前实现仍须保持 pending/timeout，不能强行释放或假报续播成功。这是尚未消除的实际限制，不代表已放宽“全局故障后也能继续播放”的要求。
 
-本候选新增 T035：renderer 已确认释放后，builder 清理失败或阻塞不再误挡兼容恢复；残留对象及槽预算仍保留。平台 Stop/Release 未确认的限制保持不变，设备上尚未注入 builder 故障；该边界目前由真实生产函数的宿主回归覆盖。
+本候选保留 T035：renderer 已确认释放后，builder 清理失败或阻塞不再误挡兼容恢复；残留对象及槽预算仍保留。平台 Stop/Release 未确认的限制保持不变，设备上尚未注入 builder 故障；该边界目前由真实生产函数的宿主回归覆盖。
+
+本候选另含 T041：音频 Stop 返回错误后仍查询真实状态，仅明确 STOPPED 才确认静止；状态仍运行、查询失败及调用未返回均不能放行。已通过生产函数正负例和当前源码的 Ubuntu 回归，设备未注入该特定平台错误。T039/T040 的[完整宿主门禁与最终收证](https://github.com/yaoshining/VidAll_Player/actions/runs/43038250441)也已通过。
