@@ -36,3 +36,10 @@ CI 现在将上述四组音频回归指向同一派生目录，并保留失败/�
 冻结补丁 SHA-256：`d35a126644500e410e79b81fcea80e5f5536ec524e07083ade489f99ebe1893e`；音频源 SHA-256：`2bfe14e207371a1c7a30805582302b35b9b6550c47a80340b7c79f8980e861cc`。补丁可独立叠加且与候选逐字节相同。负责完整构建的主任务已重建并绑定 mpv SHA-256 `46cd4112ac963a935773d70fe8fec4254753c9ceade6f546c6433c40318815e7`；本回归重新对该新锁定输入执行四例，并核对七个音频测试文件与候选、更新后的 CI 输入锁完全一致。
 
 这解决 API 19 legacy 全局登记锁的跨会话阻塞，不移除自身回调排空等待，也不改变平台 Stop/GetState/Release 永久阻塞时仍须保留资源的安全限制。尚无真机声音、系统焦点或 API 19 TV 正式入口通过结论。
+
+
+## T035：Renderer 已释放后的 Builder 清理失败
+
+旧代码将 Builder_Destroy 失败也记为音频未静止，导致 renderer 已释放后仍无法恢复。新增真实生命周期回归先在旧源的 `destroy-fail` pending 断言失败；恢复扫描等待忙 control 的行为红测也失败。修复后 10 项生命周期 ASan/UBSan、音频域 ASan/UBSan、6 项数据、控制、旧中断和 4 项 legacy 生命周期通过。另用普通控制锁忙的红绿测试确认跳过后下一轮仍执行 Stop。
+
+新增 0007 补丁只在 renderer 已释放或从未创建时确认静止，builder/AO/音频槽仍被保留；测试填满剩余 15 槽，确保不把静止视为资源归还。Release 失败/未返回仍为 pending。补丁 SHA-256 `1dc9055798f11245affb3d4ed7b4a6c710855f578eb85ef885ebbcd8a14d0e2b`，派生 ao_ohaudio.c SHA-256 `2f786bc3d4745e2dcf14ea127719a678d5faddf34f6c70951387a40d2c4f51ae`。本轮真机音频验收仍未完成。

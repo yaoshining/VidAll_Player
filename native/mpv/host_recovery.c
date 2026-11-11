@@ -10,6 +10,7 @@ struct audio_slot {
     pthread_mutex_t control;
     unsigned long long token, generation;
     enum audio_state state;
+    bool quiescent;
     int (*stop)(void *);
     void *opaque;
 };
@@ -47,6 +48,7 @@ unsigned long long mp_host_audio_begin(unsigned long long born) {
             if (s->state != EMPTY || pthread_mutex_trylock(&s->control)) continue;
             token = (++serial << 8) | (i + 1);
             s->token = token; s->generation = born; s->state = BUILDING;
+            s->quiescent = false;
             s->stop = NULL; s->opaque = NULL;
             pthread_mutex_unlock(&s->control);
             break;
@@ -103,12 +105,20 @@ bool mp_host_audio_remove(unsigned long long token, int (*release)(void *), void
     pthread_mutex_unlock(&s->control);
     return ok;
 }
+void mp_host_audio_confirm_quiescent(unsigned long long token) {
+    struct audio_slot *s = slot_for(token);
+    if (!s) return;
+    // 调用方已持有 control；不能重入该锁，也不能将事实发布当作资源归还。
+    pthread_mutex_lock(&registry);
+    if (s->token == token && s->state != EMPTY) s->quiescent = true;
+    pthread_mutex_unlock(&registry);
+}
 unsigned mp_host_audio_pending(void) {
     pthread_mutex_lock(&registry);
     unsigned pending = 0;
     for (unsigned i = 0; i < AUDIO_SLOTS; ++i) {
         struct audio_slot *s = &slots[i];
-        if (s->state != EMPTY && s->state != STOPPED && mp_host_is_retired(s->generation)) ++pending;
+        if (s->state != EMPTY && !s->quiescent && mp_host_is_retired(s->generation)) ++pending;
     }
     pthread_mutex_unlock(&registry);
     return pending;
@@ -119,12 +129,14 @@ void mp_host_stop_retired_audio(void) {
         struct audio_slot *s = &slots[i];
         pthread_mutex_lock(&registry);
         unsigned long long token = 0;
-        if (s->state == ACTIVE && mp_host_is_retired(s->generation)) {
+        // 正在清理的槽可在 renderer 释放后发布静止事实；扫描不能等其 Builder 清理锁。
+        // trylock 失败时保持原状态，由有限的下一轮扫描再尝试。
+        if (s->state == ACTIVE && !s->quiescent && mp_host_is_retired(s->generation) &&
+            !pthread_mutex_trylock(&s->control)) {
             token = s->token; s->state = STOPPING;
         }
         pthread_mutex_unlock(&registry);
         if (!token) continue;
-        pthread_mutex_lock(&s->control);
         pthread_mutex_lock(&registry);
         bool valid = s->token == token && s->state == STOPPING;
         pthread_mutex_unlock(&registry);
@@ -132,6 +144,7 @@ void mp_host_stop_retired_audio(void) {
             int result = s->stop(s->opaque);
             pthread_mutex_lock(&registry);
             s->state = result == 0 ? STOPPED : FAILED;
+            if (result == 0) s->quiescent = true;
             pthread_mutex_unlock(&registry);
         }
         pthread_mutex_unlock(&s->control);

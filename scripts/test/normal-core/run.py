@@ -41,6 +41,7 @@ def main():
     run('har-normalization-tests', py+['scripts/test/normal-core/normalize-har.test.py'])
     run('runtime-local-loader', py+['native/tests/host-survival/runtime-local-loader.test.py'])
     run('recovery-input-tests', py+['native/tests/host-survival/prepare-input.test.py'])
+    run('public-api-contract', py+['native/tests/host-survival/public-api-gate.test.py'])
     run('tools', ['clang++', '--version'])
     run('llvm-nm-version', [env['LLVM_NM'], '--version'])
     run('node-version', ['node', '--version'])

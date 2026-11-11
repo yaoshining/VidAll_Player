@@ -181,7 +181,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/audio_out_ao_ohaudio.c.o",
-    "sha256": "f0e35b2954cf92c7b53e219288b0533fa7068152d7e31133f9f27f63b740864b"
+    "sha256": "c97dc7765f189812f811170b83811f204f99513efac1e1702f03b1b9bdcae8d3"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/audio_out_ao_pcm.c.o",
@@ -213,7 +213,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/common_host_recovery.c.o",
-    "sha256": "28247759140a6404b134468645f609edef065224db4ce507e190017d5067afb7"
+    "sha256": "24a589caec979eaa75cfc5fef517c7d9ab92b910e18088d413046a0bf71775d8"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/common_msg.c.o",

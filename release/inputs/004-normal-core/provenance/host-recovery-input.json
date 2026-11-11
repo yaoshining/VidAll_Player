@@ -29,18 +29,22 @@
     {
       "path": "native/patches/phase30/0006-isolate-legacy-audio-callbacks.patch",
       "sha256": "d35a126644500e410e79b81fcea80e5f5536ec524e07083ade489f99ebe1893e"
+    },
+    {
+      "path": "native/patches/phase30/0007-preserve-audio-quiescence.patch",
+      "sha256": "1dc9055798f11245affb3d4ed7b4a6c710855f578eb85ef885ebbcd8a14d0e2b"
     }
   ],
   "addedSources": [
     {
       "path": "native/mpv/host_recovery.c",
       "target": "common/host_recovery.c",
-      "sha256": "b533a42f18bb77579010bbbedba7ce8669316330958741d3dcbbb61f0bf5b8a9"
+      "sha256": "d4b5bf5764871ea691dcb4f63df397af6dd7038e489324d04424fcc5fe742e9a"
     },
     {
       "path": "native/mpv/host_recovery.h",
       "target": "common/host_recovery.h",
-      "sha256": "a1e6e7412f73e5457666c7416ec198810e40a250446231ea41729a770e3239cc"
+      "sha256": "94f68a51cb8238a9ebd16d3b1a7d459c925c43ef2b6a817a045e072944d7e4ee"
     },
     {
       "path": "native/mpv/host_recovery_api.h",

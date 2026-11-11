@@ -95,3 +95,9 @@ T030 并发补充：普通命令在独立执行器真正开始前再次检查会
 T032：API 19 的 legacy_write/legacy_interrupt 旧路径在全局 rwlock 读锁内执行平台时间戳 IPC、ao_read_data 或 ao_request_pause；任一阻塞会阻止所有会话登记/注销。改为短登记锁取得并固定 binding 的在途引用，再解锁执行回调；注销先从登记表撤销，使迟到回调无法取得 AO，仅等待自身在途引用归零。等待期间必须释放登记锁，不新增无界线程或以超时强行释放 AO。先用阻塞旧写入/中断的确定性测试复现，并覆盖其他实例登记/注销、旧 token 迟到、引用归还及重复注销。保持 16 个音频槽与宿主会话预算，重建 mpv/libplacebo 输入并更新来源锁、音频 CI 摘要和 CI HAR；不构建或修改 FFmpeg。平台 Stop 本身永久阻塞的恢复限制继续单独记录。
 
 T033：本机 CTest 实际 14 项均 Passed，版本输出省略“0 tests failed”使旧摘要解析误拒绝。先补新旧合法格式和计数不符/失败/跳过/禁用/伪造前缀负例，再只扩展零失败摘要解析；不改变精确测试清单、命令退出校验或来源快照要求。
+
+T034：当前全局终局诊断补丁只增加内部注入函数，不再增加 `mpv_ohcodec_handoff_test_waiting`；旧验证器按编译宏额外要求该公开符号，导致完整诊断构建在 ABI 数量检查误失败。先补正式/诊断 ABI 正例、缺失/多余/内部导出负例，再固定公开契约，并核对诊断内部函数及其真实终局调用。用已保留的正式与诊断 ELF 分别重验，不修改二进制、不重写旧失败记录；正常交付的故障宏禁令保持有效。
+
+T035：先覆盖 renderer Release 已成功、Builder_Destroy 失败或阻塞的真实音频函数红测，再将音频静止事实与对象清理完成状态分开记录。成功释放 renderer 后发布不可逆的本槽静止事实；残留资源与失败清理仍保留槽及 AO，不归还预算、不并发销毁。恢复线程与释放线程交错也须观察静止事实，不能被已无音频的 builder 清理卡住；未知 renderer 状态仍阻止恢复。修改后重建 mpv、更新来源绑定和完整 CI HAR，不改变 FFmpeg。
+
+T035 平台依据：官方 [OH_AudioRenderer_Release](https://developer.huawei.com/consumer/en/doc/harmonyos-references/capi-native-audiorenderer-h/) 与 [OH_AudioStreamBuilder_Destroy](https://developer.huawei.com/consumer/en/doc/harmonyos-references/capi-native-audiostreambuilder-h/) 分别释放输出流与构造器，均自 API 10 提供。本次只在 Release 返回 AUDIOSTREAM_SUCCESS 或从未创建 renderer 时确认静止，不把其他返回值或超时作为成功。

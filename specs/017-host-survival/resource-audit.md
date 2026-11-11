@@ -54,3 +54,10 @@ node native/tests/host-survival/event-overflow.test.cjs
 音频域必须先证实旧音频停止，才能发布新兼容代 ready；音频恢复线程与 UI/NAPI 通用池分开。永久阻塞的系统 Stop/Release 不得通过假报 ready 或释放未知资源绕过。本次还发现 API 19 旧音频回调持有全局登记读锁跨越回调的风险，由 T032 独立修复和重建核心；T030 不构成该项完成证明。
 
 `preserve-host` 保留应用，`controlled-app-exit` 的历史退出策略仍按显式契约存在。T030 没有修改两种运行期策略或 FFmpeg。真机上的系统音频独占、OHCodec/Vulkan 全局故障后新代音画，以及 API 19 TV 正式入口连续故障验收仍须独立记录；宿主测试或模拟器 software/no 不能替代这些结果。
+
+
+## T035：已静止音频与残留资源分别计数
+
+每个音频槽新增受登记锁保护的 `quiescent` 事实。平台 Stop 已确认成功，或 Renderer Release 返回成功后，旧音频不再计入恢复 pending；Builder_Destroy 后续失败或阻塞时，槽仍保持占用，AO 与 builder 不释放。失败状态不能覆盖已确认的静止事实。新槽初始化清除该事实，旧 token 无权标记新槽；16 个槽总预算不变。
+
+恢复扫描只尝试取得槽控制锁，忙槽保留状态并由现有恢复线程下一轮重试，不新增线程、不阻塞其他槽。真实生命周期测试覆盖 builder 失败/阻塞、Release 未返回及两者交错，并填满剩余 15 槽确认残留资源没有提前归还；普通控制调用结束后，下一轮确实执行 Stop。该修复只处理已知安全状态被清理失败覆盖的问题，不宣称未知 Stop/Release 永久阻塞也能续播。

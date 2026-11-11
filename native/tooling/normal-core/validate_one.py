@@ -10,6 +10,7 @@ from registration_gate import inspect_ohcodec_registration
 from interop_gate import compiled_interop_inputs,render_one_calls,unique_plt_address,direct_bl_calls
 import abi_helpers as abi
 from path_policy import require_no_runtime_paths
+from public_api_gate import require_public_api
 p=argparse.ArgumentParser()
 for name in ['artifact','symbols','build','source','map','ffmpeg-lib','link-command','evidence-root','input-root','sdk']:p.add_argument('--'+name,type=Path,required=True)
 args=p.parse_args()
@@ -20,7 +21,7 @@ abi.O=O;abi.LLVM=LLVM
 inspect=abi.inspect;exported=abi.exported;imports=abi.imports
 helper=VENDOR/'abi_helpers.py'
 commands=[];pins=[]
-inputs=[args.artifact,args.symbols,args.map,args.link_command,args.build/'compile_commands.json',helper,VENDOR/'portable_elf.py',VENDOR/'registration_gate.py',VENDOR/'interop_gate.py']
+inputs=[args.artifact,args.symbols,args.map,args.link_command,args.build/'compile_commands.json',Path(__file__),Path(__file__).with_name('public_api_gate.py'),helper,VENDOR/'portable_elf.py',VENDOR/'registration_gate.py',VENDOR/'interop_gate.py']
 for path in inputs:
  raw=path.read_bytes();pins.append({'path':str(path.resolve()),'size':len(raw),'sha256':hashlib.sha256(raw).hexdigest()})
 (O/'build-input-pins-before.json').write_text(json.dumps(pins,indent=2)+'\n')
@@ -81,14 +82,17 @@ for source_name,targets in {'hwdec_ohcodec.c':['OH_NativeImage_AcquireNativeWind
 new=inspect(args.artifact,'actual-mpv');tv=inspect(INPUT/'baseline/tv-har/libmpv.so','baseline-tv-mpv');old=inspect(INPUT/'baseline/player-har/libmpv.so','baseline-player-mpv')
 require_no_runtime_paths(new['runpath'])
 newex=exported(new);public=sorted(n.split('@')[0] for n in newex if n.startswith('mpv_'));tvpublic=sorted(n.split('@')[0] for n in exported(tv) if n.startswith('mpv_'))
-extension={'mpv_ohcodec_terminal_api_version','mpv_ohcodec_terminal_register','mpv_ohcodec_terminal_enable','mpv_ohcodec_terminal_snapshot'}
-extension.update({'mpv_host_recovery_api_version','mpv_host_recovery_generation','mpv_host_recovery_audio_pending','mpv_host_recovery_stop_audio','mpv_host_loadfile_async','mpv_host_fault_snapshot'})
-assert not any(n.startswith('mp_host_') for n in newex), 'internal recovery symbol exported'
+extension=require_public_api(newex,tvpublic)
 test_build = '-DMP_OHCODEC_HANDOFF_TEST=1' in (args.build/'compile_commands.json').read_text()
-if test_build: extension.add('mpv_ohcodec_handoff_test_waiting')
-assert len(tvpublic)==54 and len(public)==54+len(extension)
-assert set(public)==set(tvpublic)|extension, (set(public)-set(tvpublic),extension)
-assert not any(n.startswith('mp_ohcodec_terminal_') for n in newex), 'internal terminal symbol exported' 
+probe_symbols=[s for s in symbol_b.inventory['symbols'] if s['name']=='host_probe_enter' and s['sectionIndex'] and s['size']>0]
+probe_evidence={'present':bool(probe_symbols),'runtimeExecuted':False}
+if test_build:
+ assert probe_symbols, 'diagnostic macro enabled without internal global terminal probe'
+ probe=b.symbol('host_probe_enter');terminal=b.symbol('mp_ohcodec_terminal_enter_context')
+ probe_evidence.update({'function':probe,'terminalTarget':terminal['address'],'terminalCalls':direct_bl_calls(b,probe['address'],probe['size'],terminal['address'],executable)})
+else:
+ assert not probe_symbols, 'normal core contains internal global terminal probe'
+(O/'global-terminal-probe.json').write_text(json.dumps(probe_evidence,indent=2)+'\n')
 assert 'av_ohcodec_release_buffer@LIBAVCODEC_62' in imports(new)
 bridge_rows={}
 for label in ['tv','player']:

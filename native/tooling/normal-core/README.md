@@ -16,6 +16,8 @@ python3 -B native/tooling/normal-core/fresh_build.py \
 
 工具验证全部输入摘要，将 pkg-config 前缀迁移到独立构建副本；只构建 libplacebo 和 mpv。原 SDK 六库保持字节不变。产物不能手工改 ELF/RPATH 伪装可复现；`run-summary.json`、`input-final-check.json`、`validation/static-validation.json` 和实际链接/编译命令共同记录结果。源树检查、OHCodec 注册及 Vulkan 调用静态证据不等于目标运行。
 
+正常核心和当前全局故障诊断核心都保持 64 个公开 mpv 符号；`--handoff-test` 不再要求已移除的 `mpv_ohcodec_handoff_test_waiting`。诊断静态验证另外检查内部 `host_probe_enter` 及其真实终局调用，正式核心不得包含该函数。诊断包必须在独立输入与输出目录构建，不能替换正式库；验证通过仅说明静态契约满足，不代表硬件故障或音频验收通过。
+
 宿主范围测试：
 
 ```sh

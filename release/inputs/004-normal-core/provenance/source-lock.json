@@ -53922,12 +53922,12 @@
   },
   "hostRecovery": {
     "inputLock": "host-recovery-input.json",
-    "inputLockSHA256": "fab831235512a500fce87eff1a0ade6230febf45dff333fe057b3f46f792e946",
-    "preparedInputSHA256": "0ccb801d27b802ea05b97cfff114d01768562b18b2fe2cfe97cfc675f477fb80",
+    "inputLockSHA256": "d7df5a8f84e84d845774fbdb3f5da46bdb568aeff1e2e3eabcf5b85b262858c7",
+    "preparedInputSHA256": "60e24caba7b2bbd5cfc72dd572fcd5f5c747ac09343d6e75bf345e3a6413a650",
     "abiVersion": "0x00020000",
     "buildOrigin": "local",
     "buildMachine": "MacBook Pro / Darwin arm64",
-    "libmpvSHA256": "46cd4112ac963a935773d70fe8fec4254753c9ceade6f546c6433c40318815e7",
+    "libmpvSHA256": "5aa3d663b13289a7d6ab7ede6a0ac40dbd42b37642c9a93d0da11dc71f445b79",
     "tooling": [
       {
         "path": "native/tooling/normal-core/collect_run.py",
@@ -53955,7 +53955,7 @@
       },
       {
         "path": "native/tooling/normal-core/validate_one.py",
-        "sha256": "4ce5e48cc427f00748c7b98f18c7105e03bafed4890d1a11eb811ecffb9f04ce"
+        "sha256": "d13dae8f77dedaa6760162a3e3f764cbfee3ca5cb9c13457d02ebdcd25d705b4"
       },
       {
         "path": "native/tooling/normal-core/vendor/abi_helpers.py",
@@ -53976,6 +53976,10 @@
       {
         "path": "native/tooling/normal-core/vendor/registration_gate.py",
         "sha256": "5206ebf20b741651b9714c0ecf7a639caa606763019da0a3d37397349caf00bf"
+      },
+      {
+        "path": "native/tooling/normal-core/public_api_gate.py",
+        "sha256": "6804fbdb2408a03ebe3edb4c91c75e77b29d67fe71ae57f30ce33715eaa00ad8"
       }
     ]
   }

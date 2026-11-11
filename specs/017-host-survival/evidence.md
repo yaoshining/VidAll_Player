@@ -183,3 +183,18 @@ T032 最终本地统一门禁：`/tmp/vidall-host-survival-host-gate-t032/work/s
 - 当前桥和 T032 核心的独立本地诊断包：PID 2479，定时进入真实全局终局管理器，旧操作拒绝、约 150 ms 后恢复代 ready、新 Surface 连续两次软件播放，合计 3 次首帧、0 探针错误；超过原 3 秒退出期限后仍为同一 PID。硬解锁持续 terminal。诊断 HAR/库哈希与正常 CI 原包分开保存，且原诊断静态验证器仍因历史测试导出断言失败；不称其为正式门禁通过。
 
 以上没有证明实际可听音频、系统焦点抢占/手动恢复、GPU/fence 故障或 API 19 TV 正式文件入口通过。T3 浏览器打开及登录请求均返回 parent_not_active（The calling provider no longer owns an active thread run），Dia 原云调试登录页已关闭；当前无法继续云真机操作。未提交 PR，T007/T009/T013/T017/T018 保持未完成。
+
+## T034 诊断静态 ABI 门禁修正（2026-11-11）
+
+旧诊断构建确实在 `validate_one.py` 的公开符号数量断言失败：编译宏使验证器额外要求已移除的 `mpv_ohcodec_handoff_test_waiting`，当前注入仅使用内部函数。新增 4 组契约测试覆盖完整 ABI、逐一缺失的 64 个符号、废弃/额外/内部导出及错误基线清单；先失败后通过。正式包故障宏禁令保持不变。
+
+用新验证器只读重验原 T032 两份 ELF：正常核心 46cd4112… 与诊断核心 68dd9ede… 均通过，64 个公开 mpv 符号、247 个 FFmpeg 导入及原 OHCodec/Vulkan 注册和调用检查完整保留。诊断内部 `host_probe_enter` 的真实终局调用地址已验证；正常核心不存在该注入函数。输出分别在 `/tmp/vidall-t034-normal-validation` 与 `/tmp/vidall-t034-diagnostic-validation`，旧失败日志与二进制未改写。这是新的静态证据，不补称旧完整构建已通过，也不产生新的设备验收结论。
+
+
+## T035 音频清理与恢复准入分离（2026-11-11）
+
+真实音频生命周期红测复现“renderer 已释放而 builder 清理失败仍永久 pending”；旧控制锁竞争红测复现扫描阻塞。10 项生命周期 ASan/UBSan、音频域 ASan/UBSan、实际数据/控制/中断与 legacy 回归通过，独立只读审查未发现新增明确缺陷。补充普通控制锁忙→扫描返回→解锁→下一轮真正 Stop 的回归，旧实现失败、新实现通过。原始日志在 `/tmp/vidall-audio-t035-red-{destroy-fail,control-busy,domain}.log` 和 `/tmp/vidall-audio-t035-green-{lifecycle,domain}.log`。
+
+锁定输入 60e24caba7b2bbd5cfc72dd572fcd5f5c747ac09343d6e75bf345e3a6413a650 在 MacBook Pro / Darwin arm64 完整构建 mpv/libplacebo，所有编译、静态检查及输入不变检查通过。mpv SHA-256 为 5aa3d663b13289a7d6ab7ede6a0ac40dbd42b37642c9a93d0da11dc71f445b79，公开符号仍为 64，libplacebo 哈希不变；FFmpeg 预编译六库未修改或重建。完整宿主、HAR 与 CI 结果在后续完成后补记，不预先沿用 8ca9bef 的通过结论。
+
+T035 本地完整统一门禁共 91 项全部通过，外部来源审计、31 项来源正负例、2 项交付锁测试通过。完整本地 HAR 构建通过并核对 ARM64 九库；mpv 为 5aa3d663…，本地 HAR 哈希 873d7c776cdd24a15241bec4773bab96dbeea521be72986b21392a97b5bc9d5e，仅供预验证。CI 原包与设备结果仍须补齐。
