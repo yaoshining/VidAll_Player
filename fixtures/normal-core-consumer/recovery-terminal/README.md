@@ -7,3 +7,5 @@
 需两个 rawfile：global-probe.mp4 为 30 秒 SMPTE 色条/880 Hz 合成素材；test_video.mp4 使用相邻 recovery/README.md 的移动图案/440 Hz 素材。两者都以每秒关键帧编码。测试音频状态/进度不代替可听音频或真实系统打断验收。
 
 当前导入静态验证器的历史 test 模式还期望已移除的 mpv_ohcodec_handoff_test_waiting 导出，因此该诊断构建在完整编译链接后未通过该旧测试导出断言。正常核心 64 导出门禁通过；不为此放宽正式门禁，也不把诊断包称为已通过正式输入审计的产物。
+
+诊断 Player HAR 必须使用 `devecocli build --product default --modules vidall_player@deveco26`，从 `packages/vidall-player/build/default/outputs/deveco26/vidall_player.har` 取包。`default` 模块目标还会携带两个 x86_64 探针库；它们不提供播放能力，不能据此扩大支持架构。验证消费 HAP 时同时记录全部库与实际设备 ABI，正常 CI 候选必须为 ARM64 九库。

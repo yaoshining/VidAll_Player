@@ -63,5 +63,6 @@
     "packages/vidall-player/src/main/ets/public/runtime.ets": "695f6cbebb9d28289b96077fcdf68f4c7f6e9954cb40990689dc9a42d3dbc215",
     "packages/vidall-player/src/main/ets/internal/playerSession.ets": "88ac3b6a252d20450ef5651c3b2e7b49ba577760276c8697428afecb20b6132a",
     "fixtures/normal-core-consumer/recovery-terminal/Index.ets": "b02ee7d78140d73f24c22c06c6385b7641b29e890488841910921424f32747ca"
-  }
+  },
+  "packagingNote": "本次本地诊断使用 default 目标，含 ARM64 九库与两个 x86_64 非播放探针；实际 API 19 模拟器执行 ARM64。非正式交付，不声明 x86_64 播放支持。"
 }

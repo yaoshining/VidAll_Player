@@ -137,3 +137,12 @@ iMac 自托管运行器 yaoshiningdeiMac（macOS/X64/deveco）完成 Actions 430
 T027 红测分别发现终局后仍保留 3 个闭包，以及连续创建失败/释放拒绝后仍保留 Player 的订阅。终局通知改为投递前移走本批，释放 Promise 结算后取消订阅；不改原生隔离、错误或成功释放状态。新测试覆盖重入、监听者抛错、100 次终局后订阅、100 次创建失败、未完成释放期间终局。完整 gate-23 共 85 项通过，本地 HAR 编译通过；没有把取消 JS 引用当作资源安全回收。
 
 更新诊断页后严格核对旧 play/release 的 PLAYER_TERMINAL，修复 ArkTS 对任意类型 throw 的编译拒绝；只记录必要诊断字段，避免整份 JSON 被 hilog 截断。更新 ArkTS 源的独立诊断包在同一 PID 15071 完成三个首帧及新代进度增长，终局锁仍保持。见 device-evidence/api19-injected-global-listeners.json，其中明确列出 622ce07 基线之外的源文件摘要。诊断核心没有更换；旧静态 test 导出限制仍存在，不算正式 CI 产物。
+
+
+## ccd253a CI 原包与打包目标复核
+
+Actions [43014565922](https://github.com/yaoshining/VidAll_Player/actions/runs/43014565922) 已通过；源提交 ccd253a033fd891b8daaf6725dd1ac44c8da1242，实际运行器 yaoshiningdeiMac/self-hosted/macOS/X64/deveco。原始 HAR SHA-256 `b395e67f8ba0b77ee63d22f5c02c37cbe805bb35d0e8474c22b98a7649ebbec9`，完整 ARM64 九库及附件地址见 device-evidence/imac-delivery-ccd253a.json。核心仍由前述 MacBook Pro 构建，CI 负责完整 HAR 与消费者。该原包的独立 HAP 九库逐项匹配，同一 PID 24277 完成基础探针，firstFrames=2/errors=0，见 api19-ci-compatible-ccd253a.json。Hypium 是编译通过，不是设备执行。
+
+核对本地诊断包时发现 PID 15071 的 default 目标还附带两个 x86_64 探针；原 JSON 保留实际十一库并补充说明，不宣称支持 x86_64 播放。改为 deveco26 目标后，PID 20503 的独立诊断 HAP 确认为 ARM64 九库，终局后的新代续播/释放重开仍通过，见 api19-injected-global-deveco26.json。正式 CI 一直使用 deveco26，未受该本地诊断目标误选影响。
+
+后续提交只补充这些证据与构建说明，不改变 ccd253a 的产品代码、测试或原生输入。目标 OHCodec/Vulkan 真机、可听音频、系统打断/焦点、硬件连续隔离上限及 TV 正式文件入口仍未验收。平台 Stop 永久卡住时不能安全开放恢复代的问题仍是明确限制，未将 R3 改成“只保活、不续播”。
