@@ -21,7 +21,12 @@ Module._load = function(n,p,m) {
   if(n==='@kit.ArkTS') return {util:{TextDecoder:class{decodeToString(b){return new TextDecoder().decode(b);}}}};
   return load.call(this,n,p,m);
 };
-require.extensions['.ets']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,f);
+require.extensions['.ets']=(m,f)=>{
+  let source=fs.readFileSync(f,'utf8');
+  // 只在测试编译中观测实际全局注册表，不给产品增加调试接口，也不依赖不确定的 GC 时机。
+  if(f.endsWith('/public/runtime.ets')) source+='\nexport function testTerminalListenerCount(): number { return listeners.length; }';
+  m._compile(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,f);
+};
 const {PlayerSession}=require('../../packages/vidall-player/src/main/ets/internal/playerSession.ets');
 const {createPlayer}=require('../../packages/vidall-player/src/main/ets/public/player.ets');
 const runtime=require('../../packages/vidall-player/src/main/ets/public/runtime.ets');
@@ -29,7 +34,35 @@ const tick=()=>new Promise(r=>setImmediate(r));
 async function bounded(p){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error('TEST_TIMEOUT')),150))]);}
 async function main(){
   const which=process.argv[2];
-  if(which==='fault-notifications') {
+  if(which==='terminal-listener-lifetime') {
+    state='ready';recovery={state:'pending',generation:0};let a=0,b=0,c=0;
+    const off=runtime.onPlayerTerminal(()=>{throw Error('已取消订阅不应执行');});off();off();
+    runtime.onPlayerTerminal(()=>{a++;runtime.onPlayerTerminal(()=>c++);runtime.getPlayerRuntimeStatus();});
+    runtime.onPlayerTerminal(()=>{b++;throw Error('listener');});
+    assert.equal(runtime.testTerminalListenerCount(),2);
+    state='terminal';runtime.getPlayerRuntimeStatus();
+    assert.deepEqual([a,b,c],[1,1,1]);assert.equal(runtime.testTerminalListenerCount(),0,'终局投递后不能保留闭包');
+    for(let i=0;i<100;i++) runtime.onPlayerTerminal(()=>c++);
+    assert.equal(c,101);assert.equal(runtime.testTerminalListenerCount(),0,'终局后重放不能保留闭包');
+  } else if(which==='failed-release-listener') {
+    state='ready';native.createSession=async()=>({ok:false,handle:0,code:'NATIVE_SESSION_LIMIT'});
+    for(let i=0;i<100;i++) {
+      const player=createPlayer();
+      await assert.rejects(player.attachSurface({componentId:'s',generation:1,width:1,height:1}));
+      await assert.rejects(player.release());
+      assert.equal(runtime.testTerminalListenerCount(),0,'创建失败且释放拒绝后不能保留 Player');
+    }
+    assert.equal(nativeReleases,0,'失败创建不伪造原生释放');
+  } else if(which==='pending-release-listener') {
+    state='ready';let finish;
+    const bridge=new Proxy({subscribe:()=>()=>{},release:()=>new Promise(r=>finish=r)}, {get:(o,k)=>o[k]||(()=>Promise.resolve())});
+    const player=new PlayerSession(undefined,bridge);const releasing=player.release();
+    const rejected=assert.rejects(releasing,/PLAYER_TERMINAL/);
+    assert.equal(runtime.testTerminalListenerCount(),1,'释放未结算时仍能收到终局');
+    state='terminal';runtime.getPlayerRuntimeStatus();
+    assert.equal(player.stateMachine.getState(),'error');finish();await rejected;
+    assert.equal(runtime.testTerminalListenerCount(),0);
+  } else if(which==='fault-notifications') {
     state='ready';const events=[];
     const off=runtime.onPlayerFault(f=>events.push(f));
     runtime.onPlayerFault(()=>{throw Error('listener failure');});

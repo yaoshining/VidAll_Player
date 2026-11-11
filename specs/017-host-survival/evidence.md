@@ -115,3 +115,25 @@ API 19 TV 模拟器 `VidAll_Issue89_TV_API19` 安装本地九库 HAR，实际 HA
 设备基础探针尚未整体通过：首次缺少媒体资源；补资源后定位接口加载问题；修复加载后长 GOP 合成素材在 seek 时落到 16.67 s，而旧探针预期 20 s 附近，得到 SEEK_NOT_ADVANCING。下一轮使用明确定义每秒关键帧的 30 秒合成素材匹配原 seek 用例前提，不把该失败删去。上述初步结果不含全局终局注入、不证明真机零拷贝，也没有对外宣称声音已验收。
 
 gate-22 完整 82 项通过，包含新恢复输入及局部符号加载回归、父级保护和负向变异。完整本地 HAR 再构建通过；CI 与设备整体验收仍不升级。
+
+API 19 TV 模拟器基础兼容探针最终在同一 PID 6143 完成坏片报错/释放、正常首帧、暂停/手动恢复、seek、释放重开及两个首帧，正常阶段 errors=0；实际 decoder=no / renderBackend=software。事件、HAP/HAR/素材/九库哈希保存在 `/tmp/vidall-host-recovery-api19-basic-evidence.json`。只验证该测试页及纯软件基础流程，不代表真实全局 GPU 故障、可听音频、系统打断或 TV 正式文件入口。
+
+
+## 全局终局注入探针与 iMac CI
+
+独立诊断 mpv/HAR 由 Player 的临时源码副本编译，正常目录和 CI 输入未替换。注入宏仅在该副本启用：首次加载 global-probe.mp4 后三秒进入真实进程终局管理器，不伪造真实 GPU/fence 故障。首次页面误将旧实例 release 的预期 PLAYER_TERMINAL 当成测试失败；修正页面接管，保留旧 Surface、创建新 XComponent/Surface 后复验。
+
+API 19 TV 模拟器同一 PID 10749：首个视频首帧 → 已知身份 (1,1) 的 process-terminal → 旧音频停止后 recovery.ready/generation=2 → 拒绝旧实例操作 → 新 Surface 第二部素材首帧/进度增长 → 释放后第三会话首帧；最终 firstFrames=3、正常恢复阶段 errors=0。结束时距终局超过原 3000 ms 退出期限，主进程未退出，terminal 锁保持。当前诊断只覆盖软件旧会话及软件恢复路径；无可听音频、真实焦点、硬件零拷贝失败或正式 TV 文件入口的通过结论。证据见 device-evidence/api19-injected-global.json。
+
+iMac 自托管运行器 yaoshiningdeiMac（macOS/X64/deveco）完成 Actions 43012213322，源提交 622ce07d3da274ebb9b55558590201412d859571。完整 HAR 构建/审计、独立消费者九库、缺失公共 API 负向编译及 Hypium 编译均通过；Hypium 未执行。原始 HAR SHA-256 `c092e1050c7c68b00a7fd4cee0033fae7c4b51ac2562274982fc9316df7f8274`，九库和运行器记录见 device-evidence/imac-delivery-622ce07.json。这是分支候选产物，仍非目标 TV 完整验收。
+
+云真机访问尝试：T3 新页面可打开，但两次 snapshot 均在 15000 ms 超时；桌面浏览器 host unavailable，Dia 返回 cgWindowNotFound。已请求用户恢复前台可操作窗口，同时继续 CI 包模拟器验证；不能把此访问缺口写成真机通过。
+
+
+## CI 原包模拟器复验及 T027 订阅回收
+
+622ce07 的 iMac CI 原始 HAR 在独立消费 HAP 中九库逐项匹配，同一 PID 11889 完成坏片返回、正常首帧、暂停/手动恢复、seek 20 s、释放重开；firstFrames=2/errors=0。见 device-evidence/api19-ci-compatible-622ce07.json。仅为 API 19 TV 模拟器软件路径，尚未测试可听声音和真实系统中断。
+
+T027 红测分别发现终局后仍保留 3 个闭包，以及连续创建失败/释放拒绝后仍保留 Player 的订阅。终局通知改为投递前移走本批，释放 Promise 结算后取消订阅；不改原生隔离、错误或成功释放状态。新测试覆盖重入、监听者抛错、100 次终局后订阅、100 次创建失败、未完成释放期间终局。完整 gate-23 共 85 项通过，本地 HAR 编译通过；没有把取消 JS 引用当作资源安全回收。
+
+更新诊断页后严格核对旧 play/release 的 PLAYER_TERMINAL，修复 ArkTS 对任意类型 throw 的编译拒绝；只记录必要诊断字段，避免整份 JSON 被 hilog 截断。更新 ArkTS 源的独立诊断包在同一 PID 15071 完成三个首帧及新代进度增长，终局锁仍保持。见 device-evidence/api19-injected-global-listeners.json，其中明确列出 622ce07 基线之外的源文件摘要。诊断核心没有更换；旧静态 test 导出限制仍存在，不算正式 CI 产物。

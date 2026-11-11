@@ -47,7 +47,7 @@ def main():
     run('typescript-version', ['node', '-e', 'const t=require(process.env.TYPESCRIPT_PATH); console.log(t.version); if(t.version!=="5.6.3")process.exit(1)'])
     run('input-audit', py+['scripts/audit/normal-core-verify.py'])
     run('input-mutations', py+['native/tests/normal-core-input.test.py'])
-    ets_cases = ['fault-notifications', 'constructor-terminal-replay', 'host-recovery', 'unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
+    ets_cases = ['terminal-listener-lifetime', 'failed-release-listener', 'pending-release-listener', 'fault-notifications', 'constructor-terminal-replay', 'host-recovery', 'unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
     for case in ets_cases:
         run('ets-'+case, ['node', 'native/tests/normal-runtime.test.cjs', case])
     for case in ['switch', 'queue-failed', 'callback-failed', 'terminal-in-callback', 'invalid', 'legacy']:

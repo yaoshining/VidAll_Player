@@ -76,3 +76,7 @@ T025：完整门禁暴露多个终局观察者竞争。先以阻塞归属快照�
 完整目标编译发现 vo_gpu_next 的无 mapper 关闭路径仍调用 owner 入口；T013 补保留该入口并显式报告 unknown，不能借 owner/current entry 推测媒体。先补入口测试，复用故障投递逻辑，再完整重建。
 
 T026：API 19 TV 模拟器安装的 HAR 九库匹配，但初始化返回 RUNTIME_RECOVERY_UNAVAILABLE。新增局部加载/全局符号不可见回归；恢复符号必须从已链接的实际 mpv 映像解析，不能仅依赖 RTLD_DEFAULT。以 dladdr 定位已有 terminal ABI 所在映像，再用 RTLD_NOLOAD 取得句柄，禁止加载另一份核心；Load 扩展共用同一解析规则。
+
+目标探针分层：先用正常本地 HAR 验证 API 19 模拟器的 compatible 坏片/重开；再由 Player 独立工程构建仅诊断的进程终局注入 HAR，真实执行代退休/旧音频停止/新 Surface 软件播放。注入不模拟 GPU 错误，不能替代 OHCodec/Vulkan 真机与 API 19 TV 正式入口。正常 CI 包永不混入诊断库。
+
+T027：先以真实运行期模块的测试计数观测订阅存活，复现一次性通知及释放失败后残留。投递前从全局表移走本批终局监听者，允许重入重放且每项一次；释放 Promise 结算后取消 Player 的终局订阅，不释放隔离原生对象、不吞错误。

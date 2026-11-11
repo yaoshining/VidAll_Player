@@ -75,7 +75,8 @@ let cachedTerminal: PlayerTerminalInfo | undefined;
 function notify(info: PlayerTerminalInfo): void {
   if (cachedTerminal === undefined) cachedTerminal = info;
   if (!preserveHost && timer >= 0) { clearInterval(timer); timer = -1; }
-  const current = listeners.slice();
+  // 全局终局不可复位；投递前移走本批，避免旧 Player 被全局表持有。
+  const current = listeners.splice(0);
   for (const listener of current) {
     if (!listener.delivered) {
       listener.delivered = true;

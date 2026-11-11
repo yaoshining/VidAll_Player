@@ -18,7 +18,7 @@ const player = createPlayer();
 
 `deadlineMs` 是 1000–10000 ms 的整数。preserve-host 下它只决定等待状态是否显示为 timeout，不调用 `_Exit`，也不解除全局硬解安全锁。必须使用包含恢复 ABI `0x00020000` 的完整 HAR；旧核心或缺失接口会返回 `RUNTIME_RECOVERY_UNAVAILABLE`，不会偷偷切回退出策略。初始化同配置幂等、不同配置拒绝。
 
-`onPlayerTerminal` 用于更新失败状态和导航，**不要调用 killAllProcesses**。终局后旧实例不可再用；释放/放弃旧实例不等待尚未确认安全的 GPU 资源。`getPlayerRuntimeStatus()` 的 state 保持 terminal，recovery.state 独立表示：pending 等待旧音频停止；timeout 超过观察期限但继续保留资源；ready 已确认旧音频停止。ready 后用 `createPlayer({ playbackMode: 'compatible' })` 创建新实例并附加新 Surface。普通模式在本次进程中始终拒绝新建；重启进程后未标记视频重新优先硬解。
+`onPlayerTerminal` 是进程内一次性通知，投递后自动移除；终局后的订阅同步重放且不长期持有闭包。普通 `onPlayerFault` 仍须由宿主显式取消订阅。`onPlayerTerminal` 用于更新失败状态和导航，**不要调用 killAllProcesses**。终局后旧实例不可再用；释放/放弃旧实例不等待尚未确认安全的 GPU 资源。`getPlayerRuntimeStatus()` 的 state 保持 terminal，recovery.state 独立表示：pending 等待旧音频停止；timeout 超过观察期限但继续保留资源；ready 已确认旧音频停止。ready 后用 `createPlayer({ playbackMode: 'compatible' })` 创建新实例并附加新 Surface。普通模式在本次进程中始终拒绝新建；重启进程后未标记视频重新优先硬解。
 
 compatible 强制软件解码与软件渲染，绕过 Vulkan/EGL/OHCodec interop。原 `hardwareDecoding: 'disabled'` 只控制解码器，不等于兼容恢复。新实例仍按既有事件合同加载、等待准备、播放及释放；恢复成功须以实际首帧与音频确认，不能仅凭 create/load Promise 成功显示“已切换兼容模式”。若旧音频平台 Stop 永久不返回或不能确认停止，保持 pending/timeout，不强行释放或假称续播成功；这是当前安全恢复的实际限制，R3 设备验收仍未完成。
 

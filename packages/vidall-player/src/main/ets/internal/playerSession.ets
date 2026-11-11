@@ -681,7 +681,6 @@ export class PlayerSession implements VidAllPlayer {
     this.queue.close();
     return this.nativeBridge.release().then(() => {
       if (playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) throw new Error('PLAYER_TERMINAL');
-      this.unsubscribeTerminal?.();
       // Native release completes before the public session publishes closed.
       this.releaseLeases('release');
       this.stateMachine.release();
@@ -690,6 +689,10 @@ export class PlayerSession implements VidAllPlayer {
       this.source = undefined;
       this.tracks = [];
       this.lastPositionEmitAtMs = 0;
+    }).finally(() => {
+      // 释放拒绝仍原样上抛；只取消 JS 生命周期订阅，不触碰原生隔离资源。
+      this.unsubscribeTerminal?.();
+      this.unsubscribeTerminal = undefined;
     });
   }
 
