@@ -169,3 +169,5 @@ T032 新增 0006-isolate-legacy-audio-callbacks.patch（SHA-256 d35a126644500e41
 完整构建的输入不变、实际编译命令、链接输入、静态验证和来源锁已更新，normal-core-verify --verify-external 与 31 个输入正负例通过；本地 deveco26 HAR 编译通过。producer 输入门禁先拒绝新哈希，核对上述完整目标构建及冻结补丁后才更新精确锁，继续保留“未来输入变化拒绝”与“未验证最新完整云端重建”的标记，未放宽规则。
 
 T032 最终本地统一门禁：`/tmp/vidall-host-survival-host-gate-t032/work/summary.json` 共 90 项全部通过，含父级真实关闭链、三组负向变异及公开日志检查；当前完整 HAR 含 ARM64 九库，libmpv 为上述新哈希。旧 14 项 CTest/2 项 JS 要求干净提交快照，将在提交后执行，尚未将其写为通过。
+
+提交 bed3bdb 的旧门禁实际 14 项 CTest 均 Passed，但汇总脚本只认旧格式而拒绝，后两项 JS 尚未运行。T033 新增解析红绿测试后兼容本机 `100% tests passed out of 14`，同时拒绝跳过、禁用、失败及错误计数；4 项包装器测试通过。完整门禁随后用新干净提交复跑，不把首次汇总失败记作整体通过。
