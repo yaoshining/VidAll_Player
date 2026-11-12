@@ -307,3 +307,11 @@ T041 最终本地统一门禁 94/94 通过（`/tmp/vidall-host-survival-host-gat
 两组诊断 HAP 随后均经 T3 自动上传成功，云调试应用列表新增两条 `VidAllCoreConsumer / com.yaoshining.vidallplayer / tv,tablet`，总数由61变为63；上传不表示安装或运行。重新筛选“平板 + 空闲”只剩 API5–8 三台，当前新版平板仍不可用。
 
 另为原始 iMac CI HAR 准备相同 tv/tablet 声明及无损库压缩的基础验收 HAP：standard 包 45,014,389 字节、SHA-256 `508b41fd0058a0be4c4f4886d0d2e0dc31e7e551281020357cb1155affda09ba`；compatible 包 45,014,394 字节、SHA-256 `f93680002233137aa45f08dcdd8824909a4c795105a24cce151dbb23582b7d1e`。两者完整消费 `a8ce9ee5…ab3da1d3`，九库、素材及已有模式探针源码逐一核对通过；当前只完成本地目标构建和包验证，未继承旧模拟器运行结论，也未安装到真机。对应信息一并纳入 T043 清单。
+
+## T044 API24 云平板实测与关闭顺序修复（2026-11-12）
+
+随后获得 MatePad Mini MLR-AL10 / API24。原关闭探针实测确认 OHCodec/Vulkan，但出现独立 owner 故障丢失；修复观察者顺序后又发现隔离实例音频仍 RUNNING。两项均先补失败回归，再改 Player 的真实 Release：保留事件线程并正常关闭 AO、VO，之后执行原有释放；超时/错误仍保留资源和预算。FFmpeg、TV和核心输入未改。
+
+最终本地完整 HAR/HAP 在同一台平板通过：PID35486 四会话真实 mapper 错误/晚关闭/上限流程，PID47972 hardware-first 定时终局后同进程软件续播，PID51050 普通坏片返回、硬解、暂停恢复、seek和释放重开。最终隔离会话无残留运行音频流；全局故障保留的旧流处于 STOPPED/PAUSED，新兼容流独占运行。94项宿主门禁及三个完整 HAR/HAP 构建通过。
+
+完整时间线、原始失败、红绿回归、最终包/逐库哈希、同PID日志、系统音频流和服务器截图见 [T044 记录](device-evidence/t044-api24-tablet/README.md)。当前浏览器仅一条视频轨，不能完成实际听声；系统焦点中断没有执行，API24不替代API19 TV。T007/T009/T013/T017/T018保持开放，不提PR；d4a059b旧CI包不包含本修复。测试结束已释放云设备，免费余额327分钟，无购买或自动重查。

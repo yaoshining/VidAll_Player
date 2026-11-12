@@ -1,0 +1,21 @@
+{
+  "baseSource": "d4a059b3117a23d70aa0832d00ed7161fd8c6d5a",
+  "localPatch": "T044 AO then VO teardown before event observer shutdown",
+  "formalArtifactAllowed": false,
+  "harSHA256": "71119c43e0e94531ff401d989bfe05836096c5d7bbe97adef6345bf2c0e41375",
+  "hapSHA256": "37f7cf464b5a375bf7e3be0242b5754c527675faeb402bc5a4e703260fb7a295",
+  "hapBytes": 45405016,
+  "libraries": {
+    "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libmpv.so": "c4c0a254aafa7254588d1b58c1a3a888f65a2fbb371d1a8d27345a8ea9e45907",
+    "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libvidall_player_native.so": "cfa8b86f100ee0828cc2a5c2c48bc9385200ace2dc1e6f1420d64402644e8bc6"
+  },
+  "fixtureDifference": "local Index.ets playback observation 1500ms -> 8000ms; all assertions unchanged",
+  "fixtureSHA256": "2c60c5fcd08a26e3d367f8a59d53f1f472174b30f1a2dff834883d8c333f3044"
+}

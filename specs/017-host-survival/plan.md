@@ -119,3 +119,9 @@ T042：将 T037 的真实 mapper 关闭探针重建到含 T041 的当前锁定�
 T043：云调试恢复访问后先核对最终 HAP；发现旧验收包 `deviceTypes=[tv]`，且未压缩九库使包超过 T3 的 50 MB 上传上限。保留原 HAR 和素材，在独立验收工程增加 tablet、启用官方 compressNativeLibs；全局探针使用仓库原样 hardware-first 配置。重新构建签名 HAP，核对模块声明、模式、素材、原 HAR 和九库哈希后上传。保留旧包为负例，不改 Player/FFmpeg 二进制或 TV 工程；只有实际设备运行才能关闭 T007 等验收任务。
 
 同样准备完整 iMac CI HAR 的 standard/compatible 平板消费包，保留已有基础探针源码及素材，独立于两组故障注入包。HAP 在本地构建，原始 HAR 仍由 iMac CI 交付；正常包和诊断包分开记录，不相互替代。
+
+T044：API 24 MatePad Mini 的当前 fence 包已复现：真实 OHCodec/Vulkan 首帧后 wait 注入 -4，release 5004ms 超时，独立故障通知缺失。先用真实 NativeSession::Release 方法建立关闭次序回归，覆盖正常退出、关闭阶段 owner 故障和迟到关闭；修正事件观察者退出时序，再重建完整诊断 HAR/HAP 复验。FFmpeg 不变，原始失败证据保留；定时全局终局同 PID 恢复已获得日志，但声音验收仍开放。
+
+T044 具体实现：对已初始化的 Vulkan 会话，先用 mpv 既有运行时 vo=null 重配置正常关闭旧 VO，事件线程和客户端保持存活；成功后才释放桥窗口、停止事件线程并销毁 handle。调用阻塞由既有执行器/隔离预算承接；明确重配置失败则记录未知归属故障并隔离，不执行后续销毁。仅发生于 release，不改变播放期间的零拷贝配置，不新增 HarmonyOS API、不改 mpv/FFmpeg 二进制。
+
+T044 音频补充：第一版关闭顺序修复完成四会话流程后，AudioDistributed 仍列出 A/C 两个 RUNNING 流。已保留失败转储；先补音频先于视频关闭红测，再在同一有界执行器中先 ao=null 正常重配置、成功后 vo=null。平台音频生命周期保护仍由现有核心执行；后续必须复查实际流状态，不能仅据流程 summary 判通过。

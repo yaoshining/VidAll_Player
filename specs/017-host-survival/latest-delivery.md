@@ -1,6 +1,6 @@
 # Spec 017 最新验收候选
 
-此候选已完成本轮 Player 修改、自动化回归和 CI 构建，**尚未完成真实 OHCodec/Vulkan、可听音频及 API 19 TV 正式文件入口验收，暂未提 PR**。普通播放仍优先零拷贝硬解；显式 `preserve-host` 保留主应用，全局终局后只有满足旧音频停止安全条件的新兼容实例可继续播放。
+**2026-11-12 更新：下列 d4a059b HAR 是既有 CI 基线，不含本轮真机发现问题的 T044 修复，不能作为最终交付。** T044 已完成本地修复、94项宿主门禁和 API24 平板关闭恢复复验；新修复的 CI HAR、可听音频、系统焦点中断及 API19 TV 正式文件入口仍未完成，暂未提 PR。详细结果见 [T044 实机记录](device-evidence/t044-api24-tablet/README.md)。普通播放仍优先零拷贝硬解；显式 `preserve-host` 保留主应用，全局终局后只有满足旧音频停止安全条件的新兼容实例可继续播放。
 
 ## 原始产物与来源
 
@@ -20,7 +20,8 @@
 | iMac CI | HAR、独立消费者九库、缺失 API 负例、Hypium 编译通过 | Hypium 未在设备执行 |
 | API 19 TV 模拟器，CI 原包 | standard / compatible 坏片返回、正常首帧、暂停/恢复、跳转和释放重开通过 | 实际均为 software/no |
 | API 19 TV 模拟器，本地诊断包 | 全局终局注入后保持 PID，旧会话拒绝，新兼容会话连续两次播放有首帧 | 定时注入不是 GPU/fence 故障；诊断完整构建/静态检查通过，仍不能用于正式交付 |
-| 目标真机 | 未完成 | 尚缺零拷贝故障、可听音频、系统打断和连续隔离上限验收；API 24 不能替代 API 19 TV |
+| API24 云平板，T044 本地完整包 | 真实 OHCodec/Vulkan 关闭注入、同进程返回/晚关闭/隔离上限、全局后兼容续播及普通回归通过 | 尚缺可听音频、系统焦点中断和新CI产物复验；API24不能替代API19 TV |
+| API19 TV 正式入口 | 未完成 | 等正式HAR由消费端接入后继续验收 |
 
 最新模拟器记录分别见 [标准模式](device-evidence/api19-ci-standard-d4a059b.json)、[显式兼容模式](device-evidence/api19-ci-compatible-d4a059b.json) 和 [全局终局诊断](device-evidence/api19-injected-global-d4a059b.json)。
 

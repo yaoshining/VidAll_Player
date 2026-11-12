@@ -849,6 +849,20 @@ public:
         if (released_) return;
         InvalidateCompletion();
         released_ = true;
+        // gpu-next 的 VO 由 mpv 持有，最终 destroy 时客户端与事件线程已消失。
+        // 先走正常的 VO 重配置关闭旧输出，让 mapper 的 owner 故障仍能被观察。
+        // 此调用在实例执行器内；超时或隔离时保留整个调用栈及旧窗口，不强制回收。
+        if (player_ && mpvInitialized_ && renderBackend_ == vidall::render::RenderBackend::Vulkan) {
+            // 先正常关闭平台音频输出；否则 VO 隔离会留下持续运行的旧音频流。
+            int rc = mpv_set_property_string(player_.get(), "ao", "null");
+            if (rc >= 0) rc = mpv_set_property_string(player_.get(), "vo", "null");
+            if (rc < 0) {
+                vidall::runtime::RecordSessionFault(rc, 0, 0, 0);
+                if (executor_) executor_->Quarantine();
+                CloseIsolatedCallbacks();
+                return;
+            }
+        }
         StopRendererLocked();
         vidall::runtime::ParkIfTerminal(IsRecoverySession());
         stopEvents_ = true;

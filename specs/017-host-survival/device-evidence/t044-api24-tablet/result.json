@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-12",
+  "device": {
+    "model": "MatePad Mini",
+    "modelId": "MLR-AL10",
+    "api": 24,
+    "os": "6.1.0.125(SP20C00E125R1P4)",
+    "resolution": "1600x2560",
+    "kind": "Huawei cloud real tablet"
+  },
+  "baseSource": "d4a059b3117a23d70aa0832d00ed7161fd8c6d5a",
+  "patch": "T044 AO then VO close before observer teardown",
+  "sourceFiles": {
+    "packages/vidall-player/src/main/cpp/napi_init.cpp": "9301c68ed995517c79b0470b8895cc64f627cdb0a6e2be3385fd917ec7e84edf",
+    "native/tests/host-survival/release-owner-lifetime.test.py": "24ab56289c94b8ad14f9f0e5aa92e70de691f98fbb1a4be07abbdad4fc0bf1a8"
+  },
+  "buildHost": "local MacBookPro18,4 Darwin arm64",
+  "formalArtifactAllowed": false,
+  "deviceExecuted": true,
+  "hardwareQualified": true,
+  "fenceSamePID": 35486,
+  "globalSamePID": 47972,
+  "normalSamePID": 51050,
+  "officialBaselinePID": 16385,
+  "hostPassed": 94,
+  "videoObserved": true,
+  "systemAudioStreamsObserved": true,
+  "audibleAudioAccepted": false,
+  "systemAudioInterruptionAccepted": false,
+  "api19TVAccepted": false,
+  "browserMediaTracks": [
+    {
+      "kind": "video",
+      "state": "live"
+    }
+  ],
+  "globalOldAudioAtEnd": {
+    "streamId": 100090,
+    "state": "STOPPED/PAUSED",
+    "retained": true
+  },
+  "deviceReleased": true,
+  "remainingFreeMinutes": 327,
+  "purchased": false,
+  "automaticRecheckScheduled": false,
+  "limitations": [
+    "API24 平板不替代 API19 TV 正式文件入口",
+    "全局终局为 timer-global 注入，不是自然发生的 GPU 全局故障",
+    "fence 为真实 mapper 关闭接缝注入，未改 FFmpeg",
+    "云浏览器仅视频轨，未证明可听音频及系统焦点中断",
+    "最终修复包由本地完整构建，不是新 CI 交付",
+    "fence A 原生原始日志早段因云滚动导出丢失；有当时观察及完整持久化事件，后续 B/C/D 原生日志已保存"
+  ]
+}

@@ -40,3 +40,6 @@ with tempfile.TemporaryDirectory() as d:
  subprocess.run(['clang++','-std=c++17','-Inative/runtime','-Irelease/inputs/004-normal-core/include',str(p/'test.cpp'),'-o',str(p/'test')],cwd=root,check=True)
  subprocess.run([str(p/'test')],check=True,timeout=5)
 print('PASS 关闭中的真实隔离分支保留故障归属，旧三字段协议保持未知')
+
+# 同一门禁覆盖真正 Release 次序，不能只测试人工送入故障分支。
+subprocess.run([__import__("sys").executable, str(root/"native/tests/host-survival/release-owner-lifetime.test.py")], check=True)

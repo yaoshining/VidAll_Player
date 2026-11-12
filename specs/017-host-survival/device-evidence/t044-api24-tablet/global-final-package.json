@@ -1,0 +1,22 @@
+{
+  "kind": "global-final",
+  "formalArtifactAllowed": false,
+  "buildHost": "MacBookPro18,4 local Darwin arm64",
+  "baseSource": "d4a059b3117a23d70aa0832d00ed7161fd8c6d5a",
+  "patch": "T044 AO/VO release ordering",
+  "harSHA256": "b8572ed43fd84116d290cfe8d7ea026c5c7529e75feadbf8ebf018b8e065d708",
+  "hapSHA256": "f90292b1e26fb7022ea327391d1ab704648331f378ce76fa20a27059257f5272",
+  "libraries": {
+    "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libmpv.so": "311559c460bdd950137a3c3214706f28216bdcdffe31125fd991baf38ca9dcab",
+    "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libvidall_player_native.so": "908d15f27209c958b62c579f2a2d70e4d3780c82775f6fc3f8189a01829c80d1"
+  },
+  "fixtureSHA256": "b7e6fab3fe658dc0c36b5090de03387d8c2af4a888b0a94fe66567fab78517b1",
+  "fixtureDifference": "B/C pre-observation wait 700ms -> 8000ms, original assertions unchanged"
+}

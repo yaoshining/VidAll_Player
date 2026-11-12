@@ -35,6 +35,7 @@ int mpv_ohcodec_terminal_enable(){return 0;}
 int mpv_ohcodec_terminal_snapshot(mpv_ohcodec_terminal_record*r){if(isCleanupThread)cleanupObserved=true;if(!terminal)return 0;r->stage=1;r->platform_error=-4;r->owner_tag=7;return 1;}
 int ohcodec_smb_runtime_configure_v1(const ohcodec_smb_runtime_v1*){return 0;}
 mpv_handle*mpv_create(){event("mpv-create");return reinterpret_cast<mpv_handle*>(1);}
+int mpv_set_property_string(mpv_handle*,const char*,const char*){event("mpv-output-close",true);return 0;}
 void mpv_terminate_destroy(mpv_handle*){event("mpv-player",true);}
 void mpv_wakeup(mpv_handle*){event("mpv-wakeup");}
 }
@@ -79,6 +80,7 @@ public:
  std::condition_variable renderCondition_;
  std::thread eventThread_,renderThread_;
  std::atomic<bool>stopEvents_{false};
+ bool mpvInitialized_=false;
  bool released_=false,stopRenderer_=false,rendererReady_=true;
  vidall::render::RenderBackend renderBackend_=vidall::render::RenderBackend::OpenGles;
  std::atomic<bool> geometryDirty_{false};

@@ -27,7 +27,7 @@
 - [x] T006 d4a059b 的 iMac CI 完整 HAR、九库哈希及迁移记录，见 latest-delivery.md；API 19 软件原包复验通过，真机由 T007 跟踪。
 - [ ] T007 模拟器及可用真机分层验证；API 19 TV 正式文件入口由 VidAll_TV 接入后执行。
 
-已完成的切片和最新宿主回归见 evidence.md；恢复接口已有实现，实际硬件帧归属、系统音频与目标设备验收仍未完成。d4a059b 已有 iMac CI 候选 HAR，包含 T029–T041 修复；交付源与后续证据文档提交分别记录。API 19 模拟器软件路径及终局注入已通过；真实零拷贝/音频与 TV 正式入口仍未通过，尚未提交 PR。
+已完成的切片和最新宿主回归见 evidence.md。2026-11-12 API24 平板已验证真实硬解、关闭故障归属、晚关闭、连续隔离上限和同进程兼容续播，但可听音频、系统焦点中断和 API19 TV 正式入口仍未通过。T044 修复了实机发现的观察者关闭过早及隔离后旧音频仍运行问题；d4a059b 的 iMac HAR 不含该修复，不能作为最终交付。最新本地包和未完成项见 device-evidence/t044-api24-tablet/README.md，尚未提交 PR。
 
 - [x] T027 终局通知与失败释放的 JS 订阅回收，红绿测试覆盖连续失败、重入、异常与未完成释放。
 
@@ -54,3 +54,5 @@
 - [x] T042 已将 mapper 关闭探针同步到 d4a059b/T041 来源，完整核心、Player HAR、独立消费 HAP 构建及逐库/fixture 核对通过，见 device-evidence/t042-fence-preparation.json；未操作设备，真实硬件正向验收仍归 T013/T009/T007。
 
 - [x] T043 准备可上传云平板的两组诊断 HAP：声明 tv/tablet、全局探针 hardware-first、九库无损压缩，完整 HAR/素材/库一致性核对通过，见 device-evidence/t043-tablet-preparation.json；准备完成不代表设备验收。
+
+- [x] T044 修复云平板发现的 release owner 通知缺失及隔离后旧音频仍运行；先红测再实现 AO→VO→事件线程关闭，94项宿主通过，完整本地包复验四会话隔离/晚关闭/上限、全局续播及普通硬解通过。见 device-evidence/t044-api24-tablet/README.md；实际声音、系统焦点、API19 TV和新CI产物仍开放，未提前提交PR。
