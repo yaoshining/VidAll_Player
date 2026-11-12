@@ -1,0 +1,108 @@
+{
+  "kind": "T045 full audio probe preparation",
+  "buildMachine": {
+    "system": "Darwin",
+    "architecture": "arm64",
+    "source": "local MacBook Pro, not CI"
+  },
+  "productionHARUnchanged": true,
+  "packages": [
+    {
+      "kind": "normal-focus",
+      "harSHA256": "0b29c1a9d3e1c54fe3fd90cc1ff9c79e003d06fd393584a1734a51dcea4ce339",
+      "harSource": "e1fd452 iMac CI",
+      "hapPath": "/tmp/vidall-t045-audio-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "hapSHA256": "f6fd13d89bb25577f3238de6915e155cf5abd65ed4f0b965114d2b722a438709",
+      "hapBytes": 44886927,
+      "versionCode": 1000045,
+      "versionName": "1.0.45",
+      "nativeLibrarySHA256": {
+        "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libmpv.so": "ee78bf290d9697ff825eb3f4590d09120474834eec9edb11eb53ea83fbcb5267",
+        "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "libvidall_player_native.so": "3edfd042c8ebe00de70af7891a9dd0119a045f076ff9bf0b46aa94ffb995227c"
+      },
+      "fixtureSHA256": {
+        "FocusAlarm.ets": "6d78d160c2bb58a09e1623a5133c5981e7aae36b9cf43bb6c266a50cad6fd611",
+        "FocusRun.ets": "41b23f8a7d1195be0fd69688d440b8aee003483da6e7b1cd22c09b1e4be3dc26",
+        "Index.ets": "fd2758c5f7894d3a55525876ec34f09d6f9af80f44f96594569d2c999b7ae7dd",
+        "AudioCapture.ets": "1844f75e4287a1cc63910c24e5e94cbca426ead5c0d31f1fa6dd5b8efb2aabef"
+      },
+      "deviceExecuted": false,
+      "cloudUploaded": false,
+      "audibleAudioAccepted": false
+    },
+    {
+      "kind": "fence",
+      "harSHA256": "71119c43e0e94531ff401d989bfe05836096c5d7bbe97adef6345bf2c0e41375",
+      "harSource": "T044 local diagnostic HAR, same bytes as recorded device fixture",
+      "hapPath": "/tmp/vidall-t045-fence-audio-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "hapSHA256": "78bc179949f4f6d1d3365f2c296774c2c5dc35a19e794381c989d991a2d0e2d6",
+      "hapBytes": 45243566,
+      "versionCode": 1000046,
+      "versionName": "1.0.46",
+      "nativeLibrarySHA256": {
+        "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libmpv.so": "c4c0a254aafa7254588d1b58c1a3a888f65a2fbb371d1a8d27345a8ea9e45907",
+        "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "libvidall_player_native.so": "cfa8b86f100ee0828cc2a5c2c48bc9385200ace2dc1e6f1420d64402644e8bc6"
+      },
+      "fixtureSHA256": {
+        "FenceRun.ets": "6ef4c42312d76afee9390ff8cac934c20862560456490939a001baa84c14dc33",
+        "ProbeChecks.ets": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327",
+        "Index.ets": "24cdd9379bf8edd4f1302a34a2e7c3af6669315ee8f9c9c900b21360ff265617",
+        "AudioCapture.ets": "1844f75e4287a1cc63910c24e5e94cbca426ead5c0d31f1fa6dd5b8efb2aabef"
+      },
+      "deviceExecuted": false,
+      "cloudUploaded": false,
+      "audibleAudioAccepted": false
+    },
+    {
+      "kind": "global",
+      "harSHA256": "b8572ed43fd84116d290cfe8d7ea026c5c7529e75feadbf8ebf018b8e065d708",
+      "harSource": "T044 local diagnostic HAR, same bytes as recorded device fixture",
+      "hapPath": "/tmp/vidall-t045-global-audio-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "hapSHA256": "2da40b88a6e2ec99d6ac60b7b414458365429e4e1a6b9ad42ef09e488b72cd75",
+      "hapBytes": 45230371,
+      "versionCode": 1000047,
+      "versionName": "1.0.47",
+      "nativeLibrarySHA256": {
+        "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libmpv.so": "311559c460bdd950137a3c3214706f28216bdcdffe31125fd991baf38ca9dcab",
+        "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "libvidall_player_native.so": "908d15f27209c958b62c579f2a2d70e4d3780c82775f6fc3f8189a01829c80d1"
+      },
+      "fixtureSHA256": {
+        "ProbeChecks.ets": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327",
+        "Index.ets": "3a23b0a8116eeb1b28ab64972a2fe4cd913d81194492023cb7958992b03e7109",
+        "ProbeProfile.ets": "d08f94a85d3cff9b3898413feb873e2f2e82755b2bf30a3c29317ca52bb86ddb",
+        "AudioCapture.ets": "1844f75e4287a1cc63910c24e5e94cbca426ead5c0d31f1fa6dd5b8efb2aabef"
+      },
+      "deviceExecuted": false,
+      "cloudUploaded": false,
+      "audibleAudioAccepted": false
+    }
+  ],
+  "hostEvidence": "t045-host/summary.json",
+  "boundaries": [
+    "normal-focus consumes unmodified e1fd452 iMac CI HAR",
+    "fence/global consume unchanged T044 local diagnostic HARs; not formal delivery",
+    "new HAPs not uploaded or executed; earlier uploaded a52791a HAP is a historical initial recording-only probe",
+    "no API19 TV or actual audio acceptance claimed"
+  ]
+}

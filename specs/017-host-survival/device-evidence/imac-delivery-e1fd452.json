@@ -1,0 +1,33 @@
+{
+  "sourceCommit": "e1fd4520f533f76040d12b13744c5b81e008481a",
+  "workflowRun": "https://github.com/yaoshining/VidAll_Player/actions/runs/43157766371",
+  "artifactId": 13917130927,
+  "artifactURL": "https://github.com/yaoshining/VidAll_Player/actions/runs/43157766371/artifacts/13917130927",
+  "buildMachine": "iMac self-hosted macOS X64",
+  "runnerName": "yaoshiningdeiMac",
+  "coreBuildMachine": "MacBook Pro / Darwin arm64",
+  "harSHA256": "0b29c1a9d3e1c54fe3fd90cc1ff9c79e003d06fd393584a1734a51dcea4ce339",
+  "architectures": [
+    "arm64-v8a"
+  ],
+  "libraries": {
+    "package/libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "package/libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "package/libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "package/libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "package/libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "package/libs/arm64-v8a/libmpv.so": "ee78bf290d9697ff825eb3f4590d09120474834eec9edb11eb53ea83fbcb5267",
+    "package/libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "package/libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "package/libs/arm64-v8a/libvidall_player_native.so": "3edfd042c8ebe00de70af7891a9dd0119a045f076ff9bf0b46aa94ffb995227c"
+  },
+  "deviceAccepted": false,
+  "hostGateCount": 94,
+  "ffmpegUnchanged": true,
+  "localHostGate": "t044-api24-tablet/host-gate-summary.json",
+  "notes": [
+    "T044修复版正式iMac CI HAR，尚未设备复验",
+    "本轮只有桥库改变，其他八库与d4a059b完全相同",
+    "94项宿主结果为本地执行，不能称当前提交Ubuntu CI结果"
+  ]
+}
