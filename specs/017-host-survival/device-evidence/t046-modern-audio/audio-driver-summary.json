@@ -1,0 +1,22 @@
+[
+  {
+    "test": "audio-interrupt/interrupt.test.py",
+    "exitCode": 0
+  },
+  {
+    "test": "audio-interrupt/legacy-lifetime.test.py",
+    "exitCode": 0
+  },
+  {
+    "test": "host-survival/audio-data.test.py",
+    "exitCode": 0
+  },
+  {
+    "test": "host-survival/audio-control.test.py",
+    "exitCode": 0
+  },
+  {
+    "test": "host-survival/audio-lifecycle.test.py",
+    "exitCode": 0
+  }
+]

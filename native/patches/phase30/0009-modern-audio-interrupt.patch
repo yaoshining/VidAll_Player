@@ -1,0 +1,59 @@
+diff --git a/audio/out/ao_ohaudio.c b/audio/out/ao_ohaudio.c
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -31,6 +31,7 @@
+ 
+ #include <pthread.h>
+ #include <limits.h>
++#include <dlfcn.h>
+ #include <deviceinfo.h>
+ #include <ohaudio/native_audiorenderer.h>
+ #include <ohaudio/native_audiostreambuilder.h>
+@@ -259,21 +260,41 @@
+     return 0;
+ }
+ 
++// 现代 API 返回 void；中断处理仍走同一 token/恢复代隔离路径。
++static void modern_interrupt(OH_AudioRenderer *renderer, void *user,
++                             OH_AudioInterrupt_ForceType type, OH_AudioInterrupt_Hint hint)
++{
++    legacy_interrupt(renderer, user, type, hint);
++}
++
+ static OH_AudioStream_Result register_callbacks(struct ao *ao)
+ {
+     struct priv *p = ao->priv;
+-    if (OH_GetSdkApiVersion() >= 20)
+-        return OH_AudioStreamBuilder_SetRendererWriteDataCallback(p->builder, audio_on_write_callback, ao);
++    // 两种 API 都按文件注销登记，旧音频的迟到中断不能影响下一条视频。
++    ao->per_file = true;
++    void *token = bind_legacy(ao);
++    if (!token)
++        return AUDIOSTREAM_ERROR_SYSTEM;
++    if (OH_GetSdkApiVersion() >= 20) {
++        OH_AudioStream_Result result = OH_AudioStreamBuilder_SetRendererWriteDataCallback(
++            p->builder, audio_on_write_callback, ao);
++        if (result != AUDIOSTREAM_SUCCESS)
++            return result;
++        // 新符号只在现代系统查找，避免 API19 动态装载时依赖 API20 符号。
++        typedef OH_AudioStream_Result (*set_interrupt_fn)(OH_AudioStreamBuilder *,
++            OH_AudioRenderer_OnInterruptCallback, void *);
++        set_interrupt_fn set_interrupt = (set_interrupt_fn)dlsym(
++            RTLD_DEFAULT, "OH_AudioStreamBuilder_SetRendererInterruptCallback");
++        if (!set_interrupt)
++            return AUDIOSTREAM_ERROR_SYSTEM;
++        return set_interrupt(p->builder, modern_interrupt, token);
++    }
+ 
+     // 旧系统必须一次注册两种回调，分别注册可能覆盖先前的写入回调。
+-    ao->per_file = true;
+     OH_AudioRenderer_Callbacks callbacks = {
+         .OH_AudioRenderer_OnWriteData = legacy_write,
+         .OH_AudioRenderer_OnInterruptEvent = legacy_interrupt,
+     };
+-    void *token = bind_legacy(ao);
+-    if (!token)
+-        return AUDIOSTREAM_ERROR_SYSTEM;
+     return OH_AudioStreamBuilder_SetRendererCallback(p->builder, callbacks, token);
+ }
+ 

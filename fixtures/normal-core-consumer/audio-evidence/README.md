@@ -23,4 +23,4 @@ python3 scripts/test/audio-evidence/prepare.py --probe recovery-terminal --proje
 
 脚本只改消费页面，不替换HAR。源码接入点发生漂移即拒绝；保留原四/三Surface、故障归属、硬件资格、手动返回与晚关闭日志确认。开始按钮等待系统内录授权后才运行原流程，结束后再记录2.5秒静音。全局探针保持 hardware-first；故障前880Hz、恢复后440Hz。原诊断README的PID/原生日志检查仍全部适用。
 
-完整当前包及逐库/页面哈希见 `specs/017-host-survival/device-evidence/t045-full-audio-preparation.json`。三包使用不同版本号和名称以便云端辨认，均为本地消费HAP；正常HAR来源为iMac CI，诊断HAR沿用本地T044已绑定来源。它们尚未上传或实测，不能与此前上传的初版内录包混淆。
+完整当前包及逐库/页面哈希见 `specs/017-host-survival/device-evidence/t045-full-audio-preparation.json`。三包使用不同版本号和名称以便云端辨认，均为本地消费HAP；正常HAR来源为iMac CI，诊断HAR沿用本地T044已绑定来源。其中1.0.45已在API24云平板执行并暴露两项失败；见T045设备记录。1.0.46/47未确认上传或执行，不能与此前初版内录包混淆。

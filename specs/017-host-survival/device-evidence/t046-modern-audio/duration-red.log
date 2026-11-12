@@ -1,0 +1,5 @@
+Error: DIAGNOSTIC_UNAVAILABLE
+    at Index.number (/Users/yaoshining/DevEcoStudioProjects/VidAll_Player/fixtures/normal-core-consumer/audio-evidence/Index.ets:133:19)
+    at Index.run (/Users/yaoshining/DevEcoStudioProjects/VidAll_Player/fixtures/normal-core-consumer/audio-evidence/Index.ets:189:27)
+    at async normalCase (/Users/yaoshining/DevEcoStudioProjects/VidAll_Player/scripts/test/audio-evidence/page.test.cjs:47:58)
+    at async /Users/yaoshining/DevEcoStudioProjects/VidAll_Player/scripts/test/audio-evidence/page.test.cjs:50:15

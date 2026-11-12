@@ -333,3 +333,7 @@ T041 最终本地统一门禁 94/94 通过（`/tmp/vidall-host-survival-host-gat
 - 六个宿主测试套件通过：分析器10项、生成器3项、录制生命周期9组、页面退出/恢复、焦点流程6组、Alarm适配器4组；红绿日志见 device-evidence/t045-host。这些测试使用平台替身，deviceAccepted保持false。
 - 新回归接入test-player工作流并通过YAML解析；该配置尚未在远端执行。没有重复94项生产宿主绿测，也没有创建PR。
 - 宪章/一致性复查：独立工具API均不高于API19、系统录制按用户点击授权且不启用麦克风；保留故障资格与资源保留规则。生产Player行为不变；S19、T045、fixture、测试、包哈希互相可追踪。API24实际声音及API19 TV正式入口仍开放。
+
+2026-11-12 T045 API24云平板实测未通过：普通流程DIAGNOSTIC_UNAVAILABLE、焦点流程重复SYSTEM_PAUSE_MISSING；系统录屏可启动但音轨未导出。已释放设备。详见device-evidence/t045-api24-audio/README.md，后续由T046修复，原CI绿色不覆盖本次失败。
+
+T046已完成红绿回归、现代回调与时长断言修正、完整核心重建及本地固定九库HAR；详情见device-evidence/t046-modern-audio/README.md。新的核心身份与旧e1fd452不同，旧CI和设备证据不可顺延。CI/设备项仍开放。

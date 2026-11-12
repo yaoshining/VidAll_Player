@@ -100,8 +100,8 @@ struct Index {
     this.record('audible-window-start', String(generation));
     return player;
   }
-  private number(field: DiagnosticField<number>): number {
-    if (field.status !== 'available' || field.estimated || field.value === undefined) throw new Error('DIAGNOSTIC_UNAVAILABLE');
+  private number(field: DiagnosticField<number>, allowEstimated: boolean = false): number {
+    if (field.status !== 'available' || (field.estimated && !allowEstimated) || field.value === undefined || !Number.isFinite(field.value)) throw new Error('DIAGNOSTIC_UNAVAILABLE');
     return field.value;
   }
   private async badMedia(): Promise<void> {
@@ -135,7 +135,7 @@ struct Index {
     if (resumed.fields.paused.value !== false || this.number(resumed.fields.positionMs) < this.number(paused2.fields.positionMs) + 300) throw new Error('RESUME_NOT_ADVANCING');
     this.record('resume-verified', String(this.number(resumed.fields.positionMs)));
     const target = 20000;
-    if (Math.abs(this.number(resumed.fields.durationMs) - 30000) > 100) throw new Error('FIXTURE_DURATION_MISMATCH');
+    if (Math.abs(this.number(resumed.fields.durationMs, true) - 30000) > 100) throw new Error('FIXTURE_DURATION_MISMATCH');
     await first.seekPercent(200 / 3);
     let sought: PlayerDiagnosticsSnapshot = await first.getDiagnostics();
     for (let i = 0; i < 20 && Math.abs(this.number(sought.fields.positionMs) - target) > 1500; i++) {

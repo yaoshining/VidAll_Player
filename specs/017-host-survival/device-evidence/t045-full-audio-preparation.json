@@ -33,9 +33,10 @@
         "Index.ets": "fd2758c5f7894d3a55525876ec34f09d6f9af80f44f96594569d2c999b7ae7dd",
         "AudioCapture.ets": "1844f75e4287a1cc63910c24e5e94cbca426ead5c0d31f1fa6dd5b8efb2aabef"
       },
-      "deviceExecuted": false,
-      "cloudUploaded": false,
-      "audibleAudioAccepted": false
+      "deviceExecuted": true,
+      "cloudUploaded": true,
+      "audibleAudioAccepted": false,
+      "deviceResult": "t045-api24-audio/README.md"
     },
     {
       "kind": "fence",
@@ -65,7 +66,8 @@
       },
       "deviceExecuted": false,
       "cloudUploaded": false,
-      "audibleAudioAccepted": false
+      "audibleAudioAccepted": false,
+      "uploadAttempt": "传输调用返回，但云端未出现1.0.46；不计上传成功"
     },
     {
       "kind": "global",
@@ -102,7 +104,7 @@
   "boundaries": [
     "normal-focus consumes unmodified e1fd452 iMac CI HAR",
     "fence/global consume unchanged T044 local diagnostic HARs; not formal delivery",
-    "new HAPs not uploaded or executed; earlier uploaded a52791a HAP is a historical initial recording-only probe",
+    "1.0.45已在API24 MatePad Mini执行，焦点与普通回归均失败；1.0.46/47未确认上传或执行",
     "no API19 TV or actual audio acceptance claimed"
   ]
 }

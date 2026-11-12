@@ -14,6 +14,7 @@ typedef void OH_AudioStreamBuilder;
 typedef int OH_AudioStream_Result;
 typedef int OH_AudioInterrupt_ForceType;
 typedef int OH_AudioInterrupt_Hint;
+typedef void (*OH_AudioRenderer_OnInterruptCallback)(OH_AudioRenderer *, void *, int, int);
 enum { AO_EVENT_PAUSE = 4, AUDIOSTREAM_INTERRUPT_HINT_RESUME = 1,
        AUDIOSTREAM_INTERRUPT_HINT_PAUSE, AUDIOSTREAM_INTERRUPT_HINT_STOP };
 typedef struct {
@@ -65,6 +66,17 @@ static int OH_AudioStreamBuilder_SetRendererCallback(void *b, OH_AudioRenderer_C
 static int OH_AudioStreamBuilder_SetRendererWriteDataCallback(void *b,
     int (*cb)(OH_AudioRenderer *, void *, void *, int32_t), void *u)
 { assert(cb == audio_on_write_callback); modern++; return result; }
+static void (*modern_interrupt_cb)(OH_AudioRenderer *, void *, int, int);
+static void *modern_user;
+static int interrupt_result;
+static int __attribute__((unused)) OH_AudioStreamBuilder_SetRendererInterruptCallback(void *b,
+    void (*cb)(OH_AudioRenderer *, void *, int, int), void *u)
+{ modern_interrupt_cb = cb; modern_user = u; return interrupt_result; }
+#define RTLD_DEFAULT ((void *)0)
+static bool interrupt_symbol_available = true;
+static void *__attribute__((unused)) dlsym(void *handle, const char *name)
+{ assert(sdk>=20 && handle==RTLD_DEFAULT && !strcmp(name,"OH_AudioStreamBuilder_SetRendererInterruptCallback"));
+  return interrupt_symbol_available ? (void *)OH_AudioStreamBuilder_SetRendererInterruptCallback : NULL; }
 static pthread_mutex_t gate = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t changed = PTHREAD_COND_INITIALIZER;
 static bool block_wake, entered, retiring, released;
@@ -263,10 +275,34 @@ int main(void)
     ctx.shown_vframes++;
     handle_each_frame_screenshot(&ctx);
     assert(audio_paused && video_paused);
-    sdk = 20;
-    assert(register_callbacks(&next) == 0 && modern == 1 && !next.per_file);
+    for (sdk = 20; sdk <= 24; sdk += 4) {
+        modern_interrupt_cb = NULL; modern_user = NULL; modern = 0;
+        next.per_file = false; atomic_store(&next.events_,0); ctx.ao = &next;
+        set_user_pause_option(&ctx,false);
+        assert(register_callbacks(&next) == 0 && modern == 1 && next.per_file);
+        assert(modern_interrupt_cb && modern_user && "现代分支必须注册真实中断回调");
+        void *token = modern_user;
+        modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
+        handle_audio_interrupt(&ctx); assert(opts.pause && audio_paused && video_paused);
+        modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_RESUME);
+        handle_audio_interrupt(&ctx); assert(opts.pause);
+        set_user_pause_option(&ctx,false);assert(!opts.pause && !audio_paused);
+        uninit(&next);assert(legacy_bindings == NULL);
+        assert(register_callbacks(&next) == 0 && modern_user != token);
+        modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_STOP);
+        handle_audio_interrupt(&ctx);assert(!opts.pause);
+        uninit(&next);
+        result = -1; modern_interrupt_cb = NULL;
+        assert(register_callbacks(&next) == result && !modern_interrupt_cb);
+        uninit(&next);assert(legacy_bindings == NULL);result = 0;
+        interrupt_symbol_available = false;
+        assert(register_callbacks(&next) == AUDIOSTREAM_ERROR_SYSTEM);
+        uninit(&next);assert(legacy_bindings == NULL);interrupt_symbol_available = true;
+        interrupt_result = -2;
+        assert(register_callbacks(&next) == interrupt_result);
+        uninit(&next);assert(legacy_bindings == NULL);interrupt_result = 0;
+    }
     result = -1;
-    assert(register_callbacks(&next) == result);
     sdk = 15;
     assert(register_callbacks(&old) == result);
     uninit(&old);
@@ -274,5 +310,8 @@ int main(void)
     result=0;assert(register_callbacks(&old)==0);
     mp_host_retire_all();previous_wakes=wakes;
     callbacks.OH_AudioRenderer_OnInterruptEvent(NULL,user,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
+    assert(wakes==previous_wakes);uninit(&old);assert(legacy_bindings==NULL);
+    sdk=24;assert(register_callbacks(&old)==0);previous_wakes=wakes;
+    modern_interrupt_cb(NULL,modern_user,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
     assert(wakes==previous_wakes);uninit(&old);assert(legacy_bindings==NULL);
 }

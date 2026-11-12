@@ -37,6 +37,10 @@
     {
       "path": "native/patches/phase30/0008-confirm-returned-audio-stop.patch",
       "sha256": "dc7a638a2a7bcbe0fac0ed57a7f3aaff7173e67648075ecf702d031e14723bc7"
+    },
+    {
+      "path": "native/patches/phase30/0009-modern-audio-interrupt.patch",
+      "sha256": "7907879aa4bcbc45d3bd8a31d1cc2ff8c2e84af3d4aec9c29106e030030822aa"
     }
   ],
   "addedSources": [

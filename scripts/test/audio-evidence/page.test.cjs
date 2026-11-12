@@ -33,5 +33,24 @@ m._compile(ts.transpileModule(stripped,{compilerOptions:{module:ts.ModuleKind.Co
  focus.delay=async()=>{assert.equal(focus.awaitingManualResume,true);focus.acceptManualResume();};
  let resumed=0;await focus.focusFlow({play:async()=>resumed++});assert.equal(resumed,1);
  assert(source.includes(".id('audio-focus-start')"));
+ // 执行完整run，使用生产契约的durationMs estimated=true，不能只模拟主流程成功。
+ async function normalCase(duration, positionEstimated=false) {
+  const page=new m.exports.Index();page.context={};page.capture={assertRecording(){}};
+  page.record=()=>{};page.delay=async()=>{};page.badMedia=async()=>{};page.firstFrames=2;
+  let diagnostics=0;
+  const field=(value,estimated=false)=>({status:'available',value,estimated});
+  const player={pause:async()=>{},play:async()=>{},seekPercent:async()=>{},release:async()=>{},
+   getDiagnostics:async()=>{const n=++diagnostics;return {fields:{
+    paused:field(n<=2), positionMs:field([5000,5000,8000,20000,21000][n-1],positionEstimated),
+    durationMs:duration,renderBackend:field('vulkan'),hardwareDecoder:field('ohcodec')
+   }};}};
+  page.open=async()=>{page.player=player;return player;};await page.run();return page.status;
+ }
+ const duration={status:'available',value:30000,estimated:true};
+ assert.match(await normalCase(duration),/正常路径完成/);
+ await assert.rejects(normalCase(duration,true),/DIAGNOSTIC_UNAVAILABLE/);
+ await assert.rejects(normalCase({...duration,status:'unavailable'}),/DIAGNOSTIC_UNAVAILABLE/);
+ await assert.rejects(normalCase({...duration,value:NaN}),/DIAGNOSTIC_UNAVAILABLE/);
+ await assert.rejects(normalCase({...duration,value:60000}),/FIXTURE_DURATION_MISMATCH/);
  console.log('PASS: 录制开始后才播放、一次性启动、失败清理、退出禁止新会话、手动恢复');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -181,7 +181,7 @@
   },
   {
     "path": "run/mpv/build/libmpv.so.p/audio_out_ao_ohaudio.c.o",
-    "sha256": "9d2a160e8229e2819480f1fa61143d42eaa801bc55e56cfc6e6d8e44a15bcbbb"
+    "sha256": "7d971f4aebc0f5f1fde37388c38cbe0b1819c8bd5caf4c4e7177fdfee8cf85d3"
   },
   {
     "path": "run/mpv/build/libmpv.so.p/audio_out_ao_pcm.c.o",

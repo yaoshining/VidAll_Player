@@ -1,0 +1,524 @@
+云调试
+通过远程连接方式控制云端设备进行开发调试了解详情
+剩余优惠时长:267分钟 剩余套餐余额:0分钟 按量付费(付费档):未开通
+订单查看
+购买套餐包
+
+请勿上传恶意应用，禁止通过上传应用进行恶意操作。违者将封停账号，并对导致的后果负责，严重者将保留追究法律责任的权利!
+
+机型选择
+我的信息
+测试报告
+单机调试
+30ms
+使用优惠时长中:09分钟04秒
+设置权限
+设备报障
+停止测试
+MatePad Mini
+流畅
+标清
+高清
+应用
+控制参数
+截屏
+HiLog
+verbose
+停止
+清空
+导出日志
+2026-11-12 22:09:41 764-504/hdc W/C02B87/audio_server/AudioInterruptService: [PrintInterruptDetectionToolLogs]The audio focus strategy based on music: forceType: 0, hintType: 3, actionOn: 0. Caller info: pid [62404], uid [20020193], bundleName [com.yaoshining.vidallplayer].
+
+2026-11-12 22:09:44 62404-2177/hdc E/C02B86/com.yaoshining.vidallplayer/RendererInClientInner: [WriteCallbackFunc]Callback thread released
+
+2026-11-12 22:09:44 62404-2128/hdc W/C02B87/com.yaoshining.vidallplayer/AudioPolicyManager: [RemoveClientTrackerStub]Client tracker for session 100130 not exist
+
+2026-11-12 22:09:44 62404-2128/hdc W/C02B86/com.yaoshining.vidallplayer/RendererInClientInnerPublic: [ReleaseAudioStream]Already released
+
+2026-11-12 22:09:44 62404-2128/hdc E/C02B87/com.yaoshining.vidallplayer/AudioPolicyIdl: [nodict]Read result failed, code is: 111.
+
+2026-11-12 22:09:44 62404-2128/hdc E/C02B86/com.yaoshining.vidallplayer/RendererInClientInner: [UnregisterSpatializationStateEventListener]UnregisterSpatializationStateEventListener failed
+
+2026-11-12 22:09:44 62404-2145/hdc W/C01490/com.yaoshining.vidallplayer/MMNGR: [nodict]<HM_GPU> #  The device memory purge thread exited successfully.
+
+2026-11-12 22:09:44 62404-2145/hdc W/C01490/com.yaoshining.vidallplayer/VK_QUEUE: [nodict]<HM_GPU> #  ~QueueInternal start.
+
+2026-11-12 22:09:44 62404-2145/hdc W/C01490/com.yaoshining.vidallplayer/VK_QUEUE: [nodict]<HM_GPU> #  ~QueueInternal start.
+
+2026-11-12 22:09:44 62404-2145/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  wait handler Termiated done.
+
+2026-11-12 22:09:44 62404-2153/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  Termiate softQHandler done.
+
+2026-11-12 22:09:44 62404-2152/hdc W/C01490/com.yaoshining.vidallplayer/QUEUE: [nodict]<HM_GPU> #  async worker stopped.
+
+2026-11-12 22:09:44 62404-2145/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  base munmap 0x6f00000000 len 0x100000000 fail
+
+2026-11-12 22:09:44 62404-2145/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  process destroy 4g fail.
+
+2026-11-12 22:09:44 62404-2145/hdc W/C057C1/com.yaoshining.vidallplayer/BrokerRegistration: Unregister: libgame_acc_sched_client.z.so is dlclosed
+
+2026-11-12 22:09:44 3989-4123/hdc W/C04712/appgallery_service/AppGalleryKit: [sa_appinfo_rdb(QueryAppClassifyData)]failed, no rows, bundle = com.yaoshining.vidallplayer
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSPVM: [SCBMain]onTerminateScene EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103) isActive=true isFloat=false isSplit=false isMidScene=false needRemoveSession=false isForceClean=false
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: PageDesktopModel: getExitAppData bundleName: com.yaoshining.vidallplayer, abilityName: EntryAbility, startType: 0, formCardId: undefined, cardId: undefined, extraId: undefined, appIndex: 0, shortcutId: undefined
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBTM: Find controller success ? true, findData: {"bundleName":"com.yaoshining.vidallplayer","abilityName":"EntryAbility","appIndex":0,"appIconId":"","iconRadius":0,"appIconNumber":0,"startAppType":0}
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSPVM: setTransitionAnimCancel reason: requestSceneContainerDestructionWithTransition, appIconId: AppIcon_Image_com.yaoshining.vidallplayerEntryAbilityentry0_undefined_0
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: [SCBSCS] border radius from topLeft: 0, topRight: 0, bottomLeft: 0, bottomRight: 0 to 28. reason: requestSceneContainerDestructionWithTransition, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: initCompanionIconInfo companionIconInfo: com.yaoshining.vidallplayer, EntryAbility, entry, iconId: AppIcon_Image_com.yaoshining.vidallplayerEntryAbilityentry0_undefined_0; persistentId: 339
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: QuitAppRectViewModel --> buildAppExitInfoInExit iconId AppIcon_Image_com.yaoshining.vidallplayerEntryAbilityentry0_undefined_0
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: QuitAppRectViewModel --> startAppType 0, iconId AppIcon_Image_com.yaoshining.vidallplayerEntryAbilityentry0_undefined_0
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: PageDesktopModel: findAppInCurrentShowingPage bundleName: com.yaoshining.vidallplayerabilityName: EntryAbility, moduleName: entry;startAppType: 0; cardId: undefined appIndex: 0, shortcutId: 
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: PageDesktopModel: isFoundApp bundleName: com.yaoshining.vidallplayer abilityName: EntryAbility, moduleName: entry; appIconId: 16777219; cardId: undefined appIndex: 0, shortcutId: 
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: PageDesktopModel: findAppInCurrentPage icon 16777219, 16777219,undefined, com.yaoshining.vidallplayer
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: PageDesktopModel: buildAppExitInfo iconId: AppIcon_Image_com.yaoshining.vidallplayerEntryAbilityentry0_undefined_0, isInScreen: true
+
+2026-11-12 22:10:28 3100-3100/hdc D/A04209/com.ohos.sceneboard/WMSImms: update prop, topContainerSession: [339, com.yaoshining.vidallplayer], inClearSceneStatus: false, locked:false
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: onTransitionActiveToRect, bundleName:com.yaoshining.vidallplayer, isAdaptive:true
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: [SCBSCS] border radius from topLeft: 28, topRight: 28, bottomLeft: 28, bottomRight: 28 to 174.65886939571152. reason: startApp, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: [SCBSCS] translateX from 0 to 28.105251914576456. reason: startApp, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:28 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: [SCBSCS] translateY from 0 to 116.2105375591077. reason: startApp, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:28 3100-3100/hdc I/A0420A/com.ohos.sceneboard/WMSLife: Request scene container session destruction with transition out, id: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103) isActive true delete false isBackToIcon true needClearData false
+
+2026-11-12 22:10:28 3100-3100/hdc W/A0420A/com.ohos.sceneboard/WMSLife: Request scene container session destruction, name: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103) delete: false needClearData: false isSaveSnapshot: true isForceClean: false
+
+2026-11-12 22:10:28 3100-3100/hdc I/A04223/com.ohos.sceneboard/SCBMain: requestSceneSessionDestruction name: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339) isDeletePersistentMap: false isSaveSnapshot: true isForceClean: false terminateReason: 2
+
+2026-11-12 22:10:29 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: [SCBSCS] translateX from 28.105251914576456 to 0. reason: init, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:29 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: [SCBSCS] translateY from 116.2105375591077 to 0. reason: init, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:29 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: [SCBSCS] border radius from topLeft: 174.65886939571152, topRight: 174.65886939571152, bottomLeft: 174.65886939571152, bottomRight: 174.65886939571152 to 28. reason: init, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:29 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: [SCBSCS] sceneAlpha from 0 to 1. reason: init, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:29 3100-3100/hdc W/A01C06/com.ohos.sceneboard/ICON: AppIconCommonEvent --> onInactive bundleName:com.yaoshining.vidallplayer, [SCBSPVM] set icon from hidden to [show], caller: inactiveController, extra info: undefined.
+
+2026-11-12 22:10:29 3100-3100/hdc W/A01C06/com.ohos.sceneboard/ICON: AppIconData --> [SCBSPVM] set icon opacity from [0] to [1], caller: inactiveController, extra: undefined, iconId: AppIcon_Image_com.yaoshining.vidallplayerEntryAbilityentry0_undefined_0
+
+2026-11-12 22:10:29 3100-3100/hdc E/A01C06/com.ohos.sceneboard/ICON: CloseAppManager --> deleteCardCache AppIcon_Image_com.yaoshining.vidallplayerEntryAbilityentry0_undefined_0 is not touched card
+
+2026-11-12 22:10:29 3100-3100/hdc W/A01C06/com.ohos.sceneboard/ICON: AppIconCommonEvent --> onInactive bundleName:com.yaoshining.vidallplayer, [SCBScenePanelViewModel] set icon from show to [show], caller: requestSceneContainerDestructionWithTransition, extra info: undefined.
+
+2026-11-12 22:10:29 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSceneContainer: [SCBMain] EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103) enableShow change from true to false. Detail:isPrebuildStageEnableShow:false, showInRecent:false, sceneContainerSession.enableShow:false, showInScrolling:false
+
+2026-11-12 22:10:29 3100-3100/hdc I/A0421D/com.ohos.sceneboard/WMSRotation: [wrapRotationEntryCallback] rotateFuncType:1, reason:2, containerSession:EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103), needAnimation:false, isFromRecent:false, fromUser:false
+
+2026-11-12 22:10:45 3100-3100/hdc W/A04223/com.ohos.sceneboard/SCBMain: [a92ab1c8e522184 2541726 3b63171]startSceneFromOther:{persistentId:339, screenId: 0, bundleInfo:EntryAbility/com.yaoshining.vidallplayer/entry/0, unclearableSession:undefined, callerPersistentId:0, callerAbilityName: , toPersistentId:0, launchType:0, isNewInstance:false, fullScreenStart:false, _windowMode:1, isAppUseControl:undefined, isUnclearableInRecent:undefined, focusedOnShow:true, isAtomicService:falseisStartupInstallFree:false, isNewAppInstance:false, appInstanceKey:}, startMode:1, forceStart:null, forceNewWant:null
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B00/com.ohos.sceneboard/SCB: [a92ab1c8e522184 2541726 3b63171]ExclusiveChecker: Check exclusive for bundleName: com.yaoshining.vidallplayer, mode: FULL_SCREEN
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBSPVM: [SCBMain][id:339][sceneInfo:com.yaoshining.vidallplayer/entry/EntryAbility/0][screenId:0]onStartSceneFromOther.
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]PageDesktopModel: findTransitionController shortcutId empty bundleName:com.yaoshining.vidallplayer
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]PageDesktopModel: findTransitionController bundleName: com.yaoshining.vidallplayer, abilityName: EntryAbility, startType: 0, formCardId: undefined, cardId: undefined, extraId: undefined, appIndex: 0, shortcutId: undefined, appInstanceKey: %{public}s
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBTM: Find controller success ? true, findData: {"bundleName":"com.yaoshining.vidallplayer","abilityName":"EntryAbility","appIndex":0,"appIconId":"","iconRadius":0,"appIconNumber":0,"startAppType":0,"isOpenFolder":false}
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBSPVM: [SCBMain]onStartSceneFromOther isNewWant false. StartApp:com.yaoshining.vidallplayer
+
+2026-11-12 22:10:45 3100-3100/hdc W/A0421D/com.ohos.sceneboard/WMSRotation: [a92ab1c8e522184 2541726 3b63171][getTargetRotation] bundleName:com.yaoshining.vidallplayer requestOrientation:0 isScreenLocked:false isPlacedRotateFriendlyDevicePlaced:false fixedRotation: -1 rotationCommand: {"isIgnorePlacedState":false,"isFromDropDown":false}
+
+2026-11-12 22:10:45 3100-3100/hdc I/A04208/com.ohos.sceneboard/WMSLayout: [a92ab1c8e522184 2541726 3b63171]name:EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339) updateSizeChangeReason:7
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]PageDesktopModel: findTransitionController shortcutId empty bundleName:com.yaoshining.vidallplayer
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]PageDesktopModel: findTransitionController bundleName: com.yaoshining.vidallplayer, abilityName: EntryAbility, startType: 0, formCardId: undefined, cardId: undefined, extraId: undefined, appIndex: 0, shortcutId: undefined, appInstanceKey: %{public}s
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBTM: Find controller success ? true, findData: {"bundleName":"com.yaoshining.vidallplayer","abilityName":"EntryAbility","appIndex":0,"appIconId":"","iconRadius":0,"appIconNumber":0,"startAppType":0,"isOpenFolder":false}
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]PageDesktopModel: findTransitionController shortcutId empty bundleName:com.yaoshining.vidallplayer
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]PageDesktopModel: findTransitionController bundleName: com.yaoshining.vidallplayer, abilityName: EntryAbility, startType: 0, formCardId: undefined, cardId: undefined, extraId: undefined, appIndex: 0, shortcutId: undefined, appInstanceKey: %{public}s
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBTM: Find controller success ? true, findData: {"bundleName":"com.yaoshining.vidallplayer","abilityName":"EntryAbility","appIndex":0,"appIconId":"","iconRadius":0,"appIconNumber":0,"startAppType":0,"isOpenFolder":false}
+
+2026-11-12 22:10:45 3100-3100/hdc I/A0421D/com.ohos.sceneboard/WMSRotation: [a92ab1c8e522184 2541726 3b63171][startSceneWithRotationIfNeed] containerSession EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103), needAnimation false isFromRecent false fromUser false isPageRotation false
+
+2026-11-12 22:10:45 3100-3100/hdc I/A0421D/com.ohos.sceneboard/WMSRotation: [a92ab1c8e522184 2541726 3b63171][startSceneWithRotationIfNeed] containerSession EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)needAnimation false isFromRecent false fromUser false isPageRotation false
+
+2026-11-12 22:10:45 3100-3100/hdc W/A0421D/com.ohos.sceneboard/WMSRotation: [a92ab1c8e522184 2541726 3b63171][getTargetRotation] bundleName:com.yaoshining.vidallplayer requestOrientation:0 isScreenLocked:false isPlacedRotateFriendlyDevicePlaced:false fixedRotation: -1 rotationCommand: {"isIgnorePlacedState":false,"isFromDropDown":false}
+
+2026-11-12 22:10:45 3100-3100/hdc I/A0421D/com.ohos.sceneboard/WMSRotation: [a92ab1c8e522184 2541726 3b63171][startSceneWithRotationIfNeed] before rotate with targetRotation=270, sensorRotation=270, currentScreenRotation=270, currentContainerRotation=270, tempRotation=, name=com.yaoshining.vidallplayer
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBSPVM: [SCBMain]onStartSceneFromOther EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103) isActive:false isStartCard:false needBlurAnimation:true scenePanelState:0
+
+2026-11-12 22:10:45 3100-3100/hdc W/A0420A/com.ohos.sceneboard/WMSLife: [a92ab1c8e522184 2541726 3b63171]Request scene container session activation, name: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103) isNewActive: false, isPersist: true, reason: undefined
+
+2026-11-12 22:10:45 3100-3100/hdc I/A04223/com.ohos.sceneboard/SCBMain: [a92ab1c8e522184 2541726 3b63171]requestSceneSessionActivation: isNewActive: false, isPersist: true, reason: undefined, name: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339), containerRotation: 270
+
+2026-11-12 22:10:45 3100-3100/hdc I/A04200/com.ohos.sceneboard/WMS: [a92ab1c8e522184 2541726 3b63171]modifyPersistentMap, bundleName: com.yaoshining.vidallplayer
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01A01/com.ohos.sceneboard/NC: [a92ab1c8e522184 53d306 2541726]DropdownPanelView: onStartSceneFromOtherEvent return. event: com.yaoshining.vidallplayer isViewShowing:false
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBSceneContainer: [SCBMain] EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103) enableShow change from false to true. Detail:isPrebuildStageEnableShow:false, showInRecent:false, sceneContainerSession.enableShow:true, showInScrolling:false
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01C06/com.ohos.sceneboard/ICON: [a92ab1c8e522184 2541726 3b63171]CompanionIcon: loadIconWithCache {"bundleName":"com.yaoshining.vidallplayer","abilityName":"EntryAbility","moduleName":"entry","iconId":"AppIcon_Image_com.yaoshining.vidallplayerEntryAbilityentry0_undefined_0","iconNumber":16777219,"iconRadius":16.59259259259259,"startAppType":0,"appIndex":0,"shortcutId":"","isSameLocation":false,"iconRect":{"left":332.9473571777344,"top":421.0526428222656,"right":396.9473571777344,"bottom":485.0526428222656,"height":64,"width":64}}
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01C06/com.ohos.sceneboard/ICON: [a92ab1c8e522184 2541726 3b63171]CompanionIcon: checkIsAdaptiveIcon, bundleName:com.yaoshining.vidallplayer, isAdaptive:true
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01C06/com.ohos.sceneboard/ICON: [a92ab1c8e522184 2541726 3b63171]CloseAppManager --> setAdaptiveIcon, bundleName: com.yaoshining.vidallplayer iconId: 16777219 start
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B00/com.ohos.sceneboard/SCB: [a92ab1c8e522184 1807419 c67ee4]IconResourceManager: combIcon is empty: false, bundleName: **.yaoshining.vidallplayer
+
+2026-11-12 22:10:45 3100-3100/hdc D/A04209/com.ohos.sceneboard/WMSImms: [a92ab1c8e522184 2541726 3b63171]update prop, topContainerSession: [339, com.yaoshining.vidallplayer], inClearSceneStatus: false, locked:false
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBSCS: [SCBScenePanelViewModel] sceneAlpha from 1 to 0. reason: sceneContainerZoomIn, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:45 3100-3100/hdc W/A04202/com.ohos.sceneboard/WMSMain: [a92ab1c8e522184 2541726 3b63171]add failed. EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103) already existed in array
+
+2026-11-12 22:10:45 3100-3100/hdc I/A0421D/com.ohos.sceneboard/WMSRotation: [a92ab1c8e522184 2541726 3b63171][startSceneWithRotationIfNeed] containerSession EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)needAnimation false isFromRecent false fromUser false isPageRotation false
+
+2026-11-12 22:10:45 3100-3100/hdc W/A0421D/com.ohos.sceneboard/WMSRotation: [a92ab1c8e522184 2541726 3b63171][getTargetRotation] bundleName:com.yaoshining.vidallplayer requestOrientation:0 isScreenLocked:false isPlacedRotateFriendlyDevicePlaced:false fixedRotation: -1 rotationCommand: {"isIgnorePlacedState":false,"isFromDropDown":false}
+
+2026-11-12 22:10:45 3100-3100/hdc I/A0421D/com.ohos.sceneboard/WMSRotation: [a92ab1c8e522184 2541726 3b63171][startSceneWithRotationIfNeed] before rotate with targetRotation=270, sensorRotation=270, currentScreenRotation=270, currentContainerRotation=270, tempRotation=, name=com.yaoshining.vidallplayer
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBSCS: [SCBSCS] translateY from 0 to -134.73684210526315. reason: startOther, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBSCS: [SCBSCS] translateY from -134.73684210526315 to 0. reason: onTransitionInactive, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: [a92ab1c8e522184 2541726 3b63171]SCBSCS: [SCBScenePanelViewModel] sceneAlpha from 0 to 1. reason: sceneContainerZoomIn, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B00/com.ohos.sceneboard/SCB: [a92ab1c8e522184 1a5cc4e 77f663]DbCache --> getCombIcon bundleName: com.yaoshining.vidallplayer, entry, EntryAbility, combinePicLength:16790
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B00/com.ohos.sceneboard/SCB: [a92ab1c8e522184 268b280 1a5cc4e]IconResourceManager: getIconResource bundleName: com.yaoshining.vidallplayer, resultInfo.iconType = adaptive, combinePicLength:16790, foregroundLength:5302, backgroundLength:16130
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B00/com.ohos.sceneboard/SCB: [a92ab1c8e522184 268b280 1a5cc4e]MemoryCache --> setCacheIconPicTypeToMemory: cacheKey com.yaoshining.vidallplayer#entryEntryAbility0 iconType adaptive, foregroundLength:5302, backgroundLength:16130, combinePicLength:16790
+
+2026-11-12 22:10:45 3100-3100/hdc D/A04209/com.ohos.sceneboard/WMSImms: update prop, topContainerSession: [339, com.yaoshining.vidallplayer], inClearSceneStatus: false, locked:false
+
+2026-11-12 22:10:45 3100-3100/hdc D/A04209/com.ohos.sceneboard/WMSImms: update prop, topContainerSession: [339, com.yaoshining.vidallplayer], inClearSceneStatus: false, locked:false
+
+2026-11-12 22:10:45 2628-2628/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 runtime ready
+
+2026-11-12 22:10:45 958-40551/hdc D/C01714/resource_schedule_service/COMPONENT_SCHED: [a92abdc8e5c94e9 0 0][GetApptype:967] bundleName:com.yaoshining.vidallplayer, pkgType:-1
+
+2026-11-12 22:10:45 1674-57883/hdc I/C01409/aps_manager/APS_MANAGER: ApsHgmAdapter SendPkgToHGM pkgName = com.yaoshining.vidallplayer:2628:-1
+
+2026-11-12 22:10:45 3100-3100/hdc W/A01B01/com.ohos.sceneboard/HOME: SCBSCS: [SCBScenePanelViewModel] border radius from topLeft: 28, topRight: 28, bottomLeft: 28, bottomRight: 28 to 0. reason: sceneContainerZoomIn, extra: EntryAbility/com.yaoshining.vidallplayer/entry/0(persistentId: 339)(containerId: 103)
+
+2026-11-12 22:10:45 1539-4281/hdc I/C01407/render_service/hgm: HandlePkgsEvent pkg update:com.yaoshining.vidallplayer:2628:-1
+
+2026-11-12 22:10:45 1539-4281/hdc D/C01407/render_service/hgm: ReportHiSysEvent ReportHiSysEvent: VOTER_NAME:VOTER_IDLE;PREFERRED:60;EXT_INFO:;PID:0;BUNDLE_NAME:com.yaoshining.vidallplayer;TIMESTAMP:1794492645825.
+
+2026-11-12 22:10:45 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_loop_handler.cpp35]triggered
+
+2026-11-12 22:10:45 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_js_environment_impl.cpp78]called
+
+2026-11-12 22:10:45 3100-3822/hdc D/C0420C/com.ohos.sceneboard/WMSEvent: GetFullWindowInfoList: [EventDispatch] windowName=vidallplayer0 bundleName=com.yaoshining.vidallplayer windowId=339 activeStatus=1
+
+2026-11-12 22:10:45 3100-3822/hdc D/C0420C/com.ohos.sceneboard/WMSEvent: GetFullWindowInfoList: [EventDispatch] windowName=vidallplayer0 bundleName=com.yaoshining.vidallplayer windowId=339 activeStatus=1
+
+2026-11-12 22:10:45 3100-3822/hdc D/C0420C/com.ohos.sceneboard/WMSEvent: GetFullWindowInfoList: [EventDispatch] windowName=vidallplayer0 bundleName=com.yaoshining.vidallplayer windowId=339 activeStatus=1
+
+2026-11-12 22:10:45 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_loop_handler.cpp35]triggered
+
+2026-11-12 22:10:45 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_js_environment_impl.cpp78]called
+
+2026-11-12 22:10:45 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_loop_handler.cpp35]triggered
+
+2026-11-12 22:10:45 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_js_environment_impl.cpp78]called
+
+2026-11-12 22:10:45 2628-2628/hdc D/C03F00/com.yaoshining.vidallplayer/ArkCompiler: [gc] IdleGCTrigger: check young GC semi Space size since gc:1561784
+
+2026-11-12 22:10:45 2628-2628/hdc D/C03F00/com.yaoshining.vidallplayer/ArkCompiler: [gc] IdleGCTrigger: check young GC semi Space size since gc:1561784
+
+2026-11-12 22:10:45 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_loop_handler.cpp35]triggered
+
+2026-11-12 22:10:45 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_js_environment_impl.cpp78]called
+
+2026-11-12 22:10:46 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_loop_handler.cpp35]triggered
+
+2026-11-12 22:10:46 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_js_environment_impl.cpp78]called
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[WindowScene_vidallplayer339] nodeid:[13314398631049] pid:[3100] nodeType:[4] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[vidallplayer0] nodeid:[11287174053890] pid:[2628] nodeType:[1] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [vidallplayer0, 11287174053890] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [WindowScene_vidallplayer339, 13314398631049] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: CalculateOpaqueAndTransparentRegion Node: WindowScene_vidallplayer339, NodeId: 13314398631049 not paticipate in occlusion
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:WindowScene_vidallplayer339 nodeId:[13314398631049]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:13314398631049, name:WindowScene_vidallplayer339,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:vidallplayer0 nodeId:[11287174053890]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:11287174053890, name:vidallplayer0,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:vidallplayer0 Id:11287174053890 water mark count is zero
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:WindowScene_vidallplayer339 Id:13314398631049 water mark count is zero
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[WindowScene_vidallplayer339] nodeid:[13314398631049] pid:[3100] nodeType:[4] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[vidallplayer0] nodeid:[11287174053890] pid:[2628] nodeType:[1] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [vidallplayer0, 11287174053890] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [WindowScene_vidallplayer339, 13314398631049] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: CalculateOpaqueAndTransparentRegion Node: WindowScene_vidallplayer339, NodeId: 13314398631049 not paticipate in occlusion
+
+2026-11-12 22:10:46 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_loop_handler.cpp35]triggered
+
+2026-11-12 22:10:46 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_js_environment_impl.cpp78]called
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:WindowScene_vidallplayer339 nodeId:[13314398631049]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:13314398631049, name:WindowScene_vidallplayer339,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:vidallplayer0 nodeId:[11287174053890]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:11287174053890, name:vidallplayer0,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:vidallplayer0 Id:11287174053890 water mark count is zero
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:WindowScene_vidallplayer339 Id:13314398631049 water mark count is zero
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[WindowScene_vidallplayer339] nodeid:[13314398631049] pid:[3100] nodeType:[4] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[vidallplayer0] nodeid:[11287174053890] pid:[2628] nodeType:[1] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [vidallplayer0, 11287174053890] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [WindowScene_vidallplayer339, 13314398631049] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: CalculateOpaqueAndTransparentRegion Node: WindowScene_vidallplayer339, NodeId: 13314398631049 not paticipate in occlusion
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:WindowScene_vidallplayer339 nodeId:[13314398631049]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:13314398631049, name:WindowScene_vidallplayer339,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:vidallplayer0 nodeId:[11287174053890]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:11287174053890, name:vidallplayer0,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:vidallplayer0 Id:11287174053890 water mark count is zero
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:WindowScene_vidallplayer339 Id:13314398631049 water mark count is zero
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[WindowScene_vidallplayer339] nodeid:[13314398631049] pid:[3100] nodeType:[4] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[vidallplayer0] nodeid:[11287174053890] pid:[2628] nodeType:[1] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [vidallplayer0, 11287174053890] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [WindowScene_vidallplayer339, 13314398631049] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: CalculateOpaqueAndTransparentRegion Node: WindowScene_vidallplayer339, NodeId: 13314398631049 not paticipate in occlusion
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:WindowScene_vidallplayer339 nodeId:[13314398631049]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:13314398631049, name:WindowScene_vidallplayer339,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:vidallplayer0 nodeId:[11287174053890]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:11287174053890, name:vidallplayer0,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:vidallplayer0 Id:11287174053890 water mark count is zero
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:WindowScene_vidallplayer339 Id:13314398631049 water mark count is zero
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[WindowScene_vidallplayer339] nodeid:[13314398631049] pid:[3100] nodeType:[4] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepareSurfaceRenderNode:[vidallplayer0] nodeid:[11287174053890] pid:[2628] nodeType:[1] subTreeDirty[0] crossDisplay[0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [vidallplayer0, 11287174053890] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: QuickPrepare [WindowScene_vidallplayer339, 13314398631049] DirtyRect[0, 0, 0, 0]
+
+2026-11-12 22:10:46 1539-1539/hdc D/C01406/render_service/RSUniRenderVisitor: CalculateOpaqueAndTransparentRegion Node: WindowScene_vidallplayer339, NodeId: 13314398631049 not paticipate in occlusion
+
+2026-11-12 22:10:46 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_loop_handler.cpp35]triggered
+
+2026-11-12 22:10:46 2628-2628/hdc D/C01321/com.yaoshining.vidallplayer/JsRuntime: [ohos_js_environment_impl.cpp78]called
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:WindowScene_vidallplayer339 nodeId:[13314398631049]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:13314398631049, name:WindowScene_vidallplayer339,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable ondraw name:vidallplayer0 nodeId:[11287174053890]
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: RSSurfaceRenderNodeDrawable::OnDraw node:11287174053890, name:vidallplayer0,OcclusionVisible:0 Bound:(0.000000, 0.000000, 2560.000000, 1600.000000)
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:vidallplayer0 Id:11287174053890 water mark count is zero
+
+2026-11-12 22:10:46 1539-2049/hdc D/C01406/render_service/skia: SurfaceNodeDrawable DrawSurfaceWatermark Name:WindowScene_vidallplayer339 Id:13314398631049 water mark count is zero
+
+2026-11-12 22:10:47 2628-2628/hdc W/C03900/com.yaoshining.vidallplayer/Ace: [(100000:100000:scope)] try detect again
+
+2026-11-12 22:10:48 6652-4317/hdc E/C0470A/gameservice_server/GameServicePerf: [(QuerySingleAppType:28)][http]QuerySingleAppType fail, bundleName[com.yaoshining.vidallplayer],ret[-1]
+
+2026-11-12 22:10:48 6652-4317/hdc W/C0470A/gameservice_server/GameServicePerf: [(operator():142)][APP_TYPE_MG]QuerySingleAppType failed, bundleName[com.yaoshining.vidallplayer], ret[-1]
+
+2026-11-12 22:10:49 2628-2628/hdc W/C03900/com.yaoshining.vidallplayer/Ace: [(100000:100000:scope)] transparent node detected
+
+2026-11-12 22:11:01 2628-2628/hdc E/C02C03/com.yaoshining.vidallplayer/PARAM_WATCHER: [nodict]Read result failed, code is: 1.
+
+2026-11-12 22:11:01 2628-2628/hdc E/C02B2E/com.yaoshining.vidallplayer/AVScreenCaptureNapi: #1061 without strategy
+
+2026-11-12 22:11:09 764-504/hdc W/C02B87/audio_server/AudioInterruptService: [PrintInterruptDetectionToolLogs]The audio focus strategy based on music: forceType: 0, hintType: 0, actionOn: 1. Caller info: pid [2628], uid [20020193], bundleName [com.yaoshining.vidallplayer].
+
+2026-11-12 22:11:09 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  base munmap 0x6f00000000 len 0x100000000 fail
+
+2026-11-12 22:11:09 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  process destroy 4g fail.
+
+2026-11-12 22:11:09 2628-5069/hdc E/C0470A/com.yaoshining.vidallplayer/GameServicePerf: [(InitVulkanReportAll:120)]GameService-graphics: game opt disable
+
+2026-11-12 22:11:09 2628-5069/hdc W/C01409/com.yaoshining.vidallplayer/APS_MANAGER: redo Connect
+
+2026-11-12 22:11:09 2628-5069/hdc E/C01409/com.yaoshining.vidallplayer/APS_MANAGER: [ApsManagerProxy::RegCommonCallback] return params error
+
+2026-11-12 22:11:09 2628-5069/hdc W/C01409/com.yaoshining.vidallplayer/APS_MANAGER: RegCommonCallbackInner Register callback failed, delete callback
+
+2026-11-12 22:11:09 1674-24807/hdc W/C01409/aps_manager/APS_MANAGER: GameFpsPolicy RegisterGameFpsListener package name is not game, pkgName = com.yaoshining.vidallplayer
+
+2026-11-12 22:11:09 2628-5069/hdc E/C01409/com.yaoshining.vidallplayer/APS_MANAGER: ApsGameFpsController::RegisterGameFpsListener delete callback
+
+2026-11-12 22:11:09 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/VK_DEVICE: [nodict]<HM_GPU> #  Device init, apimode 0, sys64
+
+2026-11-12 22:11:09 2628-5075/hdc W/C01490/com.yaoshining.vidallplayer/QUEUE: [nodict]<HM_GPU> #  async worker started.
+
+2026-11-12 22:11:09 2628-5069/hdc E/C01405/com.yaoshining.vidallplayer/VulkanSwapchainLayer: <1512>GetPhysicalDeviceSurfacePresentModesKHR: NativeWindow Not Support Shared Mode, now. Not Report Shared Mode.
+
+2026-11-12 22:11:09 2628-5069/hdc E/C01405/com.yaoshining.vidallplayer/VulkanSwapchainLayer: <1512>GetPhysicalDeviceSurfacePresentModesKHR: NativeWindow Not Support Shared Mode, now. Not Report Shared Mode.
+
+2026-11-12 22:11:09 2628-4352/hdc W/C01650/com.yaoshining.vidallplayer/RdbStoreManager: IsConfigInvalidChanged:no bundleName
+
+2026-11-12 22:11:09 2628-4352/hdc E/C01650/com.yaoshining.vidallplayer/SilentProxy: IsSupportSilentFromService:GetRdbService failed, err is 27394049.
+
+2026-11-12 22:11:09 2628-5054/hdc E/C02B87/com.yaoshining.vidallplayer/AudioPolicyIdl: [nodict]Read result failed, code is: 39.
+
+2026-11-12 22:11:09 2628-5054/hdc W/C02B8B/com.yaoshining.vidallplayer/OHAudioRenderer: [SetInterruptCallback]The audio renderer interrupt callback function is not set
+
+2026-11-12 22:11:09 2628-5054/hdc W/C02B8B/com.yaoshining.vidallplayer/OHAudioRenderer: [SetErrorCallback]The audio renderer error callback function is not set
+
+2026-11-12 22:11:09 2628-5054/hdc E/C02B8B/com.yaoshining.vidallplayer/OHAudioRenderer: [SetRendererOutputDeviceChangeCallback]callback is nullptr
+
+2026-11-12 22:11:09 2628-5054/hdc E/C02B8B/com.yaoshining.vidallplayer/OHAudioRenderer: [SetRendererFastStatusChangeCallback]callback is nullptr
+
+2026-11-12 22:11:09 2628-5069/hdc E/C01405/com.yaoshining.vidallplayer/VulkanSwapchainLayer: <655>SetWindowTransform: The App Is Not Doing Pre-rotation, transformHint: 3, preTransform(to native): 0
+
+2026-11-12 22:11:09 2628-5069/hdc W/C02510/com.yaoshining.vidallplayer/load_hdi: OpenHdiServiceImpl failed to get symbol of 'MapperImplRelease', do_dlsym failed: Symbol not found: MapperImplRelease, version: null so=/vendor/lib64/chipsetsdk/libmapper_service_1.0.z.so
+
+2026-11-12 22:11:09 2628-5069/hdc W/C02510/com.yaoshining.vidallplayer/load_hdi: OpenHdiServiceImpl failed to get symbol of 'MetadataImplRelease', do_dlsym failed: Symbol not found: MetadataImplRelease, version: null so=/vendor/lib64/chipsetsdk/libmetadata_service_1.1.z.so
+
+2026-11-12 22:11:09 2628-5069/hdc W/C02510/com.yaoshining.vidallplayer/load_hdi: OpenHdiServiceImpl failed to get symbol of 'MapperImplRelease', do_dlsym failed: Symbol not found: MapperImplRelease, version: null so=/vendor/lib64/chipsetsdk/libmapper_service_1.2.z.so
+
+2026-11-12 22:11:09 2628-5069/hdc W/C02510/com.yaoshining.vidallplayer/load_hdi: OpenHdiServiceImpl failed to get symbol of 'MapperImplRelease', do_dlsym failed: Symbol not found: MapperImplRelease, version: null so=/vendor/lib64/passthrough/libmapper_service_1.3.z.so
+
+2026-11-12 22:11:09 2628-5069/hdc E/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Get metaData from gralloc fail.
+
+2026-11-12 22:11:09 3989-4123/hdc W/C04712/appgallery_service/AppGalleryKit: [sa_appinfo_rdb(QueryAppClassifyData)]failed, no rows, bundle = com.yaoshining.vidallplayer
+
+2026-11-12 22:11:09 3989-4123/hdc W/C04712/appgallery_service/AppGalleryKit: [sa_appinfo_rdb(QueryAppClassifyData)]failed, no rows, bundle = com.yaoshining.vidallplayer
+
+2026-11-12 22:11:09 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Create pipeline cache
+
+2026-11-12 22:11:09 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Create pipeline cache
+
+2026-11-12 22:11:09 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Create pipeline cache
+
+2026-11-12 22:11:10 2628-5069/hdc E/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Get metaData from gralloc fail.
+
+2026-11-12 22:11:10 764-57743/hdc W/C02B87/audio_server/AudioInterruptService: [PrintInterruptDetectionToolLogs]The audio focus strategy based on music: forceType: 0, hintType: 3, actionOn: 0. Caller info: pid [2628], uid [20020193], bundleName [com.yaoshining.vidallplayer].
+
+2026-11-12 22:11:10 2628-5069/hdc E/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Get metaData from gralloc fail.
+
+2026-11-12 22:11:10 2628-5069/hdc E/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Get metaData from gralloc fail.
+
+2026-11-12 22:11:10 2628-5069/hdc E/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Get metaData from gralloc fail.
+
+2026-11-12 22:11:10 2628-5069/hdc E/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Get metaData from gralloc fail.
+
+2026-11-12 22:11:10 2628-5069/hdc E/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Get metaData from gralloc fail.
+
+2026-11-12 22:11:10 2628-5069/hdc E/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Get metaData from gralloc fail.
+
+2026-11-12 22:11:10 2628-5069/hdc E/C01490/com.yaoshining.vidallplayer/VK: [nodict]<HM_GPU> #  Get metaData from gralloc fail.
+
+2026-11-12 22:11:11 595-51184/hdc E/C02D15/hiview/XPower: [task_66]#Can not get process info: /system/bin/render_service_com.yaoshining.vidallplayer
+
+2026-11-12 22:11:11 595-51184/hdc E/C02D15/hiview/XPower: [task_66]#pkgname is: /system/bin/render_service_com.yaoshining.vidallplayer, uid is : -1
+
+2026-11-12 22:11:11 595-51184/hdc E/C02D15/hiview/XPower: [task_66]#failed to get process :/system/bin/render_service_com.yaoshining.vidallplayer quota return
+
+2026-11-12 22:11:14 2628-2628/hdc E/C02B8B/com.yaoshining.vidallplayer/NapiParamUtils: [GetValueInt64]GetValueInt64 napi_get_value_int64 failed
+
+2026-11-12 22:11:14 2628-2628/hdc E/C02B8B/com.yaoshining.vidallplayer/NapiParamUtils: [GetValueInt64]GetValueInt64 failed
+
+2026-11-12 22:11:14 2628-2628/hdc E/C02B87/com.yaoshining.vidallplayer/AudioPolicyIdl: [nodict]Read result failed, code is: 39.
+
+2026-11-12 22:11:14 2628-5311/hdc E/C02B8B/com.yaoshining.vidallplayer/NapiAudioRendererCallback: [OnStateChange]Cannot find the reference of stateChange callback
+
+2026-11-12 22:11:14 2628-2628/hdc E/C02C03/com.yaoshining.vidallplayer/PARAM_WATCHER: [nodict]Read result failed, code is: 1.
+
+2026-11-12 22:11:14 2628-2628/hdc E/C02B24/com.yaoshining.vidallplayer/MediaMonitorManager: (WatchHiviewUeEnableParameter(), 106): WatchHiviewUeEnableParameter failed!
+
+2026-11-12 22:11:14 764-781/hdc W/C02B87/audio_server/AudioInterruptService: [PrintInterruptDetectionToolLogs]The audio focus strategy based on music: forceType: 0, hintType: 2, actionOn: 0. Caller info: pid [2628], uid [20020193], bundleName [com.yaoshining.vidallplayer].
+
+2026-11-12 22:11:14 2628-4306/hdc E/C02B87/com.yaoshining.vidallplayer/AudioPolicyIdl: [nodict]Read result failed, code is: 236.
+
+2026-11-12 22:11:14 2628-5311/hdc E/C02B8B/com.yaoshining.vidallplayer/NapiAudioRendererCallback: [OnStateChange]Cannot find the reference of stateChange callback
+
+2026-11-12 22:11:14 2628-4280/hdc W/C02B83/com.yaoshining.vidallplayer/AudioRenderer: [NotifyEvent]cb_==nullptr, failed to send interruptEvent
+
+2026-11-12 22:11:21 2628-5311/hdc E/C02B8B/com.yaoshining.vidallplayer/NapiAudioRendererCallback: [OnStateChange]Cannot find the reference of stateChange callback
+
+2026-11-12 22:11:21 2628-4280/hdc W/C02B83/com.yaoshining.vidallplayer/AudioRenderer: [NotifyEvent]cb_==nullptr, failed to send interruptEvent
+
+2026-11-12 22:11:21 2628-5314/hdc E/C02B86/com.yaoshining.vidallplayer/RendererInClientInner: [WriteCallbackFunc]Callback thread released
+
+2026-11-12 22:11:21 2628-4352/hdc E/C02B8B/com.yaoshining.vidallplayer/NapiAudioRendererCallback: [OnStateChange]Cannot find the reference of stateChange callback
+
+2026-11-12 22:11:21 2628-5055/hdc E/C02B83/com.yaoshining.vidallplayer/AudioRenderer: [comm][Pause]State of stream is not running. Illegal state:5
+
+2026-11-12 22:11:21 2628-5094/hdc E/C02B86/com.yaoshining.vidallplayer/RendererInClientInner: [WriteCallbackFunc]Callback thread released
+
+2026-11-12 22:11:21 2628-5055/hdc W/C02B87/com.yaoshining.vidallplayer/AudioPolicyManager: [RemoveClientTrackerStub]Client tracker for session 100133 not exist
+
+2026-11-12 22:11:21 2628-5055/hdc W/C02B86/com.yaoshining.vidallplayer/RendererInClientInnerPublic: [ReleaseAudioStream]Already released
+
+2026-11-12 22:11:21 2628-5055/hdc E/C02B87/com.yaoshining.vidallplayer/AudioPolicyIdl: [nodict]Read result failed, code is: 111.
+
+2026-11-12 22:11:21 2628-5055/hdc E/C02B86/com.yaoshining.vidallplayer/RendererInClientInner: [UnregisterSpatializationStateEventListener]UnregisterSpatializationStateEventListener failed
+
+2026-11-12 22:11:21 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/MMNGR: [nodict]<HM_GPU> #  The device memory purge thread exited successfully.
+
+2026-11-12 22:11:21 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/VK_QUEUE: [nodict]<HM_GPU> #  ~QueueInternal start.
+
+2026-11-12 22:11:21 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/VK_QUEUE: [nodict]<HM_GPU> #  ~QueueInternal start.
+
+2026-11-12 22:11:21 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  wait handler Termiated done.
+
+2026-11-12 22:11:21 2628-5076/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  Termiate softQHandler done.
+
+2026-11-12 22:11:21 2628-5075/hdc W/C01490/com.yaoshining.vidallplayer/QUEUE: [nodict]<HM_GPU> #  async worker stopped.
+
+2026-11-12 22:11:21 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  base munmap 0x6f00000000 len 0x100000000 fail
+
+2026-11-12 22:11:21 2628-5069/hdc W/C01490/com.yaoshining.vidallplayer/BASE: [nodict]<HM_GPU> #  process destroy 4g fail.
+
+2026-11-12 22:11:21 2628-5069/hdc W/C057C1/com.yaoshining.vidallplayer/BrokerRegistration: Unregister: libgame_acc_sched_client.z.so is dlclosed
+
+2026-11-12 22:11:21 3989-4123/hdc W/C04712/appgallery_service/AppGalleryKit: [sa_appinfo_rdb(QueryAppClassifyData)]failed, no rows, bundle = com.yaoshining.vidallplayer
