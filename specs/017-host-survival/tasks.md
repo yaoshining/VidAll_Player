@@ -1,5 +1,7 @@
 # 任务与证据
 
+面向用户的四项总览：[TODO.md](TODO.md) · [Linear YAO-5](https://linear.app/yaoshining/issue/YAO-5)。每项完成后同步勾选并附日期、源提交及验收证据；本文件继续记录详细任务，构建或部分设备通过不提前关闭总览项。
+
 - [x] T001 核对交付 HAR 哈希和 ARM64 九库；原样正常测试通过、终局测试 1009 ms 以 86 退出，见 baseline.json。
 - [x] T002 核对进程终局入口、不可复位锁存、释放等待及架构探针边界，见 investigation.md。
 - [x] T003 用户确定全局终局后也必须能继续播放，拒绝禁用 MPV 等重启。
