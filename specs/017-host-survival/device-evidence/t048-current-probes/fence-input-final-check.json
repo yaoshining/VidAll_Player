@@ -1,0 +1,8 @@
+{
+  "packagePayloadUnchanged": true,
+  "sourceTreesUnchanged": true,
+  "freshSourcesWithoutBuildObjects": true,
+  "declaredExternalFFmpeg": "mpv/source/_staged/ffmpeg",
+  "sourceAndExternalUnionExact": true,
+  "externalPCRelocationsVerified": true
+}

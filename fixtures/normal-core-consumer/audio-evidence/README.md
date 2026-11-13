@@ -26,3 +26,5 @@ python3 scripts/test/audio-evidence/prepare.py --probe recovery-terminal --proje
 完整当前包及逐库/页面哈希见 `specs/017-host-survival/device-evidence/t045-full-audio-preparation.json`。三包使用不同版本号和名称以便云端辨认，均为本地消费HAP；正常HAR来源为iMac CI，诊断HAR沿用本地T044已绑定来源。其中1.0.45已在API24云平板执行并暴露两项失败；见T045设备记录。1.0.46/47未确认上传或执行，不能与此前初版内录包混淆。
 
 T047在普通/焦点页显示最近12条录制阶段/状态，每行最多160字符，便于云端日志不可取时定位。create/init/start等调用返回与系统STARTED分别记录；不能把start-returned视为录制成功。没有改变原始HAR、15秒期限或声音验收门槛。
+
+T048 将同样的有界阶段显示加入两组生成的故障页，并从 T046 当前生产输入重新构建诊断核心及完整 HAR。后续使用 1.0.50/1.0.51，来源与九库记录见 `specs/017-host-survival/device-evidence/t048-current-probes/`；上面的 T044/T045 包只保留为历史证据。新包尚未完成设备验收。

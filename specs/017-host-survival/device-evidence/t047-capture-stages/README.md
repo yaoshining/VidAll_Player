@@ -13,3 +13,7 @@
 独立内录工具增加create/init/mic-off/start返回、等待STARTED、stop/release阶段回报，正常和失败返回分开显示。页面保留最近12条capture事件，每行160字符，换行被规范化；不含素材路径。保留15秒启动期限、一次性录制、无麦克风、必须收到STARTED才播放和未确认release保留fd。生产HAR、九库、FFmpeg及TV均不变。
 
 真实录制器与页面先红后绿，另覆盖init未归还、release失败及有界显示；六套验收工具宿主回归通过，随后修正init返回后取消场景的阶段先后并重跑录制器通过。完整ArkTS编译及签名HAP构建通过，九库与原始iMac CI HAR逐一一致。1.0.49仅本地验收包，详见tablet-preparation.json，尚未上传或执行，不计设备通过。
+
+## 后续 CI 核对
+
+930b01a 的 iMac 自托管构建 [43347619195](https://github.com/yaoshining/VidAll_Player/actions/runs/43347619195) 与 Ubuntu 宿主回归 [43347835462](https://github.com/yaoshining/VidAll_Player/actions/runs/43347835462) 均已完成并通过，详见 ci-status.json。本次只核对任务结果，未将新上传附件替换为已核验的 62e4e3f 原始 HAR，也未增加任何设备或可听音频通过结论。

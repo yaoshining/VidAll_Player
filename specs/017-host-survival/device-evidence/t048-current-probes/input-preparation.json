@@ -1,0 +1,49 @@
+[
+  {
+    "kind": "spec017-t048-fence",
+    "productionCommit": "62e4e3f8d9648f60713e03d182b2e0f45d923118",
+    "basePackageSHA256": "5cb014c0495b2fe146accfd549526318afd8e8ec78bbbded136bd9513568657f",
+    "patch": {
+      "path": "native/tests/ohcodec-fence/inject-wait.patch",
+      "sha256": "32cd43c0d578867f64c53762f4f02d2e05aee96799d27911bff13b24df301ba8"
+    },
+    "sourceChanges": [
+      {
+        "path": "sources/mpv/meson.build",
+        "beforeSHA256": "b985c140990c8f540b557a5ce2260dddce4c59a3c12a9e23983ffb080a821704",
+        "afterSHA256": "68f930d0abab3b46440a8356bc392edfe87ece909a293b8e77260af2d18e3cfa"
+      },
+      {
+        "path": "sources/mpv/video/out/hwdec/hwdec_ohcodec_pl.c",
+        "beforeSHA256": "3531af0bbb8d7fa9f73f7731dbd6df3e5468aec824e946266cedea9281c6b8e1",
+        "afterSHA256": "0578dfcaa57ae01ac02d70b95502baa28107be5e9c1cca301b0c7a452e353c26"
+      }
+    ],
+    "ffmpegModified": false,
+    "formalArtifactAllowed": false,
+    "deviceAcceptance": false,
+    "inputRoot": "/tmp/vidall-host-recovery-t048-fence-input",
+    "packageSHA256": "0db4909e077052f6e39360de2bb38f1a9293a36d33d43c1ca515e698cd3d2805"
+  },
+  {
+    "kind": "spec017-t048-global",
+    "productionCommit": "62e4e3f8d9648f60713e03d182b2e0f45d923118",
+    "basePackageSHA256": "5cb014c0495b2fe146accfd549526318afd8e8ec78bbbded136bd9513568657f",
+    "patch": {
+      "path": "native/tests/host-survival/inject-process-terminal.patch",
+      "sha256": "e7bc1ce89f82edd4f67c96be5e6680959a8b9eeb4d0250d6029054864692fb42"
+    },
+    "sourceChanges": [
+      {
+        "path": "sources/mpv/player/client.c",
+        "beforeSHA256": "fedea9655b0f034ecb284e7ff2f3fb616145d2b58811a32f8120e1670c038d0e",
+        "afterSHA256": "938ce05e13b78744279afcfe68361d25fbfb27c9eb5d2b7c011bf9e63f60a54d"
+      }
+    ],
+    "ffmpegModified": false,
+    "formalArtifactAllowed": false,
+    "deviceAcceptance": false,
+    "inputRoot": "/tmp/vidall-host-recovery-t048-global-input",
+    "packageSHA256": "a65136813c7455122719e13955efb5497b4e7df480a39da8e07c1d8b4f54c43a"
+  }
+]

@@ -11,7 +11,15 @@ def with_capture(source):
     if "from './AudioCapture'" in source:
         raise ValueError('禁止重复插入录制器')
     changes = {
-        'struct Index {': "struct Index {\n  @State audioRequested: boolean = false;\n  private capture?: AudioCapture;",
+        'struct Index {': "struct Index {\n  @State audioRequested: boolean = false;\n  @State captureTrace: string = '';\n  private captureTraceLines: string[] = [];\n  private capture?: AudioCapture;",
+        "private record(event: string, value: string = ''): void {": r"""private record(event: string, value: string = ''): void {
+    if (event.startsWith('capture-')) {
+      const line = (event + ': ' + value).replace(/[\r\n]/g, ' ').slice(0, 160);
+      this.captureTraceLines.push(line);
+      if (this.captureTraceLines.length > 12) this.captureTraceLines.shift();
+      this.captureTrace = this.captureTraceLines.join('\n');
+    }""",
+        'Text(this.status)': 'Text(this.captureTrace).fontSize(16).fontColor(Color.White)\n        Text(this.status)',
         'private maybeStart(): void {': 'private maybeStart(): void {\n    if (!this.audioRequested) return;',
         'private active(): void {': 'private active(): void {\n    this.capture?.assertRecording();',
         'private async run(): Promise<void> {': '''private async run(): Promise<void> {
