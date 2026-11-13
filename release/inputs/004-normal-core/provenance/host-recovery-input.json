@@ -41,6 +41,10 @@
     {
       "path": "native/patches/phase30/0009-modern-audio-interrupt.patch",
       "sha256": "7907879aa4bcbc45d3bd8a31d1cc2ff8c2e84af3d4aec9c29106e030030822aa"
+    },
+    {
+      "path": "native/patches/phase30/0010-modern-audio-shared-userdata.patch",
+      "sha256": "af1313fc735fdc13ff0b89f0e828813e0310178598ecc5079d94452c92d009f2"
     }
   ],
   "addedSources": [

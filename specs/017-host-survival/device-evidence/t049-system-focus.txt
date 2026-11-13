@@ -1,0 +1,5 @@
+    - listitem: "2026-11-13 23:54:58 747-22382/hdc W/C02B87/audio_server/AudioInterruptService: [PrintInterruptDetectionToolLogs]The audio focus strategy based on music: forceType: 0, hintType: 0, actionOn: 1. Caller info: pid [26631], uid [20020198], bundleName [com.yaoshining.vidallplayer]."
+    - listitem: "2026-11-13 23:55:04 747-22382/hdc W/C02B87/audio_server/AudioInterruptService: [PrintInterruptDetectionToolLogs]The audio focus strategy based on music: forceType: 0, hintType: 2, actionOn: 0. Caller info: pid [26631], uid [20020198], bundleName [com.yaoshining.vidallplayer]."
+    - listitem: "2026-11-13 23:55:55 747-50410/hdc E/C02B87/audio_server/AudioInterruptService: [comm][GetClientTypeBySessionId]Cannot find sessionid100331"
+    - listitem: "2026-11-13 23:55:55 747-50410/hdc E/C02B87/audio_server/AudioInterruptService: [comm][GetClientTypeBySessionId]Cannot find sessionid100331"
+    - listitem: "2026-11-13 23:55:55 747-747/hdc E/C02B87/audio_server/AudioInterruptService: [UnsetAudioInterruptCallback]session 100331 not present"

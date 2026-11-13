@@ -3,9 +3,9 @@
   "sha256": "1f098c60c8836c88ecfbe6779c6e281058fa0e4746c9b9ea0e8f6140dd53c2ee",
   "arguments": [
     "--input-root",
-    "/tmp/vidall-host-recovery-t046-final-input",
+    "/tmp/vidall-host-recovery-t050-input",
     "--run-root",
-    "/tmp/vidall-host-recovery-t046-build",
+    "/tmp/vidall-host-recovery-t050-build",
     "--sdk",
     "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native",
     "--meson",
@@ -14,6 +14,8 @@
     "/Users/yaoshining/anaconda3/bin/ninja",
     "--pkg-config",
     "/opt/homebrew/bin/pkg-config",
+    "--jobs",
+    "8",
     "--stable-prefix",
     "/usr/local",
     "--handoff-trace"

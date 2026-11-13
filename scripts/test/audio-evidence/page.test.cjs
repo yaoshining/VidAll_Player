@@ -7,6 +7,7 @@ let calls=[],recording=false;
 global.XComponentController=class{};
 const original=Module._load;
 Module._load=function(name,parent,main){
+ if(name==='./EvidenceFiles')return{EvidenceFiles:class{start(){}close(){}async exportFile(){return true;}}};
  if(name==='./AudioCapture')return{AudioCapture:class{async start(){calls.push('capture-start');recording=true;}assertRecording(){assert(recording);}async finish(){calls.push('capture-finish');recording=false;}}};
  if(name==='./FocusAlarm')return{FocusAlarm:class{async start(){} async stop(){} samplesWritten(){return 48000;}}};
  if(name==='./FocusRun')return{runFocusProbe:async port=>{await port.confirmManualResume();await port.resume();}};
@@ -19,6 +20,9 @@ const stripped=source.slice(0,source.indexOf('  build() {')).replace('@Entry',''
 const m=new Module(file,module);m.filename=file;m.paths=module.paths;
 m._compile(ts.transpileModule(stripped,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,file);
 (async()=>{
+ assert(source.includes(".id('audio-export-capture')"));
+ assert(source.indexOf('this.evidence.start()') < source.indexOf('await initializePlayerRuntime'));
+ const busy=new m.exports.Index();busy.record('capture-stage','start-call');assert.equal(busy.captureBusy,true);busy.record('capture-closed');assert.equal(busy.captureBusy,false);
  const visible=new m.exports.Index();
  for(let i=0;i<20;i++)visible.record('capture-stage','stage-'+i+'x'.repeat(300)+'\nforged');
  const trace=visible.captureTrace.split('\n');assert.equal(trace.length,12);assert(trace.every(line=>line.length<=160));

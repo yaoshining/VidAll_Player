@@ -1,6 +1,7 @@
 import { FocusAlarm } from './FocusAlarm';
 import { FocusPort, FocusSnapshot, runFocusProbe } from './FocusRun';
 import { AudioCapture } from './AudioCapture';
+import { EvidenceFiles } from './EvidenceFiles';
 import { common } from '@kit.AbilityKit';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { window } from '@kit.ArkUI';
@@ -10,6 +11,9 @@ import { createPlayer, VidAllPlayer, initializePlayerRuntime, onPlayerTerminal, 
 @Entry
 @Component
 struct Index {
+  @State evidenceStatus: string = '';
+  @State captureBusy: boolean = false;
+  private evidence?: EvidenceFiles;
   @State captureTrace: string = '';
   private captureTraceLines: string[] = [];
   @State awaitingManualResume: boolean = false;
@@ -37,6 +41,8 @@ struct Index {
     if (this.cancelled) throw new Error('PROBE_CANCELLED');
   }
   private record(event: string, value: string = ''): void {
+    if (event === 'capture-stage') this.captureBusy = true;
+    if (event === 'capture-closed') this.captureBusy = false;
     if (event.startsWith('capture-')) {
       const line = (event + ': ' + value).replace(/[\r\n]/g, ' ').slice(0, 160);
       this.captureTraceLines.push(line);
@@ -59,6 +65,8 @@ struct Index {
     this.context = this.getUIContext().getHostContext() as common.UIAbilityContext;
     this.root = this.context.filesDir + '/phase17-audio';
     if (!fs.accessSync(this.root)) await fs.mkdir(this.root);
+    this.evidence = new EvidenceFiles(this.context, this.root, (message: string): void => { this.evidenceStatus = message; });
+    this.evidence.start();
     const data = await this.context.resourceManager.getRawFileContent('test_video.mp4');
     const file = await fs.open(this.root + '/test_video.mp4', fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE | fs.OpenMode.TRUNC);
     try { await fs.write(file.fd, data.buffer); } finally { await fs.close(file); }
@@ -211,7 +219,16 @@ struct Index {
       const w = await window.getLastWindow(this.context); await w.setWindowKeepScreenOn(false);
     }
   }
-  aboutToDisappear(): void { this.cancelled = true; this.unsubscribe?.(); this.finish().catch(() => {}); this.capture?.finish().catch(() => {}); }
+  private async exportEvidence(kind: string): Promise<void> {
+    if (this.evidence === undefined) return;
+    try {
+      const saved = await this.evidence.exportFile(kind, this.captureBusy);
+      if (!this.cancelled) this.evidenceStatus = saved ? '已保存证据文件，仍需核验内容；不等于验收通过' : '已取消保存';
+    } catch (error) {
+      if (!this.cancelled) this.evidenceStatus = '导出失败：' + (error as Error).message;
+    }
+  }
+  aboutToDisappear(): void { this.cancelled = true; this.evidence?.close(); this.unsubscribe?.(); this.finish().catch(() => {}); this.capture?.finish().catch(() => {}); }
   build() {
     Stack({ alignContent: Alignment.TopStart }) {
       XComponent({ id: 'p32-video', type: XComponentType.SURFACE, controller: this.controller })
@@ -223,6 +240,12 @@ struct Index {
       if (this.awaitingManualResume) {
         Button('手动继续播放').id('audio-manual-resume').defaultFocus(true).onClick(() => { this.acceptManualResume(); })
       }
+      Row() {
+        Button('导出内录').id('audio-export-capture').enabled(!this.captureBusy).onClick(() => { this.exportEvidence('capture'); })
+        Button('导出事件').id('audio-export-events').enabled(!this.captureBusy).onClick(() => { this.exportEvidence('events'); })
+        Button('导出崩溃').id('audio-export-crash').enabled(!this.captureBusy).onClick(() => { this.exportEvidence('crash'); })
+      }
+      Text(this.evidenceStatus).fontSize(16).fontColor(Color.White).backgroundColor('#BB000000')
       Text(this.captureTrace).fontSize(16).fontColor(Color.White).backgroundColor('#BB000000').padding(8)
       Text(this.status).fontSize(24).fontColor(Color.White).backgroundColor('#88000000').padding(16)
       }

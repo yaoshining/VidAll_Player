@@ -45,6 +45,7 @@ parts = [
     function(ao, 'ao_request_pause'), function(ao, 'ao_is_per_file'), registry,
     function(driver, 'release_for_recovery'), function(driver, 'uninit'), function(driver, 'legacy_write'),
     function(driver, 'legacy_interrupt'),
+    function(driver, 'modern_write') if 'static OH_AudioData_Callback_Result modern_write(' in driver else '',
     function(driver, 'modern_interrupt') if 'static void modern_interrupt(' in driver else '',
     function(driver, 'register_callbacks'),
     function(source('player/playloop.c'), 'get_internal_paused'),

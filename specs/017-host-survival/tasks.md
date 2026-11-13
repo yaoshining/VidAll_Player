@@ -1,6 +1,6 @@
 # 任务与证据
 
-面向用户的四项总览：[TODO.md](TODO.md) · [Linear YAO-5](https://linear.app/yaoshining/issue/YAO-5)。每项完成后同步勾选并附日期、源提交及验收证据；本文件继续记录详细任务，构建或部分设备通过不提前关闭总览项。
+面向用户的四项总览：[TODO.md](TODO.md) · [Todoist「Player」](https://app.todoist.com/app/project/player-6j294wJX64V7p54G)。每项完成后同步勾选并附日期、源提交及验收证据；本文件继续记录详细任务，构建或部分设备通过不提前关闭总览项。
 
 - [x] T001 核对交付 HAR 哈希和 ARM64 九库；原样正常测试通过、终局测试 1009 ms 以 86 退出，见 baseline.json。
 - [x] T002 核对进程终局入口、不可复位锁存、释放等待及架构探针边界，见 investigation.md。
@@ -68,3 +68,12 @@
 2026-11-13 T047 Air复验已观察到系统授权页；及时确认后录制实际启动，普通流程页面完成。但当前62e4e3f核心的焦点流程三次显示SYSTEM_PAUSE_MISSING，PID53964完整记录竞争源运行与失败清理。实际音轨未导出，系统焦点决策/原生回调断点未定位；T045/T046和设备任务继续未完成，详见device-evidence/t047-capture-stages/air112-1.0.49.json。
 
 - [x] T048 按 S14 重建含 T046 现代音频修复的两组独立故障诊断核心、完整 HAR 和含 T047 阶段显示的 HAP，输入、编译配置、实际展开依赖及 HAP 九库来源核对通过，见 device-evidence/t048-current-probes/README.md；仅准备完成，真实故障后音画仍由 T045/T007 验收。
+
+
+- [ ] T049 为独立验收程序补本应用崩溃订阅与受控日志/内录导出，先红测后实现、ArkTS构建及包身份核验；实机重现取栈与音轨仍需分别验证。2026-11-13 当前1.0.49在实际HarmonyOS7 Air发现Cpp Crash，详见device-evidence/t049-native-crash.md；不混入API24，不计为已修复。
+
+T049工具阶段：7组宿主回归与1.0.52独立HAP ArkTS构建通过；原始CI HAR及九库哈希完全不变，已上传华为云。工具准备不计播放器修复或设备声音通过，详见device-evidence/t049-evidence-preparation.json。
+
+- [ ] T050 修复OHAudio现代回调共用userData时AO/token混用；真实登记语义红绿回归，受控mpv及完整CI HAR重建，API24焦点与API26崩溃分别复验。
+
+T050本地阶段（2026-11-14）：实际共用userdata回归先红后绿；干净上游提交派生的7组音频测试及94项宿主通过，受控mpv与完整九库HAR构建核验通过，详见device-evidence/t050-local-validation.json。CI和设备仍待验证，T050不勾选。

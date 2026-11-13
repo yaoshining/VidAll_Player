@@ -12,6 +12,8 @@
 typedef void OH_AudioRenderer;
 typedef void OH_AudioStreamBuilder;
 typedef int OH_AudioStream_Result;
+typedef int OH_AudioData_Callback_Result;
+enum { AUDIO_DATA_CALLBACK_RESULT_VALID = 0 };
 typedef int OH_AudioInterrupt_ForceType;
 typedef int OH_AudioInterrupt_Hint;
 typedef void (*OH_AudioRenderer_OnInterruptCallback)(OH_AudioRenderer *, void *, int, int);
@@ -59,19 +61,22 @@ static void mp_sleep_ns(long long ns) {assert(!"意外进入释放失败保留�
 static void uninit_audio_out(struct MPContext *ctx) { unloaded++; ctx->ao=NULL; }
 
 static int OH_GetSdkApiVersion(void) { return sdk; }
+static void *expected_write_ao;
 static int audio_on_write_callback(OH_AudioRenderer *r, void *u, void *buf, int32_t len)
-{ assert(u && len == 16); writes++; return 0; }
+{ assert(u && len == 16); if (expected_write_ao) assert(u == expected_write_ao); writes++; return 0; }
 static int OH_AudioStreamBuilder_SetRendererCallback(void *b, OH_AudioRenderer_Callbacks c, void *u)
 { callbacks = c; user = u; return result; }
+static int (*modern_write_cb)(OH_AudioRenderer *, void *, void *, int32_t);
+static void *shared_user;
 static int OH_AudioStreamBuilder_SetRendererWriteDataCallback(void *b,
     int (*cb)(OH_AudioRenderer *, void *, void *, int32_t), void *u)
-{ assert(cb == audio_on_write_callback); modern++; return result; }
+{ modern_write_cb = cb; shared_user = u; modern++; return result; }
 static void (*modern_interrupt_cb)(OH_AudioRenderer *, void *, int, int);
 static void *modern_user;
 static int interrupt_result;
 static int __attribute__((unused)) OH_AudioStreamBuilder_SetRendererInterruptCallback(void *b,
     void (*cb)(OH_AudioRenderer *, void *, int, int), void *u)
-{ modern_interrupt_cb = cb; modern_user = u; return interrupt_result; }
+{ modern_interrupt_cb = cb; modern_user = u; shared_user = u; return interrupt_result; }
 #define RTLD_DEFAULT ((void *)0)
 static bool interrupt_symbol_available = true;
 static void *__attribute__((unused)) dlsym(void *handle, const char *name)
@@ -275,13 +280,19 @@ int main(void)
     ctx.shown_vframes++;
     handle_each_frame_screenshot(&ctx);
     assert(audio_paused && video_paused);
-    for (sdk = 20; sdk <= 24; sdk += 4) {
+    const int modern_sdks[] = {20,24,26};
+    for (unsigned i = 0; i < sizeof(modern_sdks)/sizeof(modern_sdks[0]); i++) {
+        sdk = modern_sdks[i];
         modern_interrupt_cb = NULL; modern_user = NULL; modern = 0;
         next.per_file = false; atomic_store(&next.events_,0); ctx.ao = &next;
         set_user_pause_option(&ctx,false);
         assert(register_callbacks(&next) == 0 && modern == 1 && next.per_file);
         assert(modern_interrupt_cb && modern_user && "现代分支必须注册真实中断回调");
         void *token = modern_user;
+        char modern_buffer[16]; memset(modern_buffer, 0x7f, sizeof(modern_buffer));
+        expected_write_ao = &next; int before_write = writes;
+        assert(modern_write_cb(NULL,shared_user,modern_buffer,16) == AUDIO_DATA_CALLBACK_RESULT_VALID);
+        assert(writes == before_write + 1); expected_write_ao = NULL;
         modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
         handle_audio_interrupt(&ctx); assert(opts.pause && audio_paused && video_paused);
         modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_RESUME);
@@ -289,6 +300,9 @@ int main(void)
         set_user_pause_option(&ctx,false);assert(!opts.pause && !audio_paused);
         uninit(&next);assert(legacy_bindings == NULL);
         assert(register_callbacks(&next) == 0 && modern_user != token);
+        before_write = writes; modern_write_cb(NULL,token,modern_buffer,16);
+        assert(writes == before_write);
+        for (unsigned j = 0; j < sizeof(modern_buffer); j++) assert(modern_buffer[j] == 0);
         modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_STOP);
         handle_audio_interrupt(&ctx);assert(!opts.pause);
         uninit(&next);

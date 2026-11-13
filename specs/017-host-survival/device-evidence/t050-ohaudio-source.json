@@ -1,0 +1,20 @@
+{
+  "source": "OpenHarmony官方Gitee仓库master",
+  "tree": "master",
+  "observed": "2026-11-13",
+  "files": [
+    {
+      "path": "frameworks/native/ohaudio/OHAudioRenderer.cpp",
+      "blob": "b87aa740c747000c290d811005460885a7f01173",
+      "url": "https://gitee.com/api/v5/repos/openharmony/multimedia_audio_framework/git/blobs/b87aa740c747000c290d811005460885a7f01173",
+      "sha256": "7615cef257799dfd283081aa7bd68273b171b7d23e40e5722e7085164d1a8aa5"
+    },
+    {
+      "path": "frameworks/native/ohaudio/OHAudioStreamBuilder.cpp",
+      "blob": "0194e310d0150063824674141695778b82b00f61",
+      "url": "https://gitee.com/api/v5/repos/openharmony/multimedia_audio_framework/git/blobs/0194e310d0150063824674141695778b82b00f61",
+      "sha256": "6061f6f70c71820c479dbe17004724d59fa4a2c5bcea002c0461db2eb1ba5a6c"
+    }
+  ],
+  "finding": "写入/中断setter共用userData_；GenerateRenderer一次传给所有回调。不是商业设备版本源码的等同证明。"
+}

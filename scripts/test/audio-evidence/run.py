@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[3]
-TESTS = ['test_analyze.py', 'test_prepare.py', 'capture.test.cjs', 'page.test.cjs', 'focus.test.cjs', 'alarm.test.cjs']
+TESTS = ['test_analyze.py', 'test_prepare.py', 'capture.test.cjs', 'page.test.cjs', 'focus.test.cjs', 'alarm.test.cjs', 'evidence.test.cjs']
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
