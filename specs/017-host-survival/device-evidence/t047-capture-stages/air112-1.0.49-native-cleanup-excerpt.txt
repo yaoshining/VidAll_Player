@@ -1,0 +1,21 @@
+11-13 16:57:58.071 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 alarm-stopped {"time":1794560278071,"samples":280854}
+11-13 16:57:58.072 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 alarm-released
+11-13 16:57:58.072 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 failed SYSTEM_PAUSE_MISSING
+11-13 16:57:58.092 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P30_DRAIN seq=22 t=3574428114576 pid=51399 tid=53505 owner=1 consumer=220757024047104 reason=2 result=1 platform=0
+11-13 16:57:58.092 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ffmpeg/video]: h264_ohcodec: P28_CODEC t=3574428114808 op=flush-begin dec=0x5bf421a7c0 gen=1
+11-13 16:57:58.101 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ffmpeg/video]: h264_ohcodec: P28_CODEC t=3574428122871 op=flush-end dec=0x5bf421a7c0 rc=0
+11-13 16:57:58.103 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ffmpeg/video]: h264_ohcodec: P28_CODEC t=3574428125759 op=stop-begin dec=0x5bf421a7c0 gen=2
+11-13 16:57:58.122 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ffmpeg/video]: h264_ohcodec: P28_CODEC t=3574428144320 op=stop-end dec=0x5bf421a7c0 rc=0
+11-13 16:57:58.125 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ffmpeg/video]: h264_ohcodec: P28_CODEC t=3574428147001 op=destroy-close dec=0x5bf421a7c0 rc=0
+11-13 16:57:58.125 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P30_DRAIN seq=23 t=3574428147318 pid=51399 tid=53505 owner=1 consumer=220757024047104 reason=2 result=1 platform=0
+11-13 16:57:58.125 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P27_VK t=3574428147329 op=mapper-uninit mapper=0x5c030f8b50
+11-13 16:57:58.125 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P27_VK t=3574428147334 op=owner-uninit owner=0x5d58419f50 image=0x5d58464380 window=0x5d5841c5c0
+11-13 16:57:58.125 51399 53500 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[vo/gpu-next/ohcodec]: P30_OWNER seq=24 t=3574428147338 pid=51399 tid=53505 op=destroy owner=1 generation=1 consumer=220757024047104 rc=0
+11-13 16:57:58.254 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+11-13 16:57:58.256 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 keepScreen false
+11-13 16:57:58.256 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 session-end
+11-13 16:57:58.257 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage stop-call
+11-13 16:57:58.338 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage stop-returned
+11-13 16:57:58.338 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage release-call
+11-13 16:57:58.339 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage release-returned
+11-13 16:57:58.339 51399 51399 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-closed 1794560278339

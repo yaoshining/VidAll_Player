@@ -2,6 +2,8 @@
 
 **2026-11-13 更新：T046 修复版 62e4e3f 已取得并核验完整 iMac CI HAR；尚未完成该 CI 原包的平板音频复验，不能作为已验收交付。** T045 在 API24 平板复现了系统 PAUSE 未接入及验收页时长断言错误，已按 TDD 修复。当前94项宿主门禁、五组生产音频函数回归、六套验收工具回归与 iMac/Ubuntu CI 通过；1.0.48在两台API24平板内录启动超时；后续1.0.49已上传并在Mini复测，确认启动调用返回后仍未收到STARTED，未进入播放；详见[T047记录](device-evidence/t047-capture-stages/README.md)。实际内录音轨、现代系统焦点复验及 API19 TV 正式文件入口仍未完成，暂未提 PR。详见 [T046 修复记录](device-evidence/t046-modern-audio/README.md)。普通播放保留零拷贝硬解。
 
+**当日最新实测：当前核心的焦点验收仍失败。** 1.0.49在API24 MatePad Air完成系统录屏确认后能进入播放，普通页面显示内录完成；焦点流程三次显示`SYSTEM_PAUSE_MISSING`。PID53964已保存坏片返回、正常首帧、竞争源实际运行、失败清理的完整事件链。尚未取得系统焦点决策和原生回调断点，也未导出录音；不能把T046宿主修复视为设备问题已解决。详见[Air本轮记录](device-evidence/t047-capture-stages/air112-1.0.49.json)。
+
 ## 原始产物与来源
 
 - 源提交：`62e4e3f8d9648f60713e03d182b2e0f45d923118`。
@@ -23,6 +25,7 @@
 | API 19 TV 模拟器，本地诊断包 | 全局终局注入后保持 PID，旧会话拒绝，新兼容会话连续两次播放有首帧 | 定时注入不是 GPU/fence 故障；诊断完整构建/静态检查通过，仍不能用于正式交付 |
 | API24 云平板，T044 本地完整包 | 真实 OHCodec/Vulkan 关闭注入、同进程返回/晚关闭/隔离上限、全局后兼容续播及普通回归通过 | 尚缺可听音频、系统焦点中断和新CI产物复验；API24不能替代API19 TV |
 | T045 API24 云平板旧包 | 焦点 SYSTEM_PAUSE_MISSING、普通流程 DIAGNOSTIC_UNAVAILABLE 失败，已据此修复 | 失败记录保留；不能算 T046 设备通过 |
+| T047 API24 Air，1.0.49消费当前CI原HAR | 授权后录制可启动，普通页面完成；系统焦点重复SYSTEM_PAUSE_MISSING | 无导出音轨、无焦点根因结论，仍未通过；不能提交验收通过PR |
 | API19 TV 正式入口 | 未完成 | 等正式HAR由消费端接入后继续验收 |
 
 历史 d4a059b 模拟器记录分别见 [标准模式](device-evidence/api19-ci-standard-d4a059b.json)、[显式兼容模式](device-evidence/api19-ci-compatible-d4a059b.json) 和 [全局终局诊断](device-evidence/api19-injected-global-d4a059b.json)。

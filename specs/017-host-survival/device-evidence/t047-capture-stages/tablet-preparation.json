@@ -22,5 +22,9 @@
   "cloudUploaded": true,
   "deviceExecuted": true,
   "audioAccepted": false,
-  "deviceResult": "mini135-1.0.49.json"
+  "deviceResult": "mini135-1.0.49.json",
+  "deviceResults": [
+    "mini135-1.0.49.json",
+    "air112-1.0.49.json"
+  ]
 }

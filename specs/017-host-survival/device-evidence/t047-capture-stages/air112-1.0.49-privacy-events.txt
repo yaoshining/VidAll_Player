@@ -1,0 +1,12 @@
+2026-11-13 16:50:58 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: ScreenRecorderAbilityStage --> ScreenRecorderAbilityStage onCreate
+2026-11-13 16:50:58 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: DialogAbility --> UIExtAbility onCreate
+2026-11-13 16:50:58 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: DialogAbility --> UIExtAbility onForeground
+2026-11-13 16:50:58 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: PrivacyDialogPage --> wantParams callerData: com.yaoshining.vidallplayer
+2026-11-13 16:50:58 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: PrivacyDialogPage --> wantParams showShareSystemAudioBox: false isInnerAudioBoxSelected: false checkBoxSelected: false wantShowSensitiveCheckBox: false appLabel: label app: 3
+2026-11-13 16:50:58 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: PrivacyDialogPage --> wantParams pickerMode: undefined excludedWindowIDs:
+2026-11-13 16:50:58 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: PrivacyDialogPage --> onPageShow
+2026-11-13 16:51:13 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: PrivacyDialogPage --> aboutToDisappear
+2026-11-13 16:51:13 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: PrivacyDialogPage --> handleReleaseImagePixel
+2026-11-13 16:51:13 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: PrivacyDialogPage --> handleCancelListeningCallback
+2026-11-13 16:51:13 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: PrivacyDialogPage --> handleReportAVScreenCaptureUserChoice start
+2026-11-13 16:51:13 33658-33658/hdc I/A077AF/commonUI/[ScreenRecorder]: tag: DialogAbility --> UIExtAbility onDestroy

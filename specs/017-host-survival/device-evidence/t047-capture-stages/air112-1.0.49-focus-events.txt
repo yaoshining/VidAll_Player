@@ -1,0 +1,37 @@
+11-13 16:59:09.179 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 runtime ready
+11-13 16:59:22.299 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage create-call
+11-13 16:59:22.302 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage create-returned
+11-13 16:59:22.303 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage init-call
+11-13 16:59:22.304 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage init-returned
+11-13 16:59:22.304 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage mic-off-call
+11-13 16:59:22.306 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage mic-off-returned
+11-13 16:59:22.306 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage start-call
+11-13 16:59:22.314 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage start-returned
+11-13 16:59:22.314 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage waiting-started
+11-13 16:59:33.682 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-state 0
+11-13 16:59:33.682 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-started 1794560373682
+11-13 16:59:33.686 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 keepScreen true
+11-13 16:59:33.712 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+11-13 16:59:33.741 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state error
+11-13 16:59:33.742 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 error NATIVE_PLAYBACK_FAILED
+11-13 16:59:33.768 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+11-13 16:59:33.768 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 bad-media-returned
+11-13 16:59:33.786 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 play-request 1
+11-13 16:59:33.786 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"2","loadGeneration":"1"}
+11-13 16:59:33.787 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+11-13 16:59:33.909 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+11-13 16:59:33.910 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 1
+11-13 16:59:33.989 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 audible-window-start 1
+11-13 16:59:39.015 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 alarm-start-request 1794560379015
+11-13 16:59:39.026 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 alarm-started 1794560379026
+11-13 16:59:44.988 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 alarm-stopped {"time":1794560384987,"samples":280854}
+11-13 16:59:44.988 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 alarm-released
+11-13 16:59:44.988 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 failed SYSTEM_PAUSE_MISSING
+11-13 16:59:45.154 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+11-13 16:59:45.156 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 keepScreen false
+11-13 16:59:45.156 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 session-end
+11-13 16:59:45.157 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage stop-call
+11-13 16:59:45.268 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage stop-returned
+11-13 16:59:45.268 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage release-call
+11-13 16:59:45.269 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage release-returned
+11-13 16:59:45.269 53964 53964 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-closed 1794560385269
