@@ -38,7 +38,9 @@ export class AudioCapture {
   private async open(path: string, timeoutMs: number): Promise<void> {
 
       this.file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE | fs.OpenMode.TRUNC);
+      this.record('capture-stage', 'create-call');
       const recorder = await media.createAVScreenCaptureRecorder();
+      this.record('capture-stage', 'create-returned');
       this.recorder = recorder;
       this.checkCancelled();
       recorder.on('stateChange', (state: media.AVScreenCaptureStateCode): void => {
@@ -54,13 +56,20 @@ export class AudioCapture {
         }
       });
       recorder.on('error', (error: Error): void => { this.fail('CAPTURE_ERROR_' + JSON.stringify(error)); });
+      this.record('capture-stage', 'init-call');
       await recorder.init({ fd: this.file.fd, frameWidth: 640, frameHeight: 1024,
         videoBitrate: 1500000, audioSampleRate: 48000, audioChannelCount: 2, audioBitrate: 96000 });
+      this.record('capture-stage', 'init-returned');
       this.checkCancelled();
+      this.record('capture-stage', 'mic-off-call');
       await recorder.setMicEnabled(false);
+      this.record('capture-stage', 'mic-off-returned');
       this.checkCancelled();
       this.phase = 'starting';
+      this.record('capture-stage', 'start-call');
       await recorder.startRecording();
+      this.record('capture-stage', 'start-returned');
+      if (this.phase === 'starting') this.record('capture-stage', 'waiting-started');
       const deadline = Date.now() + timeoutMs;
       while (this.phase === 'starting' && !this.failure && !this.closingRequested && Date.now() < deadline) {
         await new Promise<void>((resolve) => { setTimeout(resolve, 5); });
@@ -83,11 +92,14 @@ export class AudioCapture {
     this.phase = 'closing';
     if (this.recorder !== undefined) {
       if (wasActive) {
-        try { await this.recorder.stopRecording(); }
+        this.record('capture-stage', 'stop-call');
+        try { await this.recorder.stopRecording(); this.record('capture-stage', 'stop-returned'); }
         catch (error) { this.fail((error as Error).message); }
       }
       // release 失败时保留 fd 与 recorder；不重试，也不将不完整文件报为成功。
+      this.record('capture-stage', 'release-call');
       await this.recorder.release();
+      this.record('capture-stage', 'release-returned');
       this.recorder = undefined;
     }
     if (this.file !== undefined) { fs.closeSync(this.file); this.file = undefined; }

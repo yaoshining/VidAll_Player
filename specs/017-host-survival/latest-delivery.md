@@ -1,6 +1,6 @@
 # Spec 017 最新验收候选
 
-**2026-11-13 更新：T046 修复版 62e4e3f 已取得并核验完整 iMac CI HAR；尚未完成该 CI 原包的平板音频复验，不能作为已验收交付。** T045 在 API24 平板复现了系统 PAUSE 未接入及验收页时长断言错误，已按 TDD 修复。当前94项宿主门禁、五组生产音频函数回归、六套验收工具回归与 iMac/Ubuntu CI 通过；实际内录音轨、现代系统焦点复验及 API19 TV 正式文件入口仍未完成，暂未提 PR。详见 [T046 修复记录](device-evidence/t046-modern-audio/README.md)。普通播放保留零拷贝硬解。
+**2026-11-13 更新：T046 修复版 62e4e3f 已取得并核验完整 iMac CI HAR；尚未完成该 CI 原包的平板音频复验，不能作为已验收交付。** T045 在 API24 平板复现了系统 PAUSE 未接入及验收页时长断言错误，已按 TDD 修复。当前94项宿主门禁、五组生产音频函数回归、六套验收工具回归与 iMac/Ubuntu CI 通过；1.0.48已上传并在两台API24平板安装，但内录启动超时，未进入播放；详见[T047记录](device-evidence/t047-capture-stages/README.md)。实际内录音轨、现代系统焦点复验及 API19 TV 正式文件入口仍未完成，暂未提 PR。详见 [T046 修复记录](device-evidence/t046-modern-audio/README.md)。普通播放保留零拷贝硬解。
 
 ## 原始产物与来源
 

@@ -19,6 +19,11 @@ const stripped=source.slice(0,source.indexOf('  build() {')).replace('@Entry',''
 const m=new Module(file,module);m.filename=file;m.paths=module.paths;
 m._compile(ts.transpileModule(stripped,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,file);
 (async()=>{
+ const visible=new m.exports.Index();
+ for(let i=0;i<20;i++)visible.record('capture-stage','stage-'+i+'x'.repeat(300)+'\nforged');
+ const trace=visible.captureTrace.split('\n');assert.equal(trace.length,12);assert(trace.every(line=>line.length<=160));
+ assert(!trace.some(line=>line==='forged'));assert(trace[0].includes('stage-8'));assert(trace[11].includes('stage-19'));
+ assert(source.includes("Text(this.captureTrace)"));
  const p=new m.exports.Index();p.context={};p.root='/fake';p.ready=true;p.surface=true;
  p.run=async()=>{assert(recording);calls.push('playback');};
  p.record=()=>{};await p.startCaptured();assert.deepEqual(calls,['capture-start','playback','capture-finish']);

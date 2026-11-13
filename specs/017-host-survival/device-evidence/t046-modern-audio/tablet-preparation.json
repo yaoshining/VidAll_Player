@@ -7,7 +7,10 @@
   "hapSHA256": "3284352ec669c8af4031edd10208752aac1820ba35a529efa7a0c1c057a28a82",
   "versionName": "1.0.48",
   "nativeLibrariesMatchCIHAR": true,
-  "cloudUploaded": false,
-  "deviceExecuted": false,
-  "audioAccepted": false
+  "cloudUploaded": true,
+  "deviceExecuted": true,
+  "audioAccepted": false,
+  "cloudUploadConfirmedAt": "2026-11-13",
+  "cloudLabel": "Spec017修复-普通与焦点 1.0.48",
+  "deviceResult": "API24 Mini 6.1.0.135内录启动超时，未进入播放验收；随后云端提示连接设备失败。"
 }

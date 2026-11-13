@@ -10,6 +10,8 @@ import { createPlayer, VidAllPlayer, initializePlayerRuntime, onPlayerTerminal, 
 @Entry
 @Component
 struct Index {
+  @State captureTrace: string = '';
+  private captureTraceLines: string[] = [];
   @State awaitingManualResume: boolean = false;
   @State status: string = '准备独立 HAR 验证';
   private controller: XComponentController = new XComponentController();
@@ -35,6 +37,12 @@ struct Index {
     if (this.cancelled) throw new Error('PROBE_CANCELLED');
   }
   private record(event: string, value: string = ''): void {
+    if (event.startsWith('capture-')) {
+      const line = (event + ': ' + value).replace(/[\r\n]/g, ' ').slice(0, 160);
+      this.captureTraceLines.push(line);
+      if (this.captureTraceLines.length > 12) this.captureTraceLines.shift();
+      this.captureTrace = this.captureTraceLines.join('\n');
+    }
     console.info('P17 ' + event + ' ' + value);
     if (!this.root) return;
     const file = fs.openSync(this.root + '/events.jsonl', fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE | fs.OpenMode.APPEND);
@@ -215,6 +223,7 @@ struct Index {
       if (this.awaitingManualResume) {
         Button('手动继续播放').id('audio-manual-resume').defaultFocus(true).onClick(() => { this.acceptManualResume(); })
       }
+      Text(this.captureTrace).fontSize(16).fontColor(Color.White).backgroundColor('#BB000000').padding(8)
       Text(this.status).fontSize(24).fontColor(Color.White).backgroundColor('#88000000').padding(16)
       }
     }.width('100%').height('100%').backgroundColor(Color.Black)
