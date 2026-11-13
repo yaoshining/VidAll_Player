@@ -46,3 +46,5 @@
 本候选保留 T035：renderer 已确认释放后，builder 清理失败或阻塞不再误挡兼容恢复；残留对象及槽预算仍保留。平台 Stop/Release 未确认的限制保持不变，设备上尚未注入 builder 故障；该边界目前由真实生产函数的宿主回归覆盖。
 
 本候选另含 T041：音频 Stop 返回错误后仍查询真实状态，仅明确 STOPPED 才确认静止；状态仍运行、查询失败及调用未返回均不能放行。已通过生产函数正负例和当前源码的 Ubuntu 回归，设备未注入该特定平台错误。T039/T040 的[完整宿主门禁与最终收证](https://github.com/yaoshining/VidAll_Player/actions/runs/43038250441)也已通过。
+
+2026-11-14 T051候选：c7d56ee的iMac自托管CI43464070369通过；原始HAR SHA256 6fda6fb1ffa0cb6d78865399e811af1a9d74ae129b518280628afa59e90f9edf，ARM64九库。完整来源及两个本地独立HAP见device-evidence/t051-ci-preparation.json。设备正在复验，不能按正式交付验收通过使用。

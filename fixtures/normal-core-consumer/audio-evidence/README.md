@@ -28,3 +28,5 @@ python3 scripts/test/audio-evidence/prepare.py --probe recovery-terminal --proje
 T047在普通/焦点页显示最近12条录制阶段/状态，每行最多160字符，便于云端日志不可取时定位。create/init/start等调用返回与系统STARTED分别记录；不能把start-returned视为录制成功。没有改变原始HAR、15秒期限或声音验收门槛。
 
 T048 将同样的有界阶段显示加入两组生成的故障页，并从 T046 当前生产输入重新构建诊断核心及完整 HAR。后续使用 1.0.50/1.0.51，来源与九库记录见 `specs/017-host-survival/device-evidence/t048-current-probes/`；上面的 T044/T045 包只保留为历史证据。新包尚未完成设备验收。
+
+T052：云端授权及操作往返超过原15秒窗口时会使诊断提前失败。独立工具现在最多等60秒真实STARTED，参数限制1–60000毫秒；逾时、拒绝及迟到事件仍失败，不改HAR或生产故障截止。

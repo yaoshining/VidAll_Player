@@ -21,8 +21,9 @@ export class AudioCapture {
   public assertRecording(): void {
     if (this.failure || this.phase !== 'recording') throw new Error(this.failure || 'CAPTURE_NOT_RECORDING');
   }
-  public async start(path: string, timeoutMs: number = 15000): Promise<void> {
+  public async start(path: string, timeoutMs: number = 60000): Promise<void> {
     if (this.phase !== 'idle') throw new Error('CAPTURE_ONE_SHOT');
+    if (!Number.isFinite(timeoutMs) || timeoutMs < 1 || timeoutMs > 60000) throw new Error('CAPTURE_TIMEOUT_INVALID');
     this.phase = 'preparing';
     this.startup = this.open(path, timeoutMs);
     try { await this.startup; }

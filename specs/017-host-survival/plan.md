@@ -146,3 +146,9 @@ T049：1.0.49 在实际 HarmonyOS 7.0.0.111 Air 上坏片返回后、正常首�
 T050：官方OpenHarmony OHAudioStreamBuilder::SetRendererWriteDataCallback和SetRendererInterruptEventCallback均写入同一个userData_，GenerateRenderer将其传给所有回调。现有0009分别传AO和token；宿主替身未保存写回调及共用userdata，漏检该错误。先让替身按官方真实语义覆盖共用值，并调用实际注册的写回调，验证AO身份、写入、中断、注销后迟到/新会话、注册失败；API20/24/26均覆盖。随后增加现代写入适配，复用token查找及在途引用，与中断使用同一token；不改OHCodec/Vulkan/FFmpeg。重建受控mpv输入及完整HAR，再由iMac CI出包。官方开源实现证明调用方契约缺陷，但不能单凭它宣称API24系统焦点或API26设备崩溃已修复，仍须实机复验。
 
 T051：API24 Mini 1.0.54已证实OHAudio注册回调返回3，尚需区分符号缺失和平台注册失败。先补局部可见符号、缺库、缺符号、失败注册和引用平衡红测；增加显式官方库句柄回退及分阶段错误日志，不改变中断语义或忽略错误。重建mpv/完整CI HAR并复验；显式句柄是否能修复商业设备须以设备为准。
+
+
+T052：API24 Mini的两轮1.0.56在授权操作生效前超过工具15秒窗口，未进入播放。先补虚拟时钟覆盖15秒后授权成功、60秒无STARTED失败、非法/无界参数拒绝及迟到回调，再将独立工具默认改60秒；仅重新构建消费HAP，原始c7d56ee CI HAR与九库不变。
+
+
+T053：登录等待期间按S14/S24/S25，把两组独立故障诊断包同步到c7d56ee锁定生产输入和T052录制工具；保持原故障接缝、硬件资格、音轨及隔离上限要求。只准备Player诊断产物，不改FFmpeg/TV或正常CI HAR。

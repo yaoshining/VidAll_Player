@@ -1,0 +1,4 @@
+    - listitem: "2026-11-14 00:42:06 61107-61262/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ao/ohaudio]: requested format: 48000 Hz, mono channels, floatp"
+    - listitem: "2026-11-14 00:42:06 61107-61262/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ao/ohaudio]: using soft-buffer of 9600 samples."
+    - listitem: "2026-11-14 00:42:11 61107-61597/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ao/ohaudio]: requested format: 48000 Hz, mono channels, floatp"
+    - listitem: "2026-11-14 00:42:11 61107-61597/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ao/ohaudio]: using soft-buffer of 9600 samples."

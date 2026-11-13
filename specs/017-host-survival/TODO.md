@@ -34,3 +34,7 @@ API24 平板不替代 API19 TV 正式入口验收；FFmpeg 和 VidAll_TV 的代�
 2026-11-14进展：T050修复现代OHAudio写入/中断共用userData的AO/token冲突，真实注册语义先红后绿。干净上游派生的7组音频回归、94项完整宿主和本地完整九库HAR核验通过；准备推送iMac CI。API24焦点和API26崩溃未复验，仍为0/4。T049已在API24保存实际内录到设备个人目录，但尚未取回音轨，不能勾选声音通过。
 
 2026-11-14设备更新：b13aa09 iMac CI通过、1.0.53已在API24 Air复验，仍SYSTEM_PAUSE_MISSING。坏片返回及新会话硬件画面有证据，实际声音/焦点未通过；见[当前复验](device-evidence/t050-device-result.md)。永久平台挂起限制见[第3项复核](device-evidence/t050-permanent-audio-limit.md)。
+
+2026-11-14 T051：API24 Mini无录制启动日志发现OHAudio注册错误3，未完成音频初始化；已先红后绿补官方库句柄查找及失败阶段日志。c7d56ee的94项宿主、7组音频和本地完整九库HAR核验通过，iMac CI构建中。设备根因仍待验证，四项不勾选。
+
+T051/T052实机更新：1.0.55/API24 Mini同PID61107坏片返回、OHCodec/Vulkan新视频、暂停/恢复/seek/退出重开完成，音频初始化错误3消失。1.0.57录制STARTED并到达“打断解除，等待手动继续”状态，取日志时登录失效；手动继续后进度/PID/音轨未确认，两组故障仍未完成。见device-evidence/t051-t052-device-result.md。四项继续0/4。

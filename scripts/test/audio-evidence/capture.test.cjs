@@ -38,6 +38,23 @@ const turn=()=>new Promise(resolve=>setImmediate(resolve));
   assert(calls.indexOf('release')<calls.indexOf('fd-close'));
   await assert.rejects(capture.start('/tmp/fake.mp4'),/ONE_SHOT/);
 
+  // 云端授权往返可以超过15秒，仍必须在60秒内等到真实STARTED。
+  const realNow=Date.now, realTimer=global.setTimeout;
+  try {
+    for (const grant of [true,false]) {
+      let now=1000,ticks=0;Date.now=()=>now;
+      global.setTimeout=(fn)=>setImmediate(()=>{now+=16000;ticks++;if(grant&&ticks===2)handler(0);fn();});
+      capture=setup();pending=capture.start('/tmp/fake.mp4');
+      if(grant){await pending;assert.equal(ticks,2);capture.assertRecording();await capture.finish();}
+      else {await assert.rejects(pending,/START_TIMEOUT/);assert.equal(ticks,4);handler(0);assert.equal(capture.startedAt,0);}
+      assert.equal(closed,1);
+    }
+  } finally {Date.now=realNow;global.setTimeout=realTimer;}
+  for(const invalid of [0,-1,60001,NaN,Infinity]) {
+    capture=setup();await assert.rejects(capture.start('/tmp/fake.mp4',invalid),/CAPTURE_TIMEOUT_INVALID/);
+    assert.deepEqual(calls,[],'无界或非法等待不得创建录制资源');
+  }
+
   capture=setup();pending=capture.start('/tmp/fake.mp4',100);await turn();handler(1);
   await assert.rejects(pending,/STATE_1/);assert.equal(closed,1);
   handler(0);assert.throws(()=>capture.assertRecording(),/STATE_1/);
@@ -71,5 +88,5 @@ const turn=()=>new Promise(resolve=>setImmediate(resolve));
   await turn();assert(calls.includes('capture-stage:init-call'));assert(!calls.includes('capture-stage:init-returned'));assert.equal(closed,0,'初始化未归还时不得抢先释放录制器/fd');
   completeInit();await startupRejected;await endingRejected;assert(calls.includes('capture-stage:init-returned'));
   assert(!calls.includes('start'),'页面离开后不得迟到开始录屏');assert.equal(closed,1);
-  console.log('PASS: 9组录制生命周期回归（非设备验收）');
+  console.log('PASS: 12组录制生命周期回归（非设备验收）');
 })().catch(error=>{console.error(error);process.exitCode=1;});

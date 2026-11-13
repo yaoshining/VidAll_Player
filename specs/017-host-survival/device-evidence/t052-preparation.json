@@ -1,0 +1,25 @@
+{
+  "sourceCommit": "c7d56ee765f3ffde6059979e80c8f0162089ce01",
+  "ciRun": "https://github.com/yaoshining/VidAll_Player/actions/runs/43464070369",
+  "runner": "iMac 自托管 macOS X64",
+  "harSHA256": "6fda6fb1ffa0cb6d78865399e811af1a9d74ae129b518280628afa59e90f9edf",
+  "libraries": {
+    "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libmpv.so": "23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a",
+    "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libvidall_player_native.so": "3edfd042c8ebe00de70af7891a9dd0119a045f076ff9bf0b46aa94ffb995227c"
+  },
+  "architectures": [
+    "arm64-v8a"
+  ],
+  "deviceAccepted": false,
+  "ciPassed": true,
+  "hapVersion": "1.0.57",
+  "hapSHA256": "111e10b2fe2cf205e051bacdb2f4c1e8045bfab61455fbbfd12be0f2c5ef332e",
+  "hapRunner": "本地MacBook Pro，仅独立工具有界60秒授权等待变化"
+}
