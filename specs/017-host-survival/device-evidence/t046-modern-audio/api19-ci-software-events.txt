@@ -1,0 +1,29 @@
+11-13 09:15:39.239  2334  2334 I A03d00/JSAPP: P17 runtime ready
+11-13 09:15:39.241  2334  2334 I A03d00/JSAPP: P17 keepScreen true
+11-13 09:15:39.259  2334  2334 I A03d00/JSAPP: P17 state preparing
+11-13 09:15:39.273  2334  2334 I A03d00/JSAPP: P17 state error
+11-13 09:15:39.273  2334  2334 I A03d00/JSAPP: P17 error NATIVE_PLAYBACK_FAILED
+11-13 09:15:39.314  2334  2334 I A03d00/JSAPP: P17 state released
+11-13 09:15:39.314  2334  2334 I A03d00/JSAPP: P17 bad-media-returned 
+11-13 09:15:39.324  2334  2334 I A03d00/JSAPP: P17 load-identity {"sessionId":"2","loadGeneration":"1"}
+11-13 09:15:39.327  2334  2334 I A03d00/JSAPP: P17 state preparing
+11-13 09:15:39.383  2334  2334 I A03d00/JSAPP: P17 state playing
+11-13 09:15:39.383  2334  2334 I A03d00/JSAPP: P17 firstFrame 1
+11-13 09:15:40.968  2334  2334 I A03d00/JSAPP: P17 state paused
+11-13 09:15:41.625  2334  2334 I A03d00/JSAPP: P17 pause-verified {"before":1366.6666666666667,"after":1366.6666666666667}
+11-13 09:15:41.636  2334  2334 I A03d00/JSAPP: P17 state playing
+11-13 09:15:42.339  2334  2334 I A03d00/JSAPP: P17 resume-verified 2100
+11-13 09:15:42.392  2334  2334 I A03d00/JSAPP: P17 seek-target {"target":20000,"reached":20000.0001}
+11-13 09:15:43.094  2334  2334 I A03d00/JSAPP: P17 seek-verified {"target":20000,"before":2100,"reached":20000.0001,"after":20600}
+11-13 09:15:43.094  2334  2334 I A03d00/JSAPP: P17 diagnostics {"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":20600},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"software"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"no"}}
+11-13 09:15:43.420  2334  2334 I A03d00/JSAPP: P17 state released
+11-13 09:15:43.420  2334  2334 I A03d00/JSAPP: P17 release-ok 
+11-13 09:15:43.424  2334  2334 I A03d00/JSAPP: P17 load-identity {"sessionId":"3","loadGeneration":"1"}
+11-13 09:15:43.427  2334  2334 I A03d00/JSAPP: P17 state preparing
+11-13 09:15:43.444  2334  2334 I A03d00/JSAPP: P17 state playing
+11-13 09:15:43.444  2334  2334 I A03d00/JSAPP: P17 firstFrame 2
+11-13 09:15:45.353  2334  2334 I A03d00/JSAPP: P17 state released
+11-13 09:15:45.353  2334  2334 I A03d00/JSAPP: P17 reopen-release-ok 
+11-13 09:15:45.353  2334  2334 I A03d00/JSAPP: P17 summary {"firstFrames":2,"errors":0}
+11-13 09:15:45.354  2334  2334 I A03d00/JSAPP: P17 keepScreen false
+11-13 09:15:45.354  2334  2334 I A03d00/JSAPP: P17 session-end 

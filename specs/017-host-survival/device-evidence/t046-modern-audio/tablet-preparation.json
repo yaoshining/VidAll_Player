@@ -1,0 +1,13 @@
+{
+  "sourceCommit": "62e4e3f8d9648f60713e03d182b2e0f45d923118",
+  "harSource": "iMac CI 43237406546 原始HAR",
+  "harSHA256": "a419c1545680d48ab22983472a8c8ca3311a58bf5904cebdabfde2394e40b704",
+  "hapBuildMachine": "本地MacBook Pro，非CI HAP",
+  "hapPath": "/tmp/vidall-t046-audio-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+  "hapSHA256": "3284352ec669c8af4031edd10208752aac1820ba35a529efa7a0c1c057a28a82",
+  "versionName": "1.0.48",
+  "nativeLibrariesMatchCIHAR": true,
+  "cloudUploaded": false,
+  "deviceExecuted": false,
+  "audioAccepted": false
+}
