@@ -29,8 +29,8 @@
     },
     {
       "path": "arm64-v8a/libmpv.so",
-      "sha256": "b2ae053a0499f4bc650526dfdbcad7515c6117d2a583006812c60f1527071ec8",
-      "size": 15723528
+      "sha256": "23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a",
+      "size": 15723880
     },
     {
       "path": "arm64-v8a/libc++_shared.so",
@@ -83,22 +83,22 @@
   "evidence": [
     {
       "path": "provenance/mpv-run-summary.json",
-      "sha256": "2f019fca9a99d65e93973142a2ec163f168fb522a57e09322582f9a261f79ff3",
+      "sha256": "a4b624773f5c1552040ee50d4c0b429d0a798dbf94c46279feafb615fbe96276",
       "size": 148430
     },
     {
       "path": "provenance/mpv-link-inputs.json",
-      "sha256": "cd426dd0988b4caca78cd4457b5f023a4eec0c0fde8f08fdb0babfa4aa2ff13d",
+      "sha256": "ec029291b4ae734336935d26e9b8e492b2e6179181152ef2109491cb99aca775",
       "size": 38773
     },
     {
       "path": "provenance/mpv-build-profile.json",
-      "sha256": "3b5ca32717d23c3463e7711769ddd4e1b9d06b057d0d31e5fd0bf8c5bc284f03",
+      "sha256": "b9353499f64e9668ab5c711cb0ea4872fe56f7735263f770524e39beb51d7d3f",
       "size": 391
     },
     {
       "path": "provenance/mpv-script-identity.json",
-      "sha256": "d58c57234b5609512fea7926022e0eff7a47e053d8234524ac58352136c1dc8c",
+      "sha256": "371a32f23a1d4e4ca96eb4a1d91f7380d1c935e43a1beee673cbb2b387dfae7f",
       "size": 695
     },
     {
@@ -108,12 +108,12 @@
     },
     {
       "path": "provenance/normal-compile-binding.json",
-      "sha256": "91ac24065f69865cca449d51fd31e2fd945356b3038196f151133d2c259c00a1",
+      "sha256": "b068f9e3ad765c20559d1a6ac30976655b2a26a839fefb1798cae7580c46bc5f",
       "size": 30098
     },
     {
       "path": "provenance/source-lock.json",
-      "sha256": "72c6f05b554368fcd3f6827cb1d33db8f11d09d0b5b9c65858eebef130de4162",
+      "sha256": "a2438fd9991f7d8c52e81e8e1a4b0ebd7bcc43fae92afad5d31ae5be3da099bd",
       "size": 2900647
     },
     {
@@ -123,7 +123,7 @@
     },
     {
       "path": "provenance/normal-library-binding.json",
-      "sha256": "e06db94e2cb91e0ee998aea75e3fb9a88d7ccf746b201d03361aba58a07c7491",
+      "sha256": "f822f3ef4380a28b34a6705f002e25fd3f2d1f6cebaa6f3d1d2b839fec39ec22",
       "size": 718
     },
     {
@@ -148,12 +148,12 @@
     },
     {
       "path": "provenance/host-recovery-input.json",
-      "sha256": "41cacb0c3c8351120094ff1465e2ff69ed82135ebc579ca19ec8071e4fce6ce2",
-      "size": 2690
+      "sha256": "c4002d986b73f8b2ee58eae3b3990e23b1f62763ceaadd464392004e5900b9e3",
+      "size": 2865
     },
     {
       "path": "provenance/host-recovery-static-validation.json",
-      "sha256": "570d5b5ccaf071fea58831f969b530c83aecaeb0c94f61d41396aa995d889506",
+      "sha256": "5567061923d5e88b428e96c1e0acd817ca0a6a831da7ccf81b68775e38146167",
       "size": 25874
     },
     {

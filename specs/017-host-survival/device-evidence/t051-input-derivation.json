@@ -1,0 +1,12 @@
+{
+  "parentPackageSHA256": "6b683322ea5109afddcf28abfd632988b8b60efcf6221258d8bbcd750d831308",
+  "allParentFilesVerified": true,
+  "changedFiles": [
+    "sources/mpv/audio/out/ao_ohaudio.c"
+  ],
+  "newPackageSHA256": "f3cefd9b628b4b67408f5644f593a12484b7afd48bc9f6ae4800e7c62708b4a0",
+  "newPatch": {
+    "path": "native/patches/phase30/0011-modern-audio-library-lookup.patch",
+    "sha256": "5bf4b42f8b0a1694a62ad6f5745261425dbd1f353da853d3d602b795ed18921c"
+  }
+}

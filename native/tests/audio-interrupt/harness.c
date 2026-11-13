@@ -77,11 +77,22 @@ static int interrupt_result;
 static int __attribute__((unused)) OH_AudioStreamBuilder_SetRendererInterruptCallback(void *b,
     void (*cb)(OH_AudioRenderer *, void *, int, int), void *u)
 { modern_interrupt_cb = cb; modern_user = u; shared_user = u; return interrupt_result; }
+#define MP_ERR(ao, ...) ((void)(ao))
 #define RTLD_DEFAULT ((void *)0)
+#define RTLD_NOW 2
+#define RTLD_LOCAL 0
+static void *audio_library = (void *)0x1234;
 static bool interrupt_symbol_available = true;
+static bool default_symbol_visible = true, library_openable = true;
+static unsigned library_opens, library_closes;
+static void *__attribute__((unused)) dlopen(const char *name, int flags)
+{ assert(sdk>=20 && !strcmp(name,"libohaudio.so") && flags==(RTLD_NOW|RTLD_LOCAL));
+  library_opens++; return library_openable ? audio_library : NULL; }
+static int __attribute__((unused)) dlclose(void *handle)
+{ assert(handle==audio_library);library_closes++;return 0; }
 static void *__attribute__((unused)) dlsym(void *handle, const char *name)
-{ assert(sdk>=20 && handle==RTLD_DEFAULT && !strcmp(name,"OH_AudioStreamBuilder_SetRendererInterruptCallback"));
-  return interrupt_symbol_available ? (void *)OH_AudioStreamBuilder_SetRendererInterruptCallback : NULL; }
+{ assert(sdk>=20 && (handle==RTLD_DEFAULT || handle==audio_library) && !strcmp(name,"OH_AudioStreamBuilder_SetRendererInterruptCallback"));
+  return interrupt_symbol_available && (handle==audio_library || default_symbol_visible) ? (void *)OH_AudioStreamBuilder_SetRendererInterruptCallback : NULL; }
 static pthread_mutex_t gate = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t changed = PTHREAD_COND_INITIALIZER;
 static bool block_wake, entered, retiring, released;
@@ -306,15 +317,31 @@ int main(void)
         modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_STOP);
         handle_audio_interrupt(&ctx);assert(!opts.pause);
         uninit(&next);
+        // 系统库以局部可见方式加载时，RTLD_DEFAULT 不一定能查到公开符号。
+        default_symbol_visible = false;
+        unsigned old_opens=library_opens, old_closes=library_closes;
+        assert(register_callbacks(&next)==0);
+        assert(library_opens==old_opens+1 && library_closes==old_closes+1);
+        modern_interrupt_cb(NULL,modern_user,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
+        handle_audio_interrupt(&ctx);assert(opts.pause);
+        uninit(&next);set_user_pause_option(&ctx,false);
+        library_openable=false;
+        assert(register_callbacks(&next)==AUDIOSTREAM_ERROR_SYSTEM);
+        assert(library_closes==old_closes+1);
+        uninit(&next);library_openable=true;default_symbol_visible=true;
         result = -1; modern_interrupt_cb = NULL;
         assert(register_callbacks(&next) == result && !modern_interrupt_cb);
         uninit(&next);assert(legacy_bindings == NULL);result = 0;
         interrupt_symbol_available = false;
+        old_opens=library_opens;old_closes=library_closes;
         assert(register_callbacks(&next) == AUDIOSTREAM_ERROR_SYSTEM);
+        assert(library_opens==old_opens+1 && library_closes==old_closes+1);
         uninit(&next);assert(legacy_bindings == NULL);interrupt_symbol_available = true;
-        interrupt_result = -2;
+        interrupt_result = -2;default_symbol_visible=false;
+        old_opens=library_opens;old_closes=library_closes;
         assert(register_callbacks(&next) == interrupt_result);
-        uninit(&next);assert(legacy_bindings == NULL);interrupt_result = 0;
+        assert(library_opens==old_opens+1 && library_closes==old_closes+1);
+        uninit(&next);assert(legacy_bindings == NULL);interrupt_result = 0;default_symbol_visible=true;
     }
     result = -1;
     sdk = 15;

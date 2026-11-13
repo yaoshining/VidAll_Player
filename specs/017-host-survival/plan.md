@@ -144,3 +144,5 @@ T045/T046/T047设备复验更新：2026-11-13 Air的1.0.49在确认系统授权�
 T049：1.0.49 在实际 HarmonyOS 7.0.0.111 Air 上坏片返回后、正常首帧后发生 Cpp Crash（PID3162），尚未到 Alarm。云报告无栈、系统故障目录权限不足。先为独立诊断工具补订阅/注销、事件过滤、有界读取、重复/迟到回调、导出取消/失败/并发及录制未关闭的红测；再接入 HiAppEvent 本应用崩溃订阅和 DocumentViewPicker 导出。APP_CRASH 自 API12、保存选择器自 API9，满足 API15/19 下限；只保存本应用受系统授权的日志路径，不读系统故障目录。异步读取上限512KiB，最多4份事件/单次运行，显式标注截断。保持生产 HAR/九库不变，先构建独立1.0.52，再实机取栈；根因确认后另补生产回归。参考官方 HiAppEvent FAQ：https://developer.huawei.com/consumer/en/doc/harmonyos-guides/hiappevent-faq/ 。
 
 T050：官方OpenHarmony OHAudioStreamBuilder::SetRendererWriteDataCallback和SetRendererInterruptEventCallback均写入同一个userData_，GenerateRenderer将其传给所有回调。现有0009分别传AO和token；宿主替身未保存写回调及共用userdata，漏检该错误。先让替身按官方真实语义覆盖共用值，并调用实际注册的写回调，验证AO身份、写入、中断、注销后迟到/新会话、注册失败；API20/24/26均覆盖。随后增加现代写入适配，复用token查找及在途引用，与中断使用同一token；不改OHCodec/Vulkan/FFmpeg。重建受控mpv输入及完整HAR，再由iMac CI出包。官方开源实现证明调用方契约缺陷，但不能单凭它宣称API24系统焦点或API26设备崩溃已修复，仍须实机复验。
+
+T051：API24 Mini 1.0.54已证实OHAudio注册回调返回3，尚需区分符号缺失和平台注册失败。先补局部可见符号、缺库、缺符号、失败注册和引用平衡红测；增加显式官方库句柄回退及分阶段错误日志，不改变中断语义或忽略错误。重建mpv/完整CI HAR并复验；显式句柄是否能修复商业设备须以设备为准。

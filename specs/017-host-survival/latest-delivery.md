@@ -1,5 +1,7 @@
 # Spec 017 最新验收候选
 
+2026-11-14最新候选：b13aa09，iMac CI构建通过，原HAR `cc8846c51c314cee757285ceeb1e4b448d2357ef08f581953876a46e1cf644c6`，ARM64九库，详见[身份清单](device-evidence/t050-ci-preparation.json)。API24 Air 1.0.53仍SYSTEM_PAUSE_MISSING，未验收、未提PR；下方62e4e3f为历史交付。
+
 **2026-11-13 更新：T046 修复版 62e4e3f 已取得并核验完整 iMac CI HAR；尚未完成该 CI 原包的平板音频复验，不能作为已验收交付。** T045 在 API24 平板复现了系统 PAUSE 未接入及验收页时长断言错误，已按 TDD 修复。当前94项宿主门禁、五组生产音频函数回归、六套验收工具回归与 iMac/Ubuntu CI 通过；1.0.48在两台API24平板内录启动超时；后续1.0.49已上传并在Mini复测，确认启动调用返回后仍未收到STARTED，未进入播放；详见[T047记录](device-evidence/t047-capture-stages/README.md)。实际内录音轨、现代系统焦点复验及 API19 TV 正式文件入口仍未完成，暂未提 PR。详见 [T046 修复记录](device-evidence/t046-modern-audio/README.md)。普通播放保留零拷贝硬解。
 
 **当日最新实测：当前核心的焦点验收仍失败。** 1.0.49在API24 MatePad Air完成系统录屏确认后能进入播放，普通页面显示内录完成；焦点流程三次显示`SYSTEM_PAUSE_MISSING`。PID53964已保存坏片返回、正常首帧、竞争源实际运行、失败清理的完整事件链。尚未取得系统焦点决策和原生回调断点，也未导出录音；不能把T046宿主修复视为设备问题已解决。详见[Air本轮记录](device-evidence/t047-capture-stages/air112-1.0.49.json)。

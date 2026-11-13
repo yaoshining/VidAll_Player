@@ -77,3 +77,10 @@ T049工具阶段：7组宿主回归与1.0.52独立HAP ArkTS构建通过；原始
 - [ ] T050 修复OHAudio现代回调共用userData时AO/token混用；真实登记语义红绿回归，受控mpv及完整CI HAR重建，API24焦点与API26崩溃分别复验。
 
 T050本地阶段（2026-11-14）：实际共用userdata回归先红后绿；干净上游提交派生的7组音频测试及94项宿主通过，受控mpv与完整九库HAR构建核验通过，详见device-evidence/t050-local-validation.json。CI和设备仍待验证，T050不勾选。
+
+- [ ] T051 补现代音频符号局部可见回归和官方库句柄回退，记录具体失败阶段，重建完整CI HAR并实机核验音频初始化、焦点和声音。
+
+
+T050设备更新：b13aa09的iMac CI通过，但1.0.53/API24 Air仍SYSTEM_PAUSE_MISSING；Mini的1.0.54无录制启动诊断发现音频回调登记错误3，详见device-evidence/t050-device-result.md。T050继续未完成。
+
+T051本地阶段：局部可见回归先红后绿，干净上游派生7组音频及94项宿主通过，受控mpv与完整九库HAR核验通过，见device-evidence/t051-local-validation.json。加载域是否为设备根因仍待新CI包实测，不提前勾选。

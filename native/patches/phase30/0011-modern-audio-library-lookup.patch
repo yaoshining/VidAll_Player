@@ -1,0 +1,33 @@
+diff --git a/audio/out/ao_ohaudio.c b/audio/out/ao_ohaudio.c
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -293,9 +293,27 @@
+             OH_AudioRenderer_OnInterruptCallback, void *);
+         set_interrupt_fn set_interrupt = (set_interrupt_fn)dlsym(
+             RTLD_DEFAULT, "OH_AudioStreamBuilder_SetRendererInterruptCallback");
+-        if (!set_interrupt)
++        // 某些动态加载作用域不向 RTLD_DEFAULT 暴露系统库；从官方库句柄查找。
++        // 仍仅在 API20+ 调用新接口，符号确实缺失时失败，不省略中断注册。
++        void *audio_library = NULL;
++        if (!set_interrupt) {
++            audio_library = dlopen("libohaudio.so", RTLD_NOW | RTLD_LOCAL);
++            if (audio_library)
++                set_interrupt = (set_interrupt_fn)dlsym(audio_library,
++                    "OH_AudioStreamBuilder_SetRendererInterruptCallback");
++        }
++        if (!set_interrupt) {
++            if (audio_library) dlclose(audio_library);
++            MP_ERR(ao, "OHAudio callback registration failed: stage=interrupt-symbol api=%d\n",
++                   OH_GetSdkApiVersion());
+             return AUDIOSTREAM_ERROR_SYSTEM;
+-        return set_interrupt(p->builder, modern_interrupt, token);
++        }
++        result = set_interrupt(p->builder, modern_interrupt, token);
++        // libohaudio 已是本核心的链接依赖；这里只归还本次额外取得的引用。
++        if (audio_library) dlclose(audio_library);
++        if (result != AUDIOSTREAM_SUCCESS)
++            MP_ERR(ao, "OHAudio callback registration failed: stage=interrupt-register code=%d\n", result);
++        return result;
+     }
+ 
+     // 旧系统必须一次注册两种回调，分别注册可能覆盖先前的写入回调。

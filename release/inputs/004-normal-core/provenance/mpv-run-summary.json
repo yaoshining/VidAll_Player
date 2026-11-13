@@ -1,11 +1,11 @@
 {
-  "runRoot": "/private/tmp/vidall-host-recovery-t050-build",
+  "runRoot": "/private/tmp/vidall-host-recovery-t051-build",
   "freshRootVerified": true,
   "configuration": {
     "profile": "stable-target-prefix-macro-map-origin-staging",
     "stablePrefix": "/usr/local",
     "ffmpegRelative": "mpv/source/_staged/ffmpeg",
-    "packageSHA256": "6b683322ea5109afddcf28abfd632988b8b60efcf6221258d8bbcd750d831308",
+    "packageSHA256": "f3cefd9b628b4b67408f5644f593a12484b7afd48bc9f6ae4800e7c62708b4a0",
     "toolHashes": {
       "meson": "2ac5f65bc3760309298f8cab1c8abd2773633a5c0e1470a22f7aa7940c0e2084",
       "ninja": "4e2125bd4c149186d6715a3d46ca294fc58ff9dbae8b3444c8e9330941276b57",
@@ -47,7 +47,7 @@
     "target": "aarch64-linux-ohos",
     "linkerTraceDiagnostic": true
   },
-  "artifactPath": "/private/tmp/vidall-host-recovery-t050-build/install/usr/local/lib/libmpv.so",
+  "artifactPath": "/private/tmp/vidall-host-recovery-t051-build/install/usr/local/lib/libmpv.so",
   "linkInputs": [
     {
       "path": "sdk/llvm/lib/aarch64-linux-ohos/libc++_shared.so",
@@ -231,7 +231,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_ohaudio.c.o",
-      "sha256": "1c55b5d9fcf74852209d9e719689b743cb14e0ea328c54b622ea32fc007c92ce"
+      "sha256": "75a28e27bd1786f4cf342dc6955abf545ad709246e191a904ee9031440f2b508"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_pcm.c.o",
@@ -1063,7 +1063,7 @@
     }
   ],
   "artifactHashes": {
-    "mpv": "b2ae053a0499f4bc650526dfdbcad7515c6117d2a583006812c60f1527071ec8",
+    "mpv": "23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a",
     "libplacebo": "a0c1e102b3403e84ca464dea4573fa16180b9b654c6f07325635e7370f808d57"
   },
   "allocatedSections": {
@@ -1081,7 +1081,7 @@
       "address": 656,
       "size": 304056,
       "allocated": true,
-      "sha256": "989951abd203ca360ac4c92d8d99eaf3f0db652947815e170548d3c30395c76f"
+      "sha256": "d8b77813e1616efbcbc92fe12f25e4d8555fb0c7f90e01583c0efb01de44c751"
     },
     ".gnu.version": {
       "type": 1879048191,
@@ -1089,7 +1089,7 @@
       "address": 304712,
       "size": 25338,
       "allocated": true,
-      "sha256": "dfdf8d9b33443e6497b67b9768885d015d756b780b1b7bc3f033d093268ee267"
+      "sha256": "6a34c6c560389f76ab70e8155e9a9011ec8908ee8ac702450180ced39d27fe1e"
     },
     ".gnu.version_r": {
       "type": 1879048190,
@@ -1113,7 +1113,7 @@
       "address": 422116,
       "size": 101360,
       "allocated": true,
-      "sha256": "3c99cb3c2d0df5d4ffef43cd6a0af9ed8055d1e1e0146ec5436b8dea19e3e71e"
+      "sha256": "17b825f6af399bb41a7b08ae56a4fe790a32beec763fa598d0aeab861c9b3094"
     },
     ".dynstr": {
       "type": 3,
@@ -1121,7 +1121,7 @@
       "address": 523476,
       "size": 830552,
       "allocated": true,
-      "sha256": "1693866718317412faa6240ded670b90bbdcd6bd4df2d948a75b379126af3b21"
+      "sha256": "9db3ec1b3686b2bc5903f8ba30c69cd5978c570d8401ddbf6808b6bd0c9ccca0"
     },
     ".rela.dyn": {
       "type": 4,
@@ -1129,7 +1129,7 @@
       "address": 1354032,
       "size": 853296,
       "allocated": true,
-      "sha256": "9b1c8b47a88773439d03038cc771321b84ea87634083b3aec8287a8546a6c6a9"
+      "sha256": "db3cf61237d0ce0058089c9d65b994f2bcb6932e3c7c370d612405e6c2f43acb"
     },
     ".rela.plt": {
       "type": 4,
@@ -1137,20 +1137,20 @@
       "address": 2207328,
       "size": 19056,
       "allocated": true,
-      "sha256": "1b6ac8d84bb0bc994c3a10a4d722c4011852ed84db3b538e58e45af036a22376"
+      "sha256": "f1b246e1294704b2a84bca56a6651a3f10147f0b5084837e8b5e0404e9b198b4"
     },
     ".rodata": {
       "type": 1,
       "flags": 50,
       "address": 2226384,
-      "size": 2430060,
+      "size": 2430220,
       "allocated": true,
-      "sha256": "eff08636438d7774c69d8846fec7072f348cd63b796e18ec5a0876b120ff8b37"
+      "sha256": "739b30eae13b0686da2e4c47fc0fd1c3ec7caebe15f1dcb2a1923a63c39fbd8d"
     },
     ".gcc_except_table": {
       "type": 1,
       "flags": 2,
-      "address": 4656444,
+      "address": 4656604,
       "size": 14324,
       "allocated": true,
       "sha256": "0f73f180dbb200a0722177e1e944de57a2fc20e5a8f7d2d5613a0a6c4afcf8e5"
@@ -1158,31 +1158,31 @@
     ".eh_frame_hdr": {
       "type": 1,
       "flags": 2,
-      "address": 4670768,
+      "address": 4670928,
       "size": 115012,
       "allocated": true,
-      "sha256": "3440671162a4028a01ef78dbe69653cbb432af82498c253832b1800f1880d771"
+      "sha256": "a6f8c3efa02ae674bd5796e42b05ec313908637784a90a0cdf539f1303beff13"
     },
     ".eh_frame": {
       "type": 1,
       "flags": 2,
-      "address": 4785784,
+      "address": 4785944,
       "size": 522884,
       "allocated": true,
-      "sha256": "b2828d0e59869d0c66006ef764554aba1b393cfedbbb1e71df0c5e4292b5f5b4"
+      "sha256": "8db1ed1f8e2c35fa117ca26dee1ffa2976b509c9669546088255d707f760e814"
     },
     ".text": {
       "type": 1,
       "flags": 6,
-      "address": 5312764,
-      "size": 9729936,
+      "address": 5312924,
+      "size": 9730132,
       "allocated": true,
-      "sha256": "e8529846f626ee956bff095390c159ebb5b73a2d54ddf1e84c86f460094f26d2"
+      "sha256": "a07307ccc49a076ddacdd473451c6ae0c5b2f9bdadb29fc99cfd5badfdfe8dab"
     },
     ".init": {
       "type": 1,
       "flags": 6,
-      "address": 15042700,
+      "address": 15043056,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1190,7 +1190,7 @@
     ".fini": {
       "type": 1,
       "flags": 6,
-      "address": 15042720,
+      "address": 15043076,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1198,15 +1198,15 @@
     ".plt": {
       "type": 1,
       "flags": 6,
-      "address": 15042752,
+      "address": 15043104,
       "size": 12736,
       "allocated": true,
-      "sha256": "6f23b25a1cd7149c535de32371970e00d127fc09583a2667bfd0b763a5fda41a"
+      "sha256": "2a855e7c50610829e12ac8e08020d6079b4ec6c2a389b922a2675f4a47f3a0a2"
     },
     ".init_array": {
       "type": 14,
       "flags": 3,
-      "address": 15059584,
+      "address": 15059936,
       "size": 32,
       "allocated": true,
       "sha256": "66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
@@ -1214,7 +1214,7 @@
     ".fini_array": {
       "type": 15,
       "flags": 3,
-      "address": 15059616,
+      "address": 15059968,
       "size": 24,
       "allocated": true,
       "sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0"
@@ -1222,7 +1222,7 @@
     ".data.rel.ro": {
       "type": 1,
       "flags": 3,
-      "address": 15059640,
+      "address": 15059992,
       "size": 619232,
       "allocated": true,
       "sha256": "52448923603f478497d2411ec9a8e35dcc354bd2ca16f92011d730868137216d"
@@ -1230,15 +1230,15 @@
     ".dynamic": {
       "type": 6,
       "flags": 3,
-      "address": 15678872,
+      "address": 15679224,
       "size": 704,
       "allocated": true,
-      "sha256": "a8cd66156e8c65653fb95f19e096d382cfaa8af4748b5d507aeef3f3981b25f4"
+      "sha256": "4aabc2ffcfaceabf294314e78642e3e68f28684aa4697960baea71ddc8496b34"
     },
     ".got": {
       "type": 1,
       "flags": 3,
-      "address": 15679576,
+      "address": 15679928,
       "size": 7312,
       "allocated": true,
       "sha256": "c5f2ac524611e50497b6223599d900ade3cc4789784b091166ae3594b3ba6130"
@@ -1246,15 +1246,15 @@
     ".got.plt": {
       "type": 1,
       "flags": 3,
-      "address": 15686888,
+      "address": 15687240,
       "size": 6376,
       "allocated": true,
-      "sha256": "6ed5239fd7b1fbb712ab9b9538c6580ba7f5be6ef724721033faee95df03c822"
+      "sha256": "1256ec06f1f44cfabe531e594244b0e5f6587b27c2e785cbf394d072ab584879"
     },
     ".data": {
       "type": 1,
       "flags": 3,
-      "address": 15697360,
+      "address": 15697712,
       "size": 36480,
       "allocated": true,
       "sha256": "df4bb84999c3bbca5ea051c55807d46955249620081c6d1802ad0bab1ebb5148"
@@ -1262,7 +1262,7 @@
     ".bss": {
       "type": 8,
       "flags": 3,
-      "address": 15733840,
+      "address": 15734192,
       "size": 82528,
       "allocated": true,
       "sha256": null

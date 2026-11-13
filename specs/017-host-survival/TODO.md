@@ -32,3 +32,5 @@ API24 平板不替代 API19 TV 正式入口验收；FFmpeg 和 VidAll_TV 的代�
 2026-11-13最新进展：实际HarmonyOS7.0.0.111 Air（不是API24）在坏片返回、正常视频首帧后Cpp Crash，尚未触发Alarm。第1项先处理该新增阻塞；T049补独立诊断的崩溃收证/音轨导出，四项均未完成。详情见[本轮失败记录](device-evidence/t049-native-crash.md)。
 
 2026-11-14进展：T050修复现代OHAudio写入/中断共用userData的AO/token冲突，真实注册语义先红后绿。干净上游派生的7组音频回归、94项完整宿主和本地完整九库HAR核验通过；准备推送iMac CI。API24焦点和API26崩溃未复验，仍为0/4。T049已在API24保存实际内录到设备个人目录，但尚未取回音轨，不能勾选声音通过。
+
+2026-11-14设备更新：b13aa09 iMac CI通过、1.0.53已在API24 Air复验，仍SYSTEM_PAUSE_MISSING。坏片返回及新会话硬件画面有证据，实际声音/焦点未通过；见[当前复验](device-evidence/t050-device-result.md)。永久平台挂起限制见[第3项复核](device-evidence/t050-permanent-audio-limit.md)。

@@ -53922,12 +53922,12 @@
   },
   "hostRecovery": {
     "inputLock": "host-recovery-input.json",
-    "inputLockSHA256": "41cacb0c3c8351120094ff1465e2ff69ed82135ebc579ca19ec8071e4fce6ce2",
-    "preparedInputSHA256": "6b683322ea5109afddcf28abfd632988b8b60efcf6221258d8bbcd750d831308",
+    "inputLockSHA256": "c4002d986b73f8b2ee58eae3b3990e23b1f62763ceaadd464392004e5900b9e3",
+    "preparedInputSHA256": "f3cefd9b628b4b67408f5644f593a12484b7afd48bc9f6ae4800e7c62708b4a0",
     "abiVersion": "0x00020000",
     "buildOrigin": "local",
     "buildMachine": "MacBook Pro / Darwin arm64",
-    "libmpvSHA256": "b2ae053a0499f4bc650526dfdbcad7515c6117d2a583006812c60f1527071ec8",
+    "libmpvSHA256": "23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a",
     "tooling": [
       {
         "path": "native/tooling/normal-core/collect_run.py",
