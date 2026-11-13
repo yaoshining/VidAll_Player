@@ -17,3 +17,11 @@
 ## 后续 CI 核对
 
 930b01a 的 iMac 自托管构建 [43347619195](https://github.com/yaoshining/VidAll_Player/actions/runs/43347619195) 与 Ubuntu 宿主回归 [43347835462](https://github.com/yaoshining/VidAll_Player/actions/runs/43347835462) 均已完成并通过，详见 ci-status.json。本次只核对任务结果，未将新上传附件替换为已核验的 62e4e3f 原始 HAR，也未增加任何设备或可听音频通过结论。
+
+## 1.0.49 实测更新
+
+用户随后完成手动上传，内置浏览器已确认 1.0.49，并在 API24 MatePad Mini（MLR-AL10 / 6.1.0.135）安装成功。普通内录入口的画面显示 create/init/mic-off/start 调用均返回，随后 waiting-started，最终 CAPTURE_START_TIMEOUT。没有观察到 STARTED 或可操作的授权弹窗，未进入 Player 播放。这里只定位到“启动调用返回后等待系统开始通知”，不能据此断定权限拒绝、设备不支持或 Player 音频故障。
+
+页面截图与结构化记录见 `mini135-1.0.49-timeout.jpg`、`mini135-1.0.49.json`。云端生成了原始设备截屏，但内置浏览器下载授权被拒绝，未导出文件、未绕过权限；没有取得 PID 或完整原始 hilog。下载操作等待结束后，云端明确提示本次免费时长已用完，设备已释放；余额 345 → 325 分钟，无购买或手机测试。
+
+核对官方 [AVScreenCapture 使用指南](https://developer.huawei.com/consumer/en/doc/harmonyos-guides/using-avscreencapture-arkts/) 及 [状态枚举](https://developer.huawei.com/consumer/en/doc/harmonyos-references-V14/js-apis-media-V14/)：STARTED 为 0，需监听状态变化确认录制。现有门槛保持不变，不能将 startRecording Promise 返回替代有效录制或听声通过。系统原因仍待可读取的日志/权限交互证据；T045/T046/T047 和设备验收不关闭。

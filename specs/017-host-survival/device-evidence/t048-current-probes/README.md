@@ -24,3 +24,5 @@
 两份新故障包尚未上传或设备执行，音轨未取得，不能计听声/旧音隔离通过。1.0.49 普通/焦点阶段诊断包也仍待手动上传；本轮刷新云调试“我的信息”只见 1.0.48，免费余额 345 分钟，无已分配设备。本轮没有消耗设备额度或购买。
 
 先用 1.0.49 定位录音启动超时，取得录音后再执行这两组当前故障包；按各探针 README 同轮记录 PID、实际 OHCodec/Vulkan、故障身份、返回列表及新视频画面和音轨。API24 平板结果不替代 API19 TV 正式文件入口验收。不创建提前验收的 PR。
+
+后续更新：`ea6b236` 的 iMac [43349876875](https://github.com/yaoshining/VidAll_Player/actions/runs/43349876875) 与 Ubuntu [43349962085](https://github.com/yaoshining/VidAll_Player/actions/runs/43349962085) 均通过，见 ci-status.json。用户已上传 1.0.49，Mini 实测确认卡在 start-returned 后等待 STARTED；本次仍无音轨，详见 T047 更新。本目录两份故障包尚未上传或执行。

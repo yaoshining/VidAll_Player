@@ -1,0 +1,17 @@
+{
+  "sourceCommit": "ea6b236bb36741d1842942a9ec3d7e95645996a4",
+  "checkedAt": "2026-11-13T07:58:14.199725+00:00",
+  "runs": [
+    {
+      "id": 43349876875,
+      "runnerType": "iMac self-hosted",
+      "conclusion": "success"
+    },
+    {
+      "id": 43349962085,
+      "runnerType": "Ubuntu",
+      "conclusion": "success"
+    }
+  ],
+  "deviceAccepted": false
+}

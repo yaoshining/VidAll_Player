@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-13",
+  "application": "Spec017录制阶段诊断",
+  "version": "1.0.49",
+  "hapSHA256": "9ef0e1f7bfc3889d217256329a84bd19c0f6009f59816952c464710ed5b7d8e8",
+  "device": "MatePad Mini",
+  "model": "MLR-AL10",
+  "system": "6.1.0.135",
+  "api": 24,
+  "flow": "普通系统内录入口",
+  "result": "CAPTURE_START_TIMEOUT",
+  "observedStages": [
+    "create-returned",
+    "init-returned",
+    "mic-off-returned",
+    "start-returned",
+    "waiting-started"
+  ],
+  "startedCallbackObserved": false,
+  "playbackReached": false,
+  "audioAccepted": false,
+  "pid": null,
+  "rawHilogObtained": false,
+  "originalDeviceScreenshotDownloaded": false,
+  "browserScreenshot": "mini135-1.0.49-timeout.jpg",
+  "downloadBlock": "内置浏览器报告用户拒绝文件下载授权，未尝试绕过",
+  "sessionState": "云端明确提示本次优惠时长用完，已返回列表；我的信息无已分配设备",
+  "freeMinutesBefore": 345,
+  "freeMinutesAfter": 325,
+  "purchased": false,
+  "limitations": [
+    "没有原始设备截图或完整hilog，不能确认未发出STARTED的系统原因",
+    "未进入播放，不能评价当前Player音频修复",
+    "不替代API19 TV验收"
+  ]
+}
