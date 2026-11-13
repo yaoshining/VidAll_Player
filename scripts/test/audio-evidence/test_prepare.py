@@ -12,6 +12,11 @@ class PrepareTest(unittest.TestCase):
    source=(ROOT/'fixtures/normal-core-consumer'/kind/'Index.ets').read_text()
    generated=m.with_capture(source)
    self.assertIn('Text(this.captureTrace)',generated)
+   self.assertIn("from './EvidenceChunks'", generated)
+   self.assertIn(".id('audio-copy-capture')", generated)
+   self.assertIn('this.chunks?.close()', generated)
+   self.assertIn('this.captureBusy = true', generated)
+   self.assertIn('this.captureBusy = false', generated)
    start=generated.index('  private record(')
    end=generated.index('  aboutToAppear()',start)
    record=generated[start:end]
@@ -37,7 +42,22 @@ assert(lines[0].includes('stage-8'));assert(lines[11].includes('stage-19'));
    self.assertIn('await this.runUnrecorded();',generated)
    self.assertIn('await this.capture.finish();',generated)
    if kind=='recovery-fence':self.assertIn('await runFenceProbe(port)',generated)
-   else:self.assertIn('initialMode(this.profile, generation)',generated)
+   else:
+    self.assertIn('initialMode(this.profile, generation)',generated)
+    self.assertIn('const third = await this.open(3); await this.delay(2000);',generated)
+    self.assertRegex(generated, r'Column\(\) \{\s+Row\(\)')
+   self.assertIn('if (this.evidenceClosed || !this.root) return;',generated)
+   self.assertIn('this.evidenceClosed = true;',generated)
+ def test_failed_probe_can_export_until_page_disappears(self):
+  program = """
+const assert=require('node:assert/strict');
+const ts=require(process.env.TYPESCRIPT_PATH||'/Applications/DevEco-Studio.app/Contents/plugins/codelinter/node_modules/typescript');
+let calls=[];class EvidenceChunks{async begin(kind,busy){calls.push([kind,busy]);if(busy)throw Error('CAPTURE_BUSY');}}
+const source='class Probe {root="/own";cancelled=true;evidenceClosed=false;captureBusy=false;evidenceStatus="";chunks;'+JSON.parse(process.argv[1])+'} exports.Probe=Probe;';
+const box={};new Function('exports','EvidenceChunks',ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS}}).outputText)(box,EvidenceChunks);
+(async()=>{let p=new box.Probe();await p.copyEvidence('events');assert.deepEqual(calls,[['events',false]]);p.captureBusy=true;await p.copyEvidence('capture');assert.match(p.evidenceStatus,/CAPTURE_BUSY/);p.evidenceClosed=true;await p.copyEvidence('events');assert.equal(calls.length,2);})().catch(e=>{console.error(e);process.exitCode=1;});
+"""
+  subprocess.run(['node','-e',program,json.dumps(m.COPY_METHOD)],cwd=ROOT,check=True)
  def test_source_drift_rejected(self):
   source=(ROOT/'fixtures/normal-core-consumer/recovery-fence/Index.ets').read_text()
   for marker in ['private maybeStart(): void {','private async run(): Promise<void> {','aboutToDisappear(): void {','Stack({ alignContent: Alignment.TopStart }) {',"private record(event: string, value: string = ''): void {",'Text(this.status)']:

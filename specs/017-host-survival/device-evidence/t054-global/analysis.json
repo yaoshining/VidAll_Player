@@ -1,0 +1,317 @@
+{
+  "signalPassed": true,
+  "deviceAccepted": false,
+  "sha256": "3ff630893c12b4ca2b33383607ec29141bf84fbb75bb54f76ce412b09eac9d69",
+  "sampleRate": 48000,
+  "channels": 2,
+  "durationSeconds": 11.072,
+  "segments": [
+    {
+      "name": "全局故障前硬解有声",
+      "passed": true,
+      "coverage": 1.0,
+      "longestFailureSeconds": 0,
+      "windows": [
+        {
+          "start": 1.0,
+          "seconds": 0.2,
+          "rmsDbFS": -21.128793413710568,
+          "expectedToneDbFS": -21.13135517513737,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 1.2,
+          "seconds": 0.2,
+          "rmsDbFS": -21.112975719241742,
+          "expectedToneDbFS": -21.11323218908112,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 1.4,
+          "seconds": 0.2,
+          "rmsDbFS": -21.108793660276106,
+          "expectedToneDbFS": -21.109079399286358,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 1.6,
+          "seconds": 0.2,
+          "rmsDbFS": -21.1181764359791,
+          "expectedToneDbFS": -21.118423241607744,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 1.8,
+          "seconds": 0.2,
+          "rmsDbFS": -21.102577197743333,
+          "expectedToneDbFS": -21.102832612278068,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 2.0,
+          "seconds": 0.2,
+          "rmsDbFS": -21.106552677509065,
+          "expectedToneDbFS": -21.106787979932577,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 2.2,
+          "seconds": 0.2,
+          "rmsDbFS": -21.09310167265411,
+          "expectedToneDbFS": -21.093354211235248,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 2.4,
+          "seconds": 0.2,
+          "rmsDbFS": -21.115598854917614,
+          "expectedToneDbFS": -21.115846809039343,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "全局故障后兼容有声且无旧音",
+      "passed": true,
+      "coverage": 1.0,
+      "longestFailureSeconds": 0,
+      "windows": [
+        {
+          "start": 3.9,
+          "seconds": 0.2,
+          "rmsDbFS": -21.120582054076817,
+          "expectedToneDbFS": -21.120844284961358,
+          "oldToneDbFS": -135.0771263998743,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.1,
+          "seconds": 0.2,
+          "rmsDbFS": -21.121196050288237,
+          "expectedToneDbFS": -21.121375037170136,
+          "oldToneDbFS": -113.9408007065696,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.3,
+          "seconds": 0.2,
+          "rmsDbFS": -21.110355680182384,
+          "expectedToneDbFS": -21.110604629423847,
+          "oldToneDbFS": -120.80865357915596,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.5,
+          "seconds": 0.2,
+          "rmsDbFS": -21.12332718232071,
+          "expectedToneDbFS": -21.123451046085854,
+          "oldToneDbFS": -113.05557173108932,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.7,
+          "seconds": 0.2,
+          "rmsDbFS": -21.107657102528545,
+          "expectedToneDbFS": -21.10783819301505,
+          "oldToneDbFS": -121.50340096710693,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.9,
+          "seconds": 0.2,
+          "rmsDbFS": -21.067928811901023,
+          "expectedToneDbFS": -21.068100962497354,
+          "oldToneDbFS": -124.25233833901757,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 5.1,
+          "seconds": 0.1,
+          "rmsDbFS": -21.092348139225322,
+          "expectedToneDbFS": -21.092474718413353,
+          "oldToneDbFS": -116.27501940953435,
+          "mixed": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "第三会话重开有声且无旧音",
+      "passed": true,
+      "coverage": 1.0,
+      "longestFailureSeconds": 0,
+      "windows": [
+        {
+          "start": 6.4,
+          "seconds": 0.2,
+          "rmsDbFS": -21.12619789777837,
+          "expectedToneDbFS": -21.126398070468824,
+          "oldToneDbFS": -116.63029185327774,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 6.6,
+          "seconds": 0.2,
+          "rmsDbFS": -21.107047733402247,
+          "expectedToneDbFS": -21.107273952941053,
+          "oldToneDbFS": -109.79626212756102,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 6.8,
+          "seconds": 0.2,
+          "rmsDbFS": -21.117753388237954,
+          "expectedToneDbFS": -21.117915145047643,
+          "oldToneDbFS": -118.47477233889613,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 7.0,
+          "seconds": 0.2,
+          "rmsDbFS": -21.089369868686916,
+          "expectedToneDbFS": -21.089566454938367,
+          "oldToneDbFS": -115.22794745509627,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 7.2,
+          "seconds": 0.2,
+          "rmsDbFS": -21.07581794787545,
+          "expectedToneDbFS": -21.0759843501356,
+          "oldToneDbFS": -146.2801974289955,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 7.4,
+          "seconds": 0.2,
+          "rmsDbFS": -21.11784498801958,
+          "expectedToneDbFS": -21.11803267268018,
+          "oldToneDbFS": -115.10889586953817,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 7.6,
+          "seconds": 0.1,
+          "rmsDbFS": -21.116558554066977,
+          "expectedToneDbFS": -21.11666562208528,
+          "oldToneDbFS": -108.36122396826258,
+          "mixed": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "最终关闭静音",
+      "passed": true,
+      "coverage": 1.0,
+      "longestFailureSeconds": 0,
+      "windows": [
+        {
+          "start": 8.9,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.1,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.3,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.5,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.7,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.9,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 10.1,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 10.3,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "只核对指定测试音，不证明自然音质或物理扬声器效果",
+    "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+    "合成音回归不计作设备验收"
+  ]
+}

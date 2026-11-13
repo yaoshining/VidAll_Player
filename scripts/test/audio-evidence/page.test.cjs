@@ -7,6 +7,7 @@ let calls=[],recording=false;
 global.XComponentController=class{};
 const original=Module._load;
 Module._load=function(name,parent,main){
+ if(name==='./EvidenceChunks')return{EvidenceChunks:class{async begin(kind,busy){calls.push(['begin',kind,busy]);if(busy)throw Error('CAPTURE_BUSY');}async next(busy){calls.push(['next',busy]);}async repeat(busy){calls.push(['repeat',busy]);}close(){calls.push('chunks-close');}}};
  if(name==='./EvidenceFiles')return{EvidenceFiles:class{start(){}close(){}async exportFile(){return true;}}};
  if(name==='./AudioCapture')return{AudioCapture:class{async start(){calls.push('capture-start');recording=true;}assertRecording(){assert(recording);}async finish(){calls.push('capture-finish');recording=false;}}};
  if(name==='./FocusAlarm')return{FocusAlarm:class{async start(){} async stop(){} samplesWritten(){return 48000;}}};
@@ -20,6 +21,12 @@ const stripped=source.slice(0,source.indexOf('  build() {')).replace('@Entry',''
 const m=new Module(file,module);m.filename=file;m.paths=module.paths;
 m._compile(ts.transpileModule(stripped,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,file);
 (async()=>{
+ assert(source.includes(".id('audio-copy-capture')"));
+ const copying=new m.exports.Index();copying.root='/own';
+ await copying.copyEvidence('events');await copying.copyEvidence('next');await copying.copyEvidence('repeat');
+ assert.deepEqual(calls,[['begin','events',false],['next',false],['repeat',false]]);
+ copying.captureBusy=true;await copying.copyEvidence('capture');assert.match(copying.evidenceStatus,/CAPTURE_BUSY/);
+ copying.aboutToDisappear();assert(calls.includes('chunks-close'));calls=[];
  assert(source.includes(".id('audio-export-capture')"));
  assert(source.indexOf('this.evidence.start()') < source.indexOf('await initializePlayerRuntime'));
  const busy=new m.exports.Index();busy.record('capture-stage','start-call');assert.equal(busy.captureBusy,true);busy.record('capture-closed');assert.equal(busy.captureBusy,false);

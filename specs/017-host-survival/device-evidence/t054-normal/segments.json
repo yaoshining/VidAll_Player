@@ -1,0 +1,53 @@
+[
+  {
+    "name": "首次播放",
+    "start": 1,
+    "end": 4.8,
+    "toneHz": 440
+  },
+  {
+    "name": "真实Alarm打断",
+    "start": 5.8,
+    "end": 6.9,
+    "toneHz": 1320,
+    "forbiddenHz": 440
+  },
+  {
+    "name": "打断解除等待手动",
+    "start": 8,
+    "end": 45
+  },
+  {
+    "name": "手动恢复",
+    "start": 47,
+    "end": 49.1,
+    "toneHz": 440
+  },
+  {
+    "name": "普通暂停",
+    "start": 50,
+    "end": 51.2
+  },
+  {
+    "name": "普通恢复",
+    "start": 52,
+    "end": 54.2,
+    "toneHz": 440
+  },
+  {
+    "name": "关闭静音",
+    "start": 56.1,
+    "end": 57.8
+  },
+  {
+    "name": "重开有声",
+    "start": 58.9,
+    "end": 63,
+    "toneHz": 440
+  },
+  {
+    "name": "最终关闭静音",
+    "start": 64.1,
+    "end": 65.8
+  }
+]

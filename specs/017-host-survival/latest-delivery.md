@@ -1,36 +1,36 @@
-# Spec 017 最新验收候选
+# Spec017 当前候选与未完成交付
 
-2026-11-14最新候选：b13aa09，iMac CI构建通过，原HAR `cc8846c51c314cee757285ceeb1e4b448d2357ef08f581953876a46e1cf644c6`，ARM64九库，详见[身份清单](device-evidence/t050-ci-preparation.json)。API24 Air 1.0.53仍SYSTEM_PAUSE_MISSING，未验收、未提PR；下方62e4e3f为历史交付。
+2026-11-14：四项待办已完成 **2/4**。API24 Mini已通过真实系统打断/手动恢复，以及关闭和全局故障后同进程续播的音画验收。永久平台音频挂起尚未解决，API19 TV正式文件入口未验收；**未提Spec017 PR、未合并、不是最终可接入交付**。
 
-**2026-11-13 更新：T046 修复版 62e4e3f 已取得并核验完整 iMac CI HAR；尚未完成该 CI 原包的平板音频复验，不能作为已验收交付。** T045 在 API24 平板复现了系统 PAUSE 未接入及验收页时长断言错误，已按 TDD 修复。当前94项宿主门禁、五组生产音频函数回归、六套验收工具回归与 iMac/Ubuntu CI 通过；1.0.48在两台API24平板内录启动超时；后续1.0.49已上传并在Mini复测，确认启动调用返回后仍未收到STARTED，未进入播放；详见[T047记录](device-evidence/t047-capture-stages/README.md)。实际内录音轨、现代系统焦点复验及 API19 TV 正式文件入口仍未完成，暂未提 PR。详见 [T046 修复记录](device-evidence/t046-modern-audio/README.md)。普通播放保留零拷贝硬解。
+## 原始CI产物与来源
 
-**当日最新实测：当前核心的焦点验收仍失败。** 1.0.49在API24 MatePad Air完成系统录屏确认后能进入播放，普通页面显示内录完成；焦点流程三次显示`SYSTEM_PAUSE_MISSING`。PID53964已保存坏片返回、正常首帧、竞争源实际运行、失败清理的完整事件链。尚未取得系统焦点决策和原生回调断点，也未导出录音；不能把T046宿主修复视为设备问题已解决。详见[Air本轮记录](device-evidence/t047-capture-stages/air112-1.0.49.json)。
+- 生产候选：`c7d56ee765f3ffde6059979e80c8f0162089ce01`。
+- [GitHub Actions构建及原始HAR附件](https://github.com/yaoshining/VidAll_Player/actions/runs/43464070369)：iMac自托管macOS/X64，不是云端Mac。
+- 原始HAR SHA256：`6fda6fb1ffa0cb6d78865399e811af1a9d74ae129b518280628afa59e90f9edf`。未由消费端重打包。
+- [九库哈希与CI身份](device-evidence/t051-ci-preparation.json)。`libmpv.so` SHA256：`23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a`。mpv受控核心由本地MacBook Pro交叉构建，最终正常HAR由iMac CI构建；FFmpeg沿用上游预编译SDK，本轮未修改或构建。
+- 仅支持完整 `arm64-v8a` 九库播放。x86_64旧探针不是播放支持；TV不能静默删架构或混旧桥，需另行补齐匹配SDK/核心或显式确认产品支持边界。当前未提供完整x86_64 HAR。
+- 设备独立HAP由本地MacBook Pro构建。普通/焦点HAP消费以上原始CI HAR；两组故障HAP消费T053独立完整诊断HAR，不能作为正式产物。T054/T055只修改验收程序，九库分别与来源逐个一致。
 
-## 原始产物与来源
-
-- 源提交：`62e4e3f8d9648f60713e03d182b2e0f45d923118`。
-- [下载原始 CI HAR 附件](https://github.com/yaoshining/VidAll_Player/actions/runs/43237406546/artifacts/13953676510)，其中 `vidall_player.har` 未经消费端重打包。
-- HAR SHA-256：`a419c1545680d48ab22983472a8c8ca3311a58bf5904cebdabfde2394e40b704`。
-- [HAR 构建](https://github.com/yaoshining/VidAll_Player/actions/runs/43237406546)：实际机器 `yaoshiningdeiMac`，self-hosted / macOS / X64；不是云端 Mac。
-- mpv/libplacebo 核心在 MacBook Pro / Darwin arm64 交叉构建。mpv SHA-256：`b81a0f2d54cc01defcc26849cb0e65404936528fc16f57ddf08b847591627086`，恢复 ABI `0x00020000`。FFmpeg 沿用上游预编译恢复 SDK，本轮未修改或构建。
-- [逐库 SHA-256 与来源记录](device-evidence/imac-delivery-62e4e3f.json)。HAR 仅支持完整 ARM64 播放，共九库。x86_64 旧探针不能用于播放；TV 如继续声明该架构，需另行补齐匹配 SDK/核心，不能静默删除声明或混入旧桥。
-
-## 验证结果
+## 当前验证结果
 
 | 层次 | 结果 | 边界 |
 | --- | --- | --- |
-| T046 本地宿主 | 94 项统一门禁、五组音频生产函数、六套验收工具回归通过 | 平台调用部分为替身 |
-| 62e4e3f [Ubuntu CI](https://github.com/yaoshining/VidAll_Player/actions/runs/43237652695) | 音频中断、旧回调隔离、音频生命周期、尺寸/旋转/播完及旧宿主检查通过 | 不证明系统焦点或真实声音 |
-| iMac CI | HAR、独立消费者九库、缺失 API 负例、Hypium 编译通过 | Hypium 未在设备执行 |
-| API 19 TV 模拟器，62e4e3f CI 原包 | 同PID坏片返回、两个首帧、暂停/恢复、跳转与释放重开通过 | software/no，见[当前原包记录](device-evidence/t046-modern-audio/api19-ci-software.json)；无真实声音或硬解结论 |
-| API 19 TV 模拟器，d4a059b 历史 CI 原包 | standard / compatible 坏片返回、正常首帧、暂停/恢复、跳转和释放重开通过 | 实际均为 software/no |
-| API 19 TV 模拟器，本地诊断包 | 全局终局注入后保持 PID，旧会话拒绝，新兼容会话连续两次播放有首帧 | 定时注入不是 GPU/fence 故障；诊断完整构建/静态检查通过，仍不能用于正式交付 |
-| API24 云平板，T044 本地完整包 | 真实 OHCodec/Vulkan 关闭注入、同进程返回/晚关闭/隔离上限、全局后兼容续播及普通回归通过 | 尚缺可听音频、系统焦点中断和新CI产物复验；API24不能替代API19 TV |
-| T045 API24 云平板旧包 | 焦点 SYSTEM_PAUSE_MISSING、普通流程 DIAGNOSTIC_UNAVAILABLE 失败，已据此修复 | 失败记录保留；不能算 T046 设备通过 |
-| T047 API24 Air，1.0.49消费当前CI原HAR | 授权后录制可启动，普通页面完成；系统焦点重复SYSTEM_PAUSE_MISSING | 无导出音轨、无焦点根因结论，仍未通过；不能提交验收通过PR |
-| API19 TV 正式入口 | 未完成 | 等正式HAR由消费端接入后继续验收 |
+| c7d56ee宿主与CI | 94项宿主、7组音频生产函数及iMac CI通过 | 不能代替设备输出 |
+| T054/T055工具 | 10套工具回归、硬件资格/页面集成回归、ArkTS构建与九库核验通过 | 测试用本地HAP，未重建生产核心 |
+| API24 Mini普通/焦点 | 1.0.60 PID45494、1.0.64 PID25123前后不变；实际Alarm导致暂停，解除后保持暂停，人工一次恢复；坏片返回、普通暂停/恢复、seek、OHCodec/Vulkan、释放重开通过 | 实际内录已完整导出，9个窗口全部通过；系统服务SendInterruptEvent日志未取回；不宣称人工听感/扬声器音质 |
+| API24 Mini关闭故障 | 1.0.61 PID59902前后不变；真实OHCodec/Vulkan mapper关闭接缝注入、手动返回新片、晚关闭完成日志、隔离上限后软件解码通过；8个音轨窗口通过 | 注入返回错误，不声称复现自然驱动故障；不是永久Stop/Release挂起 |
+| API24 Mini全局故障 | 1.0.65 PID33028前后不变；初始OHCodec/Vulkan，计时终局后手动返回/新片及第三次兼容重开，5个音轨窗口通过 | 全局锁保持terminal；是计时探针，不是GPU破坏；仅本次运行兼容 |
+| API19 TV模拟器历史 | 62e4e3f CI原包坏片/播放/暂停/重开通过 | 旧核心、software/no，不能作当前硬解或真实声音证据 |
+| API26历史崩溃 | c7d56ee尚未在该故障设备独立复验 | 不以API24通过关闭T049/T050 |
+| API19 TV正式入口 | 未完成 | 后续由TV接入正式CI HAR执行 |
 
-历史 d4a059b 模拟器记录分别见 [标准模式](device-evidence/api19-ci-standard-d4a059b.json)、[显式兼容模式](device-evidence/api19-ci-compatible-d4a059b.json) 和 [全局终局诊断](device-evidence/api19-injected-global-d4a059b.json)。
+证据：[焦点](device-evidence/t054-normal64/README.md)、[关闭故障](device-evidence/t054-fence/README.md)、[全局手动恢复](device-evidence/t055-global/README.md)、[实际录音持久文件清单](device-evidence/t054-t055-artifacts.json)。信号分析器的deviceAccepted保持false；设备结论依据包身份、PID、实际路径、事件及音画综合判断，不能用单个分析器结果替代。
+
+## 阻塞及不变的要求
+
+平台renderer Stop/Release永久不返回时，无法证明其已提交音频缓冲已停止；撤销回调、填零、固定等待或并发静音都不是停止确认。保留未知资源会占用16槽和有界执行器，重复永久故障不能无限恢复。见[第3项具体限制](device-evidence/t050-permanent-audio-limit.md)。需要平台有界断开协议，或经API19TV证实支持的独立可重建播放进程；现有公开子进程接口有设备类型限制。未获得依据前，不强行释放、不清零预算、不放宽不退出主应用要求。
+
+Renderer已成功Release后Builder清理挂起属于已有T035可恢复边界；Stop返回错误但实际状态明确STOPPED属于已有T041边界。两者都不能推广到平台调用永不返回。
 
 ## TV 迁移步骤
 
@@ -40,11 +40,3 @@
 4. 全局终局后停止使用旧实例，保留旧 Surface，等待 recovery.ready 后创建 compatible 实例并使用新 Surface。只有实际首帧与音频确认后才提示兼容切换成功。普通坏片与可隔离会话故障沿用原恢复路径。
 5. 按 [接入文档](../../docs/normal-core-integration.md) 处理容量错误和迟到回调；`PLAYER_EVENT_QUEUE_FULL` 是桥会话故障，释放后新建，不作为视频硬解失败标记。自动连播不能解除用户暂停或未结束的音频打断。
 6. 从 API 19 TV 正式文件入口继续验证正常播放、音频打断/手动恢复、切集、退出重开、故障后返回、再播其他视频及连续故障上限，分别保存包哈希、PID、音画与原生日志。
-
-若平台音频 Stop 永久阻塞或无法确认停止，当前实现仍须保持 pending/timeout，不能强行释放或假报续播成功。这是尚未消除的实际限制，不代表已放宽“全局故障后也能继续播放”的要求。
-
-本候选保留 T035：renderer 已确认释放后，builder 清理失败或阻塞不再误挡兼容恢复；残留对象及槽预算仍保留。平台 Stop/Release 未确认的限制保持不变，设备上尚未注入 builder 故障；该边界目前由真实生产函数的宿主回归覆盖。
-
-本候选另含 T041：音频 Stop 返回错误后仍查询真实状态，仅明确 STOPPED 才确认静止；状态仍运行、查询失败及调用未返回均不能放行。已通过生产函数正负例和当前源码的 Ubuntu 回归，设备未注入该特定平台错误。T039/T040 的[完整宿主门禁与最终收证](https://github.com/yaoshining/VidAll_Player/actions/runs/43038250441)也已通过。
-
-2026-11-14 T051候选：c7d56ee的iMac自托管CI43464070369通过；原始HAR SHA256 6fda6fb1ffa0cb6d78865399e811af1a9d74ae129b518280628afa59e90f9edf，ARM64九库。完整来源及两个本地独立HAP见device-evidence/t051-ci-preparation.json。设备正在复验，不能按正式交付验收通过使用。

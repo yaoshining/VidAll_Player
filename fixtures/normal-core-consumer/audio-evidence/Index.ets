@@ -1,3 +1,4 @@
+import { EvidenceChunks } from './EvidenceChunks';
 import { FocusAlarm } from './FocusAlarm';
 import { FocusPort, FocusSnapshot, runFocusProbe } from './FocusRun';
 import { AudioCapture } from './AudioCapture';
@@ -14,6 +15,7 @@ struct Index {
   @State evidenceStatus: string = '';
   @State captureBusy: boolean = false;
   private evidence?: EvidenceFiles;
+  private chunks?: EvidenceChunks;
   @State captureTrace: string = '';
   private captureTraceLines: string[] = [];
   @State awaitingManualResume: boolean = false;
@@ -219,6 +221,19 @@ struct Index {
       const w = await window.getLastWindow(this.context); await w.setWindowKeepScreenOn(false);
     }
   }
+  private async copyEvidence(action: string): Promise<void> {
+    if (this.cancelled || !this.root) return;
+    if (this.chunks === undefined) this.chunks = new EvidenceChunks(this.root, (message: string): void => {
+      if (!this.cancelled) this.evidenceStatus = message;
+    });
+    try {
+      if (action === 'next') await this.chunks.next(this.captureBusy);
+      else if (action === 'repeat') await this.chunks.repeat(this.captureBusy);
+      else await this.chunks.begin(action, this.captureBusy);
+    } catch (error) {
+      if (!this.cancelled) this.evidenceStatus = '复制失败：' + (error as Error).message;
+    }
+  }
   private async exportEvidence(kind: string): Promise<void> {
     if (this.evidence === undefined) return;
     try {
@@ -228,7 +243,7 @@ struct Index {
       if (!this.cancelled) this.evidenceStatus = '导出失败：' + (error as Error).message;
     }
   }
-  aboutToDisappear(): void { this.cancelled = true; this.evidence?.close(); this.unsubscribe?.(); this.finish().catch(() => {}); this.capture?.finish().catch(() => {}); }
+  aboutToDisappear(): void { this.cancelled = true; this.evidence?.close(); this.chunks?.close(); this.unsubscribe?.(); this.finish().catch(() => {}); this.capture?.finish().catch(() => {}); }
   build() {
     Stack({ alignContent: Alignment.TopStart }) {
       XComponent({ id: 'p32-video', type: XComponentType.SURFACE, controller: this.controller })
@@ -244,6 +259,12 @@ struct Index {
         Button('导出内录').id('audio-export-capture').enabled(!this.captureBusy).onClick(() => { this.exportEvidence('capture'); })
         Button('导出事件').id('audio-export-events').enabled(!this.captureBusy).onClick(() => { this.exportEvidence('events'); })
         Button('导出崩溃').id('audio-export-crash').enabled(!this.captureBusy).onClick(() => { this.exportEvidence('crash'); })
+      }
+      Row() {
+        Button('复制事件').id('audio-copy-events').enabled(!this.captureBusy).onClick(() => { this.copyEvidence('events'); })
+        Button('复制内录').id('audio-copy-capture').enabled(!this.captureBusy).onClick(() => { this.copyEvidence('capture'); })
+        Button('下一块').id('audio-copy-next').enabled(!this.captureBusy).onClick(() => { this.copyEvidence('next'); })
+        Button('重发本块').id('audio-copy-repeat').enabled(!this.captureBusy).onClick(() => { this.copyEvidence('repeat'); })
       }
       Text(this.evidenceStatus).fontSize(16).fontColor(Color.White).backgroundColor('#BB000000')
       Text(this.captureTrace).fontSize(16).fontColor(Color.White).backgroundColor('#BB000000').padding(8)

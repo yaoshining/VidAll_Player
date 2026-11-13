@@ -1,0 +1,4 @@
+2026-11-14 01:30:27 59902-62256/hdc E/A0D001/com.yaoshining.vidallplayer/VidAllFenceProbe: FENCE_PROBE wait real=0 injected=-4 reason=2 pid=59902
+2026-11-14 01:30:43 59902-62772/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllFenceProbe: FENCE_PROBE late-close begin real=0 pid=59902
+2026-11-14 01:30:50 59902-62772/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllFenceProbe: FENCE_PROBE late-close completed real=0 pid=59902
+2026-11-14 01:31:09 59902-63404/hdc E/A0D001/com.yaoshining.vidallplayer/VidAllFenceProbe: FENCE_PROBE wait real=0 injected=-4 reason=2 pid=59902

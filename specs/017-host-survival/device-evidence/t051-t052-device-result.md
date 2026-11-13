@@ -27,3 +27,11 @@ T052仅把独立工具真实STARTED等待从15秒改为有界60秒，非法/非�
 四项Todoist仍0/4：第1项已修初始化且观察到等待手动恢复，第2项当前故障包仍须同步新核心及完成真实音轨，第3项永久音频Stop/Release未知状态边界未解决，第4项待前置，不创建PR。API26历史CppCrash仍未复验，API19 TV正式入口独立待验。
 
 当前实际阻塞为华为云登录失效，已请求扫码；不能声称正在自动等待设备。失效时会话已使用约14分钟，未获明确释放成功，剩余时段按平台会话上限结束，重新登录后需核实分配状态。
+
+## 重新登录后的独立重跑
+
+用户扫码后登录恢复，原会话已结束；重新分配同版本Mini并安装1.0.57。运行前后pidof均23494。实际capture-started=1794589321675，画面等待手动继续后点击一次。P17日志捕获到focus-flow-completed-audio-pending、后续暂停进度7466.667ms保持不变、恢复10466.667ms、seek20566.667ms、实际ohcodec/vulkan、session3新首帧、summary(firstFrames=2,errors=0)、capture stop/release返回、capture-closed=1794589362776。
+
+见t052-rerun-events.txt；当前日志从focus-flow-completed开始，早期系统打断/手动恢复逐事件未捕获，不能把后续普通pause/resume日志冒充系统打断原始日志。系统日志仅取得01:02:35/music/hintType3，见t052-rerun-system.txt，不能将其说成前面Alarm的PAUSE决策。完整事件文件及实际MP4仍未导出。
+
+点击导出并释放后返回机型列表，下载等待未返回文件。当前无占用设备；准备T054通过工具显式导出本应用自生成证据，使用平台已有剪贴板同步，不读其他应用或绕过文件权限。

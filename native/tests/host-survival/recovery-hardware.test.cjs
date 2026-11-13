@@ -92,8 +92,9 @@ function method(name, dependencies = {}) {
   assert.equal(records.some(x=>x[0]==='summary'),false,'软件回退不得产出硬件成功摘要');
   for (const profile of ['hardware-first','software-control']) {
     let position=0;const accepted=[];
+    let allowNavigation; const navigationGate=new Promise(resolve=>{allowNavigation=resolve;});
     const good=method('run',{requireHardware,requireSoftware,getPlayerRuntimeStatus:()=>({state:'terminal',recovery:{state:'ready',generation:2}})});
-    const state={active:()=>{},profile,firstFrames:0,errors:0,firstIdentity:{sessionId:'1',loadGeneration:'1'},
+    const state={active:()=>{},waitForRecoveryNavigation:()=>navigationGate,profile,firstFrames:0,errors:0,firstIdentity:{sessionId:'1',loadGeneration:'1'},
       fault:{attribution:{state:'known',sessionId:'1',loadGeneration:'1'}},
       controller:{getXComponentSurfaceId:()=> 'old'},recoveryController:{getXComponentSurfaceId:()=> 'new'},thirdController:{getXComponentSurfaceId:()=> 'third'},
       recoverySurfaceReady:true,thirdSurfaceReady:true,delay:async()=>{},number:f=>f.value,record:(...x)=>accepted.push(x),finish:async()=>{},
@@ -102,7 +103,9 @@ function method(name, dependencies = {}) {
         return {play:async()=>{throw Error('PLAYER_TERMINAL');},release:async()=>{if(generation===1)throw Error('PLAYER_TERMINAL');},
           getDiagnostics:async()=>{const s=snapshot(generation===1&&profile==='hardware-first'?'vulkan':'software',generation===1&&profile==='hardware-first'?'ohcodec':'no');s.fields.positionMs.value=(position+=800);return s;}};
       }};
-    await good.call(state);
+    const running=good.call(state);await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(state.firstFrames,1,'未完成用户导航前不得打开第二会话');
+    allowNavigation();await running;
     const summary=JSON.parse(accepted.find(x=>x[0]==='summary')[1]);
     assert.equal(summary.profile,profile);assert.equal(summary.scope,'timer-global');assert.equal(summary.firstFrames,3);
     accepted.length=0;state.firstFrames=0;

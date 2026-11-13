@@ -1,0 +1,19 @@
+{
+  "version": "1.0.65",
+  "hap": "/tmp/vidall-t055-global-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+  "sha256": "db7c76481c7a983f9c48f1c8f2125e8c39113a8d1a88837dd895078118d07fee",
+  "native_libraries": {
+    "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libs/arm64-v8a/libmpv.so": "135dde131fc12962e383c40777edbc1cfbf72bdde9727d5d1f8f6dd7ea56459d",
+    "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libs/arm64-v8a/libvidall_player_native.so": "2c69c78f3422ca1ec5628708cc0db7ddf918dfbc29dbae9776baab67f76d5e4a"
+  },
+  "source_core": "c7d56ee",
+  "type": "local diagnostic UI only",
+  "production_change": false
+}

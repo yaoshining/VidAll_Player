@@ -9,6 +9,7 @@ import { PROBE_PROFILE } from './ProbeProfile';
 @Entry
 @Component
 struct Index {
+  @State navigation: string = '';
   private profile: ProbeProfile = PROBE_PROFILE;
   @State recoverySurfaceVisible: boolean = false;
   private recoverySurfaceReady: boolean = false;
@@ -139,6 +140,7 @@ struct Index {
     }
     if (!releaseRejected) throw new Error('OLD_SESSION_RELEASE_FALSE_SUCCESS');
     this.player = undefined;
+    await this.waitForRecoveryNavigation();
     this.recoverySurfaceVisible = true;
     for (let i = 0; i < 100 && !this.recoverySurfaceReady; i++) await this.delay(50);
     if (!this.recoverySurfaceReady || this.controller.getXComponentSurfaceId() === this.recoveryController.getXComponentSurfaceId()) throw new Error('FRESH_SURFACE_MISSING');
@@ -167,6 +169,24 @@ struct Index {
     this.record('summary', JSON.stringify({ profile: this.profile, scope: 'timer-global', firstFrames: this.firstFrames,
       errors: this.errors, recovery: getPlayerRuntimeStatus().recovery }));
     this.status = '诊断包：同进程兼容续播完成';
+  }
+  private chooseRecovery(action: string): void {
+    if (this.cancelled) return;
+    if (action === 'return' && this.navigation === 'failed') {
+      this.navigation = 'list'; this.status = '视频列表：请选择另一部视频';
+      this.record('user-returned-list');
+    } else if (action === 'open' && this.navigation === 'list') {
+      this.navigation = 'selected'; this.record('user-opened-next');
+    }
+  }
+  private async waitForRecoveryNavigation(): Promise<void> {
+    this.navigation = 'failed'; this.status = '播放失败，请返回列表';
+    this.record('awaiting-user-return');
+    for (let i = 0; i < 600 && this.navigation === 'failed'; i++) await this.delay(100);
+    if (this.navigation === 'failed') throw new Error('MANUAL_NAVIGATION_TIMEOUT');
+    for (let i = 0; i < 600 && this.navigation === 'list'; i++) await this.delay(100);
+    if (this.navigation !== 'selected') throw new Error('MANUAL_NAVIGATION_TIMEOUT');
+    this.navigation = '';
   }
   private async finish(): Promise<void> {
     if (this.context === undefined) return;
@@ -205,6 +225,12 @@ struct Index {
         XComponent({ id: 'p17-third-video', type: XComponentType.SURFACE, controller: this.thirdController })
           .width('100%').height('100%')
           .onLoad(() => { this.thirdSurfaceReady = true; })
+      }
+      if (this.navigation === 'failed') {
+        Button('返回视频列表').margin({ top: 300 }).id('global-return-list').onClick(() => { this.chooseRecovery('return'); })
+      }
+      if (this.navigation === 'list') {
+        Button('播放另一部视频').margin({ top: 300 }).id('global-open-next').onClick(() => { this.chooseRecovery('open'); })
       }
       Text(this.status).fontSize(24).fontColor(Color.White).backgroundColor('#88000000').padding(16)
     }.width('100%').height('100%').backgroundColor(Color.Black)

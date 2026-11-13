@@ -1,0 +1,50 @@
+2026-11-14 01:38:43 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 runtime ready
+2026-11-14 01:39:11 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage create-call
+2026-11-14 01:39:11 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage create-returned
+2026-11-14 01:39:11 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage init-call
+2026-11-14 01:39:11 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage init-returned
+2026-11-14 01:39:11 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage mic-off-call
+2026-11-14 01:39:11 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage mic-off-returned
+2026-11-14 01:39:11 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage start-call
+2026-11-14 01:39:11 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage start-returned
+2026-11-14 01:39:11 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage waiting-started
+2026-11-14 01:39:21 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-state 0
+2026-11-14 01:39:21 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-started 1794591561734
+2026-11-14 01:39:21 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"1","loadGeneration":"1"}
+2026-11-14 01:39:21 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+2026-11-14 01:39:21 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+2026-11-14 01:39:21 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 1
+2026-11-14 01:39:22 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 initial-playback {"profile":"hardware-first","backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+2026-11-14 01:39:22 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 pre-terminal-playback {"profile":"hardware-first","backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+2026-11-14 01:39:22 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 before-global-first-frame
+2026-11-14 01:39:24 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 fault {"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}
+2026-11-14 01:39:24 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 terminal {"state":"terminal","terminal":{"stage":1,"platformError":-4,"firstObservedMs":13082380,"deadlineMs":3000,"ownerTag":"1","attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}},"recovery":{"state":"pending","generation":0},"faults":[{"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}]}
+2026-11-14 01:39:24 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state error
+2026-11-14 01:39:24 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 error PLAYER_TERMINAL
+2026-11-14 01:39:24 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 terminal-status {"state":"terminal","terminal":{"stage":1,"platformError":-4,"firstObservedMs":13082380,"deadlineMs":3000,"ownerTag":"1","attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}},"recovery":{"state":"pending","generation":0},"faults":[{"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}]}
+2026-11-14 01:39:25 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 recovery-ready {"state":"terminal","terminal":{"stage":1,"platformError":-4,"firstObservedMs":13082380,"deadlineMs":3000,"ownerTag":"1","attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}},"recovery":{"state":"ready","generation":2},"faults":[{"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}]}
+2026-11-14 01:39:25 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 old-release-rejected PLAYER_TERMINAL
+2026-11-14 01:39:25 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 fresh-surface-ready
+2026-11-14 01:39:25 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 returned-after-global
+2026-11-14 01:39:25 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"2","loadGeneration":"1"}
+2026-11-14 01:39:25 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+2026-11-14 01:39:25 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+2026-11-14 01:39:25 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 2
+2026-11-14 01:39:27 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 recovery-playback {"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":1833.3333333333333},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"software"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"no"},"audio":{"status":"available","unit":"text","source":"current-tracks/audio/codec","estimated":false,"value":"aac"}}
+2026-11-14 01:39:27 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+2026-11-14 01:39:27 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 recovery-release
+2026-11-14 01:39:27 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 third-fresh-surface-ready
+2026-11-14 01:39:27 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"3","loadGeneration":"1"}
+2026-11-14 01:39:27 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+2026-11-14 01:39:27 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+2026-11-14 01:39:27 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 3
+2026-11-14 01:39:30 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+2026-11-14 01:39:30 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 keepScreen false
+2026-11-14 01:39:30 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 session-end
+2026-11-14 01:39:30 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 summary {"profile":"hardware-first","scope":"timer-global","firstFrames":3,"errors":0,"recovery":{"state":"ready","generation":2}}
+2026-11-14 01:39:32 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage stop-call
+2026-11-14 01:39:32 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage stop-returned
+2026-11-14 01:39:32 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage release-call
+2026-11-14 01:39:32 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage release-returned
+2026-11-14 01:39:32 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-closed 1794591572741
+2026-11-14 01:39:32 12090-12090/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-flow-completed 仍需审阅实际音轨、PID、故障归属与硬件日志
