@@ -37,6 +37,8 @@ code = r'''
 #define AUDIOSTREAM_SUCCESS 0
 #define AUDIO_DATA_CALLBACK_RESULT_VALID 0
 typedef int OH_AudioStream_Result;
+typedef int OH_AudioStream_State;
+#define AUDIOSTREAM_STATE_STOPPED 3
 typedef int OH_AudioData_Callback_Result;
 typedef int OH_AudioStreamBuilder;
 typedef struct { atomic_bool blocked,entered; atomic_int calls,released; atomic_llong pos,stamp; } OH_AudioRenderer;
@@ -71,6 +73,7 @@ static int OH_AudioRenderer_GetAudioTimestampInfo(OH_AudioRenderer*r,int64_t*pos
  while(r->blocked)usleep(1000);
  *pos=r->pos;*stamp=r->stamp;return 0;
 }
+static int OH_AudioRenderer_GetCurrentState(OH_AudioRenderer*r, int*state){(void)r;*state=2;return 0;}
 static int OH_AudioRenderer_Release(OH_AudioRenderer*r){assert(!r->blocked);r->released++;return 0;}
 static int OH_AudioStreamBuilder_Destroy(OH_AudioStreamBuilder*b){(void)b;builder_releases++;return 0;}
 static void ao_read_data(struct ao*a,void**data,int samples,int64_t end,void*unused,bool pad,bool blocking){

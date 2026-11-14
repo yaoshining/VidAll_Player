@@ -53,6 +53,10 @@
     {
       "path": "native/patches/phase30/0012-ohaudio-clock-outside-callback.patch",
       "sha256": "f6bdf17e14eb1ca449b93b715fbd18fdbf0d8681c62cad13621967cdb10ae813"
+    },
+    {
+      "path": "native/patches/phase30/0013-preserve-stopped-before-release.patch",
+      "sha256": "12d5c325e52c89fe162f5404b59bebe376be03b3c9763532a504d829a3d6163a"
     }
   ],
   "addedSources": [

@@ -1,16 +1,16 @@
 {
-  "runRoot": "/private/tmp/vidall-host-recovery-t056-final-build",
+  "runRoot": "/private/tmp/vidall-host-recovery-t063-build",
   "freshRootVerified": true,
   "configuration": {
     "profile": "stable-target-prefix-macro-map-origin-staging",
     "stablePrefix": "/usr/local",
     "ffmpegRelative": "mpv/source/_staged/ffmpeg",
-    "packageSHA256": "0a6b9f61c908bb134a09fea8148eb775f2b26f1a85e768baa619300f4c7c13c8",
+    "packageSHA256": "0daf724c9b1211a495fa29ffb0803af73a09cf920723d90b0f381d92afd4c9b8",
     "toolHashes": {
       "meson": "2ac5f65bc3760309298f8cab1c8abd2773633a5c0e1470a22f7aa7940c0e2084",
       "ninja": "4e2125bd4c149186d6715a3d46ca294fc58ff9dbae8b3444c8e9330941276b57",
       "pkg-config": "a06f8c311a0a36515ea9b69ea9a44ee5ce43df00b29b5f46d5bf044dfe9ae282",
-      "python": "6cc907e4a022fefc843bcd93954eaf5a2cbfc77a095640bfadeeed96154190c5",
+      "python": "06ae60aeac71bc6a243a553f1c48461882ccc681b566abc8aaeea7462aa16a2f",
       "clang": "b9a36b6a434fd245460ddfa9abedefbfafe83b1f87749fe00491ee90d039d723",
       "clang++": "b9a36b6a434fd245460ddfa9abedefbfafe83b1f87749fe00491ee90d039d723",
       "ld.lld": "1148e2fa66adb7159a94aa01310df001fa2b1a608497886706ea89a018953075",
@@ -47,7 +47,7 @@
     "target": "aarch64-linux-ohos",
     "linkerTraceDiagnostic": true
   },
-  "artifactPath": "/private/tmp/vidall-host-recovery-t056-final-build/install/usr/local/lib/libmpv.so",
+  "artifactPath": "/private/tmp/vidall-host-recovery-t063-build/install/usr/local/lib/libmpv.so",
   "linkInputs": [
     {
       "path": "sdk/llvm/lib/aarch64-linux-ohos/libc++_shared.so",
@@ -231,7 +231,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_ohaudio.c.o",
-      "sha256": "0ad9fdf1f50955fe9945e45ad48f0547c45d6a32f71598073f1ca72d516a5059"
+      "sha256": "b603584d2a2e7ec78d437393ed780ce69e432d634ea2add600dcd2a0e37df5ef"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_pcm.c.o",
@@ -1063,7 +1063,7 @@
     }
   ],
   "artifactHashes": {
-    "mpv": "d283cc8edc69467d52dbab7854f7171703053003f71d52bdb9bbae1a2797f198",
+    "mpv": "f57068665298079682f9d90b0b13ae8ac427c844a3debf4b47cd7107611d5a82",
     "libplacebo": "a0c1e102b3403e84ca464dea4573fa16180b9b654c6f07325635e7370f808d57"
   },
   "allocatedSections": {
@@ -1081,7 +1081,7 @@
       "address": 656,
       "size": 304056,
       "allocated": true,
-      "sha256": "8bc886f0d99743dc3ab004d3f0ebaec8ebbdc800439781845ad14523b8918fac"
+      "sha256": "885e6725a4614b2af4b6e7129cad700482d6fab94b73c0119b0d1d4d031c1d68"
     },
     ".gnu.version": {
       "type": 1879048191,
@@ -1129,7 +1129,7 @@
       "address": 1354032,
       "size": 853296,
       "allocated": true,
-      "sha256": "37fee1b06b0c82052445cfed3e8fee54964b079c452c0bd208a5c15a7f80e065"
+      "sha256": "76d757ebaaf4759157137d8cc6cb54ec43f70e8b9fe6c8cde421fdc07119ce70"
     },
     ".rela.plt": {
       "type": 4,
@@ -1137,7 +1137,7 @@
       "address": 2207328,
       "size": 19056,
       "allocated": true,
-      "sha256": "842c3f86c8e8fd316a14c80c3e9a3c2e0e46472a09a23f25fb88276d4465b671"
+      "sha256": "6b31992a273ad9c07117dea8edf0094bbeb5d6a0639984654cb14f983e121486"
     },
     ".rodata": {
       "type": 1,
@@ -1145,7 +1145,7 @@
       "address": 2226384,
       "size": 2430332,
       "allocated": true,
-      "sha256": "1b17202cd7fc9e23416fb99c630dda006bbc5362c888a9ed630cb0b62366e8c9"
+      "sha256": "8ba12a32966e54bda4e53ba02388ef56e2d78f210beeebd114ca6d36372453bd"
     },
     ".gcc_except_table": {
       "type": 1,
@@ -1161,7 +1161,7 @@
       "address": 4671040,
       "size": 115012,
       "allocated": true,
-      "sha256": "df25288f88566a35fbdfe55908c3c2c8abc3c170dec72e670dc9cdcdba96ac42"
+      "sha256": "67cee5f6dbd47316d02834ef434d7fb98d17ef57f55d79083b287e0815de27aa"
     },
     ".eh_frame": {
       "type": 1,
@@ -1169,20 +1169,20 @@
       "address": 4786056,
       "size": 522884,
       "allocated": true,
-      "sha256": "78fc33ecac908bf69193c547b75005535e980a2672664f55bebfa85dbfa68a0b"
+      "sha256": "fc638e8e2c2f55314674a405f572ec8d5af3c248fc30b31aa2933244210b7791"
     },
     ".text": {
       "type": 1,
       "flags": 6,
       "address": 5313036,
-      "size": 9730924,
+      "size": 9730988,
       "allocated": true,
-      "sha256": "3ef8943bcdeb64c8362a51323b26e3aa350b35f554a344bba1414907b9aae94f"
+      "sha256": "91584be4f43a798895e256d998835b3a39438386eff77071d4e20ef53ca0e683"
     },
     ".init": {
       "type": 1,
       "flags": 6,
-      "address": 15043960,
+      "address": 15044024,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1190,7 +1190,7 @@
     ".fini": {
       "type": 1,
       "flags": 6,
-      "address": 15043980,
+      "address": 15044044,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1198,15 +1198,15 @@
     ".plt": {
       "type": 1,
       "flags": 6,
-      "address": 15044000,
+      "address": 15044064,
       "size": 12736,
       "allocated": true,
-      "sha256": "6ad238dd4092996189683754a39968233dae630044325dcb0f8cc5b69ea4df6f"
+      "sha256": "01ed975bf4573aaaabeb4dde11607e8dc9ba8d43f5b560e128614f6ed553d1e0"
     },
     ".init_array": {
       "type": 14,
       "flags": 3,
-      "address": 15060832,
+      "address": 15060896,
       "size": 32,
       "allocated": true,
       "sha256": "66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
@@ -1214,7 +1214,7 @@
     ".fini_array": {
       "type": 15,
       "flags": 3,
-      "address": 15060864,
+      "address": 15060928,
       "size": 24,
       "allocated": true,
       "sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0"
@@ -1222,7 +1222,7 @@
     ".data.rel.ro": {
       "type": 1,
       "flags": 3,
-      "address": 15060888,
+      "address": 15060952,
       "size": 619232,
       "allocated": true,
       "sha256": "20ddef466fbb78a263ad22b1da5e102d7a85c13e49c75c80ae20e25283ceb51a"
@@ -1230,15 +1230,15 @@
     ".dynamic": {
       "type": 6,
       "flags": 3,
-      "address": 15680120,
+      "address": 15680184,
       "size": 704,
       "allocated": true,
-      "sha256": "33ef2cd3afd8be4a958a04bcf9dd22c6942598bdcb222c7995d93790b9152525"
+      "sha256": "116b659319476af636b4249eb416fbe58ebc840d0c986534147224d3503bc08e"
     },
     ".got": {
       "type": 1,
       "flags": 3,
-      "address": 15680824,
+      "address": 15680888,
       "size": 7312,
       "allocated": true,
       "sha256": "c5f2ac524611e50497b6223599d900ade3cc4789784b091166ae3594b3ba6130"
@@ -1246,15 +1246,15 @@
     ".got.plt": {
       "type": 1,
       "flags": 3,
-      "address": 15688136,
+      "address": 15688200,
       "size": 6376,
       "allocated": true,
-      "sha256": "6f09071cbf8c02adc54767b224aa696a60d21bb6fedfed8c092c07c1cdb62467"
+      "sha256": "daf87e4c2ba905dd3f0894d5e073da92488c1cb432baedceea2c70a25d66e24f"
     },
     ".data": {
       "type": 1,
       "flags": 3,
-      "address": 15698608,
+      "address": 15698672,
       "size": 36480,
       "allocated": true,
       "sha256": "df4bb84999c3bbca5ea051c55807d46955249620081c6d1802ad0bab1ebb5148"
@@ -1262,7 +1262,7 @@
     ".bss": {
       "type": 8,
       "flags": 3,
-      "address": 15735088,
+      "address": 15735152,
       "size": 82528,
       "allocated": true,
       "sha256": null

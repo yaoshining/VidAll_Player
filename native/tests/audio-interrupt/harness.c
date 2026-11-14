@@ -12,6 +12,8 @@
 typedef void OH_AudioRenderer;
 typedef void OH_AudioStreamBuilder;
 typedef int OH_AudioStream_Result;
+typedef int OH_AudioStream_State;
+#define AUDIOSTREAM_STATE_STOPPED 3
 typedef int OH_AudioData_Callback_Result;
 enum { AUDIO_DATA_CALLBACK_RESULT_VALID = 0 };
 typedef int OH_AudioInterrupt_ForceType;
@@ -57,6 +59,7 @@ static void reset_timing(struct priv *p) {}
 static void stop_timing_worker(struct priv *p) {(void)p;}
 #define mp_mutex_destroy pthread_mutex_destroy
 #define mp_cond_destroy pthread_cond_destroy
+static int OH_AudioRenderer_GetCurrentState(void *r, int *state) {(void)r;*state=2;return 0;}
 static int OH_AudioRenderer_Release(void *r) {return 0;}
 static int OH_AudioStreamBuilder_Destroy(void *b) {return 0;}
 #define MP_TIME_MS_TO_NS(v) ((v)*1000000LL)
