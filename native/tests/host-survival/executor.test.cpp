@@ -35,4 +35,22 @@ int main(){
   if(!replacement)std::this_thread::sleep_for(1ms);
  }
  assert(replacement&&replacement->Run([]{},200ms));
+ // 兼容池只有两个名额：两次关闭都未返回时，第三个播放器也不能无限创建。
+ std::promise<void> firstClose,secondClose,firstEntered,secondEntered;
+ auto firstGate=firstClose.get_future().share(),secondGate=secondClose.get_future().share();
+ auto closing1=std::async(std::launch::async,[&]{return compatibility->Run([&]{firstEntered.set_value();firstGate.wait();},30ms,true);});
+ auto closing2=std::async(std::launch::async,[&]{return spare->Run([&]{secondEntered.set_value();secondGate.wait();},30ms,true);});
+ firstEntered.get_future().wait();secondEntered.get_future().wait();
+ assert(!closing1.get()&&!closing2.get());
+ compatibility.reset();spare.reset();assert(!SessionIsolation::Acquire(Pool::Compatible));
+ firstClose.set_value();
+ std::shared_ptr<SessionIsolation> afterLateClose;
+ for(int i=0;i<1000&&!afterLateClose;i++) {
+  afterLateClose=SessionIsolation::Acquire(Pool::Compatible);
+  if(!afterLateClose)std::this_thread::sleep_for(1ms);
+ }
+ assert(afterLateClose&&afterLateClose->Run([]{},200ms));
+ assert(!SessionIsolation::Acquire(Pool::Compatible));
+ secondClose.set_value();
+
 }

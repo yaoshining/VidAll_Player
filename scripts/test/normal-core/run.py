@@ -58,10 +58,14 @@ def main():
         run('load-identity-'+case, ['node', 'native/tests/host-survival/load-identity.test.cjs', case])
     run('load-generation-entry', py+['native/tests/host-survival/load-entry.test.py'])
     run('fault-during-close', py+['native/tests/host-survival/fault-close.test.py'])
+    run('first-frame-event', py+['native/tests/host-survival/first-frame.test.py'])
     run('runtime-napi-entry', py+['native/tests/host-survival/runtime-entry.test.py'])
     run('software-release-fence', py+['native/tests/surface-resize/sw.test.py', 'packages/vidall-player/src/main/cpp/napi_init.cpp'])
     if run('audio-domain-compile', ['clang', '-std=c11', '-pthread', '-Wall', '-Wextra', '-Werror', '-Inative/mpv', 'native/tests/host-survival/audio-domain.test.c', 'native/mpv/host_recovery.c', '-o', work/'audio-domain']):
         run('audio-domain', [work/'audio-domain'])
+    if run('audio-capacity-compile', ['clang', '-std=c11', '-pthread', '-Wall', '-Wextra', '-Werror', '-Inative/mpv', 'native/tests/host-survival/audio-capacity.test.c', 'native/mpv/host_recovery.c', '-o', work/'audio-capacity']):
+        for case in ['unknown', 'quiescent']:
+            run('audio-capacity-'+case, [work/'audio-capacity', case])
     run('bounded-command-queue', ['node', 'native/tests/host-survival/queue.test.cjs'])
     run('bounded-event-delivery', ['node', 'native/tests/host-survival/event-overflow.test.cjs'])
     run('compatible-playback', ['node', 'native/tests/host-survival/compatible.test.cjs'])
@@ -71,7 +75,7 @@ def main():
     export_symbols = ['-Wl,-export_dynamic'] if platform.system() == 'Darwin' else ['-rdynamic', '-ldl']
     survival = common+['-DVIDALL_MPV_AVAILABLE=1', '-Inative/runtime', 'native/tests/host-survival/runtime.test.cpp', 'native/runtime/process_runtime.cpp']
     if run('survival-runtime-compile', survival+export_symbols+['-o', work/'survival-runtime']):
-        for case in ['normal', 'abi', 'old-version']:
+        for case in ['normal', 'abi', 'old-version', 'permanent-stop']:
             run('survival-runtime-'+case, [work/'survival-runtime', case, work/('survival-runtime-'+case)])
     if run('missing-fault-load-compile', survival+['-DNO_FAULT_LOAD_ABI']+export_symbols+['-o', work/'missing-fault-load']):
         run('missing-fault-load-rejected', [work/'missing-fault-load', 'normal', work/'missing-fault-load-root'])

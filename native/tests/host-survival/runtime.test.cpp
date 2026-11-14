@@ -71,6 +71,16 @@ int main(int argc,char**argv){
  std::this_thread::sleep_for(std::chrono::milliseconds(3100));
  assert(vidall::runtime::Snapshot().recoveryState==3);
  assert(vidall::runtime::AdmissionError(true));assert(vidall::runtime::AdmissionError());
+ if(std::string(argv[1])=="permanent-stop") {
+  const auto begin=std::chrono::steady_clock::now();
+  for(int i=0;i<10000;i++) {
+   assert(vidall::runtime::Snapshot().recoveryState==3);
+   assert(vidall::runtime::AdmissionError(true));
+   assert(vidall::runtime::CaptureGeneration()==0);
+  }
+  assert(std::chrono::steady_clock::now()-begin<std::chrono::seconds(1));
+  assert(!allowStop&&!stopped);return 0; // 仅结束宿主测试，不解除平台替身的永久等待。
+ }
  allowStop=true;
  for(int i=0;i<1000&&vidall::runtime::AdmissionError(true);i++)std::this_thread::sleep_for(std::chrono::milliseconds(1));
  assert(!vidall::runtime::AdmissionError(true));assert(vidall::runtime::AdmissionError());

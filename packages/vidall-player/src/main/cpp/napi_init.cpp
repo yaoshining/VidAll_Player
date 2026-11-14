@@ -1156,10 +1156,10 @@ private:
                 activeEntry = static_cast<const mpv_event_start_file*>(event->data)->playlist_entry_id;
             }
             if (event->event_id == MPV_EVENT_COMMAND_REPLY) CompletionReply(*event);
-            // issue #71（vo_gpu_next 路径）：旧 vo_gpu 在 GlRenderLoop/SwRenderLoop 里首帧派发
-            // "playing"；改为 vo_gpu_next 后这些循环被跳过，这里在视频输出重建（VO 出帧）时
-            // 派发一次首帧 "playing"，保证消费方 _isPlaying 正确。firstFrameSent_ 只发一次。
-            if (event->event_id == MPV_EVENT_VIDEO_RECONFIG) {
+            // VIDEO_RECONFIG只表明输出格式已更新，Vulkan首帧/音频可能还在初始化。
+            // 首次重启完成后再通知playing；seek/尺寸更新不重复，非Vulkan路径由渲染循环通知。
+            if (renderBackend_ == vidall::render::RenderBackend::Vulkan &&
+                event->event_id == MPV_EVENT_PLAYBACK_RESTART) {
                 if (!firstFrameSent_.exchange(true)) {
                     Dispatch("state", "playing");
                 }
