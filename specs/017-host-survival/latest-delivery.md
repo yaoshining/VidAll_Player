@@ -2,9 +2,9 @@
 
 2026-11-14：四项待办已完成 **2/4**。API24 Mini已通过真实系统打断/手动恢复，以及关闭和全局故障后同进程续播的音画验收。永久平台音频挂起尚未解决，API19 TV正式文件入口未验收；**未提Spec017 PR、未合并、不是最终可接入交付**。
 
-## T056候选更新（尚待CI与设备复验）
+## T056候选更新（CI通过，尚待设备复验）
 
-2026-11-14新增最小音频时钟修复：移除写回调内的平台时间戳查询，修正查询延迟及路由归零后的时钟计算，不增加PCM队列，不增加自动退出。最终本地94项宿主门禁、27项时钟场景与31项输入审计回归通过，完整ARM64九库HAR构建通过。具体哈希见[本地验证记录](device-evidence/t056-local-validation.json)，根因及未解决范围见[T056](device-evidence/t056-audio-clock.md)。本地包不是最终交付；下列c7d56ee设备结论不能转移给新候选。
+2026-11-14新增最小音频时钟修复：移除写回调内的平台时间戳查询，修正查询延迟及路由归零后的时钟计算，不增加PCM队列，不增加自动退出。最终本地94项宿主门禁、27项时钟场景与31项输入审计回归通过，完整ARM64九库HAR构建通过。具体哈希见[本地验证记录](device-evidence/t056-local-validation.json)，根因及未解决范围见[T056](device-evidence/t056-audio-clock.md)。候选源`cbfc5863832e6becd0f5aa4f099f234ef23f940d`已通过[iMac CI](https://github.com/yaoshining/VidAll_Player/actions/runs/43551454429)，原始HAR SHA256 `85f3eddab398c8312ad9fb6e49f5f96bfa6a1bc941077e920a3ec16f67407ccb`，九库见[CI记录](device-evidence/t056-ci-preparation.json)。本地包不是最终交付；下列c7d56ee设备结论不能转移给新候选。
 
 ## 前一候选的原始CI产物与来源
 

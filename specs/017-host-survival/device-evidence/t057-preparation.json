@@ -1,0 +1,41 @@
+{
+  "version": "1.0.66",
+  "hapSHA256": "b9f7cff0134a534843b0dfc161a449622ed3650087b490b237c3c2295dc3c2ba",
+  "hapBytes": 25947969,
+  "ciSource": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+  "ciHAR": "85f3eddab398c8312ad9fb6e49f5f96bfa6a1bc941077e920a3ec16f67407ccb",
+  "allNineMatched": true,
+  "runner": "本地MacBook Pro构建独立诊断HAP；HAR来自iMac CI",
+  "fixtureSHA256": "b4b5efe299660ff32b1d7a72e13663a6abf0d0f1a098516612c8697365237ac4",
+  "sourcePulseCount": 90,
+  "sourceMaxOffsetMs": 0,
+  "devicePassed": false,
+  "cloudUploadConfirmed": true,
+  "cloudInstallConfirmed": [
+    "API24 MatePad Mini 6.1.0.125 MLR-AL10",
+    "API24 MatePad Mini 6.1.0.135 MLR-AL10"
+  ],
+  "cloudResult": "两台远程视频分别停止在120.351秒和40.6043秒；点击测试及主页无新画面，未获得STARTED或实际录制证据。会话均已释放，登录有效，免费余额287分钟。",
+  "artifacts": {
+    "test_video.mp4": {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t057-sync/test_video.mp4",
+      "sha256": "b4b5efe299660ff32b1d7a72e13663a6abf0d0f1a098516612c8697365237ac4"
+    },
+    "windows.json": {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t057-sync/windows.json",
+      "sha256": "7eb17f6e27ad1181273f715d947fa54c3b79ce843bd38c20309909af5d9e0569"
+    },
+    "source-sync.json": {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t057-sync/source-sync.json",
+      "sha256": "9d33f63ba9c3e0d7b89f2fa00d8c61129ab8cc787d108d829e521bd223106d83"
+    },
+    "offset-negative.json": {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t057-sync/offset-negative.json",
+      "sha256": "85aa83e11919ef3aa10d2b0e2cf3dd4fae126fbbe1f7eee9dedb88cd22005d61"
+    },
+    "host-summary.json": {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t057-sync/host-summary.json",
+      "sha256": "5f74298a05b7177661e354a74eb432367b309e8acdc69400835c21ec7a0f787d"
+    }
+  }
+}
