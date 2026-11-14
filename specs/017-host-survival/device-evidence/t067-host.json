@@ -1,0 +1,75 @@
+{
+  "layer": "host-platform-fake",
+  "cases": [
+    {
+      "case": "normal",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "focus",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "pending-pause",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "unknown-stop",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "flush-error",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "release-hang",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "formats",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "clock",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "pause-clock",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "release-hang-formats",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "async-reset",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "reset-focus",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "reset-detach",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "case": "all-slots-held",
+      "exit": 0,
+      "output": ""
+    }
+  ]
+}

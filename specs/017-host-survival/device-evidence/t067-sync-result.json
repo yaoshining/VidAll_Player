@@ -1,0 +1,183 @@
+{
+  "signalPassed": false,
+  "deviceAccepted": false,
+  "sha256": "111cfdb07cd6a7ec43d008d7e01c1a1036ac615afaf44fa2d2cdeb476ddad4d5",
+  "roi": [
+    350,
+    450,
+    60,
+    50
+  ],
+  "segments": [
+    {
+      "name": "故障后第二片完整同步段",
+      "start": 18.32645845413208,
+      "end": 29.931458473205566,
+      "signalPassed": false,
+      "deviceAccepted": false,
+      "videoPulses": [
+        19.384689,
+        21.368289,
+        23.367733,
+        25.3851,
+        27.382689,
+        29.401167
+      ],
+      "audioPulses": [
+        19.62,
+        21.62,
+        23.62,
+        25.64,
+        27.64,
+        29.64
+      ],
+      "offsetsMs": [
+        235.31099999999938,
+        251.71100000000024,
+        252.2669999999998,
+        254.89999999999924,
+        257.3110000000014,
+        238.83299999999963
+      ],
+      "driftMs": 4.561000000000718,
+      "thresholdMs": 80,
+      "driftThresholdMs": 40,
+      "calibratedOffsetsMs": [
+        46.48588711606649,
+        62.88588711606735,
+        63.44188711606691,
+        66.07488711606635,
+        68.48588711606851,
+        50.00788711606674
+      ],
+      "calibratedClassification": "inconclusive"
+    },
+    {
+      "name": "Release挂起后第三片至打断",
+      "start": 30.132458448410034,
+      "end": 40.222458600997925,
+      "signalPassed": false,
+      "deviceAccepted": false,
+      "videoPulses": [
+        31.249811,
+        33.252822,
+        35.250933,
+        37.268456,
+        39.251889
+      ],
+      "audioPulses": [
+        31.46,
+        33.46,
+        35.46,
+        37.46,
+        39.46
+      ],
+      "offsetsMs": [
+        210.18899999999974,
+        207.17799999999897,
+        209.06699999999745,
+        191.54400000000038,
+        208.11100000000238
+      ],
+      "driftMs": -8.855999999997977,
+      "thresholdMs": 80,
+      "driftThresholdMs": 40,
+      "calibratedOffsetsMs": [
+        21.36388711606685,
+        18.352887116066086,
+        20.24188711606456,
+        2.718887116067492,
+        19.28588711606949
+      ],
+      "calibratedClassification": "capture-delay-supported"
+    },
+    {
+      "name": "跳转请求至关闭完整同步段",
+      "start": 51.12245845794678,
+      "end": 63.127458572387695,
+      "signalPassed": false,
+      "deviceAccepted": false,
+      "videoPulses": [
+        51.132656,
+        53.2847,
+        55.300889,
+        57.282222,
+        59.300311,
+        61.303289
+      ],
+      "audioPulses": [
+        51.34,
+        51.51,
+        51.58,
+        53.54,
+        55.54,
+        57.54,
+        59.54,
+        61.54
+      ],
+      "offsetsMs": [],
+      "driftMs": null,
+      "thresholdMs": 80,
+      "driftThresholdMs": 40,
+      "calibratedOffsetsMs": [],
+      "calibratedClassification": "pulse-count-mismatch"
+    },
+    {
+      "name": "关闭重开第四片完整同步段",
+      "start": 63.60645842552185,
+      "end": 74.2544584274292,
+      "signalPassed": false,
+      "deviceAccepted": false,
+      "videoPulses": [
+        64.667211,
+        66.683222,
+        68.6865,
+        70.687733,
+        72.687467
+      ],
+      "audioPulses": [
+        64.92,
+        66.92,
+        68.92,
+        70.92,
+        72.92
+      ],
+      "offsetsMs": [
+        252.78900000000704,
+        236.77800000000104,
+        233.50000000000648,
+        232.26700000000733,
+        232.53300000000365
+      ],
+      "driftMs": -12.383499999998548,
+      "thresholdMs": 80,
+      "driftThresholdMs": 40,
+      "calibratedOffsetsMs": [
+        63.96388711607415,
+        47.952887116068155,
+        44.67488711607359,
+        43.44188711607444,
+        43.707887116070765
+      ],
+      "calibratedClassification": "inconclusive"
+    }
+  ],
+  "limits": [
+    "系统内录链路的相对同步，不代表物理扬声器和显示面板",
+    "必须人工核对ROI仅含测试闪光区域，区间依据完整事件且不挑选成功脉冲",
+    "30fps与10ms音频窗口存在量化误差；首尾同向录制误差不能排除",
+    "仍须核对包、PID、实际解码路径与完整故障流程"
+  ],
+  "recordingCalibration": {
+    "delayMs": 188.8251128839329,
+    "uncertaintyMs": 57.39026726068308,
+    "anchorValid": true
+  },
+  "physicalSyncAccepted": false,
+  "pid": 18047,
+  "notes": [
+    "保留全部脉冲，不合并或删除跳转后额外音脉冲",
+    "仅内录链路校准，不用于固定音频补偿；不等于物理面板/扬声器同步",
+    "ROI350,450,60,50已对实际闪光帧核对，位于白框内部且不覆盖文字"
+  ]
+}

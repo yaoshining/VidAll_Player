@@ -194,3 +194,14 @@ T065补充：先红后绿修正Vulkan的VIDEO_RECONFIG提前通知，1.0.93实�
 - [x] 三组原始录音/PID/时序、修复包声音及iMac CI43624519417原HAR/九库核验；证据和Todoist同步。分区6j296fXM7c27Vg7p，任务3/4仍未完成。负责会话修复 issue #89 / local / 01a1bccc-e2cc-7a13-8cd6-31aae7079fb0。
 
 T066收尾见[等待分解与修正](device-evidence/t066-diagnosis.md)。生产56ebd3f只修零位置计账；1.0.96同PID55815三次播放和完整音轨通过，零位置误扣归零；真实起音仍74–86ms。复用仅实验协议通过，真实排空/焦点和连续挂起生产接入未完成，不提前PR。
+
+### T067：独立音频输出适配（进行中）
+- [x] S37规格与计划；复用Todoist原分区、会话归属，根清单仍2/4。
+- [x] 独立输出控制线程与租约14组ASan/UBSan回归；未知Stop/双槽耗尽仅验证安全拒绝边界，未解决续播。
+- [x] 实验OHAudio push AO、独立回调/时钟、异步撤销与停止确认；电视定位并修正seek睡眠丢音和Stop尾音。生产接入未完成。
+- [ ] TV至少20次会话故障、已停止Release挂起与未知Stop分别验证；同PID真实画面/音轨、音画同步及资源计数。
+- [ ] CI/证据/宪章一致性与Todoist同步；未满足全部门槛不标记第3项完成。
+
+T067详见[独立输出与设备结果](device-evidence/t067-diagnosis.md)。Todoist子任务6j2Qrmxwgv45mXxp已勾选，6j2QrmwvXfWJQmhp/6j2Qrmww9VXrF39G未完成；1.0.99仅证明一次已停止Release挂起后的23会话续播。
+
+T067补充：1.0.100同HAR四会话/同PID18047同步素材验证，录制校准约189ms；稳定段校准后3–68ms，保守不确定度57ms。seek段6闪光/8音脉冲未通过，未删点改判。详见t067-sync-result.json；总验收保持开放。

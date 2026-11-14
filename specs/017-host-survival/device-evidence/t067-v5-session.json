@@ -1,0 +1,52 @@
+{
+  "pid": "12923",
+  "sessions": 23,
+  "outputObjects": [
+    [
+      "1",
+      "960"
+    ],
+    [
+      "2",
+      "960"
+    ]
+  ],
+  "platformWorkers": [
+    "15002",
+    "15003"
+  ],
+  "confirmedClears": 23,
+  "releaseEntryHolds": 1,
+  "naturalDeadlocks": 0,
+  "initial": {
+    "profile": "hardware-first",
+    "backend": {
+      "status": "available",
+      "unit": "text",
+      "source": "session.actual-render-backend",
+      "estimated": false,
+      "value": "vulkan"
+    },
+    "decoder": {
+      "status": "available",
+      "unit": "text",
+      "source": "hwdec-current",
+      "estimated": false,
+      "value": "ohcodec"
+    }
+  },
+  "summary": {
+    "profile": "hardware-first",
+    "scope": "timer-global",
+    "firstFrames": 23,
+    "errors": 0,
+    "recovery": {
+      "state": "ready",
+      "generation": 2
+    }
+  },
+  "scope": "一次计时全局故障/一次已停止Release入口挂起/后续正常复用；不是23次故障",
+  "audioOriginal31WindowsPassed": true,
+  "additionalFocusHandoffWindowPassed": false,
+  "physicalSyncAccepted": false
+}

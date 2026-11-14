@@ -1,0 +1,53 @@
+{
+  "pid": "6790",
+  "completedSessions": 23,
+  "firstHardware": {
+    "profile": "hardware-first",
+    "backend": {
+      "status": "available",
+      "unit": "text",
+      "source": "session.actual-render-backend",
+      "estimated": false,
+      "value": "vulkan"
+    },
+    "decoder": {
+      "status": "available",
+      "unit": "text",
+      "source": "hwdec-current",
+      "estimated": false,
+      "value": "ohcodec"
+    }
+  },
+  "summary": {
+    "profile": "hardware-first",
+    "scope": "timer-global",
+    "firstFrames": 23,
+    "errors": 0,
+    "recovery": {
+      "state": "ready",
+      "generation": 2
+    }
+  },
+  "controlledReleaseHolds": 1,
+  "actualPlatformDeadlocks": 0,
+  "createdOutputs": [
+    [
+      "1",
+      "960"
+    ],
+    [
+      "2",
+      "960"
+    ]
+  ],
+  "controlThreads": [
+    "7391",
+    "7392"
+  ],
+  "clearedLeases": 23,
+  "scope": "一次计时全局故障、一次确认停止后Release入口挂起；20次额外正常关闭复用，不是20次平台挂起",
+  "focusFlow": true,
+  "seekFlow": true,
+  "audioAccepted": false,
+  "physicalSyncAccepted": false
+}
