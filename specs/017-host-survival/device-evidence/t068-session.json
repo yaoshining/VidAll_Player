@@ -1,0 +1,93 @@
+{
+  "device": "MateTV Pro EDIS-790A",
+  "systemVersion": "OpenHarmony-6.1.1.130 (const.ohos.fullname)",
+  "api": 24,
+  "sourceCommit": "56ebd3f7cb918f2c6be2a3eb9e0683f0b8734cb0",
+  "drive": {
+    "status": "completed",
+    "pidBefore": "30178",
+    "pidAfter": "30178",
+    "actions": [
+      {
+        "text": "系统打断与手动恢复内录",
+        "bounds": "[290,162][1179,324]",
+        "wallMs": 1794684714013
+      },
+      {
+        "text": "允许",
+        "bounds": "[1968,1332][2514,1494]",
+        "wallMs": 1794684715582
+      },
+      {
+        "text": "返回视频列表",
+        "bounds": "[0,900][529,1062]",
+        "wallMs": 1794684729737
+      },
+      {
+        "text": "播放另一部视频",
+        "bounds": "[0,900][601,1062]",
+        "wallMs": 1794684731433
+      },
+      {
+        "text": "手动继续播放",
+        "bounds": "[0,0][529,162]",
+        "wallMs": 1794684741292
+      }
+    ]
+  },
+  "hardware": [
+    {
+      "session": "2",
+      "decoder": "ohcodec",
+      "backend": "vulkan",
+      "pixelFormat": "ohcodec"
+    },
+    {
+      "session": "3",
+      "decoder": "ohcodec",
+      "backend": "vulkan",
+      "pixelFormat": "ohcodec"
+    }
+  ],
+  "badMediaError": {
+    "time": 1794684725271,
+    "event": "error",
+    "value": "NATIVE_PLAYBACK_FAILED"
+  },
+  "manualReturn": {
+    "time": 1794684726691,
+    "event": "user-returned-list",
+    "value": ""
+  },
+  "manualOpen": {
+    "time": 1794684728350,
+    "event": "user-opened-next",
+    "value": ""
+  },
+  "pause": {
+    "before": 8066.666666666666,
+    "after": 8066.666666666666
+  },
+  "resumePositionMs": 11000.0,
+  "seek": {
+    "target": 20000,
+    "reached": 20133.333333333332,
+    "after": 20833.333333333332
+  },
+  "releaseDurationsMs": [
+    246,
+    229
+  ],
+  "summary": {
+    "firstFrames": 2,
+    "errors": 0
+  },
+  "coreFunctionalPassed": true,
+  "coreAudioWindowsPassed": true,
+  "strictInstantaneousFocusWindowPassed": false,
+  "focusHoldFineMeasurement": "97.615%完整窗口；20ms旧音交接尾段；静止后未再次出现",
+  "physicalSyncAccepted": false,
+  "api19Accepted": false,
+  "finalDeliveryAccepted": false,
+  "scope": "正常播放、主动暂停恢复、seek、关闭重开、坏片返回续播；非永久挂起恢复"
+}

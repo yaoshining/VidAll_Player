@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "coverage": 0.9761508741353525,
+  "oldAudioSeconds": 0.02,
+  "longestFailureSeconds": 0.04,
+  "reappeared": false,
+  "resolutionSeconds": 0.01,
+  "deviceAccepted": false,
+  "limits": [
+    "只判系统暂停交接；不替代跨视频旧音严格门槛",
+    "保留95%覆盖率及300ms连续失败上限；旧音停止后再次出现即失败",
+    "录制和平台时间映射不证明物理扬声器无延迟"
+  ],
+  "eventWindow": {
+    "name": "系统打断保持暂停",
+    "start": 21.12553572654724,
+    "end": 22.92853569984436,
+    "toneHz": 1320,
+    "forbiddenHz": 440
+  },
+  "originalStrict200msPassed": false,
+  "interpretation": "完整事件区间未截短；功能暂停与恢复通过，原200ms严格瞬时混音判定仍为失败。10ms证明短交接尾段，不宣称零延迟停止。"
+}

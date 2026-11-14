@@ -1,12 +1,23 @@
 # Spec017 当前候选与未完成交付
 
-2026-11-14：四项待办已完成 **2/4**。API24 Mini已通过真实系统打断/手动恢复，以及关闭和全局故障后同进程续播的音画验收。永久平台音频挂起尚未解决，API19 TV正式文件入口未验收；**未提Spec017 PR、未合并、不是最终可接入交付**。
+2026-11-15：四项待办 **3/4完成**。当前原始CI HAR已完成API24 TV核心五项；尚未提Spec017 PR或合并，API19 TV正式文件入口仍未验收。多次永久挂起耗尽资源移至[#93](https://github.com/yaoshining/VidAll_Player/issues/93)，未解决但不再阻塞本次交付。
 
-## T056候选更新（CI通过，尚待设备复验）
+## 当前生产候选：56ebd3f
+
+- 源提交：`56ebd3f7cb918f2c6be2a3eb9e0683f0b8734cb0`；[Actions43624519417](https://github.com/yaoshining/VidAll_Player/actions/runs/43624519417)。
+- 真实运行器：`yaoshiningdeiMac` / self-hosted macOS X64，不是云端Mac。
+- 原HAR SHA256：`7d3993338a2aeb3a8b8f960b15f4fa3bd88b8f773366747c041f40bcad0d7d74`；[ARM64九库清单](device-evidence/t066-ci.json)。当前没有完整x86_64播放产物，不能混旧桥或静默删除消费端架构。
+- T068本地验收壳1.0.101使用该原HAR，九库字节一致。API24 MateTV Pro同PID30178完成坏片返回、正常OHCodec/Vulkan、暂停恢复、seek及关闭重开，10个核心音频区间通过。[完整结果与边界](device-evidence/t068-diagnosis.md)。
+- 系统打断后保持暂停、手动恢复通过；原200ms瞬时交接频谱失败保留，独立10ms测得20ms短尾。不是全部11窗口全绿，也不是物理面板/扬声器同步通过。
+- T067独立输出适配仍是实验，不进入该生产HAR；未知停止及资源耗尽没有假报解决。
+
+## 历史候选与证据（不能替代当前产物）
+
+### T056历史候选
 
 2026-11-14新增最小音频时钟修复：移除写回调内的平台时间戳查询，修正查询延迟及路由归零后的时钟计算，不增加PCM队列，不增加自动退出。最终本地94项宿主门禁、27项时钟场景与31项输入审计回归通过，完整ARM64九库HAR构建通过。具体哈希见[本地验证记录](device-evidence/t056-local-validation.json)，根因及未解决范围见[T056](device-evidence/t056-audio-clock.md)。候选源`cbfc5863832e6becd0f5aa4f099f234ef23f940d`已通过[iMac CI](https://github.com/yaoshining/VidAll_Player/actions/runs/43551454429)，原始HAR SHA256 `85f3eddab398c8312ad9fb6e49f5f96bfa6a1bc941077e920a3ec16f67407ccb`，九库见[CI记录](device-evidence/t056-ci-preparation.json)。本地包不是最终交付；下列c7d56ee设备结论不能转移给新候选。
 
-## 前一候选的原始CI产物与来源
+### c7d56ee历史候选
 
 - 生产候选：`c7d56ee765f3ffde6059979e80c8f0162089ce01`。
 - [GitHub Actions构建及原始HAR附件](https://github.com/yaoshining/VidAll_Player/actions/runs/43464070369)：iMac自托管macOS/X64，不是云端Mac。
@@ -15,7 +26,7 @@
 - 仅支持完整 `arm64-v8a` 九库播放。x86_64旧探针不是播放支持；TV不能静默删架构或混旧桥，需另行补齐匹配SDK/核心或显式确认产品支持边界。当前未提供完整x86_64 HAR。
 - 设备独立HAP由本地MacBook Pro构建。普通/焦点HAP消费以上原始CI HAR；两组故障HAP消费T053独立完整诊断HAR，不能作为正式产物。T054/T055只修改验收程序，九库分别与来源逐个一致。
 
-## 当前验证结果
+### 历史分层结果
 
 | 层次 | 结果 | 边界 |
 | --- | --- | --- |
@@ -30,9 +41,9 @@
 
 证据：[焦点](device-evidence/t054-normal64/README.md)、[关闭故障](device-evidence/t054-fence/README.md)、[全局手动恢复](device-evidence/t055-global/README.md)、[实际录音持久文件清单](device-evidence/t054-t055-artifacts.json)。信号分析器的deviceAccepted保持false；设备结论依据包身份、PID、实际路径、事件及音画综合判断，不能用单个分析器结果替代。
 
-## 阻塞及不变的要求
+## 非阻塞极端故障与不变的安全要求
 
-平台renderer Stop/Release永久不返回时，无法证明其已提交音频缓冲已停止；撤销回调、填零、固定等待或并发静音都不是停止确认。保留未知资源会占用16槽和有界执行器，重复永久故障不能无限恢复。见[第3项具体限制](device-evidence/t050-permanent-audio-limit.md)。需要平台有界断开协议，或经API19TV证实支持的独立可重建播放进程；现有公开子进程接口有设备类型限制。未获得依据前，不强行释放、不清零预算。用户2026-11-14仅允许确认系统音频服务/驱动整体不可恢复失效时提示退出（R8）；单流超时或预算耗尽不能据此自动退出，当前尚未加入退出实现。
+按2026-11-15用户授权，下列极端情形由#93跟进，不作为本次交付前置，安全规则不变。平台renderer Stop/Release永久不返回时，无法证明其已提交音频缓冲已停止；撤销回调、填零、固定等待或并发静音都不是停止确认。保留未知资源会占用16槽和有界执行器，重复永久故障不能无限恢复。见[第3项具体限制](device-evidence/t050-permanent-audio-limit.md)。需要平台有界断开协议，或经API19TV证实支持的独立可重建播放进程；现有公开子进程接口有设备类型限制。未获得依据前，不强行释放、不清零预算。用户2026-11-14仅允许确认系统音频服务/驱动整体不可恢复失效时提示退出（R8）；单流超时或预算耗尽不能据此自动退出，当前尚未加入退出实现。
 
 Renderer已成功Release后Builder清理挂起属于已有T035可恢复边界；Stop返回错误但实际状态明确STOPPED属于已有T041边界。两者都不能推广到平台调用永不返回。
 
@@ -43,4 +54,4 @@ Renderer已成功Release后Builder清理挂起属于已有T035可恢复边界；
 3. 新视频默认 standard；每次 `load` 的身份回执绑定稳定媒体 ID，只有 `onPlayerFault` 的 known 归属才能标记该视频。TV 持久化和重启策略由 [#372](https://github.com/yaoshining/vidall-tv/issues/372) 跟进，#371 手动选集暂停单独处理。
 4. 全局终局后停止使用旧实例，保留旧 Surface，等待 recovery.ready 后创建 compatible 实例并使用新 Surface。只有实际首帧与音频确认后才提示兼容切换成功。普通坏片与可隔离会话故障沿用原恢复路径。
 5. 按 [接入文档](../../docs/normal-core-integration.md) 处理容量错误和迟到回调；`PLAYER_EVENT_QUEUE_FULL` 是桥会话故障，释放后新建，不作为视频硬解失败标记。自动连播不能解除用户暂停或未结束的音频打断。
-6. 从 API 19 TV 正式文件入口继续验证正常播放、音频打断/手动恢复、切集、退出重开、故障后返回、再播其他视频及连续故障上限，分别保存包哈希、PID、音画与原生日志。
+6. 从 API 19 TV 正式文件入口继续验证正常播放、音频打断/手动恢复、切集、退出重开、故障后返回、再播其他视频，分别保存包哈希、PID、音画与原生日志。多次底层永久挂起耗尽资源的恢复另按#93跟进，不阻塞本次交付。

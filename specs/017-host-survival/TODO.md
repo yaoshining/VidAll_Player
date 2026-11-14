@@ -1,6 +1,6 @@
 # VidAll_Player 故障恢复交付：四项待办
 
-更新时间：2026-11-14。当前进度：**2 / 4 完成**。
+更新时间：2026-11-15。当前进度：**3 / 4 完成**。
 
 日常查看及勾选入口：[Todoist「Player」](https://app.todoist.com/app/project/player-6j294wJX64V7p54G)。本文件是仓库内同步总览；详细实现任务保留在 [tasks.md](tasks.md)，当前包与验收边界见 [latest-delivery.md](latest-delivery.md)。
 
@@ -8,7 +8,7 @@
 
 - [x] **1．修复 API24 音频打断失败。** 2026-11-14完成：c7d56ee原始iMac CI HAR，API24 Mini 1.0.60/1.0.64实际Alarm打断后暂停，解除后保持暂停，单次手动继续恢复进度和声音；两轮实际内录已完整导出并分析，九个窗口全部通过。根因及修复为T050共用userData与T051局部音频符号查找。见[最新焦点证据](device-evidence/t054-normal64/README.md)。未取得系统服务SendInterruptEvent日志，不宣称有该日志；不替代API19TV或物理扬声器听感。
 - [x] **2．完成两组故障恢复音画验收（API24独立诊断）。** 2026-11-14完成：关闭故障PID59902、全局故障PID33028前后保持不变；实际OHCodec/Vulkan、手动返回列表/新开其他视频、运动画面、实际录音新音存在旧音消失、晚关闭及隔离上限均有证据。见[关闭故障](device-evidence/t054-fence/README.md)与[全局手动恢复](device-evidence/t055-global/README.md)。生产基线c7d56ee，故障HAR为本地独立诊断，不冒充CI或API19TV正式入口。
-- [ ] **3．解决旧音频停止或释放永久挂起的边界。** 目前无法确认旧音频安全停止时仍会保持 pending/timeout，不能保证安全续播。普通/单实例故障须在不退出主应用、不强行释放未知资源、不绕过保护、不无限等待或扩张资源的前提下验证安全恢复；2026-11-14用户允许确认系统音频服务/驱动整体失效时退出，UI可用时优先提示，具体按R8/S28执行，不能仅据一次超时退出。对应 R3/R4、T009/T017。完成日期与证据：待补。
+- [x] **3．完成核心五项体验验收（API24 TV）。** 2026-11-15用户批准收缩为正常播放、暂停恢复、跳转、关闭、坏片后返回列表续播。使用原始生产CI HAR，真实设备/PID/实际声音分别核验。永久底层挂起和全部预算耗尽迁移至[Issue #93](https://github.com/yaoshining/VidAll_Player/issues/93)，非本次交付阻塞；相关实验保留但不默认切入生产。同PID30178，原CI九库不变，五项功能/10个核心音频窗口通过；系统瞬时20ms交接尾段及物理同步边界另列，不宣称全部音频窗口全绿。见[T068证据](device-evidence/t068-diagnosis.md)。
 - [ ] **4．提交到 main 的 PR、完成 CI 交付及 TV 正式接入回归。** 前三项完成且达到既定真机门槛后提 PR；审查、检查通过后合并，交付原始完整 CI HAR、源提交、实际构建机器、HAR/九库哈希、架构边界及迁移步骤。由 TV 按 [#372](https://github.com/yaoshining/vidall-tv/issues/372) 接入，从 API19 TV 正式文件入口完成回归；ARM64/x86_64 差异明确处理，不混旧桥或静默删除架构。对应 T006/T007。完成日期与证据：待补。
 
 ## 更新约定
@@ -18,11 +18,11 @@
 Todoist 任务 ID（按上方四项顺序）：`6j295Q448pg9QX8p`、`6j295Q6Rx6RQgxvG`、`6j295Q6WFFfJ74fG`、`6j295Q7jffjHC3qp`。后续会话复用这些条目。
 
 所属分区：**Spec017 · 故障恢复交付**，分区 ID：`6j296fXM7c27Vg7p`。
-负责会话：[修复 issue #89](thread://01a1bccc-e2cc-7a13-8cd6-31aae7079fb0?hostId=local)，thread ID：`01a1bccc-e2cc-7a13-8cd6-31aae7079fb0`，host：`local`；归属更新：2026-11-13。会话名称沿用历史标题，当前工作为 Spec017。交接时同步更新 Todoist 分区及步骤的负责会话。
+负责会话：[修复 issue #89](thread://01a1bccc-e2cc-7a13-8cd6-31aae7079fb0?hostId=local)，thread ID：`01a1bccc-e2cc-7a13-8cd6-31aae7079fb0`，host：`local`；归属更新：2026-11-15。会话名称沿用历史标题，当前工作为 Spec017。交接时同步更新 Todoist 分区及步骤的负责会话。
 
 ## 已完成的历史
 
-下方逐日进度是当时快照，以页首2/4与最新证据为准。
+下方逐日进度是当时快照，以页首3/4与最新证据为准。
 
 - 北京时间2026-11-09 18:35：[PR #91](https://github.com/yaoshining/VidAll_Player/pull/91) 合入 main，[#89](https://github.com/yaoshining/VidAll_Player/issues/89) 随之关闭。
 - 北京时间2026-11-11 08:39：[PR #92](https://github.com/yaoshining/VidAll_Player/pull/92) 合入 main，增加单会话故障隔离。
@@ -52,3 +52,7 @@ T052重登后复验：API24 Mini 1.0.57前后PID23494一致，手动继续后到
 2026-11-14 T056实现：回调内平台查询和过期now已先红后绿，另修复缓存失效后的路由归零。未新增PCM队列或自动退出。最终94项宿主、27项时钟、31项输入审计和本地完整HAR通过，准备iMac CI；真机同步与永久未知调用仍开放。见[根因与验证](device-evidence/t056-audio-clock.md)，总进度仍2/4。
 
 2026-11-14 T056/T057更新：cbfc586已通过iMac CI 43551454429并取回原始HAR/九库；同步工具12套回归、90次源素材同步及200ms错位负例通过。1.0.66已自动上传并在两台API24 Mini安装，但云画面冻结，未完成录制，已释放免费会话；无新设备通过结论。见[t057准备与阻塞记录](device-evidence/t057-preparation.json)。第3项不勾选。
+
+## 非阻塞后续事项
+
+[Issue #93](https://github.com/yaoshining/VidAll_Player/issues/93)：多次底层永久挂起耗尽资源，仍未解决。Todoist独立分区Issue93 · 永久挂起资源耗尽；分区ID `6j2R3M4j2v79HFvG`、任务ID `6j2Qrmww9VXrF39G`，迁移后保持未勾选。

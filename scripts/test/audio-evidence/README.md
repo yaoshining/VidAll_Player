@@ -59,3 +59,10 @@ T063 TV观察到内录音频时间戳未来约240ms及重复时间戳。官方Op
 `startup_timing.py capture.wav anchor.json gate.json timing.txt --out startup.json`读取同次独立校准、完整窗口结果及AUDIO_START_TRACE日志。以10ms窗口联合拟合880Hz、440Hz与DC，连续三窗达到原-45dBFS才定位起音；双声道分别计算，避免反相抵消。原200ms检测块的失败时长不是精确缺音时长；本工具不替换原95%/300ms门槛、不裁成功区间、不自动改判设备通过。
 
 平台映射至少三个递增帧/时间样本，起点全范围变化超过40ms拒绝。分别报告首帧通知→视频就绪、首PCM→平台提交帧、平台帧→校准后录制起点；10ms量化、平台起点全范围和视觉不确定度分别保留。平台提交不是物理扬声器，视频就绪也不是实际面板上屏。
+
+
+## T068 核心五项与焦点交接分层
+
+`prepare_core.py --project <独立消费工程>`复用正常页、明确返回/选片门槛和独立锚点。先准备原始CI `entry/libs/current.har`、签名及原30秒440Hz `test_video.mp4`，另提供880Hz `second_video.mp4`。生成器只改验收页、录制码率，不修改HAR；两次正常播放强制核对OHCodec/Vulkan。录制时控制台隐藏，手动导航及焦点恢复按钮仍独立可见，避免覆盖导致点击无效。用`AUDIO_PAGE_PATH=<生成Index.ets> node scripts/test/audio-evidence/manual.test.cjs`验证实际生成页；`test_prepare_core.py`检查布局回归与原HAR不变。
+
+跨视频声音继续使用原`analyze.py`严格门槛。系统焦点交接额外使用`focus_stop.measure_focus_stop`，对完整paused至alarm-released区间做10ms联合频率拟合，避免200ms频谱块将短尾放大成整个块失败。95%覆盖率、300ms连续失败上限及原音量阈值保留；旧音稳定消失30ms后再次出现直接失败。此方法只说明有界暂停交接，不证明零尾音；不能用它放宽跨视频旧音混播或裁掉原始失败。原200ms结果与新结果必须同时保留。T068原始资料和结果见`specs/017-host-survival/device-evidence/t068-diagnosis.md`。
