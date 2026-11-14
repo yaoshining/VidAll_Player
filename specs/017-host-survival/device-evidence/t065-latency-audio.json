@@ -1,0 +1,126 @@
+{
+  "signalPassed": false,
+  "deviceAccepted": false,
+  "sha256": "8e945787b591915600284d8cfd7a355cfbe7a4993642f46f61b1a93a022a4625",
+  "sampleRate": 48000,
+  "channels": 2,
+  "durationSeconds": 55.658,
+  "segments": [
+    {
+      "name": "首片首帧至终局完整启动声音",
+      "passed": false,
+      "coverage": 0.9293036408624955,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0.2
+    },
+    {
+      "name": "恢复就绪至新片加载完整等待",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "第二片首帧至释放完整声音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "第三片首帧至结束完整声音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "最后结束至校准前静音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    }
+  ],
+  "limits": [
+    "只核对指定测试音，不证明自然音质或物理扬声器效果",
+    "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+    "合成音回归不计作设备验收"
+  ],
+  "alignment": {
+    "kind": "独立平台音频帧时间戳",
+    "wallToAudioPtsSeconds": -1794677092.7995248,
+    "calibrationDriftMs": 4.20851563103497
+  },
+  "sensitivity": [
+    {
+      "shiftMs": -40,
+      "passed": false
+    },
+    {
+      "shiftMs": -30,
+      "passed": false
+    },
+    {
+      "shiftMs": -20,
+      "passed": false
+    },
+    {
+      "shiftMs": -10,
+      "passed": false
+    },
+    {
+      "shiftMs": 0,
+      "passed": false
+    },
+    {
+      "shiftMs": 10,
+      "passed": false
+    },
+    {
+      "shiftMs": 20,
+      "passed": false
+    },
+    {
+      "shiftMs": 30,
+      "passed": false
+    },
+    {
+      "shiftMs": 40,
+      "passed": false
+    }
+  ],
+  "eventWindows": [
+    {
+      "name": "首片首帧至终局完整启动声音",
+      "start": 12.65547513961792,
+      "end": 15.484475135803223,
+      "toneHz": 880,
+      "forbiddenHz": 440
+    },
+    {
+      "name": "恢复就绪至新片加载完整等待",
+      "start": 15.830475330352783,
+      "end": 18.70947527885437
+    },
+    {
+      "name": "第二片首帧至释放完整声音",
+      "start": 18.767475128173828,
+      "end": 30.38147521018982,
+      "toneHz": 440,
+      "forbiddenHz": 880
+    },
+    {
+      "name": "第三片首帧至结束完整声音",
+      "start": 30.491475105285645,
+      "end": 40.907475233078,
+      "toneHz": 440,
+      "forbiddenHz": 880
+    },
+    {
+      "name": "最后结束至校准前静音",
+      "start": 40.907475233078,
+      "end": 43.42147517204285
+    }
+  ]
+}

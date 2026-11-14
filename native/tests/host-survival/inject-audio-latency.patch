@@ -1,0 +1,21 @@
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -587,6 +587,18 @@
+ {
+     struct priv *p = ao->priv;
+     if (!mp_host_audio_control_lock(p->recovery_token)) return;
++    // 仅诊断：API23起支持的估计延迟，动态解析，不用于补偿或停止判据。
++    typedef int (*latency_query)(OH_AudioRenderer*, int, int32_t*);
++    void *audio_library=dlopen("libohaudio.so",RTLD_NOW|RTLD_NOLOAD);
++    latency_query latency=audio_library?(latency_query)dlsym(audio_library,"OH_AudioRenderer_GetLatency"):NULL;
++    if (latency) {
++        for (int kind=0;kind<3;kind++) {
++            int32_t milliseconds=-1;
++            int rc=latency(p->renderer,kind,&milliseconds);
++            MP_WARN(ao,"AUDIO_LATENCY_PROBE token=%llu kind=%d rc=%d milliseconds=%d\n",p->recovery_token,kind,rc,milliseconds);
++        }
++    } else MP_WARN(ao,"AUDIO_LATENCY_PROBE unavailable\n");
++    if (audio_library) dlclose(audio_library);
+     MP_WARN(ao,"AUDIO_START_CALL token=%llu mpv=%lld\n",p->recovery_token,(long long)mp_time_ns());
+     OH_AudioStream_Result start_result=OH_AudioRenderer_Start(p->renderer);
+     MP_WARN(ao,"AUDIO_START_RETURN token=%llu mpv=%lld rc=%d\n",p->recovery_token,(long long)mp_time_ns(),start_result);

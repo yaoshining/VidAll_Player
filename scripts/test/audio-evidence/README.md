@@ -52,3 +52,10 @@ ROI必须依据实际录制画面位于闪光框内，避开覆盖按钮/文字�
 导出`phase17-raw/capture.bin`及`events.jsonl`，先核对结束事件、PID、包/九库和实际解码路径。`raw_capture.py capture.bin events.jsonl --roi 60,35,40,20 --out strict.json`严格拒绝重复/倒退时间戳及断裂，不删除坏样本。`audit()`保留全部记录，按每块原始PTS提取校准脉冲，只报告与平台输出帧时钟的差值；`calibrationPulseStable`不等于`syncAccepted`，后者始终false。不能用回调抵达时刻替换媒体时间或拼接坏时间轴。
 
 T063 TV观察到内录音频时间戳未来约240ms及重复时间戳。官方OpenHarmony固定提交`9f9a285ff489afa66861a85dcc4213336a463b36`的`audio_capturer_wrapper.cpp/.h`包含内录240ms补偿，与此线索吻合，但不证明商业TV固件与该源码相同。真实屏幕/扬声器仍需同钟外部采集；不把原始回调当真实上屏时间。
+
+
+## T065 启动时序分解
+
+`startup_timing.py capture.wav anchor.json gate.json timing.txt --out startup.json`读取同次独立校准、完整窗口结果及AUDIO_START_TRACE日志。以10ms窗口联合拟合880Hz、440Hz与DC，连续三窗达到原-45dBFS才定位起音；双声道分别计算，避免反相抵消。原200ms检测块的失败时长不是精确缺音时长；本工具不替换原95%/300ms门槛、不裁成功区间、不自动改判设备通过。
+
+平台映射至少三个递增帧/时间样本，起点全范围变化超过40ms拒绝。分别报告首帧通知→视频就绪、首PCM→平台提交帧、平台帧→校准后录制起点；10ms量化、平台起点全范围和视觉不确定度分别保留。平台提交不是物理扬声器，视频就绪也不是实际面板上屏。

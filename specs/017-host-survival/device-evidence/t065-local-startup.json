@@ -1,0 +1,20 @@
+{
+  "recordedOnset": 12.982395833333333,
+  "firstFrameToOnsetMs": 340.0048669179281,
+  "onsetResolutionMs": 10,
+  "platformFrameOrigin": {
+    "originSeconds": 1742766.5527223034,
+    "minOriginSeconds": 1742766.54516496,
+    "maxOriginSeconds": 1742766.560359179,
+    "spreadMs": 15.194219071418047,
+    "samples": 10
+  },
+  "calibrationVisualUncertaintyMs": 44.68042695273956,
+  "platformFirstFrameToRecordedOnsetMs": 1.5491561498492956,
+  "firstPCMToPlatformFirstFrameMs": 94.87062552943826,
+  "videoReadyToPlatformFirstFrameMs": 146.57482341863215,
+  "eventToVideoReadyMs": 191.11990928649902,
+  "originalGatePassed": false,
+  "deviceAccepted": false,
+  "physicalAccepted": false
+}

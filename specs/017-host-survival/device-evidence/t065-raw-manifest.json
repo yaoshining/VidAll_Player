@@ -1,0 +1,107 @@
+[
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-latency/navigation.json",
+    "sha256": "cc979b16c574926825b867b67c967214cb22df60e0ec9f8bcaf5a9998d9cf68d",
+    "bytes": 557
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-latency/anchor.json",
+    "sha256": "68f6f5c43f2aa6061a729bfe9477a47569b5d219922b8ed2383d1930eb1218a6",
+    "bytes": 1862
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-latency/capture.mp4",
+    "sha256": "27e11587838caae69d8b1d7de2cf8abde6ea1a270fdae8693fe98c0fd3560406",
+    "bytes": 1479181
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-latency/audio-windows.json",
+    "sha256": "8e25b4e99b5f779b86e38a2477f516ac9d6d4777753db2482439f5104e1e39b5",
+    "bytes": 742
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-latency/capture.wav",
+    "sha256": "8e945787b591915600284d8cfd7a355cfbe7a4993642f46f61b1a93a022a4625",
+    "bytes": 10686414
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-latency/events.jsonl",
+    "sha256": "7e0a9bfbf23049a2e1d525e505a539247d2873d61b189aba69104c28bf63700f",
+    "bytes": 59734
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-latency/audio.json",
+    "sha256": "26171cffc5f285d4717638b48402304ec73767f613459fd2826b31c2eead8d50",
+    "bytes": 230498
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-local/navigation.json",
+    "sha256": "b3cfae0073cf2f40897cdf6230576d73d182f2824a5ec98a1d7ef5cd47f1c3d0",
+    "bytes": 557
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-local/anchor.json",
+    "sha256": "c70dfa4055f588087d37ad63674115d985a82138e46825ca1fb31673d1f6a914",
+    "bytes": 1872
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-local/capture.mp4",
+    "sha256": "fbc36665f4da235dbb304e82eaf07571335b3bbb7e03c01245d0d1677b81d5b0",
+    "bytes": 1525588
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-local/audio-windows.json",
+    "sha256": "70b641a35fe67bcf456527e5162c9ae7b57c4086d91bad620a070fff38b3e875",
+    "bytes": 750
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-local/capture.wav",
+    "sha256": "110d95223d4ed8fd5607bd1e8bcf217c731c042e898007c8de4cd65b0df75c6d",
+    "bytes": 10727310
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-local/events.jsonl",
+    "sha256": "eb84943f1aceb4175b2df459fee5c5a20e9cdf94766f0ca4fc5b1d98c7795c11",
+    "bytes": 59902
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-local/audio.json",
+    "sha256": "d7ba6ff6f7e39df730f7d8ee3bd3655e8e04620a6abff12ac66b2513ecf94a1b",
+    "bytes": 237194
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-event/navigation.json",
+    "sha256": "adc27fb143dbc1e3b75cb1117ff6e7d1fdcd2d295ba6929cb1b8e04ac90733f7",
+    "bytes": 557
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-event/anchor.json",
+    "sha256": "d442e70709cfda7c2ff9b607b033c6be46b798a9d284f1aeb132d4c96455ac1e",
+    "bytes": 1861
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-event/capture.mp4",
+    "sha256": "91811cc40666b0967b9eee19cc0a7ee36696015602d3dfda44b3e49d5ff4c671",
+    "bytes": 1531739
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-event/audio-windows.json",
+    "sha256": "4ac2b147674113bfb1ad5a388f68b3a8b67a2679f505600427a339eb4295a5c2",
+    "bytes": 750
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-event/capture.wav",
+    "sha256": "db217e1786e9d7e0c38b8bbdeb7aa5ddafb2bea1a68dc0a63e7d6353cbf90737",
+    "bytes": 10706958
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-event/events.jsonl",
+    "sha256": "5cfc5d341370d446300f8951ca69e59e1bab6b2f0d514a61c4568adbd1c879e5",
+    "bytes": 59734
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t065-event/audio.json",
+    "sha256": "6f7d64ba204085eafc439dcdce0215809c4237fbcabefd56b90ee3994b6d68b3",
+    "bytes": 227088
+  }
+]

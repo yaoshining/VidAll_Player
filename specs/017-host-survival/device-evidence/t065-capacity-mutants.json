@@ -1,0 +1,14 @@
+[
+  {
+    "mutant": "premature-quiescence",
+    "rejected": true,
+    "exitCode": -6,
+    "assertion": "Assertion failed: (mp_host_audio_pending()==(safe?0u:16u)), function main, file audio-capacity.test.c, line 39.\n"
+  },
+  {
+    "mutant": "reused-token",
+    "rejected": true,
+    "exitCode": -6,
+    "assertion": "Assertion failed: (replacement&&replacement!=held[7].token), function main, file audio-capacity.test.c, line 44.\n"
+  }
+]
