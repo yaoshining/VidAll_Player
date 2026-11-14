@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "56ebd3f7cb918f2c6be2a3eb9e0683f0b8734cb0",
+  "runId": 43624519417,
+  "runUrl": "https://github.com/yaoshining/VidAll_Player/actions/runs/43624519417",
+  "status": "success",
+  "artifactId": 14124948622,
+  "harSHA256": "7d3993338a2aeb3a8b8f960b15f4fa3bd88b8f773366747c041f40bcad0d7d74",
+  "libraries": {
+    "package/libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "package/libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "package/libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "package/libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "package/libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "package/libs/arm64-v8a/libmpv.so": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
+    "package/libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "package/libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "package/libs/arm64-v8a/libvidall_player_native.so": "f954bd561cac26847c5467575455475c67ca89416e38899891608e68470c8f9c"
+  },
+  "architectures": [
+    "arm64-v8a"
+  ],
+  "devicePackageScope": "设备1.0.96为本地同源诊断包，不冒充CI包验收",
+  "runner": "yaoshiningdeiMac",
+  "runnerType": "self-hosted macOS X64；iMac，不是云端Mac",
+  "deviceAccepted": false,
+  "changedLibrariesFromT065": [
+    "libmpv.so"
+  ]
+}

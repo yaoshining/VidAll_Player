@@ -1,0 +1,56 @@
+[
+  {
+    "token": 257,
+    "callbacks": 29,
+    "callbackPeriodMs": 92.875,
+    "firstCallbackWorkMs": 0.043906,
+    "maxCallbackWorkMs": 0.230157,
+    "pcmToPlatformOriginMs": 83.66375020705163,
+    "platformOrigin": {
+      "originSeconds": 1744821.6891243851,
+      "minOriginSeconds": 1744821.683308291,
+      "maxOriginSeconds": 1744821.694311729,
+      "spreadMs": 11.003437917679548,
+      "samples": 35
+    },
+    "zeroPositionExtrapolationMaxMs": 0.0,
+    "maxEstimatedQueuedMs": 215.0625,
+    "physicalAccepted": false
+  },
+  {
+    "token": 514,
+    "callbacks": 64,
+    "callbackPeriodMs": 92.875,
+    "firstCallbackWorkMs": 0.096875,
+    "maxCallbackWorkMs": 0.652656,
+    "pcmToPlatformOriginMs": 85.75671794824302,
+    "platformOrigin": {
+      "originSeconds": 1744827.608462822,
+      "minOriginSeconds": 1744827.603683135,
+      "maxOriginSeconds": 1744827.614085166,
+      "spreadMs": 10.402031010016799,
+      "samples": 43
+    },
+    "zeroPositionExtrapolationMaxMs": 0.0,
+    "maxEstimatedQueuedMs": 223.5,
+    "physicalAccepted": false
+  },
+  {
+    "token": 770,
+    "callbacks": 64,
+    "callbackPeriodMs": 92.875,
+    "firstCallbackWorkMs": 0.032657,
+    "maxCallbackWorkMs": 0.371406,
+    "pcmToPlatformOriginMs": 74.01546905748546,
+    "platformOrigin": {
+      "originSeconds": 1744839.468365791,
+      "minOriginSeconds": 1744839.463144697,
+      "maxOriginSeconds": 1744839.47346501,
+      "spreadMs": 10.320313042029738,
+      "samples": 43
+    },
+    "zeroPositionExtrapolationMaxMs": 0.0,
+    "maxEstimatedQueuedMs": 220.8125,
+    "physicalAccepted": false
+  }
+]

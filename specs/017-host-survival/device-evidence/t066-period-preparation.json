@@ -15,5 +15,32 @@
     "package/libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
     "package/libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
     "package/libs/arm64-v8a/libvidall_player_native.so": "0994a0fc01c3d5885bf7a90e0acd462771336437380a4a51e6b63e30fc172917"
+  },
+  "navigation": {
+    "status": "completed",
+    "pidBefore": "51770",
+    "pidAfter": "51770",
+    "actions": [
+      {
+        "text": "开始故障音频内录",
+        "bounds": "[0,0][673,162]",
+        "wallMs": 1794679114773
+      },
+      {
+        "text": "允许",
+        "bounds": "[1968,1332][2514,1494]",
+        "wallMs": 1794679116397
+      },
+      {
+        "text": "返回视频列表",
+        "bounds": "[0,900][529,1062]",
+        "wallMs": 1794679133117
+      },
+      {
+        "text": "播放另一部视频",
+        "bounds": "[0,900][601,1062]",
+        "wallMs": 1794679134778
+      }
+    ]
   }
 }
