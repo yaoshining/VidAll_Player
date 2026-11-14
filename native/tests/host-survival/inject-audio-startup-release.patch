@@ -1,0 +1,195 @@
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -32,11 +32,18 @@
+ #include <pthread.h>
+ #include <limits.h>
+ #include <time.h>
++#include <stdatomic.h>
++#include "video/out/hwdec/ohcodec_terminal.h"
+ #include <dlfcn.h>
+ #include <deviceinfo.h>
+ #include <ohaudio/native_audiorenderer.h>
+ #include <ohaudio/native_audiostreambuilder.h>
+ 
++// 仅本地诊断输入：一次性有界时序与明确STOPPED后的Release挂起接缝。
++static atomic_ullong probe_session,probe_generation;
++void mp_audio_probe_arm(unsigned long long session,unsigned long long generation) {
++ atomic_store(&probe_session,session);atomic_store(&probe_generation,generation);
++}
+ struct legacy_binding {
+     uintptr_t token;
+     struct ao *ao;
+@@ -61,6 +68,9 @@
+ 
+     struct legacy_binding legacy;
+     int encoding_type;
++    atomic_llong probe_first_callback,probe_first_return,probe_first_pcm;
++    atomic_uint probe_callbacks;
++    unsigned probe_queries;
+ };
+ 
+ // token 永不复用；全局锁只保护登记和引用计数，不能跨平台回调持锁。
+@@ -180,7 +190,12 @@
+                 p->timestamp_valid = true;
+             }
+             p->last_query = now;
++            bool valid = p->timestamp_valid;
+             mp_mutex_unlock(&p->timing_lock);
++            if (p->probe_queries++ < 16)
++                MP_WARN(ao,"AUDIO_START_TRACE token=%llu mono=%lld mpv=%lld pos=%lld platform=%lld valid=%d cb=%lld ret=%lld pcm=%lld\n",
++                    p->recovery_token,(long long)mono_now,(long long)now,(long long)position,(long long)timestamp,valid,
++                    (long long)atomic_load(&p->probe_first_callback),(long long)atomic_load(&p->probe_first_return),(long long)atomic_load(&p->probe_first_pcm));
+         }
+         mp_host_audio_control_unlock(p->recovery_token);
+         if (stop) break;
+@@ -215,10 +230,23 @@
+     if (p->renderer) {
+         // remove 已持有本槽控制锁，后续不再 Start；只保留明确 STOPPED 的事实。
+         // Release 未返回时仍保留全部对象和预算，不能把静止等同资源释放。
++        unsigned long long probe_owner=atomic_exchange(&probe_session,0);
++        if(probe_owner){
++            OH_AudioStream_State confirmed;
++            if(OH_AudioRenderer_Stop(p->renderer)!=AUDIOSTREAM_SUCCESS ||
++               OH_AudioRenderer_GetCurrentState(p->renderer,&confirmed)!=AUDIOSTREAM_SUCCESS ||
++               confirmed!=AUDIOSTREAM_STATE_STOPPED)return -1;
++            MP_WARN(ao,"AUDIO_RELEASE_PROBE stopped token=%llu owner=%llu\n",p->recovery_token,probe_owner);
++        }
+         OH_AudioStream_State state;
+         if (OH_AudioRenderer_GetCurrentState(p->renderer, &state) == AUDIOSTREAM_SUCCESS &&
+             state == AUDIOSTREAM_STATE_STOPPED)
+             mp_host_audio_confirm_quiescent(p->recovery_token);
++        if(probe_owner){
++            MP_WARN(ao,"AUDIO_RELEASE_PROBE hold token=%llu pending=%u\n",p->recovery_token,mp_host_audio_pending());
++            mp_ohcodec_terminal_enter_context(-4,MP_OHCODEC_TERMINAL_DRAIN,1,probe_owner,atomic_load(&probe_generation));
++            for(;;)mp_sleep_ns(MP_TIME_MS_TO_NS(100));
++        }
+         if (OH_AudioRenderer_Release(p->renderer) != AUDIOSTREAM_SUCCESS) return -1;
+         p->renderer = NULL;
+     }
+@@ -266,6 +294,8 @@
+         return AUDIO_DATA_CALLBACK_RESULT_VALID;
+     }
+ 
++    unsigned probe_count = atomic_fetch_add(&p->probe_callbacks,1);
++    if (!probe_count) atomic_store(&p->probe_first_callback,mp_time_ns());
+     int samples = audioDataSize / ao->sstride;
+     int64_t now = mp_time_ns();
+     mp_mutex_lock(&p->timing_lock);
+@@ -294,7 +324,13 @@
+     ao_read_data(ao, &audioData, samples, end_time, NULL, true, true);
+     if (mp_host_is_retired(p->recovery_generation))
+         memset(audioData, ao->format == AF_FORMAT_U8 ? 128 : 0, audioDataSize);
+-
++    if (!probe_count) atomic_store(&p->probe_first_return,mp_time_ns());
++    if (probe_count < 64 && !atomic_load(&p->probe_first_pcm)) {
++        const unsigned char *bytes=audioData;unsigned char silence=ao->format==AF_FORMAT_U8?128:0;
++        for (int i=0;i<audioDataSize && i<65536;i++) if(bytes[i]!=silence){
++            atomic_store(&p->probe_first_pcm,mp_time_ns());break;
++        }
++    }
+     return AUDIO_DATA_CALLBACK_RESULT_VALID;
+ }
+ 
+@@ -551,7 +587,9 @@
+ {
+     struct priv *p = ao->priv;
+     if (!mp_host_audio_control_lock(p->recovery_token)) return;
+-    OH_AudioRenderer_Start(p->renderer);
++    MP_WARN(ao,"AUDIO_START_CALL token=%llu mpv=%lld\n",p->recovery_token,(long long)mp_time_ns());
++    OH_AudioStream_Result start_result=OH_AudioRenderer_Start(p->renderer);
++    MP_WARN(ao,"AUDIO_START_RETURN token=%llu mpv=%lld rc=%d\n",p->recovery_token,(long long)mp_time_ns(),start_result);
+     mp_mutex_lock(&p->timing_lock);
+     mp_cond_signal(&p->timing_wakeup);
+     mp_mutex_unlock(&p->timing_lock);
+--- a/sub/osd_libass.c
++++ b/sub/osd_libass.c
+@@ -287,6 +287,7 @@
+     if (!obj->text[0])
+         return;
+ 
++    mp_warn(osd->log, "OSD_INIT_TRACE text\n");
+     prepare_osd_ass(osd, obj);
+     add_osd_ass_event_escaped(obj->ass.track, "OSD", obj->text);
+ }
+@@ -295,6 +296,7 @@
+ {
+     mp_mutex_lock(&osd->lock);
+     struct osd_object *obj = osd->objs[OSDTYPE_OSD];
++    mp_warn(osd->log, "OSD_INIT_TRACE text-size\n");
+     ASS_Style *style = prepare_osd_ass(osd, obj);
+     *out_screen_h = obj->ass.track->PlayResY - style->MarginV;
+     *out_font_h = style->FontSize;
+@@ -420,6 +422,7 @@
+         return;
+ 
+     float px, py, width, height, border;
++    mp_warn(osd->log, "OSD_INIT_TRACE progress\n");
+     get_osd_bar_box(osd, obj, &px, &py, &width, &height, &border);
+ 
+     ASS_Track *track = obj->ass.track;
+@@ -530,6 +533,7 @@
+     bstr t = bstr0(ext->ov.data);
+     ext->ass.res_x = ext->ov.res_x;
+     ext->ass.res_y = ext->ov.res_y;
++    mp_warn(osd->log, "OSD_INIT_TRACE external\n");
+     create_ass_track(osd, obj, &ext->ass);
+ 
+     clear_ass(&ext->ass);
+--- a/player/client.c
++++ b/player/client.c
+@@ -26,6 +26,11 @@
+ #include "common/global.h"
+ #if HAVE_OHOS
+ #include "common/host_recovery_api.h"
++#if defined(MP_OHCODEC_HANDOFF_TEST)
++#include <pthread.h>
++#include <time.h>
++#include "video/out/hwdec/ohcodec_terminal.h"
++#endif
+ #endif
+ #include "common/msg.h"
+ #include "common/msg_control.h"
+@@ -1273,6 +1278,22 @@
+ }
+ 
+ #if HAVE_OHOS
++#if defined(MP_OHCODEC_HANDOFF_TEST)
++// 仅独立诊断包：定时进入真实终局管理器，不模拟 GPU/fence 失败。
++struct host_probe_context { uint64_t session, generation; };
++static atomic_bool host_probe_started;
++static void *host_probe_enter(void *opaque)
++{
++    struct host_probe_context value = *(struct host_probe_context *)opaque;
++    free(opaque);
++    struct timespec delay = {3, 0};
++    nanosleep(&delay, NULL);
++    mp_ohcodec_terminal_enter_context(-4, MP_OHCODEC_TERMINAL_DRAIN,
++        1, value.session, value.generation);
++    return NULL;
++}
++#endif
++
+ int mpv_host_loadfile_async(mpv_handle *ctx, uint64_t generation, uint64_t session_id, const char **args)
+ {
+     if (!ctx || !generation || !session_id || !args || !args[0] || strcmp(args[0], "loadfile"))
+@@ -1284,6 +1305,20 @@
+     struct mp_cmd *cmd = mp_input_parse_cmd_strv(ctx->log, args);
+     if (!cmd) return MPV_ERROR_INVALID_PARAMETER;
+     cmd->host_load_generation = generation;
++    extern void mp_audio_probe_arm(unsigned long long,unsigned long long);
++    if(args[1] && strstr(args[1],"release-probe.mp4"))mp_audio_probe_arm(session_id,generation);
++#if defined(MP_OHCODEC_HANDOFF_TEST)
++    if (args[1] && strstr(args[1], "global-probe.mp4") &&
++        !atomic_exchange(&host_probe_started, true)) {
++        struct host_probe_context *value = malloc(sizeof(*value));
++        if (value) {
++            *value = (struct host_probe_context){session_id, generation};
++            pthread_t thread;
++            if (pthread_create(&thread, NULL, host_probe_enter, value)) free(value);
++            else pthread_detach(thread);
++        }
++    }
++#endif
+     return run_async_cmd(ctx, generation, cmd);
+ }
+ #endif

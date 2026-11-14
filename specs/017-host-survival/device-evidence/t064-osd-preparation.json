@@ -1,0 +1,18 @@
+{
+  "version": "1.0.85",
+  "scope": "仅桥增加osd-level=0，注入libmpv/FFmpeg/素材保持1.0.84一致；本地对照",
+  "harSHA256": "6247a11de256bd4365a7470d1f6ca9ad3273475208a12fbcace7d2dfb60a420a",
+  "hapSHA256": "bcf6a925508e3f5afdb3b483534e5a29622737b03a17c3c6dad55458307d662f",
+  "libraries": {
+    "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libs/arm64-v8a/libmpv.so": "fb17fc4552625c2030c26df45417335f36a6f03eb1e1b01a6ac415ec6f8800ec",
+    "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libs/arm64-v8a/libvidall_player_native.so": "70316ee3627babdd36059de165622ae5a342653802ee42d2ba247b3c1f748785"
+  },
+  "deviceAccepted": false
+}

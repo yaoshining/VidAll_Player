@@ -1,0 +1,49 @@
+{
+  "version": "1.0.90",
+  "buildMachine": "本地MacBook Pro ARM64",
+  "formalArtifactAllowed": false,
+  "scope": "releasefixed",
+  "harSHA256": "173f4f2789693da9a6bc46979e94301b1495bc891df1a17125b94365cd4b1661",
+  "hapSHA256": "d6eede44e0f9cf072bf0735bd89721b14bc1d82205982e7722f3bde49fc095ee",
+  "libraries": {
+    "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libs/arm64-v8a/libmpv.so": "6ce23623e02b23ae93f6e3304bc519d5eee99a9a5cd085c36753b4eb5571b4e8",
+    "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libs/arm64-v8a/libvidall_player_native.so": "3eef9ce40bf8f26be1405792a117f31946f8ac60fd1697f4879d766171dd0450"
+  },
+  "deviceAccepted": false,
+  "navigation": {
+    "status": "timeout",
+    "pidBefore": "25519",
+    "pidAfter": "25519",
+    "actions": [
+      {
+        "text": "开始故障音频内录",
+        "bounds": "[0,0][673,162]",
+        "wallMs": 1794676057601
+      },
+      {
+        "text": "允许",
+        "bounds": "[1968,1332][2514,1494]",
+        "wallMs": 1794676059264
+      },
+      {
+        "text": "返回视频列表",
+        "bounds": "[0,900][529,1062]",
+        "wallMs": 1794676074926
+      },
+      {
+        "text": "播放另一部视频",
+        "bounds": "[0,900][601,1062]",
+        "wallMs": 1794676076724
+      }
+    ]
+  },
+  "navigationNote": "屏保占用操作时限使驱动先超时；随后单次读取同PID环形日志与完整事件确认采集结束，不修改原timeout记录",
+  "captureCompletedWallMs": 1794676111031
+}

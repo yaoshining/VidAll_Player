@@ -1,0 +1,16 @@
+ 1739727.492  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"1","loadGeneration":"1"}
+ 1739727.654  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 1
+ 1739727.841  8684  9686 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[cplayer]: first video frame after restart shown
+ 1739728.174  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 pre-terminal-playback {"profile":"hardware-first","backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 1739730.532  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 terminal {"state":"terminal","terminal":{"stage":1,"platformError":-4,"firstObservedMs":1739730641,"deadlineMs":3000,"ownerTag":"1","attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}},"recovery":{"state":"pending","generation":0},"faults":[{"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}]}
+ 1739730.582  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 terminal-status {"state":"terminal","terminal":{"stage":1,"platformError":-4,"firstObservedMs":1739730641,"deadlineMs":3000,"ownerTag":"1","attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}},"recovery":{"state":"pending","generation":0},"faults":[{"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}]}
+ 1739730.782  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 recovery-ready {"state":"terminal","terminal":{"stage":1,"platformError":-4,"firstObservedMs":1739730641,"deadlineMs":3000,"ownerTag":"1","attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}},"recovery":{"state":"ready","generation":2},"faults":[{"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}]}
+ 1739730.783  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 old-release-rejected PLAYER_TERMINAL
+ 1739802.836  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"2","loadGeneration":"1"}
+ 1739803.885  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 2
+ 1739803.888  8684 10293 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[cplayer]: first video frame after restart shown
+ 1739814.521  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"3","loadGeneration":"1"}
+ 1739814.557  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 3
+ 1739814.559  8684 10477 I A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[cplayer]: first video frame after restart shown
+ 1739825.940  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 summary {"profile":"hardware-first","scope":"timer-global","firstFrames":3,"errors":0,"recovery":{"state":"ready","generation":2}}
+ 1739840.891  8684  8684 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-flow-completed 仍需审阅实际音轨、PID、故障归属与硬件日志

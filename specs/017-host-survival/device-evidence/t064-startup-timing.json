@@ -1,0 +1,57 @@
+[
+  {
+    "round": "trace",
+    "firstFrameWall": 1794674869.51433,
+    "startCallWall": 1794674870.01613,
+    "startReturnWall": 1794674870.041824,
+    "mpvVideoReadyWall": 1794674869.711006,
+    "osdInit": 1794674869.736304,
+    "firstFrameToStartMs": 501.8000602722168,
+    "videoReadyToStartMs": 305.12404441833496,
+    "firstPCMFromStartReturnMs": 0.525312
+  },
+  {
+    "round": "fixed",
+    "firstFrameWall": 1794675121.556472,
+    "startCallWall": 1794675122.05181,
+    "startReturnWall": 1794675122.069993,
+    "mpvVideoReadyWall": 1794675121.750239,
+    "osdInit": 1794675121.779649,
+    "firstFrameToStartMs": 495.33796310424805,
+    "videoReadyToStartMs": 301.5711307525635,
+    "firstPCMFromStartReturnMs": 0.04
+  },
+  {
+    "round": "release",
+    "firstFrameWall": 1794675685.341992,
+    "startCallWall": 1794675685.838567,
+    "startReturnWall": 1794675685.866766,
+    "mpvVideoReadyWall": 1794675685.531422,
+    "osdInit": 1794675685.558005,
+    "firstFrameToStartMs": 496.57511711120605,
+    "videoReadyToStartMs": 307.1451187133789,
+    "firstPCMFromStartReturnMs": 0.028125
+  },
+  {
+    "round": "console",
+    "firstFrameWall": 1794675842.364154,
+    "startCallWall": 1794675842.581673,
+    "startReturnWall": 1794675842.614228,
+    "mpvVideoReadyWall": 1794675842.554498,
+    "osdInit": null,
+    "firstFrameToStartMs": 217.51880645751953,
+    "videoReadyToStartMs": 27.174949645996094,
+    "firstPCMFromStartReturnMs": 0.06875
+  },
+  {
+    "round": "releasefixed",
+    "firstFrameWall": 1794676069.233629,
+    "startCallWall": 1794676069.449757,
+    "startReturnWall": 1794676069.477168,
+    "mpvVideoReadyWall": 1794676069.423437,
+    "osdInit": null,
+    "firstFrameToStartMs": 216.12811088562012,
+    "videoReadyToStartMs": 26.31998062133789,
+    "firstPCMFromStartReturnMs": 0.111719
+  }
+]
