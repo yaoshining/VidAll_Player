@@ -37,6 +37,12 @@ struct Harness {
 int main() {
  { Harness h;h.player_.reset();assert(!h.Initialize("","auto","","")); }
  { Harness h;gpu=false;assert(h.Initialize("","auto","",""));assert(!h.isolation_&&options.at("vo")=="libmpv"); }
+ // 宿主有独立ArkUI控制层，隐藏的内置控制台不得在首帧测量字体。
+ assert(options.at("load-console")=="no");
+ { Harness h;options.clear();assert(h.Initialize("/fonts","no","",""));
+   assert(options.at("load-console")=="no"&&options.at("sub-font-provider")=="none");
+   assert(options.at("sub-fonts-dir")=="/fonts"&&!options.count("sid")); }
+ { Harness h;failOption="load-console";assert(!h.Initialize("","no","",""));failOption.clear(); }
  gpu=true;options.clear();
  { Harness h;assert(h.Initialize("","auto","","","compatible"));
    assert(h.renderBackend_==vidall::render::RenderBackend::Software);

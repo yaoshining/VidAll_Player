@@ -29,8 +29,8 @@
     },
     {
       "path": "arm64-v8a/libmpv.so",
-      "sha256": "f57068665298079682f9d90b0b13ae8ac427c844a3debf4b47cd7107611d5a82",
-      "size": 15724840
+      "sha256": "795c82bf1054feb31f76408c0d9bde6ddc87d1efc4f7888f09285dc82c2ce6dd",
+      "size": 15724888
     },
     {
       "path": "arm64-v8a/libc++_shared.so",
@@ -83,7 +83,7 @@
   "evidence": [
     {
       "path": "provenance/mpv-run-summary.json",
-      "sha256": "cb1d3c2df99c52fef6e778b7e34c0b5b81d8930abe41a33072549546528fbd4d",
+      "sha256": "2e305ec39b9ee1f12f10e07a233d470700f32bb42c209affeafd0143fe2c6a17",
       "size": 148430
     },
     {
@@ -108,12 +108,12 @@
     },
     {
       "path": "provenance/normal-compile-binding.json",
-      "sha256": "4c6462597e07e7651cfd429d588bde9813d772247bf27003b10492b6226f2ab4",
+      "sha256": "16b3dc5e62616d076cc607efd8ba43e5843aa536af81df48b1520ed3d79e6eca",
       "size": 30098
     },
     {
       "path": "provenance/source-lock.json",
-      "sha256": "302f9afc12a13060ddf0533c12ae4ab905e5980677f05dca9da344ffc7bdfa8d",
+      "sha256": "c7692bb19bf523c175cf2ce9417c6b21b6eb037fec051c5540e289429fac4b82",
       "size": 2900647
     },
     {
@@ -123,7 +123,7 @@
     },
     {
       "path": "provenance/normal-library-binding.json",
-      "sha256": "5baebdf588de1be54410acba93134f7404794589886885ed9870edcfe107f3db",
+      "sha256": "087b92074bd97685c85569d270c0e14a1415e81668aa566d258367be6a67a1f5",
       "size": 718
     },
     {
@@ -148,12 +148,12 @@
     },
     {
       "path": "provenance/host-recovery-input.json",
-      "sha256": "f6cbbeb7eb4887c189b4a22b43c9172562efa4525a0e14f98400b55f9e0c593e",
-      "size": 3222
+      "sha256": "c25e28efc02ad0b7dec5cc4d9cb58fcefc40e4e08b2b7b2769dd2db35bf1e82b",
+      "size": 3390
     },
     {
       "path": "provenance/host-recovery-static-validation.json",
-      "sha256": "6463da2fd8c8189685f142ed5a419b480588514baccaa89979ee9b6a655854e7",
+      "sha256": "c7cf158d3b39c9a3de2a61be4aa18c10969a92d31bd5ee3477049d16451d470e",
       "size": 25874
     },
     {

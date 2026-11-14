@@ -1,0 +1,39 @@
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -31,6 +31,7 @@
+ 
+ #include <pthread.h>
+ #include <limits.h>
++#include <time.h>
+ #include <dlfcn.h>
+ #include <deviceinfo.h>
+ #include <ohaudio/native_audiorenderer.h>
+@@ -157,18 +158,25 @@
+         stop = p->timing_stop;
+         mp_mutex_unlock(&p->timing_lock);
+         if (!stop) {
+-            int64_t position, timestamp;
++            int64_t position = 0, timestamp = 0;
+             OH_AudioStream_Result result = OH_AudioRenderer_GetAudioTimestampInfo(
+                 p->renderer, &position, &timestamp);
+             // 查询可能耗时；不能用进入查询前的时间检查返回值或推算播放时刻。
++            struct timespec mono;
++            bool clock_ok = clock_gettime(CLOCK_MONOTONIC, &mono) == 0;
++            int64_t mono_now = clock_ok ? MP_TIME_S_TO_NS(mono.tv_sec) + mono.tv_nsec : 0;
+             int64_t now = mp_time_ns();
++            // 平台是系统MONOTONIC，mpv是可选RAW源减初始化原点；不能直接相减。
++            // 先在平台时钟域验证年龄，再映射到紧邻采样的mpv时间。
++            int64_t age = clock_ok && timestamp > 0 && timestamp <= mono_now ?
++                mono_now - timestamp : -1;
+             mp_mutex_lock(&p->timing_lock);
+             if (!p->timing_stop && result == AUDIOSTREAM_SUCCESS && position >= 0 &&
+-                timestamp > 0 && timestamp <= now && now - timestamp < MP_TIME_S_TO_NS(2)) {
++                age >= 0 && age < MP_TIME_S_TO_NS(2) && age < now) {
+                 if (p->last_query && position < p->frame_position)
+                     p->written_frames = position;
+                 p->frame_position = position;
+-                p->frame_timestamp = timestamp;
++                p->frame_timestamp = now - age;
+                 p->timestamp_valid = true;
+             }
+             p->last_query = now;

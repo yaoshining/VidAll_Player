@@ -65,6 +65,14 @@ static atomic_llong now_ns=1000000000;
 static atomic_llong end_ns;
 static atomic_bool callback_done,close_done;
 static atomic_int builder_releases;
+static atomic_llong mono_offset;
+static atomic_bool mono_failed;
+static int test_clock_gettime(clockid_t clock,struct timespec*ts){
+ if(clock!=CLOCK_MONOTONIC)return clock_gettime(clock,ts);
+ if(mono_failed)return -1;
+ int64_t ns=now_ns+mono_offset;ts->tv_sec=ns/1000000000;ts->tv_nsec=ns%1000000000;return 0;
+}
+#define clock_gettime test_clock_gettime
 static int64_t mp_time_ns(void){return now_ns;}
 static void mp_sleep_ns(int64_t ns){(void)ns;usleep(1000);}
 static int OH_AudioRenderer_GetAudioTimestampInfo(OH_AudioRenderer*r,int64_t*pos,int64_t*stamp){
@@ -143,6 +151,17 @@ int main(int argc,char**argv){
   launch(&fresh);wait_sample(&fresh_p,0);write_one(&fresh);uninit(&fresh);assert(fresh_r.released==1);
   r.blocked=false;pthread_join(closer,NULL);assert(close_done&&r.released==1&&!p.recovery_token);return 0;
  }
+ if(!strncmp(mode,"domain-",7)){
+  mono_offset=1700000000000000LL;r.stamp=now_ns+mono_offset-1000000;
+  bool valid=!strcmp(mode,"domain-offset");
+  if(!strcmp(mode,"domain-future"))r.stamp=now_ns+mono_offset+1000000;
+  if(!strcmp(mode,"domain-stale"))r.stamp=now_ns+mono_offset-3000000000LL;
+  if(!strcmp(mode,"domain-clock-fail"))mono_failed=true;
+  launch(&a);wait_flag(&r.entered);
+  if(valid){wait_sample(&p,0);assert(p.frame_timestamp==now_ns-1000000);write_one(&a);write_one(&a);assert(end_ns==now_ns+19000000);}
+  stop_timing_worker(&p);assert(p.timestamp_valid==valid);
+  uninit(&a);return 0;
+ }
  if(!strcmp(mode,"clock")){
   launch(&a);wait_sample(&p,0);write_one(&a);
   // 480个采样、48kHz：首缓冲的结束时刻是当前时间之后10ms。
@@ -197,6 +216,6 @@ with tempfile.TemporaryDirectory() as td:
                     '-fsanitize=address,undefined','-I'+str(ROOT/'native/mpv'),str(p/'test.c'),
                     str(ROOT/'native/mpv/host_recovery.c'),'-o',str(p/'test')],check=True)
     for sdk in ['19','24','26']:
-        for case in sys.argv[2:] or ['callback-contract','blocked-query','clock','delayed-query','route-reset','route-reset-invalid','retired-query','budget','repeat']:
+        for case in sys.argv[2:] or ['domain-offset','domain-future','domain-stale','domain-clock-fail','callback-contract','blocked-query','clock','delayed-query','route-reset','route-reset-invalid','retired-query','budget','repeat']:
             subprocess.run([str(p/'test'),sdk,case],check=True,timeout=10)
             print('API'+sdk,case,'PASS',flush=True)

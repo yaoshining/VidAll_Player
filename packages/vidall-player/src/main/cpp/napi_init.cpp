@@ -337,6 +337,9 @@ public:
         compatible_ = compatible;
         mpv_set_option_string(player_.get(), "terminal", "no");
         mpv_set_option_string(player_.get(), "config", "no");
+        // 宿主提供ArkUI控制层，关闭内置Lua控制台，避免隐藏控制台测量字体阻挡音频启动。
+        // 字幕渲染及宿主显式字体配置不受影响。
+        if (mpv_set_option_string(player_.get(), "load-console", "no") < 0) return false;
         // 兼容会话在初始化前固定软件渲染，不探测或升级 GPU 后端。
         // standard 沿用 vendor 栈门禁；库存在只用于选择，不能证明驱动永不故障。
         const bool vendorGpuStackAvailable = !compatible &&

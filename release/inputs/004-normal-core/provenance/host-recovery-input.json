@@ -57,6 +57,10 @@
     {
       "path": "native/patches/phase30/0013-preserve-stopped-before-release.patch",
       "sha256": "12d5c325e52c89fe162f5404b59bebe376be03b3c9763532a504d829a3d6163a"
+    },
+    {
+      "path": "native/patches/phase30/0014-ohaudio-clock-domain.patch",
+      "sha256": "a289fc3841f6f5730b5c903634effb2289b499758923a79dbc4b17e6190f5806"
     }
   ],
   "addedSources": [
