@@ -1,0 +1,82 @@
+{
+  "passed": true,
+  "deviceAccepted": false,
+  "tests": [
+    {
+      "test": "test_presentation_capabilities.py",
+      "exitCode": 0
+    },
+    {
+      "test": "test_presentation_enumeration.py",
+      "exitCode": 0
+    },
+    {
+      "test": "anchor.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "test_time_anchor.py",
+      "exitCode": 0
+    },
+    {
+      "test": "test_prepare_anchor.py",
+      "exitCode": 0
+    },
+    {
+      "test": "test_sync.py",
+      "exitCode": 0
+    },
+    {
+      "test": "test_prepare_sync.py",
+      "exitCode": 0
+    },
+    {
+      "test": "test_analyze.py",
+      "exitCode": 0
+    },
+    {
+      "test": "test_prepare.py",
+      "exitCode": 0
+    },
+    {
+      "test": "test_receive.py",
+      "exitCode": 0
+    },
+    {
+      "test": "chunks.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "manual.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "capture.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "page.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "baseline.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "seek.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "focus.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "alarm.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "evidence.test.cjs",
+      "exitCode": 0
+    }
+  ]
+}

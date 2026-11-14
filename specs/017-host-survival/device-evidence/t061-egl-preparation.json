@@ -1,0 +1,20 @@
+{
+  "version": "1.0.77",
+  "sha256": "29dd45e49b5b12e7b9309d98aabb798fbb720551ed6877b1a46c04f0eaa26125",
+  "bytes": 26282431,
+  "buildMachine": "本地MacBook Pro ARM64，非CI交付",
+  "originalHarSha256": "85f3eddab398c8312ad9fb6e49f5f96bfa6a1bc941077e920a3ec16f67407ccb",
+  "originalNineUnchanged": true,
+  "libraries": {
+    "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libs/arm64-v8a/libmpv.so": "d283cc8edc69467d52dbab7854f7171703053003f71d52bdb9bbae1a2797f198",
+    "libs/arm64-v8a/libpresentation_probe.so": "d32e2003bea5e6d93e7968b8484884412bf3634aacad5916712cac0f62a6909b",
+    "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libs/arm64-v8a/libvidall_player_native.so": "3edfd042c8ebe00de70af7891a9dd0119a045f076ff9bf0b46aa94ffb995227c"
+  }
+}
