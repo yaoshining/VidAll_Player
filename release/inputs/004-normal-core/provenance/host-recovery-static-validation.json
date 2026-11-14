@@ -1,49 +1,49 @@
 {
   "artifact": {
-    "path": "/private/tmp/vidall-host-recovery-t051-build/install/usr/local/lib/libmpv.so",
-    "sha256": "23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a",
-    "sizeBytes": 15723880
+    "path": "/private/tmp/vidall-host-recovery-t056-final-build/install/usr/local/lib/libmpv.so",
+    "sha256": "d283cc8edc69467d52dbab7854f7171703053003f71d52bdb9bbae1a2797f198",
+    "sizeBytes": 15724776
   },
   "symbolCompanion": {
-    "path": "/private/tmp/vidall-host-recovery-t051-build/mpv/install-unstripped.so",
-    "sha256": "83930a16a78bdf961adee9ac83a7f6974d44819f2346254e1490edce9f5eaeed",
-    "sizeBytes": 24109808
+    "path": "/private/tmp/vidall-host-recovery-t056-final-build/mpv/install-unstripped.so",
+    "sha256": "db6093ef009b17d6cf7ffbc4f1fba8ae547cf31b749231d36f656925aa96c649",
+    "sizeBytes": 24110480
   },
   "allAllocatedSectionsExactlyBound": true,
   "driverTable": {
-    "address": 15275568,
+    "address": 15276464,
     "size": 24
   },
   "registration": {
     "registered": true,
     "name": "ohcodec",
-    "descriptor": 15303688,
+    "descriptor": 15304584,
     "deviceType": 14,
-    "mapper": 15303648,
+    "mapper": 15304544,
     "callbacks": {
-      "driverInit": 6335236,
-      "mapperInit": 6335812,
-      "mapperMap": 6336256
+      "driverInit": 6336172,
+      "mapperInit": 6336748,
+      "mapperMap": 6337192
     },
     "runtimeVerified": false
   },
   "callbackSymbols": {
     "driverInit": {
-      "address": 6335236,
+      "address": 6336172,
       "size": 472,
       "names": [
         "init"
       ]
     },
     "mapperInit": {
-      "address": 6335812,
+      "address": 6336748,
       "size": 144,
       "names": [
         "mapper_init"
       ]
     },
     "mapperMap": {
-      "address": 6336256,
+      "address": 6337192,
       "size": 568,
       "names": [
         "mapper_map"
@@ -54,15 +54,15 @@
     "kind": "compiler-unrolled direct BL calls from registered driver init",
     "targets": {
       "ohcodec_interop_gl_init": {
-        "address": 6374060,
+        "address": 6374996,
         "calls": [
-          6335400
+          6336336
         ]
       },
       "ohcodec_interop_pl_init": {
-        "address": 6404388,
+        "address": 6405324,
         "calls": [
-          6335384
+          6336320
         ]
       }
     }
@@ -70,87 +70,87 @@
   "nativeEffectiveCalls": {
     "hwdec_ohcodec.c": {
       "OH_NativeImage_AcquireNativeWindow": {
-        "target": 15050112,
+        "target": 15051008,
         "calls": [
-          6333452
+          6334388
         ]
       },
       "OH_NativeImage_SetOnFrameAvailableListener": {
-        "target": 15050128,
+        "target": 15051024,
         "calls": [
-          6333480
+          6334416
         ]
       }
     },
     "hwdec_ohcodec_gl.c": {
       "OH_NativeImage_Create": {
-        "target": 15050416,
+        "target": 15051312,
         "calls": [
-          6374400
+          6375336
         ]
       },
       "OH_NativeImage_UpdateSurfaceImage": {
-        "target": 15050448,
+        "target": 15051344,
         "calls": [
-          6375108
+          6376044
         ]
       }
     },
     "hwdec_ohcodec_pl.c": {
       "OH_ConsumerSurface_Create": {
-        "target": 15050704,
+        "target": 15051600,
         "calls": [
-          6404664
+          6405600
         ]
       },
       "OH_ConsumerSurface_SetDefaultUsage": {
-        "target": 15050720,
+        "target": 15051616,
         "calls": [
-          6404688
+          6405624
         ]
       },
       "OH_NativeImage_AcquireNativeWindowBuffer": {
-        "target": 15050848,
+        "target": 15051744,
         "calls": [
-          6406820
+          6407756
         ]
       },
       "OH_NativeImage_ReleaseNativeWindowBuffer": {
-        "target": 15050880,
+        "target": 15051776,
         "calls": [
-          6406940,
-          6411560
+          6407876,
+          6412496
         ]
       },
       "vkGetDeviceProcAddr": {
-        "target": 15050816,
+        "target": 15051712,
         "calls": [
-          6406028,
-          6406056,
-          6406084,
-          6406112
+          6406964,
+          6406992,
+          6407020,
+          6407048
         ]
       },
       "pl_vulkan_wrap": {
-        "target": 9621296,
+        "target": 9622232,
         "calls": [
-          6408368
+          6409304
         ]
       }
     }
   },
   "release": {
     "versionedImport": "av_ohcodec_release_buffer@LIBAVCODEC_62",
-    "plt": 15050192,
+    "plt": 15051088,
     "renderOneCalls": [
-      6336384
+      6337320
     ],
     "scope": "adjacent MOV W1,#1 + direct BL in bound registered mapper map function"
   },
   "api": {
     "version": "2.5",
     "function": {
-      "address": 5799004,
+      "address": 5799116,
       "size": 12
     },
     "rawBytes": "a00080524000a072c0035fd6",
@@ -293,7 +293,7 @@
   },
   "bridgeClosures": {
     "tv": {
-      "input": "/private/tmp/vidall-host-recovery-t051-input/baseline/tv-har/libvidall_player_native.so",
+      "input": "/private/tmp/vidall-host-recovery-t056-final-input/baseline/tv-har/libvidall_player_native.so",
       "sha256": "caaa94d86f2845b75a41220411fae9a7efdea79273d8acfa1aee10bbe387aa14",
       "requiredCount": 20,
       "required": [
@@ -321,7 +321,7 @@
       "missing": []
     },
     "player": {
-      "input": "/private/tmp/vidall-host-recovery-t051-input/baseline/player-har/libvidall_player_native.so",
+      "input": "/private/tmp/vidall-host-recovery-t056-final-input/baseline/player-har/libvidall_player_native.so",
       "sha256": "a4291fcd0b7e60d941e384bfefda481f28ed938e11e35e80c99aa22f758a9fd4",
       "requiredCount": 18,
       "required": [
@@ -737,7 +737,7 @@
   ],
   "producerInputs": {
     "avcodec": {
-      "path": "/private/tmp/vidall-host-recovery-t051-build/mpv/source/_staged/ffmpeg/lib/libavcodec.so.62",
+      "path": "/private/tmp/vidall-host-recovery-t056-final-build/mpv/source/_staged/ffmpeg/lib/libavcodec.so.62",
       "sha256": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
       "soname": [
         "libavcodec.so.62"
@@ -755,7 +755,7 @@
       ]
     },
     "avutil": {
-      "path": "/private/tmp/vidall-host-recovery-t051-build/mpv/source/_staged/ffmpeg/lib/libavutil.so.60",
+      "path": "/private/tmp/vidall-host-recovery-t056-final-build/mpv/source/_staged/ffmpeg/lib/libavutil.so.60",
       "sha256": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
       "soname": [
         "libavutil.so.60"
@@ -765,7 +765,7 @@
       ]
     },
     "avfilter": {
-      "path": "/private/tmp/vidall-host-recovery-t051-build/mpv/source/_staged/ffmpeg/lib/libavfilter.so.11",
+      "path": "/private/tmp/vidall-host-recovery-t056-final-build/mpv/source/_staged/ffmpeg/lib/libavfilter.so.11",
       "sha256": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
       "soname": [
         "libavfilter.so.11"
@@ -780,7 +780,7 @@
       ]
     },
     "swresample": {
-      "path": "/private/tmp/vidall-host-recovery-t051-build/mpv/source/_staged/ffmpeg/lib/libswresample.so.6",
+      "path": "/private/tmp/vidall-host-recovery-t056-final-build/mpv/source/_staged/ffmpeg/lib/libswresample.so.6",
       "sha256": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
       "soname": [
         "libswresample.so.6"
@@ -791,7 +791,7 @@
       ]
     },
     "swscale": {
-      "path": "/private/tmp/vidall-host-recovery-t051-build/mpv/source/_staged/ffmpeg/lib/libswscale.so.9",
+      "path": "/private/tmp/vidall-host-recovery-t056-final-build/mpv/source/_staged/ffmpeg/lib/libswscale.so.9",
       "sha256": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
       "soname": [
         "libswscale.so.9"
@@ -802,7 +802,7 @@
       ]
     },
     "avformat": {
-      "path": "/private/tmp/vidall-host-recovery-t051-build/mpv/source/_staged/ffmpeg/lib/libavformat.so.62",
+      "path": "/private/tmp/vidall-host-recovery-t056-final-build/mpv/source/_staged/ffmpeg/lib/libavformat.so.62",
       "sha256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
       "soname": [
         "libavformat.so.62"

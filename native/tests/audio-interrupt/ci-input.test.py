@@ -87,7 +87,7 @@ class AudioInputTests(unittest.TestCase):
         self.assertIn('prepare-audio-ci-input.py',workflow)
         self.assertIn('audio-interrupt/ci-input.test.py',workflow)
         self.assertIn('audio-interrupt/legacy-lifetime.test.py',workflow)
-        for suite in ('audio-data','audio-control','audio-lifecycle'):
+        for suite in ('audio-data','audio-control','audio-lifecycle','audio-clock'):
             self.assertIn('native/tests/host-survival/'+suite+'.test.py',workflow)
         self.assertNotIn('git -C .cache/mpv-interrupt apply',workflow)
         # pull_request 与 push(main) 都须触发，测试锁由 native/tests/** 覆盖。

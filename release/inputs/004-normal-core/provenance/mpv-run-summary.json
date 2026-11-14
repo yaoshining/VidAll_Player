@@ -1,16 +1,16 @@
 {
-  "runRoot": "/private/tmp/vidall-host-recovery-t051-build",
+  "runRoot": "/private/tmp/vidall-host-recovery-t056-final-build",
   "freshRootVerified": true,
   "configuration": {
     "profile": "stable-target-prefix-macro-map-origin-staging",
     "stablePrefix": "/usr/local",
     "ffmpegRelative": "mpv/source/_staged/ffmpeg",
-    "packageSHA256": "f3cefd9b628b4b67408f5644f593a12484b7afd48bc9f6ae4800e7c62708b4a0",
+    "packageSHA256": "0a6b9f61c908bb134a09fea8148eb775f2b26f1a85e768baa619300f4c7c13c8",
     "toolHashes": {
       "meson": "2ac5f65bc3760309298f8cab1c8abd2773633a5c0e1470a22f7aa7940c0e2084",
       "ninja": "4e2125bd4c149186d6715a3d46ca294fc58ff9dbae8b3444c8e9330941276b57",
       "pkg-config": "a06f8c311a0a36515ea9b69ea9a44ee5ce43df00b29b5f46d5bf044dfe9ae282",
-      "python": "06ae60aeac71bc6a243a553f1c48461882ccc681b566abc8aaeea7462aa16a2f",
+      "python": "6cc907e4a022fefc843bcd93954eaf5a2cbfc77a095640bfadeeed96154190c5",
       "clang": "b9a36b6a434fd245460ddfa9abedefbfafe83b1f87749fe00491ee90d039d723",
       "clang++": "b9a36b6a434fd245460ddfa9abedefbfafe83b1f87749fe00491ee90d039d723",
       "ld.lld": "1148e2fa66adb7159a94aa01310df001fa2b1a608497886706ea89a018953075",
@@ -47,7 +47,7 @@
     "target": "aarch64-linux-ohos",
     "linkerTraceDiagnostic": true
   },
-  "artifactPath": "/private/tmp/vidall-host-recovery-t051-build/install/usr/local/lib/libmpv.so",
+  "artifactPath": "/private/tmp/vidall-host-recovery-t056-final-build/install/usr/local/lib/libmpv.so",
   "linkInputs": [
     {
       "path": "sdk/llvm/lib/aarch64-linux-ohos/libc++_shared.so",
@@ -231,7 +231,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_ohaudio.c.o",
-      "sha256": "75a28e27bd1786f4cf342dc6955abf545ad709246e191a904ee9031440f2b508"
+      "sha256": "0ad9fdf1f50955fe9945e45ad48f0547c45d6a32f71598073f1ca72d516a5059"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_pcm.c.o",
@@ -1063,7 +1063,7 @@
     }
   ],
   "artifactHashes": {
-    "mpv": "23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a",
+    "mpv": "d283cc8edc69467d52dbab7854f7171703053003f71d52bdb9bbae1a2797f198",
     "libplacebo": "a0c1e102b3403e84ca464dea4573fa16180b9b654c6f07325635e7370f808d57"
   },
   "allocatedSections": {
@@ -1081,7 +1081,7 @@
       "address": 656,
       "size": 304056,
       "allocated": true,
-      "sha256": "d8b77813e1616efbcbc92fe12f25e4d8555fb0c7f90e01583c0efb01de44c751"
+      "sha256": "8bc886f0d99743dc3ab004d3f0ebaec8ebbdc800439781845ad14523b8918fac"
     },
     ".gnu.version": {
       "type": 1879048191,
@@ -1129,7 +1129,7 @@
       "address": 1354032,
       "size": 853296,
       "allocated": true,
-      "sha256": "db3cf61237d0ce0058089c9d65b994f2bcb6932e3c7c370d612405e6c2f43acb"
+      "sha256": "37fee1b06b0c82052445cfed3e8fee54964b079c452c0bd208a5c15a7f80e065"
     },
     ".rela.plt": {
       "type": 4,
@@ -1137,20 +1137,20 @@
       "address": 2207328,
       "size": 19056,
       "allocated": true,
-      "sha256": "f1b246e1294704b2a84bca56a6651a3f10147f0b5084837e8b5e0404e9b198b4"
+      "sha256": "842c3f86c8e8fd316a14c80c3e9a3c2e0e46472a09a23f25fb88276d4465b671"
     },
     ".rodata": {
       "type": 1,
       "flags": 50,
       "address": 2226384,
-      "size": 2430220,
+      "size": 2430332,
       "allocated": true,
-      "sha256": "739b30eae13b0686da2e4c47fc0fd1c3ec7caebe15f1dcb2a1923a63c39fbd8d"
+      "sha256": "1b17202cd7fc9e23416fb99c630dda006bbc5362c888a9ed630cb0b62366e8c9"
     },
     ".gcc_except_table": {
       "type": 1,
       "flags": 2,
-      "address": 4656604,
+      "address": 4656716,
       "size": 14324,
       "allocated": true,
       "sha256": "0f73f180dbb200a0722177e1e944de57a2fc20e5a8f7d2d5613a0a6c4afcf8e5"
@@ -1158,31 +1158,31 @@
     ".eh_frame_hdr": {
       "type": 1,
       "flags": 2,
-      "address": 4670928,
+      "address": 4671040,
       "size": 115012,
       "allocated": true,
-      "sha256": "a6f8c3efa02ae674bd5796e42b05ec313908637784a90a0cdf539f1303beff13"
+      "sha256": "df25288f88566a35fbdfe55908c3c2c8abc3c170dec72e670dc9cdcdba96ac42"
     },
     ".eh_frame": {
       "type": 1,
       "flags": 2,
-      "address": 4785944,
+      "address": 4786056,
       "size": 522884,
       "allocated": true,
-      "sha256": "8db1ed1f8e2c35fa117ca26dee1ffa2976b509c9669546088255d707f760e814"
+      "sha256": "78fc33ecac908bf69193c547b75005535e980a2672664f55bebfa85dbfa68a0b"
     },
     ".text": {
       "type": 1,
       "flags": 6,
-      "address": 5312924,
-      "size": 9730132,
+      "address": 5313036,
+      "size": 9730924,
       "allocated": true,
-      "sha256": "a07307ccc49a076ddacdd473451c6ae0c5b2f9bdadb29fc99cfd5badfdfe8dab"
+      "sha256": "3ef8943bcdeb64c8362a51323b26e3aa350b35f554a344bba1414907b9aae94f"
     },
     ".init": {
       "type": 1,
       "flags": 6,
-      "address": 15043056,
+      "address": 15043960,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1190,7 +1190,7 @@
     ".fini": {
       "type": 1,
       "flags": 6,
-      "address": 15043076,
+      "address": 15043980,
       "size": 20,
       "allocated": true,
       "sha256": "3f68ec1e2dbb09c3b3aa5206833296c2bd4c8fb4b0351de04797e44783ba3035"
@@ -1198,15 +1198,15 @@
     ".plt": {
       "type": 1,
       "flags": 6,
-      "address": 15043104,
+      "address": 15044000,
       "size": 12736,
       "allocated": true,
-      "sha256": "2a855e7c50610829e12ac8e08020d6079b4ec6c2a389b922a2675f4a47f3a0a2"
+      "sha256": "6ad238dd4092996189683754a39968233dae630044325dcb0f8cc5b69ea4df6f"
     },
     ".init_array": {
       "type": 14,
       "flags": 3,
-      "address": 15059936,
+      "address": 15060832,
       "size": 32,
       "allocated": true,
       "sha256": "66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
@@ -1214,7 +1214,7 @@
     ".fini_array": {
       "type": 15,
       "flags": 3,
-      "address": 15059968,
+      "address": 15060864,
       "size": 24,
       "allocated": true,
       "sha256": "9d908ecfb6b256def8b49a7c504e6c889c4b0e41fe6ce3e01863dd7b61a20aa0"
@@ -1222,23 +1222,23 @@
     ".data.rel.ro": {
       "type": 1,
       "flags": 3,
-      "address": 15059992,
+      "address": 15060888,
       "size": 619232,
       "allocated": true,
-      "sha256": "52448923603f478497d2411ec9a8e35dcc354bd2ca16f92011d730868137216d"
+      "sha256": "20ddef466fbb78a263ad22b1da5e102d7a85c13e49c75c80ae20e25283ceb51a"
     },
     ".dynamic": {
       "type": 6,
       "flags": 3,
-      "address": 15679224,
+      "address": 15680120,
       "size": 704,
       "allocated": true,
-      "sha256": "4aabc2ffcfaceabf294314e78642e3e68f28684aa4697960baea71ddc8496b34"
+      "sha256": "33ef2cd3afd8be4a958a04bcf9dd22c6942598bdcb222c7995d93790b9152525"
     },
     ".got": {
       "type": 1,
       "flags": 3,
-      "address": 15679928,
+      "address": 15680824,
       "size": 7312,
       "allocated": true,
       "sha256": "c5f2ac524611e50497b6223599d900ade3cc4789784b091166ae3594b3ba6130"
@@ -1246,15 +1246,15 @@
     ".got.plt": {
       "type": 1,
       "flags": 3,
-      "address": 15687240,
+      "address": 15688136,
       "size": 6376,
       "allocated": true,
-      "sha256": "1256ec06f1f44cfabe531e594244b0e5f6587b27c2e785cbf394d072ab584879"
+      "sha256": "6f09071cbf8c02adc54767b224aa696a60d21bb6fedfed8c092c07c1cdb62467"
     },
     ".data": {
       "type": 1,
       "flags": 3,
-      "address": 15697712,
+      "address": 15698608,
       "size": 36480,
       "allocated": true,
       "sha256": "df4bb84999c3bbca5ea051c55807d46955249620081c6d1802ad0bab1ebb5148"
@@ -1262,7 +1262,7 @@
     ".bss": {
       "type": 8,
       "flags": 3,
-      "address": 15734192,
+      "address": 15735088,
       "size": 82528,
       "allocated": true,
       "sha256": null

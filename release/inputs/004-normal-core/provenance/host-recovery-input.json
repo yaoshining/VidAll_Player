@@ -49,6 +49,10 @@
     {
       "path": "native/patches/phase30/0011-modern-audio-library-lookup.patch",
       "sha256": "5bf4b42f8b0a1694a62ad6f5745261425dbd1f353da853d3d602b795ed18921c"
+    },
+    {
+      "path": "native/patches/phase30/0012-ohaudio-clock-outside-callback.patch",
+      "sha256": "f6bdf17e14eb1ca449b93b715fbd18fdbf0d8681c62cad13621967cdb10ae813"
     }
   ],
   "addedSources": [

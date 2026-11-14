@@ -24,7 +24,7 @@ typedef struct {
     int32_t (*OH_AudioRenderer_OnInterruptEvent)(OH_AudioRenderer *, void *, int, int);
 } OH_AudioRenderer_Callbacks;
 /* BINDING */
-struct priv { unsigned long long recovery_token,recovery_generation; OH_AudioStreamBuilder *builder; OH_AudioRenderer *renderer; struct legacy_binding legacy; };
+struct priv { bool timing_initialized; pthread_mutex_t timing_lock; pthread_cond_t timing_wakeup; unsigned long long recovery_token,recovery_generation; OH_AudioStreamBuilder *builder; OH_AudioRenderer *renderer; struct legacy_binding legacy; };
 struct ao { struct priv *priv; atomic_uint events_; bool per_file;
             void (*wakeup_cb)(void *); void *wakeup_ctx; };
 struct MPOpts { bool pause; int gapless_audio; };
@@ -54,6 +54,9 @@ static unsigned unloaded;
 #define MP_TRACE(...) ((void)0)
 enum { AUDIOSTREAM_SUCCESS, AUDIOSTREAM_ERROR_SYSTEM = 3 };
 static void reset_timing(struct priv *p) {}
+static void stop_timing_worker(struct priv *p) {(void)p;}
+#define mp_mutex_destroy pthread_mutex_destroy
+#define mp_cond_destroy pthread_cond_destroy
 static int OH_AudioRenderer_Release(void *r) {return 0;}
 static int OH_AudioStreamBuilder_Destroy(void *b) {return 0;}
 #define MP_TIME_MS_TO_NS(v) ((v)*1000000LL)

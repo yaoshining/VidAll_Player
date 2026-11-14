@@ -53,9 +53,12 @@ int OH_AudioRenderer_Stop(OH_AudioRenderer*r){
 int OH_AudioRenderer_Start(OH_AudioRenderer*r){r->starts++;r->state=AUDIOSTREAM_STATE_RUNNING;return 0;}
 int OH_AudioRenderer_Pause(OH_AudioRenderer*r){r->pauses++;r->state=AUDIOSTREAM_STATE_PAUSED;return 0;}
 int OH_AudioRenderer_Flush(OH_AudioRenderer*r){r->flushes++;return 0;}
-struct priv {OH_AudioRenderer*renderer;unsigned long long recovery_token;int last_query;};
+struct priv {bool timestamp_valid;pthread_mutex_t timing_lock;pthread_cond_t timing_wakeup;OH_AudioRenderer*renderer;unsigned long long recovery_token;int last_query;};
 struct ao {struct priv*priv;};
 static void reset_timing(struct priv*p){p->last_query=0;}
+#define mp_mutex_lock pthread_mutex_lock
+#define mp_mutex_unlock pthread_mutex_unlock
+#define mp_cond_signal pthread_cond_signal
 /* METHODS */
 static void*scan(void*unused){(void)unused;mp_host_stop_retired_audio();scan_finished=true;return NULL;}
 int main(int argc,char**argv){
@@ -91,6 +94,7 @@ int main(int argc,char**argv){
   return 0;
  }
  OH_AudioRenderer r={.state=AUDIOSTREAM_STATE_PREPARED};struct priv p={.renderer=&r};struct ao a={.priv=&p};
+ pthread_mutex_init(&p.timing_lock,NULL);pthread_cond_init(&p.timing_wakeup,NULL);
  p.recovery_token=mp_host_audio_begin(mp_host_generation());
  assert(mp_host_audio_publish(p.recovery_token,stop_for_recovery,&r));
  start(&a);assert(r.starts==1);set_pause(&a,true);assert(r.pauses==1);

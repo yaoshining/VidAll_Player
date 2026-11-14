@@ -25,7 +25,7 @@ enum {AUDIOSTREAM_SUCCESS=0,AUDIOSTREAM_TYPE_RENDERER=1,AUDIOSTREAM_USAGE_MOVIE=
  AUDIOSTREAM_SAMPLE_U8,AUDIOSTREAM_SAMPLE_S16LE,AUDIOSTREAM_SAMPLE_S32LE,AUDIOSTREAM_SAMPLE_F32LE,
  AF_FORMAT_U8,AF_FORMAT_S16,AF_FORMAT_S32,AF_FORMAT_FLOAT,
  AUDIOSTREAM_STATE_PREPARED,AUDIOSTREAM_STATE_STOPPED,AUDIOSTREAM_STATE_RUNNING};
-struct priv {OH_AudioRenderer*renderer;OH_AudioStreamBuilder*builder;unsigned long long recovery_generation,recovery_token;int encoding_type;};
+struct priv {bool timing_initialized,timing_started,timing_stop;pthread_mutex_t timing_lock;pthread_cond_t timing_wakeup;pthread_t timing_thread;OH_AudioRenderer*renderer;OH_AudioStreamBuilder*builder;unsigned long long recovery_generation,recovery_token;int encoding_type;};
 struct global {unsigned long long host_generation;};
 struct ao {struct priv*priv;struct global*global;struct {int num;} channels;int samplerate,format;};
 static const char*mode;static int builder;
@@ -39,6 +39,14 @@ static int af_fmt_is_int(int f){return f!=AF_FORMAT_FLOAT;}
 static int af_fmt_to_bytes(int f){return f==AF_FORMAT_S32?4:2;}
 static int af_fmt_from_planar(int f){return f;}
 static void reset_timing(struct priv*p){(void)p;}
+#define mp_mutex_lock pthread_mutex_lock
+#define mp_mutex_unlock pthread_mutex_unlock
+#define mp_mutex_destroy pthread_mutex_destroy
+#define mp_cond_broadcast pthread_cond_broadcast
+#define mp_cond_destroy pthread_cond_destroy
+static int mp_mutex_init(pthread_mutex_t*m){return pthread_mutex_init(m,NULL);}
+static int mp_cond_init(pthread_cond_t*c){return pthread_cond_init(c,NULL);}
+static void*timing_worker(void*p){(void)p;return NULL;}
 static void unbind_legacy(struct priv*p){(void)p;unbound++;}
 static void mp_sleep_ns(long long ns){(void)ns;parked=true;usleep(1000);}
 static void gate(void){entered=true;while(blocked)usleep(1000);}
@@ -55,7 +63,13 @@ static int OH_AudioRenderer_GetCurrentState(OH_AudioRenderer*r,int*s){*s=r->stat
 static int OH_AudioRenderer_Stop(OH_AudioRenderer*r){stops++;r->state=AUDIOSTREAM_STATE_STOPPED;return !strcmp(mode,"stop-error-stopped")?AUDIOSTREAM_ERROR_ILLEGAL_STATE:0;}
 static int OH_AudioRenderer_Release(OH_AudioRenderer*r){(void)r;released++;if(!strcmp(mode,"release-block")||!strcmp(mode,"release-destroy-block"))gate();return !strcmp(mode,"release-fail")?-1:0;}
 static int OH_AudioStreamBuilder_Destroy(OH_AudioStreamBuilder*b){(void)b;destroyed++;destroy_entered=true;while(destroy_blocked)usleep(1000);return !strcmp(mode,"destroy-fail")?-1:0;}
+static int create_timing_thread(pthread_t*t,const pthread_attr_t*attr,void*(*entry)(void*),void*arg){
+ if(!strcmp(mode,"timing-thread-fail"))return 11;
+ return pthread_create(t,attr,entry,arg);
+}
+#define pthread_create create_timing_thread
 /* FUNCTIONS */
+#undef pthread_create
 static void*initialize(void*p){assert(init(p)==0);finished=true;return NULL;}
 static void*dispose(void*p){uninit(p);finished=true;return NULL;}
 static void*stop_retired(void*p){(void)p;mp_host_stop_retired_audio();stop_finished=true;return NULL;}
@@ -78,6 +92,9 @@ int main(int argc,char**argv){
   mp_host_retire_all();assert(mp_host_audio_pending()==1);mp_host_stop_retired_audio();assert(mp_host_audio_pending()==1);
   blocked=false;pthread_join(t,NULL);assert(finished&&!mp_host_audio_control_lock(p.recovery_token));
   mp_host_stop_retired_audio();assert(mp_host_audio_pending()==0);uninit(&a);assert(released==1&&destroyed==1);return 0;
+ }
+ if(!strcmp(mode,"timing-thread-fail")){
+  assert(init(&a)==-1);assert(released==1&&destroyed==1&&!p.recovery_token&&!p.timing_initialized&&!p.timing_started);return 0;
  }
  assert(init(&a)==0);assert(p.renderer&&p.builder&&p.recovery_token);
  if(!strcmp(mode,"stop-error-stopped")){
@@ -123,11 +140,11 @@ int main(int argc,char**argv){
  uninit(&a);assert(released==1&&destroyed==1&&!p.recovery_token&&!p.renderer&&!p.builder);
  uninit(&a);assert(released==1&&destroyed==1);mp_host_retire_all();assert(mp_host_audio_pending()==0);
 }
-'''.replace('/* FUNCTIONS */','\n'.join(function(n) for n in ['release_for_recovery','uninit','stop_for_recovery','init']))
+'''.replace('/* FUNCTIONS */','\n'.join(function(n) for n in ['stop_timing_worker','release_for_recovery','uninit','stop_for_recovery','init']))
 # 保留 C 断言括号，避免比较运算结合次序误判期望值。
 code=code.replace('destroyed==strcmp(mode,"create-fail")!=0','destroyed==(strcmp(mode,"create-fail")!=0)')
 with tempfile.TemporaryDirectory() as d:
  p=Path(d);(p/'test.c').write_text(code)
  subprocess.run(['clang','-std=gnu11','-pthread','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-I'+str(root/'native/mpv'),str(p/'test.c'),str(root/'native/mpv/host_recovery.c'),'-o',str(p/'test')],check=True)
- for case in sys.argv[2:] or ['normal','create-fail','callback-fail','generate-fail','generate-block','release-block','release-fail','destroy-fail','destroy-block','release-destroy-block','stop-error-stopped']:
+ for case in sys.argv[2:] or ['normal','timing-thread-fail','create-fail','callback-fail','generate-fail','generate-block','release-block','release-fail','destroy-fail','destroy-block','release-destroy-block','stop-error-stopped']:
   subprocess.run([str(p/'test'),case],check=True,timeout=5);print(case,'PASS',flush=True)

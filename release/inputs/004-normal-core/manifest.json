@@ -29,8 +29,8 @@
     },
     {
       "path": "arm64-v8a/libmpv.so",
-      "sha256": "23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a",
-      "size": 15723880
+      "sha256": "d283cc8edc69467d52dbab7854f7171703053003f71d52bdb9bbae1a2797f198",
+      "size": 15724776
     },
     {
       "path": "arm64-v8a/libc++_shared.so",
@@ -83,8 +83,8 @@
   "evidence": [
     {
       "path": "provenance/mpv-run-summary.json",
-      "sha256": "a4b624773f5c1552040ee50d4c0b429d0a798dbf94c46279feafb615fbe96276",
-      "size": 148430
+      "sha256": "1a52acbaebdd1fefa197ba8d1bd4cebd4f3f44abb1b8b92bcda7a5709104d004",
+      "size": 148442
     },
     {
       "path": "provenance/mpv-link-inputs.json",
@@ -108,12 +108,12 @@
     },
     {
       "path": "provenance/normal-compile-binding.json",
-      "sha256": "b068f9e3ad765c20559d1a6ac30976655b2a26a839fefb1798cae7580c46bc5f",
-      "size": 30098
+      "sha256": "b491756a22b2aec5e0fe8901a89e095a57d602ccd8798b0cfb2b439241247140",
+      "size": 30824
     },
     {
       "path": "provenance/source-lock.json",
-      "sha256": "a2438fd9991f7d8c52e81e8e1a4b0ebd7bcc43fae92afad5d31ae5be3da099bd",
+      "sha256": "a33f3c404c3eb4cb4320263b035cca017afcf98ad2c7c9f5913a1bfe034a73be",
       "size": 2900647
     },
     {
@@ -123,7 +123,7 @@
     },
     {
       "path": "provenance/normal-library-binding.json",
-      "sha256": "f822f3ef4380a28b34a6705f002e25fd3f2d1f6cebaa6f3d1d2b839fec39ec22",
+      "sha256": "47f60fa49e42ac9165b78537bdd494cf72d573660da12ceb32c3f0cd274fa584",
       "size": 718
     },
     {
@@ -148,13 +148,13 @@
     },
     {
       "path": "provenance/host-recovery-input.json",
-      "sha256": "c4002d986b73f8b2ee58eae3b3990e23b1f62763ceaadd464392004e5900b9e3",
-      "size": 2865
+      "sha256": "4c54930e3d793c795a2769bc20b96c25e511cc77bb11a9af2f031dc3d943bcd0",
+      "size": 3043
     },
     {
       "path": "provenance/host-recovery-static-validation.json",
-      "sha256": "5567061923d5e88b428e96c1e0acd817ca0a6a831da7ccf81b68775e38146167",
-      "size": 25874
+      "sha256": "e5b4b456d5437516a91bf8abb3b0c5596b0d190110a9229d3241a8b71f5dc928",
+      "size": 25934
     },
     {
       "path": "provenance/host-recovery-input-check.json",

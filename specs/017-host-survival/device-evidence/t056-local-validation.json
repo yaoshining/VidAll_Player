@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-14",
+  "scope": "本地预验证；非最终CI交付，不代表真机音画同步或永久系统故障恢复",
+  "runner": "本地MacBook Pro / Darwin arm64",
+  "harSHA256": "bddc520190890f4ebedfc75b9bc6f2058ef4c67571bce34636c63b88ef1b8675",
+  "libraries": {
+    "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libmpv.so": "d283cc8edc69467d52dbab7854f7171703053003f71d52bdb9bbae1a2797f198",
+    "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libvidall_player_native.so": "b2896278404ef5696e60aecdbd1ccf74c7caa0892cbd70d937ba375a8c5f048a"
+  },
+  "allEightInputsMatched": true,
+  "formalArtifactAllowed": false,
+  "devicePassed": false,
+  "ciPassed": false,
+  "hostChecks": 94,
+  "hostPassed": true,
+  "audioClockCases": 27,
+  "audioClockPassed": true
+}

@@ -116,6 +116,7 @@ jobs:
           python3 -B native/tests/host-survival/audio-data.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/data.log"
           python3 -B native/tests/host-survival/audio-control.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/control.log"
           python3 -B native/tests/host-survival/audio-lifecycle.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/lifecycle.log"
+          python3 -B native/tests/host-survival/audio-clock.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/clock.log"
       - name: 保存音频回归结果与源码身份
         if: always()
         uses: actions/upload-artifact@v4

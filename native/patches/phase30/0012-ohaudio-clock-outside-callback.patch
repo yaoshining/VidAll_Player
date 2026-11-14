@@ -1,0 +1,213 @@
+diff --git a/audio/out/ao_ohaudio.c b/audio/out/ao_ohaudio.c
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -53,6 +53,10 @@
+     int64_t written_frames;
+     int64_t queued_frames;
+     bool timestamp_valid;
++    mp_mutex timing_lock;
++    mp_cond timing_wakeup;
++    pthread_t timing_thread;
++    bool timing_initialized, timing_started, timing_stop;
+ 
+     struct legacy_binding legacy;
+     int encoding_type;
+@@ -126,12 +130,74 @@
+ 
+ static void reset_timing(struct priv *p)
+ {
++    if (!p->timing_initialized) return;
++    mp_mutex_lock(&p->timing_lock);
+     p->last_query = 0;
+     p->frame_position = 0;
+     p->frame_timestamp = 0;
+     p->written_frames = 0;
+     p->queued_frames = 0;
+     p->timestamp_valid = false;
++    mp_cond_signal(&p->timing_wakeup);
++    mp_mutex_unlock(&p->timing_lock);
++}
++
++// 每个已登记音频槽最多一个采样线程，和槽一起保留或释放；不为重试另起线程。
++// 查询与控制/关闭共用同一槽锁，但绝不在平台写回调内调用 Renderer API。
++static void *timing_worker(void *opaque)
++{
++    struct ao *ao = opaque;
++    struct priv *p = ao->priv;
++    for (;;) {
++        mp_mutex_lock(&p->timing_lock);
++        bool stop = p->timing_stop;
++        mp_mutex_unlock(&p->timing_lock);
++        if (stop || !mp_host_audio_control_lock(p->recovery_token)) break;
++        mp_mutex_lock(&p->timing_lock);
++        stop = p->timing_stop;
++        mp_mutex_unlock(&p->timing_lock);
++        if (!stop) {
++            int64_t position, timestamp;
++            OH_AudioStream_Result result = OH_AudioRenderer_GetAudioTimestampInfo(
++                p->renderer, &position, &timestamp);
++            // 查询可能耗时；不能用进入查询前的时间检查返回值或推算播放时刻。
++            int64_t now = mp_time_ns();
++            mp_mutex_lock(&p->timing_lock);
++            if (!p->timing_stop && result == AUDIOSTREAM_SUCCESS && position >= 0 &&
++                timestamp > 0 && timestamp <= now && now - timestamp < MP_TIME_S_TO_NS(2)) {
++                if (p->last_query && position < p->frame_position)
++                    p->written_frames = position;
++                p->frame_position = position;
++                p->frame_timestamp = timestamp;
++                p->timestamp_valid = true;
++            }
++            p->last_query = now;
++            mp_mutex_unlock(&p->timing_lock);
++        }
++        mp_host_audio_control_unlock(p->recovery_token);
++        if (stop) break;
++        mp_mutex_lock(&p->timing_lock);
++        if (!p->timing_stop)
++            mp_cond_timedwait(&p->timing_wakeup, &p->timing_lock, MP_TIME_MS_TO_NS(250));
++        stop = p->timing_stop;
++        mp_mutex_unlock(&p->timing_lock);
++        if (stop) break;
++    }
++    return NULL;
++}
++
++static void stop_timing_worker(struct priv *p)
++{
++    if (!p->timing_initialized) return;
++    mp_mutex_lock(&p->timing_lock);
++    p->timing_stop = true;
++    mp_cond_broadcast(&p->timing_wakeup);
++    mp_mutex_unlock(&p->timing_lock);
++    // 查询未返回时保留AO、renderer、线程及槽，不并发Release或强行取消线程。
++    if (p->timing_started) {
++        pthread_join(p->timing_thread, NULL);
++        p->timing_started = false;
++    }
+ }
+ 
+ static int release_for_recovery(void *opaque)
+@@ -157,6 +223,7 @@
+ {
+     struct priv *p = ao->priv;
+     unbind_legacy(p);
++    stop_timing_worker(p);
+     if (!p->recovery_token) return;
+     if (!mp_host_audio_remove(p->recovery_token, release_for_recovery, ao)) {
+         // 平台释放失败：保留回调宿主与 renderer，不能返回后释放 ao。
+@@ -164,6 +231,11 @@
+         for (;;) mp_sleep_ns(MP_TIME_MS_TO_NS(100));
+     }
+     p->recovery_token = 0;
++    if (p->timing_initialized) {
++        mp_cond_destroy(&p->timing_wakeup);
++        mp_mutex_destroy(&p->timing_lock);
++        p->timing_initialized = false;
++    }
+ }
+ 
+ static OH_AudioData_Callback_Result audio_on_write_callback(
+@@ -172,6 +244,7 @@
+     void* audioData,
+     int32_t audioDataSize)
+ {
++    (void)renderer;
+     struct ao* ao = userData;
+     struct priv* p = ao->priv;
+     if (mp_host_is_retired(p->recovery_generation)) {
+@@ -181,35 +254,12 @@
+ 
+     int samples = audioDataSize / ao->sstride;
+     int64_t now = mp_time_ns();
++    mp_mutex_lock(&p->timing_lock);
+     int64_t written = p->written_frames;
+-
+-    // The timestamp query may involve audio-service IPC. Keep it outside the
+-    // per-buffer hot path except at the documented >= 200 ms interval.
+-    if (!p->last_query || now - p->last_query >= MP_TIME_MS_TO_NS(250)) {
+-        int64_t position, timestamp;
+-        OH_AudioStream_Result res = OH_AudioRenderer_GetAudioTimestampInfo(
+-            renderer, &position, &timestamp);
+-        p->last_query = now;
+-        if (res == AUDIOSTREAM_SUCCESS && position >= 0 && timestamp > 0 &&
+-            timestamp <= now && now - timestamp < MP_TIME_S_TO_NS(2))
+-        {
+-            // A route change resets position while written frames remain
+-            // cumulative. Start a new local epoch when that happens.
+-            if (p->timestamp_valid && position < p->frame_position) {
+-                p->written_frames = position;
+-                written = position;
+-            }
+-            p->frame_position = position;
+-            p->frame_timestamp = timestamp;
+-            p->timestamp_valid = true;
+-        }
+-    }
+-
+-    // 时间戳查询可能跨 IPC 阻塞；返回后不能继续读取已退休的音频队列。
+-    if (mp_host_is_retired(p->recovery_generation)) {
+-        memset(audioData, ao->format == AF_FORMAT_U8 ? 128 : 0, audioDataSize);
+-        return AUDIO_DATA_CALLBACK_RESULT_VALID;
+-    }
++    // 过期或暂停/路由切换后停滞的快照不能被无限外推。
++    if (p->timestamp_valid && (now < p->frame_timestamp ||
++        now - p->frame_timestamp >= MP_TIME_S_TO_NS(2)))
++        p->timestamp_valid = false;
+ 
+     if (p->timestamp_valid) {
+         int64_t elapsed = now - p->frame_timestamp;
+@@ -225,8 +275,9 @@
+ 
+     int64_t end_time = now +
+         MP_TIME_S_TO_NS(samples + p->queued_frames) / ao->samplerate;
++    p->written_frames += samples;
++    mp_mutex_unlock(&p->timing_lock);
+     ao_read_data(ao, &audioData, samples, end_time, NULL, true, true);
+-    p->written_frames += samples;
+     if (mp_host_is_retired(p->recovery_generation))
+         memset(audioData, ao->format == AF_FORMAT_U8 ? 128 : 0, audioDataSize);
+ 
+@@ -345,6 +396,12 @@
+     p->recovery_token = mp_host_audio_begin(p->recovery_generation);
+     if (!p->recovery_token) return -1;
+ 
++    if (mp_mutex_init(&p->timing_lock)) goto error;
++    if (mp_cond_init(&p->timing_wakeup)) {
++        mp_mutex_destroy(&p->timing_lock);
++        goto error;
++    }
++    p->timing_initialized = true;
+     res = OH_AudioStreamBuilder_Create(&p->builder, AUDIOSTREAM_TYPE_RENDERER);
+ 
+     if (res != AUDIOSTREAM_SUCCESS) {
+@@ -402,6 +459,8 @@
+ 
+     if (!mp_host_audio_publish(p->recovery_token, stop_for_recovery, p->renderer)) goto error;
+     reset_timing(p);
++    if (pthread_create(&p->timing_thread, NULL, timing_worker, ao)) goto error;
++    p->timing_started = true;
+ 
+     return 0;
+ error:
+@@ -464,7 +523,10 @@
+     OH_AudioStream_Result result;
+     if (paused) result = OH_AudioRenderer_Pause(p->renderer);
+     else {
+-        p->last_query = 0;
++        mp_mutex_lock(&p->timing_lock);
++        p->timestamp_valid = false;
++        mp_cond_signal(&p->timing_wakeup);
++        mp_mutex_unlock(&p->timing_lock);
+         result = OH_AudioRenderer_Start(p->renderer);
+     }
+     mp_host_audio_control_unlock(p->recovery_token);
+@@ -476,6 +538,9 @@
+     struct priv *p = ao->priv;
+     if (!mp_host_audio_control_lock(p->recovery_token)) return;
+     OH_AudioRenderer_Start(p->renderer);
++    mp_mutex_lock(&p->timing_lock);
++    mp_cond_signal(&p->timing_wakeup);
++    mp_mutex_unlock(&p->timing_lock);
+     mp_host_audio_control_unlock(p->recovery_token);
+ }
+ 
