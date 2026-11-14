@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[3]
-TESTS = ['test_sync.py', 'test_prepare_sync.py', 'test_analyze.py', 'test_prepare.py', 'test_receive.py', 'chunks.test.cjs', 'manual.test.cjs', 'capture.test.cjs', 'page.test.cjs', 'baseline.test.cjs', 'seek.test.cjs', 'focus.test.cjs', 'alarm.test.cjs', 'evidence.test.cjs']
+TESTS = ['anchor.test.cjs', 'test_time_anchor.py', 'test_prepare_anchor.py', 'test_sync.py', 'test_prepare_sync.py', 'test_analyze.py', 'test_prepare.py', 'test_receive.py', 'chunks.test.cjs', 'manual.test.cjs', 'capture.test.cjs', 'page.test.cjs', 'baseline.test.cjs', 'seek.test.cjs', 'focus.test.cjs', 'alarm.test.cjs', 'evidence.test.cjs']
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

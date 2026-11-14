@@ -30,6 +30,30 @@ class AudioEvidenceTest(unittest.TestCase):
             segment = {'name':'续播', 'start':start, 'end':end, 'toneHz':None if silence else 440, 'forbiddenHz':880}
             return module.analyze(path, [segment])
 
+    def test_silence_short_tail_keeps_actual_duration(self):
+        # 30ms音尾不能扩为200ms；同一95%覆盖门槛下，160ms和持续噪声仍失败。
+        for noisy_seconds, expected in [(0, True), (.03, True), (.16, False), (.4, False)]:
+            with tempfile.TemporaryDirectory() as td:
+                path = Path(td) / 'tail.wav'; rate = 8000
+                with wave.open(str(path), 'wb') as f:
+                    f.setparams((1,2,rate,0,'NONE','not compressed'))
+                    f.writeframes(b''.join(struct.pack('<h', round(.2*32767*math.sin(2*math.pi*440*i/rate)) if i < rate*noisy_seconds else 0) for i in range(rate*2)))
+                result=module.analyze(path,[{'name':'完整静音段','start':0,'end':2}])
+                self.assertEqual(result['signalPassed'],expected)
+                if noisy_seconds==.03:
+                    self.assertGreaterEqual(result['segments'][0]['coverage'],.98)
+                    self.assertLessEqual(result['segments'][0]['longestFailureSeconds'],.04)
+
+    def test_partial_frequency_window_does_not_invent_old_tone(self):
+        self.assertTrue(self.check_signal([(440, .2)], end=1.01)['signalPassed'])
+        self.assertTrue(self.check_signal([(440, .2)], end=1.001)['signalPassed'])
+        self.assertFalse(self.check_signal([(440, .2), (880, .08)], end=1.01)['signalPassed'])
+
+    def test_sub_silence_floor_is_not_old_audio_mixing(self):
+        result=self.check_signal([(440, .00004), (880, .00003)])
+        self.assertFalse(result['signalPassed'])  # 缺少有效新声音，仍不能通过。
+        self.assertFalse(any(w['mixed'] for w in result['segments'][0]['windows']))
+
     def test_expected_tone(self):
         self.assertTrue(self.check_signal([(440, .2)])['signalPassed'])
     def test_opposite_stereo_phase_does_not_cancel(self):

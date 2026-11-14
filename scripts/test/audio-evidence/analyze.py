@@ -10,6 +10,7 @@ import sys
 import wave
 
 WINDOW_SECONDS = 0.2
+SILENCE_WINDOW_SECONDS = 0.01
 MIN_TONE_DBFS = -45
 SILENCE_DBFS = -55
 MAX_OLD_TO_NEW_POWER = 10 ** (-25 / 10)
@@ -55,17 +56,22 @@ def analyze(path, segments):
                 raise ValueError('测试频率超出采样范围')
         if hz is not None and hz == forbidden:
             raise ValueError('新旧测试音必须不同')
-        first, last, window = round(start * rate), round(end * rate), round(WINDOW_SECONDS * rate)
+        # 静音音尾需按实际时长计入覆盖率，不能把短音尾扩大成整个频率检测窗口。
+        resolution = SILENCE_WINDOW_SECONDS if hz is None else WINDOW_SECONDS
+        first, last, window = round(start * rate), round(end * rate), round(resolution * rate)
         windows = []
         for offset in range(first, last, window):
             stop = min(last, offset + window)
-            samples = [pcm[offset * channels + channel:stop * channels:channels] for channel in range(channels)]
+            # 短尾仍计实际时长，频率估计使用完整窗口，防止纯新音泄漏到旧音频率。
+            measurement_start = max(first, stop - window) if hz is not None else offset
+            samples = [pcm[measurement_start * channels + channel:stop * channels:channels] for channel in range(channels)]
             power = sum(sum((value / 32768.0) ** 2 for value in part) / len(part) for part in samples) / channels
             expected = sum(tone_power(part, rate, hz) for part in samples) / channels if hz else 0
             old = sum(tone_power(part, rate, forbidden) for part in samples) / channels if forbidden else 0
-            mixed = hz is not None and forbidden is not None and old > max(expected * MAX_OLD_TO_NEW_POWER, 1e-10)
+            mixed = hz is not None and forbidden is not None and db(old) > SILENCE_DBFS and old > expected * MAX_OLD_TO_NEW_POWER
             passed = db(power) <= SILENCE_DBFS if hz is None else db(expected) >= MIN_TONE_DBFS and not mixed
             windows.append({'start':offset / rate, 'seconds':(stop - offset) / rate,
+                            'measurementStart':measurement_start / rate, 'measurementEnd':stop / rate,
                             'rmsDbFS':db(power), 'expectedToneDbFS':db(expected),
                             'oldToneDbFS':db(old), 'mixed':mixed, 'passed':passed})
         total = sum(w['seconds'] for w in windows)
@@ -76,6 +82,7 @@ def analyze(path, segments):
             longest = max(longest, gap)
         passed = good / total >= .95 and longest <= .3 and not any(w['mixed'] for w in windows)
         results.append({'name':segment['name'], 'passed':passed, 'coverage':good / total,
+                        'measurementWindowSeconds':resolution,
                         'longestFailureSeconds':longest, 'windows':windows})
     return {'signalPassed':all(s['passed'] for s in results), 'deviceAccepted':False,
             'sha256':hashlib.sha256(path.read_bytes()).hexdigest(), 'sampleRate':rate,

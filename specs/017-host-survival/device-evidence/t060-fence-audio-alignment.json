@@ -1,0 +1,64 @@
+{
+  "monotonicMinusAudioPts": 3666160.2427704697,
+  "audioFirstPts": 0.0,
+  "uncertaintySeconds": 0.04,
+  "method": "独立前后平台帧时钟与2200Hz脉冲，完整区间原样平移，另按正负40ms边界复核；不使用播放片段拟合，不删启动/收尾。",
+  "rawEvents": [
+    {
+      "name": "会话1完整播放",
+      "startWall": 1794652023.441,
+      "endWall": 1794652033.473,
+      "toneHz": 880,
+      "forbiddenHz": 440
+    },
+    {
+      "name": "会话2完整播放",
+      "startWall": 1794652052.212,
+      "endWall": 1794652062.222,
+      "toneHz": 440,
+      "forbiddenHz": 880
+    },
+    {
+      "name": "会话3完整播放",
+      "startWall": 1794652099.332,
+      "endWall": 1794652109.343,
+      "toneHz": 880,
+      "forbiddenHz": 440
+    },
+    {
+      "name": "会话4完整播放",
+      "startWall": 1794652136.767,
+      "endWall": 1794652146.781,
+      "toneHz": 440,
+      "forbiddenHz": 880
+    },
+    {
+      "name": "会话1返回列表等待",
+      "startWall": 1794652043.756,
+      "endWall": 1794652051.854,
+      "toneHz": null,
+      "forbiddenHz": null
+    },
+    {
+      "name": "会话3返回列表等待",
+      "startWall": 1794652127.664,
+      "endWall": 1794652136.349,
+      "toneHz": null,
+      "forbiddenHz": null
+    },
+    {
+      "name": "迟到关闭接口完成至人工确认",
+      "startWall": 1794652067.225,
+      "endWall": 1794652098.938,
+      "toneHz": null,
+      "forbiddenHz": null
+    },
+    {
+      "name": "最后释放至校准前",
+      "startWall": 1794652146.896,
+      "endWall": 1794652149.417,
+      "toneHz": null,
+      "forbiddenHz": null
+    }
+  ]
+}
