@@ -1,0 +1,13 @@
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -275,7 +275,9 @@
+         now - p->frame_timestamp >= MP_TIME_S_TO_NS(2)))
+         p->timestamp_valid = false;
+ 
+-    if (p->timestamp_valid) {
++    // 位置0可能是尚未启动的固定时间戳；不能按流逝时间虚构已播放帧。
++    // 路由/Flush归零也采用已写帧保守估计，正位置恢复后再使用平台时钟。
++    if (p->timestamp_valid && p->frame_position > 0) {
+         int64_t elapsed = now - p->frame_timestamp;
+         int64_t played = p->frame_position +
+             elapsed * ao->samplerate / MP_TIME_S_TO_NS(1);

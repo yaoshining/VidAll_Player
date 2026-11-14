@@ -59,6 +59,8 @@ def main():
     run('load-generation-entry', py+['native/tests/host-survival/load-entry.test.py'])
     run('fault-during-close', py+['native/tests/host-survival/fault-close.test.py'])
     run('first-frame-event', py+['native/tests/host-survival/first-frame.test.py'])
+    if run('audio-output-reuse-compile', ['clang++', '-std=c++17', '-pthread', '-Wall', '-Wextra', '-Werror', 'native/tests/host-survival/audio-output-reuse.test.cpp', '-o', work/'audio-output-reuse']):
+        run('audio-output-reuse', [work/'audio-output-reuse'])
     run('runtime-napi-entry', py+['native/tests/host-survival/runtime-entry.test.py'])
     run('software-release-fence', py+['native/tests/surface-resize/sw.test.py', 'packages/vidall-player/src/main/cpp/napi_init.cpp'])
     if run('audio-domain-compile', ['clang', '-std=c11', '-pthread', '-Wall', '-Wextra', '-Werror', '-Inative/mpv', 'native/tests/host-survival/audio-domain.test.c', 'native/mpv/host_recovery.c', '-o', work/'audio-domain']):

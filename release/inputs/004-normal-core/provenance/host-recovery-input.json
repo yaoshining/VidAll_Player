@@ -61,6 +61,10 @@
     {
       "path": "native/patches/phase30/0014-ohaudio-clock-domain.patch",
       "sha256": "a289fc3841f6f5730b5c903634effb2289b499758923a79dbc4b17e6190f5806"
+    },
+    {
+      "path": "native/patches/phase30/0015-ohaudio-zero-position.patch",
+      "sha256": "c42a9f0097d9148d6b46db89f1415b95b23626554c8d11001baf9c3da4a2b262"
     }
   ],
   "addedSources": [

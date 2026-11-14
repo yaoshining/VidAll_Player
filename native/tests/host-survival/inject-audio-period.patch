@@ -1,0 +1,13 @@
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -533,6 +533,10 @@
+         goto error;
+     }
+ 
++    // T066_PERIOD_BEGIN
++    int period_rc=OH_AudioStreamBuilder_SetFrameSizeInCallback(p->builder,ao->samplerate/50);
++    MP_WARN(ao,"AUDIO_PERIOD_PROBE frames=%d rc=%d\n",ao->samplerate/50,period_rc);
++    // T066_PERIOD_END
+     res = OH_AudioStreamBuilder_GenerateRenderer(p->builder, &p->renderer);
+ 
+     if (res != AUDIOSTREAM_SUCCESS) {

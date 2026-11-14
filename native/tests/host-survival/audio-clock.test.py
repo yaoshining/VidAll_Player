@@ -134,6 +134,12 @@ int main(int argc,char**argv){
  struct priv p;struct ao a;OH_AudioRenderer r={.pos=0,.stamp=999000000};setup(&a,&p,&r);
  if(!strcmp(mode,"callback-contract")){write_one(&a);uninit(&a);return 0;}
 #if HAVE_WORKER
+ if(!strcmp(mode,"startup-zero")){
+  p.written_frames=8916;r.stamp=now_ns-80000000;launch(&a);wait_sample(&p,0);
+  write_one(&a);
+  // 平台位置仍为0，不能把这80ms外推成已经消耗3840帧。
+  assert(end_ns==now_ns+195750000);uninit(&a);return 0;
+ }
  if(!strcmp(mode,"blocked-query")){
   r.blocked=true;launch(&a);wait_flag(&r.entered);
   pthread_t writer,closer;assert(!pthread_create(&writer,NULL,write_thread,&a));wait_flag(&callback_done);pthread_join(writer,NULL);
@@ -158,7 +164,7 @@ int main(int argc,char**argv){
   if(!strcmp(mode,"domain-stale"))r.stamp=now_ns+mono_offset-3000000000LL;
   if(!strcmp(mode,"domain-clock-fail"))mono_failed=true;
   launch(&a);wait_flag(&r.entered);
-  if(valid){wait_sample(&p,0);assert(p.frame_timestamp==now_ns-1000000);write_one(&a);write_one(&a);assert(end_ns==now_ns+19000000);}
+  if(valid){wait_sample(&p,0);assert(p.frame_timestamp==now_ns-1000000);write_one(&a);write_one(&a);assert(end_ns==now_ns+20000000);}
   stop_timing_worker(&p);assert(p.timestamp_valid==valid);
   uninit(&a);return 0;
  }
@@ -166,7 +172,7 @@ int main(int argc,char**argv){
   launch(&a);wait_sample(&p,0);write_one(&a);
   // 480个采样、48kHz：首缓冲的结束时刻是当前时间之后10ms。
   assert(end_ns==now_ns+10000000);
-  write_one(&a);assert(end_ns==now_ns+19000000);
+  write_one(&a);assert(end_ns==now_ns+20000000);
   // 过期快照不能一直按旧播放时刻外推；降级估计仍有上限。
   stop_timing_worker(&p);now_ns+=3000000000LL;write_one(&a);
   assert(!p.timestamp_valid&&end_ns<=now_ns+260000000);
@@ -216,6 +222,6 @@ with tempfile.TemporaryDirectory() as td:
                     '-fsanitize=address,undefined','-I'+str(ROOT/'native/mpv'),str(p/'test.c'),
                     str(ROOT/'native/mpv/host_recovery.c'),'-o',str(p/'test')],check=True)
     for sdk in ['19','24','26']:
-        for case in sys.argv[2:] or ['domain-offset','domain-future','domain-stale','domain-clock-fail','callback-contract','blocked-query','clock','delayed-query','route-reset','route-reset-invalid','retired-query','budget','repeat']:
+        for case in sys.argv[2:] or ['startup-zero','domain-offset','domain-future','domain-stale','domain-clock-fail','callback-contract','blocked-query','clock','delayed-query','route-reset','route-reset-invalid','retired-query','budget','repeat']:
             subprocess.run([str(p/'test'),sdk,case],check=True,timeout=10)
             print('API'+sdk,case,'PASS',flush=True)

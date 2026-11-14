@@ -1,11 +1,11 @@
 {
-  "runRoot": "/private/tmp/vidall-host-recovery-t064-build",
+  "runRoot": "/private/tmp/vidall-host-recovery-t066-zero-build",
   "freshRootVerified": true,
   "configuration": {
     "profile": "stable-target-prefix-macro-map-origin-staging",
     "stablePrefix": "/usr/local",
     "ffmpegRelative": "mpv/source/_staged/ffmpeg",
-    "packageSHA256": "26ca17926d497915c49f45b21800110bed07454bd49f9b288d02d4df640761c1",
+    "packageSHA256": "086590c041831adf0de8472f74c5a241156bc409bb98aa63196dd682b1fdec5f",
     "toolHashes": {
       "meson": "2ac5f65bc3760309298f8cab1c8abd2773633a5c0e1470a22f7aa7940c0e2084",
       "ninja": "4e2125bd4c149186d6715a3d46ca294fc58ff9dbae8b3444c8e9330941276b57",
@@ -47,7 +47,7 @@
     "target": "aarch64-linux-ohos",
     "linkerTraceDiagnostic": true
   },
-  "artifactPath": "/private/tmp/vidall-host-recovery-t064-build/install/usr/local/lib/libmpv.so",
+  "artifactPath": "/private/tmp/vidall-host-recovery-t066-zero-build/install/usr/local/lib/libmpv.so",
   "linkInputs": [
     {
       "path": "sdk/llvm/lib/aarch64-linux-ohos/libc++_shared.so",
@@ -231,7 +231,7 @@
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_ohaudio.c.o",
-      "sha256": "ec0d3c116b06bacc56d81727e952da1388012452e5c1dd62bc26c5fee629ef84"
+      "sha256": "436c8af232d615ff67ee4c4610eeeaf0b1f707feefea7a29e3bf1d967b09ebd6"
     },
     {
       "path": "run/mpv/build/libmpv.so.p/audio_out_ao_pcm.c.o",
@@ -1063,7 +1063,7 @@
     }
   ],
   "artifactHashes": {
-    "mpv": "795c82bf1054feb31f76408c0d9bde6ddc87d1efc4f7888f09285dc82c2ce6dd",
+    "mpv": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
     "libplacebo": "a0c1e102b3403e84ca464dea4573fa16180b9b654c6f07325635e7370f808d57"
   },
   "allocatedSections": {
@@ -1081,7 +1081,7 @@
       "address": 656,
       "size": 304056,
       "allocated": true,
-      "sha256": "d70c37c383626fccde79a461b4b2314cf6730a5a67040870dcb03a848f5b9320"
+      "sha256": "3199a9c1f970d2817c915050841cefa847bb0c5c4a41715f0a8e00acaa13be20"
     },
     ".gnu.version": {
       "type": 1879048191,
@@ -1129,7 +1129,7 @@
       "address": 1354032,
       "size": 853296,
       "allocated": true,
-      "sha256": "b5c7354ee68da0ee339c39e435fc7c19e1fc33f1684090ac65e5347fa3805b02"
+      "sha256": "8f09857d998dfebf1396f0872adc5191c130cb30a0cc863b72c68372e7c678e4"
     },
     ".rela.plt": {
       "type": 4,
@@ -1161,7 +1161,7 @@
       "address": 4671040,
       "size": 115012,
       "allocated": true,
-      "sha256": "6640301e4041efbe6e7a9d5fd6293d4f069cce6c675631a16bbb52ebabdc9924"
+      "sha256": "86c9cfd9543459e43b2c9a2268224a16f823b54259421d0f7d445f4cbd9edc32"
     },
     ".eh_frame": {
       "type": 1,
@@ -1169,7 +1169,7 @@
       "address": 4786056,
       "size": 522884,
       "allocated": true,
-      "sha256": "2a21cfcfc3817439c16ccdf65b13fc8e0596a7d054df4812a1c7147540fc193a"
+      "sha256": "37086119e095e9e26f7b62bc6179f985f184c6faa4d475332631ffcee149be35"
     },
     ".text": {
       "type": 1,
@@ -1177,7 +1177,7 @@
       "address": 5313036,
       "size": 9731032,
       "allocated": true,
-      "sha256": "a3683141cd12ecf9d1eb8f70030100e2509a98532a39bb6183643a19db1b8a16"
+      "sha256": "cf2b1bdec5c4bd2f218ccdf26793532327c6128b616d2b240f020fe8689b696e"
     },
     ".init": {
       "type": 1,
