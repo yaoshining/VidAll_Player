@@ -1,0 +1,86 @@
+{
+  "signalPassed": true,
+  "deviceAccepted": false,
+  "sha256": "11d7a742a7329a0c94daa9e8c5b3f7a29078f5b50ca250595e798820854b6c63",
+  "sampleRate": 16000,
+  "channels": 2,
+  "durationSeconds": 147.987,
+  "segments": [
+    {
+      "name": "首片完整90秒声音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "关闭后完整列表等待",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "重新打开完整声音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "最终释放完整静音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    }
+  ],
+  "limits": [
+    "只核对指定测试音，不证明自然音质或物理扬声器效果",
+    "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+    "合成音回归不计作设备验收"
+  ],
+  "alignment": {
+    "kind": "独立平台音频帧时间戳，仅用于声音窗口；视觉校准不合格，不作为音画同步证据",
+    "wallToAudioPtsSeconds": -1794669336.1540732,
+    "calibrationDriftMs": -3.8017963524907827
+  },
+  "sensitivity": [
+    {
+      "shiftMs": -40,
+      "passed": true
+    },
+    {
+      "shiftMs": -30,
+      "passed": true
+    },
+    {
+      "shiftMs": -20,
+      "passed": true
+    },
+    {
+      "shiftMs": -10,
+      "passed": true
+    },
+    {
+      "shiftMs": 0,
+      "passed": true
+    },
+    {
+      "shiftMs": 10,
+      "passed": true
+    },
+    {
+      "shiftMs": 20,
+      "passed": true
+    },
+    {
+      "shiftMs": 30,
+      "passed": true
+    },
+    {
+      "shiftMs": 40,
+      "passed": true
+    }
+  ]
+}

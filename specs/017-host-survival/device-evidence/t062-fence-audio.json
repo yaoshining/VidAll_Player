@@ -1,0 +1,114 @@
+{
+  "signalPassed": true,
+  "deviceAccepted": false,
+  "sha256": "3789ca457c7c6642c80a0744c5e846f089bae7a529a675efad795809f563c046",
+  "sampleRate": 16000,
+  "channels": 2,
+  "durationSeconds": 236.69,
+  "segments": [
+    {
+      "name": "会话1完整播放",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "会话2完整播放",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "会话3完整播放",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "会话4完整播放",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "会话1完整列表等待",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "会话3完整列表等待",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "晚关闭接口完成至确认",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "最后释放至校准前",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    }
+  ],
+  "limits": [
+    "只核对指定测试音，不证明自然音质或物理扬声器效果",
+    "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+    "合成音回归不计作设备验收"
+  ],
+  "alignment": {
+    "kind": "独立平台音频帧时间戳",
+    "wallToAudioPtsSeconds": -1794670190.1560452,
+    "calibrationDriftMs": 1.864333637058735
+  },
+  "sensitivity": [
+    {
+      "shiftMs": -40,
+      "passed": true
+    },
+    {
+      "shiftMs": -30,
+      "passed": true
+    },
+    {
+      "shiftMs": -20,
+      "passed": true
+    },
+    {
+      "shiftMs": -10,
+      "passed": true
+    },
+    {
+      "shiftMs": 0,
+      "passed": true
+    },
+    {
+      "shiftMs": 10,
+      "passed": true
+    },
+    {
+      "shiftMs": 20,
+      "passed": true
+    },
+    {
+      "shiftMs": 30,
+      "passed": true
+    },
+    {
+      "shiftMs": 40,
+      "passed": true
+    }
+  ]
+}
