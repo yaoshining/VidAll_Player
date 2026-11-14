@@ -9,6 +9,8 @@
 3. 提供两个 rawfile：`global-probe.mp4` 是 30 秒 SMPTE 色条、880 Hz 音频；`test_video.mp4` 是相邻 `../recovery/README.md` 的移动图案、440 Hz 音频，均每秒一个关键帧。这里的 `global-probe.mp4` 只是不同素材的文件名，不能带入全局定时故障补丁。
 4. 先记录源提交、补丁哈希、真实构建机器类型、原始 HAR/HAP 哈希、九库哈希、设备型号、API、ABI、两个素材哈希。每轮从全新进程开始；保留该 PID 的原始 hilog 和画面/音频证据。页面日志前缀为 `P17F`，沙盒记录在 `files/phase17-fence/events.jsonl`。
 
+云设备可能在日志写入前过滤 INFO；云控制台选择 verbose 不会恢复已过滤的日志。T059 在 API24 Air 上确认：首次只能看到 ERROR 注入记录，`late-close` 确认超时；通过平台允许的 Shell 执行 `hilog -b I -T VidAllFenceProbe` 后，从新进程重跑才取得同 PID 的 begin/completed 两条日志。此设置仅针对诊断标签、非持久配置；不降低系统安全日志级别。先检查设备 `hilog -h` 支持情况，不绕过平台命令限制。没有日志仍须失败，不能仅凭等待七秒点击确认。
+
 诊断 HAR 不得替代最终 GitHub Actions CI 交付，也不得在 VidAll_TV 中解包修改 Player。生产产物与诊断产物的清单及验收结论必须分开记录。
 
 ### 当前可复现构建约束

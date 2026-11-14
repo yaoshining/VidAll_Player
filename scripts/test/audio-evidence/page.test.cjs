@@ -7,6 +7,8 @@ let calls=[],recording=false;
 global.XComponentController=class{};
 const original=Module._load;
 Module._load=function(name,parent,main){
+ if(name==='./SeekRun'){const f=path.join(path.dirname(file),'SeekRun.ets');const sm=new Module(f,module);sm._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,f);return sm.exports;}
+ if(name==='./SystemBaseline')return{SystemBaseline:class{async run(){calls.push('system-baseline');}async close(){}}};
  if(name==='./EvidenceChunks')return{EvidenceChunks:class{async begin(kind,busy){calls.push(['begin',kind,busy]);if(busy)throw Error('CAPTURE_BUSY');}async next(busy){calls.push(['next',busy]);}async repeat(busy){calls.push(['repeat',busy]);}close(){calls.push('chunks-close');}}};
  if(name==='./EvidenceFiles')return{EvidenceFiles:class{start(){}close(){}async exportFile(){return true;}}};
  if(name==='./AudioCapture')return{AudioCapture:class{async start(){calls.push('capture-start');recording=true;}assertRecording(){assert(recording);}async finish(){calls.push('capture-finish');recording=false;}}};
@@ -50,15 +52,15 @@ m._compile(ts.transpileModule(stripped,{compilerOptions:{module:ts.ModuleKind.Co
  let resumed=0;await focus.focusFlow({play:async()=>resumed++});assert.equal(resumed,1);
  assert(source.includes(".id('audio-focus-start')"));
  // 执行完整run，使用生产契约的durationMs estimated=true，不能只模拟主流程成功。
- async function normalCase(duration, positionEstimated=false) {
+ async function normalCase(duration, positionEstimated=false, stalled=false) {
   const page=new m.exports.Index();page.context={};page.capture={assertRecording(){}};
-  page.record=()=>{};page.delay=async()=>{};page.badMedia=async()=>{};page.firstFrames=2;
+  page.record=(event,value)=>{calls.push([event,value]);};page.delay=async()=>{};page.badMedia=async()=>{};page.firstFrames=2;
   let diagnostics=0;
   const field=(value,estimated=false)=>({status:'available',value,estimated});
   const player={pause:async()=>{},play:async()=>{},seekPercent:async()=>{},release:async()=>{},
    getDiagnostics:async()=>{const n=++diagnostics;return {fields:{
-    paused:field(n<=2), positionMs:field([5000,5000,8000,20000,21000][n-1],positionEstimated),
-    durationMs:duration,renderBackend:field('vulkan'),hardwareDecoder:field('ohcodec')
+    paused:field(n<=2), positionMs:field(n>=5 ? (stalled ? 20000 : 20000+(n-4)*500) : [5000,5000,8000,20000][n-1],positionEstimated),
+    buffering:field(false),durationMs:duration,renderBackend:field('vulkan'),hardwareDecoder:field('ohcodec')
    }};}};
   page.open=async()=>{page.player=player;return player;};await page.run();return page.status;
  }
@@ -68,5 +70,9 @@ m._compile(ts.transpileModule(stripped,{compilerOptions:{module:ts.ModuleKind.Co
  await assert.rejects(normalCase({...duration,status:'unavailable'}),/DIAGNOSTIC_UNAVAILABLE/);
  await assert.rejects(normalCase({...duration,value:NaN}),/DIAGNOSTIC_UNAVAILABLE/);
  await assert.rejects(normalCase({...duration,value:60000}),/FIXTURE_DURATION_MISMATCH/);
+ calls=[];await assert.rejects(normalCase(duration,false,true),/SEEK_NOT_ADVANCING/);
+ assert(calls.some(x=>Array.isArray(x)&&x[0]==='seek-failed-diagnostics'),'失败前必须记录原始检查快照');
+ assert.equal(calls.filter(x=>Array.isArray(x)&&x[0]==='seek-followup').length,20,'保留失败后10秒完整观察，不见推进即停止');
+ assert(!calls.some(x=>Array.isArray(x)&&x[0]==='seek-verified'),'后来推进不能覆盖原始失败');
  console.log('PASS: 录制开始后才播放、一次性启动、失败清理、退出禁止新会话、手动恢复');
 })().catch(e=>{console.error(e);process.exitCode=1;});

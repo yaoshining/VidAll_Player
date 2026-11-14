@@ -1,4 +1,6 @@
 import { EvidenceChunks } from './EvidenceChunks';
+import { SystemBaseline } from './SystemBaseline';
+import { SeekSample, verifySeekProgress } from './SeekRun';
 import { FocusAlarm } from './FocusAlarm';
 import { FocusPort, FocusSnapshot, runFocusProbe } from './FocusRun';
 import { AudioCapture } from './AudioCapture';
@@ -27,6 +29,7 @@ struct Index {
   private started: boolean = false;
   private capture?: AudioCapture;
   private alarm?: FocusAlarm;
+  private baseline?: SystemBaseline;
   private cancelled: boolean = false;
   private focusRequested: boolean = false;
   private manualResume: boolean = false;
@@ -79,7 +82,7 @@ struct Index {
     this.unsubscribe = onPlayerTerminal(() => { this.fatal().catch(() => { this.record('fatal-ui-error'); }); });
     this.ready = true; this.status = '准备就绪，请开始系统内录回归';
   }
-  private async startCaptured(withFocus: boolean = false): Promise<void> {
+  private async startCaptured(withFocus: boolean = false, systemBaseline: boolean = false): Promise<void> {
     if (this.cancelled || !this.ready || !this.surface || this.started) return;
     this.started = true; this.focusRequested = withFocus;
     this.capture = new AudioCapture((event: string, value: string) => { this.record(event, value); });
@@ -87,7 +90,12 @@ struct Index {
       this.status = '请在系统弹窗确认录制（不录麦克风）';
       await this.capture.start(this.root + '/capture.mp4');
       this.active(); this.capture.assertRecording();
-      await this.run();
+      if (systemBaseline) {
+        this.baseline = new SystemBaseline((event: string, value: string): void => { this.record(event, value); },
+          (ms: number): Promise<void> => this.delay(ms));
+        await this.baseline.run(this.root + '/test_video.mp4', this.controller.getXComponentSurfaceId());
+        await this.delay(2500);
+      } else { await this.run(); }
       this.capture.assertRecording();
       await this.capture.finish();
       this.status = '内录完成，待导出音轨核验；不等于听声通过';
@@ -115,6 +123,7 @@ struct Index {
     for (let i = 0; i < 100 && this.playerState !== 'preparing' && this.playerState !== 'playing'; i++) await this.delay(50);
     if (this.playerState !== 'playing') await player.play();
     await this.firstFrameAfter(before);
+    this.record('open-diagnostics', JSON.stringify(await player.getDiagnostics()));
     this.record('audible-window-start', String(generation));
     return player;
   }
@@ -155,15 +164,33 @@ struct Index {
     const target = 20000;
     if (Math.abs(this.number(resumed.fields.durationMs, true) - 30000) > 100) throw new Error('FIXTURE_DURATION_MISMATCH');
     await first.seekPercent(200 / 3);
-    let sought: PlayerDiagnosticsSnapshot = await first.getDiagnostics();
-    for (let i = 0; i < 20 && Math.abs(this.number(sought.fields.positionMs) - target) > 1500; i++) {
-      await this.delay(150); sought = await first.getDiagnostics();
+    let latest: PlayerDiagnosticsSnapshot = await first.getDiagnostics();
+    try {
+      await verifySeekProgress({
+        snapshot: async (): Promise<SeekSample> => {
+          latest = await first.getDiagnostics();
+          this.record('seek-sample', JSON.stringify(latest));
+          if (latest.fields.paused.status !== 'available' || latest.fields.paused.estimated ||
+            latest.fields.buffering.status !== 'available' || latest.fields.buffering.estimated ||
+            latest.fields.paused.value === undefined || latest.fields.buffering.value === undefined) {
+            throw new Error('DIAGNOSTIC_UNAVAILABLE');
+          }
+          return { positionMs: this.number(latest.fields.positionMs), paused: latest.fields.paused.value,
+            buffering: latest.fields.buffering.value };
+        },
+        delay: (ms: number): Promise<void> => this.delay(ms),
+        record: (event: string, value: string): void => this.record(event, value)
+      }, target);
+    } catch (error) {
+      this.record('seek-failed-diagnostics', JSON.stringify(latest));
+      // 失败后的有界观察只帮助定位，不会将本轮失败改判为通过。
+      for (let i = 0; i < 20; i++) {
+        await this.delay(500);
+        this.record('seek-followup', JSON.stringify(await first.getDiagnostics()));
+      }
+      throw new Error((error as Error).message);
     }
-    this.record('seek-target', JSON.stringify({ target, reached: this.number(sought.fields.positionMs) }));
-    if (Math.abs(this.number(sought.fields.positionMs) - target) > 1500) throw new Error('SEEK_TARGET_MISMATCH');
-    await this.delay(700); const snapshot = await first.getDiagnostics();
-    if (this.number(snapshot.fields.positionMs) < this.number(sought.fields.positionMs) + 250) throw new Error('SEEK_NOT_ADVANCING');
-    this.record('seek-verified', JSON.stringify({ target, before: this.number(resumed.fields.positionMs), reached: this.number(sought.fields.positionMs), after: this.number(snapshot.fields.positionMs) }));
+    const snapshot = latest;
     this.record('diagnostics', JSON.stringify({ position: snapshot.fields.positionMs, backend: snapshot.fields.renderBackend, decoder: snapshot.fields.hardwareDecoder }));
     await first.release(); this.record('release-ok'); await this.delay(2500);
     const second = await this.open(2); await this.delay(5000);
@@ -207,6 +234,7 @@ struct Index {
   }
   private async finish(): Promise<void> {
     if (this.context === undefined) return;
+    if (this.baseline !== undefined) await this.baseline.close();
     if (this.alarm !== undefined) await this.alarm.stop();
     const player = this.player; this.player = undefined;
     if (player !== undefined && getPlayerRuntimeStatus().state !== 'terminal') await player.release();
@@ -252,6 +280,7 @@ struct Index {
       Column() {
       Button('开始系统内录回归').id('audio-capture-start').defaultFocus(true).onClick(() => { this.startCaptured(); })
       Button('系统打断与手动恢复内录').id('audio-focus-start').onClick(() => { this.startCaptured(true); })
+      Button('系统播放器同步对照（20秒）').id('audio-baseline-start').onClick(() => { this.startCaptured(false, true); })
       if (this.awaitingManualResume) {
         Button('手动继续播放').id('audio-manual-resume').defaultFocus(true).onClick(() => { this.acceptManualResume(); })
       }

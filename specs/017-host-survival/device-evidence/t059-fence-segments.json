@@ -1,0 +1,48 @@
+[
+  {
+    "name": "会话1完整观测播放窗口",
+    "start": 0.47,
+    "end": 1.977,
+    "toneHz": 880,
+    "forbiddenHz": 440
+  },
+  {
+    "name": "会话2完整观测播放窗口",
+    "start": 39.356,
+    "end": 40.864,
+    "toneHz": 440,
+    "forbiddenHz": 880
+  },
+  {
+    "name": "会话3完整观测播放窗口",
+    "start": 57.328,
+    "end": 58.846,
+    "toneHz": 880,
+    "forbiddenHz": 440
+  },
+  {
+    "name": "会话4完整观测播放窗口",
+    "start": 82.07,
+    "end": 83.581,
+    "toneHz": 440,
+    "forbiddenHz": 880
+  },
+  {
+    "name": "故障1返回列表完整等待",
+    "start": 9.067,
+    "end": 39.022,
+    "toneHz": null
+  },
+  {
+    "name": "故障3返回列表完整等待",
+    "start": 76.772,
+    "end": 81.652,
+    "toneHz": null
+  },
+  {
+    "name": "释放后收尾完整等待",
+    "start": 83.701,
+    "end": 86.203,
+    "toneHz": null
+  }
+]

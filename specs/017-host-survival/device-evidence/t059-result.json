@@ -1,0 +1,127 @@
+{
+  "date": "2026-11-14",
+  "device": "API24 MatePad Air 6.1.0.112 WKI-W10",
+  "productionSource": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+  "productionChanged": false,
+  "hostToolSuites": 14,
+  "seek73": {
+    "pidBefore": 58605,
+    "pidAfter": 58605,
+    "hardwareDecoder": "ohcodec",
+    "renderBackend": "vulkan",
+    "flowPassed": true,
+    "seek": {
+      "target": 120000,
+      "reached": 119100,
+      "after": 119766.66666666667
+    },
+    "summary": {
+      "firstFrames": 2,
+      "errors": 0
+    },
+    "releaseNote": "prepare_sync显式增加10秒seek后播放观察；10249ms包含这段等待，不能误报release耗时10秒。剩余约249ms含调度/记录开销，不是独立计时的原生销毁耗时。",
+    "syncMedianMs": 142.72199999999202,
+    "syncRangeMs": [
+      124.34399999999712,
+      144.6329999999989
+    ],
+    "syncDriftMs": 2.5659999999931813,
+    "syncPassed": false,
+    "diagnosticsToReleaseCompletedMs": 10249,
+    "intentionalPostSeekPlaybackMs": 10000,
+    "remainingIntervalAfterIntentionalWaitMs": 249,
+    "audioSignalPassed": true,
+    "audioCoverage": [
+      0.9977789130000222,
+      1.0,
+      0.98
+    ]
+  },
+  "fence72": {
+    "firstRunPid": 32797,
+    "firstRunPassed": false,
+    "firstRunFailure": "NATIVE_LATE_CLOSE_CONFIRM_TIMEOUT",
+    "retryPidAtFaultsAndEnd": 50993,
+    "retryIndependentPidBeforeInjection": null,
+    "nativeLateCloseObserved": true,
+    "releaseHeartbeatTicks": 25,
+    "lateCloseSlotReclaimedByHardwareSession3": true,
+    "sessionDecoders": [
+      "ohcodec",
+      "ohcodec",
+      "ohcodec",
+      "no"
+    ],
+    "sessionRenderers": [
+      "vulkan",
+      "vulkan",
+      "vulkan",
+      "vulkan"
+    ],
+    "faultSessions": [
+      "1",
+      "3"
+    ],
+    "flowPassed": true,
+    "signalPassed": false,
+    "audioOnsetsSeconds": [
+      1.2,
+      39.72,
+      57.68,
+      82.44
+    ],
+    "videoRegionOnsetsSeconds": [
+      0.47,
+      39.168,
+      57.134,
+      81.866
+    ],
+    "onsetAnalysis": "全段实际录制PTS的观察值，视频ROI350,450,200,200检测由黑至彩色，音轨10ms RMS阈值-45dBFS；不是新的验收门槛或物理输出测量。",
+    "firstFrameIsNotAudioReady": true
+  },
+  "deviceAccepted": false,
+  "api19TvAccepted": false,
+  "sessionReleased": true,
+  "freeBalanceMinutesAtRelease": 202,
+  "paidPurchase": false,
+  "todoCompleted": 2,
+  "todoTotal": 4,
+  "artifacts": {
+    "baseline-capture.mp4": {
+      "bytes": 806381,
+      "sha256": "fb7576cfa23fe4aabd3c377dce4eb5ce102d40656ca5c823d8f0804fdbe85137"
+    },
+    "mpv-capture.mp4": {
+      "bytes": 5553237,
+      "sha256": "7fe5ea9bac93db892c00de585b0de51db43ed3659ec6eaa2c80bb9f49dd4d99b"
+    },
+    "fence-capture.mp4": {
+      "bytes": 10026872,
+      "sha256": "1260dfc125742cb6570e7df59f3d4f06703f84e62a6777d94016e95564631539"
+    },
+    "fence-retry-capture.mp4": {
+      "bytes": 5481343,
+      "sha256": "c6efc0d5e9f6318e20a0a8cbf2c9aa6dc3f9db59e867aab06b626f73f70b508c"
+    },
+    "seek73-capture.mp4": {
+      "bytes": 4732103,
+      "sha256": "cc63dd0016b04f1b7cc1eda8409b321f3edfa3509707eb8ac5a52e119c2dc031"
+    },
+    "baseline-events.jsonl": {
+      "bytes": 16470,
+      "sha256": "1ea27f6f84911b8499e3ee35d76c71d5961b1009093a95cd5e89ed1880461bc6"
+    },
+    "mpv-events.jsonl": {
+      "bytes": 60529,
+      "sha256": "05eac2aaaa2b3a293c0f89eaa0ae7b99d600fa3c279bccbd72519754f50f4630"
+    },
+    "fence-retry-events.jsonl": {
+      "bytes": 16807,
+      "sha256": "e8b992e4cb072f38f964f14dbd5a4d78dc2ecb659e24d28828940eac5d4eb91c"
+    },
+    "seek73-events.jsonl": {
+      "bytes": 114063,
+      "sha256": "8606df2c3e91fdc42cdb30b11ffc630173411bf3540d598afc0d678686a62f15"
+    }
+  }
+}
