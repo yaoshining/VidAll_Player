@@ -1,0 +1,25 @@
+{
+  "device": "API24 MatePad Air 6.1.0.112 WKI-W10",
+  "productionCommit": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+  "hapVersion": "1.0.66",
+  "navigationBeforeInstallPassed": true,
+  "pidDuringPlayback": 33806,
+  "pidAfterFailure": 33806,
+  "scriptResult": "SEEK_NOT_ADVANCING",
+  "syncPassed": false,
+  "deviceAccepted": false,
+  "decoderPathVerified": false,
+  "capture": {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t057-sync/air-capture.mp4",
+    "bytes": 4014324,
+    "sha256": "38247b405aff1d3dc4048ca60bc218685a12235f63d98f0c8d5c4a3cb9d9cbec"
+  },
+  "sourceClockWarning": "设备显示时间与北京时间不一致；事件仅使用同次录制内相对时间，未用设备日期代表实际执行日期。",
+  "executeDateBeijing": "2026-11-14",
+  "limitations": [
+    "跳转失败导致未执行到关闭重开",
+    "录制测量的固定音画偏差尚未区分播放器与内录链路",
+    "新候选OHCodec/Vulkan路径尚待补证",
+    "API24不替代API19TV"
+  ]
+}

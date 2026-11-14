@@ -1,0 +1,63 @@
+{
+  "executionDateBeijing": "2026-11-14",
+  "device": "MatePad Air WKI-W10",
+  "api": 24,
+  "os": "6.1.0.112",
+  "sourceCommit": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+  "diagnosticOnly": true,
+  "deviceAccepted": false,
+  "global": {
+    "eventGatePassed": true,
+    "initialDecoder": "ohcodec",
+    "initialRenderBackend": "vulkan",
+    "recoveryDecoder": "no",
+    "recoveryRenderBackend": "software",
+    "firstFrames": 3,
+    "pidAfterTerminalBeforeUserReturn": 4932,
+    "pidAfterCompletion": 4932,
+    "pidBeforeInjectionIndependentlyQueried": false,
+    "continuousInAppEventTrace": true,
+    "signalPassed": false,
+    "postFaultNewVideoSignalPassed": true,
+    "reopenSignalPassed": true,
+    "silenceBetweenSessionsPassed": true,
+    "physicalSpeakerAccepted": false
+  },
+  "fence": {
+    "partialExecution": true,
+    "pidInInjectionLog": 60765,
+    "lateCloseNativeLogConfirmed": false,
+    "audioExported": false,
+    "interruption": "上传全局包时云平台自动安装；重装1.0.67被版本降级保护拒绝，未绕过"
+  },
+  "files": {
+    "global-events.jsonl": {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t058-probes/global-events.jsonl",
+      "bytes": 6356,
+      "sha256": "b3b93e618d60820d2311d1b94f9629d4cc3bcfdb5ad19422940f5398f7ee1fce"
+    },
+    "global-capture.mp4": {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t058-probes/global-capture.mp4",
+      "bytes": 3286383,
+      "sha256": "a1058b3c99a50a755627062d88aa0d8d5c256b98e8453dff13225dcbaab386cc"
+    },
+    "global-complete.png": {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t058-probes/global-complete.png",
+      "bytes": 62047,
+      "sha256": "baead2a9f5d6927d7563ddcc2ce2a25d023a5a5ba2e4c1706ade7021f9d94138"
+    }
+  },
+  "cloudSession": {
+    "released": true,
+    "exportAndReleaseRequested": true,
+    "platformLogDownloaded": false,
+    "remainingFreeMinutes": 242,
+    "purchase": false
+  },
+  "limits": [
+    "API24不替代API19TV",
+    "本地诊断HAR不是最终CI交付",
+    "全局故障注入不证明真实系统音频永久挂起可恢复",
+    "完整故障前后PID独立采样缺故障前一点"
+  ]
+}
