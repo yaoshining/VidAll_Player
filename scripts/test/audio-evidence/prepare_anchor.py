@@ -29,16 +29,19 @@ def transform(source,kind):
   source=replace(source,"  aboutToDisappear(): void {", "  aboutToDisappear(): void { this.anchor?.close().catch((error: Error) => { this.record('anchor-close-failed', error.message); });")
   marker='      try { await this.finish(); } catch (_) {}'
   source=replace(source,marker,"      try { await this.anchor?.close(); } catch (cleanup) { this.record('anchor-close-failed', (cleanup as Error).message); }\n"+marker)
- elif kind=='fence':
+ elif kind in ('fence','global'):
   source=replace(source,'      this.capture.assertRecording();\n    } finally { await this.capture.finish(); }',END+"      this.capture.assertRecording();\n    } finally { try { await this.anchor?.close(); } finally { await this.capture.finish(); } }")
-  source=replace(source,'await this.delay(1500); this.active();','await this.delay(10000); this.active();')
+  if kind=='fence':source=replace(source,'await this.delay(1500); this.active();','await this.delay(10000); this.active();')
+  else:
+   source=replace(source,'const second = await this.open(2); await this.delay(700);','const second = await this.open(2); await this.delay(10000);')
+   source=replace(source,'const third = await this.open(3); await this.delay(2000);','const third = await this.open(3); await this.delay(10000);')
   source=replace(source,'  aboutToDisappear(): void {',"  aboutToDisappear(): void {\n    this.anchor?.close().catch((error: Error) => { this.record('anchor-close-failed', error.message); });")
  else:raise ValueError('未知验收页')
  source=replace(source,"    }.width('100%').height('100%').backgroundColor(Color.Black)",ROW+"    }.width('100%').height('100%').backgroundColor(Color.Black)")
  return "import { TimeAnchor, anchorCode } from './TimeAnchor';\n"+source
 
 def main():
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('--project',type=Path,required=True);p.add_argument('--kind',choices=['normal','fence'],required=True);a=p.parse_args()
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--project',type=Path,required=True);p.add_argument('--kind',choices=['normal','fence','global'],required=True);a=p.parse_args()
  har=a.project/'entry/libs/current.har';before=hashlib.sha256(har.read_bytes()).hexdigest();pages=a.project/'entry/src/main/ets/pages';index=pages/'Index.ets'
  index.write_text(transform(index.read_text(),a.kind));shutil.copyfile(ROOT/'fixtures/normal-core-consumer/audio-evidence/TimeAnchor.ets',pages/'TimeAnchor.ets')
  capture=pages/'AudioCapture.ets';text=capture.read_text()

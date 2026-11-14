@@ -15,6 +15,10 @@ class Test(unittest.TestCase):
   for token in ['await this.delay(10000); this.active();', 'release-heartbeat','this.runUnrecorded()',"calibrate('after')"]:
    self.assertIn(token,out)
   self.assertIn('confirmLateClose: (): Promise<void>',out)
+ def test_global(self):
+  m=module('prepare_anchor');src=module('prepare').with_capture((ROOT/'fixtures/normal-core-consumer/recovery-terminal/Index.ets').read_text());out=m.transform(src,'global')
+  for token in ["calibrate('before')","calibrate('after')",'await this.waitForRecoveryNavigation()', 'const second = await this.open(2); await this.delay(10000);','const third = await this.open(3); await this.delay(10000);']:
+   self.assertIn(token,out)
  def test_drift(self):
   with self.assertRaises(ValueError):module('prepare_anchor').transform('struct Index {}','normal')
 if __name__=='__main__':unittest.main()

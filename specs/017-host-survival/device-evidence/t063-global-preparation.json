@@ -1,0 +1,20 @@
+{
+  "productionSource": "444e812cd729d85ea5b91d9552266e31091b047d",
+  "scope": "定时全局终局注入；不是自然GPU故障",
+  "version": "1.0.84",
+  "buildMachine": "本地MacBook Pro ARM64，非CI交付",
+  "harSHA256": "25c6741cc8aba3bed12219f574a3de7c769402e67969e06ac9bedc4c0259c82b",
+  "hapSHA256": "97554451794c30117725537294039e3fa63a8a91b90642e6b1eb8c6d2ae9daa9",
+  "libraries": {
+    "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libmpv.so": "fb17fc4552625c2030c26df45417335f36a6f03eb1e1b01a6ac415ec6f8800ec",
+    "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libvidall_player_native.so": "059a5b1f2781d6d85ede8710528e075f8c6db0998437f86b0577e06aa4a8fa53"
+  },
+  "deviceAccepted": false
+}

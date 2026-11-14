@@ -1,0 +1,49 @@
+{
+  "records": {
+    "2": 1705,
+    "1": 985
+  },
+  "anomalies": [
+    {
+      "kind": 2,
+      "timestamp": 1737308257153629,
+      "previous": 1737308257153629,
+      "differenceMs": 0.0,
+      "samePayload": false,
+      "arrival": 1737308037485816
+    },
+    {
+      "kind": 2,
+      "timestamp": 1737319337146910,
+      "previous": 1737319337146910,
+      "differenceMs": 0.0,
+      "samePayload": false,
+      "arrival": 1737319117557691
+    },
+    {
+      "kind": 2,
+      "timestamp": 1737328997157691,
+      "previous": 1737328997157691,
+      "differenceMs": 0.0,
+      "samePayload": false,
+      "arrival": 1737328777593004
+    },
+    {
+      "kind": 2,
+      "timestamp": 1737329757170191,
+      "previous": 1737329757170191,
+      "differenceMs": 0.0,
+      "samePayload": false,
+      "arrival": 1737329538146910
+    },
+    {
+      "kind": 2,
+      "timestamp": 1737333897133629,
+      "previous": 1737333897133629,
+      "differenceMs": 0.0,
+      "samePayload": true,
+      "arrival": 1737333677513941
+    }
+  ],
+  "sha256": "f1e565d874c8ab6869586ea4882854ba9cba8e577aa478268d363f070b5e171c"
+}
