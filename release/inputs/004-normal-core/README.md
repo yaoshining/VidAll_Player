@@ -30,4 +30,6 @@ Spec 017 已使用恢复 SDK 作为当前 mpv 链接输入；`normal-compile-bin
 
 `provenance/host-recovery-input.json` 锁定补丁、新增音频登记源码及预编译 SDK；`native/scripts/prepare-host-recovery-input.py` 校验并派生独立输入，不修改来源、不编译 FFmpeg。`native/tooling/normal-core` 导入封存 mpv/libplacebo 构建和审计工具，来源摘要见 origins.json，恢复 ABI 白名单为六个符号。命令和边界见该目录 README.md。
 
-此次 MacBook Pro / Darwin arm64 构建得到 libmpv SHA-256 `814e4f02ced52a15a213fd9a0c54f37ffbbe6ca466df758bd04ab0a9fa901beb`，64 个公开导出、253 个链接输入及 56 个 libplacebo 归档成员已校验。静态/源码校验不证明真实 GPU 故障恢复；最终 HAR 仍须由 iMac CI 构建。
+此次 MacBook Pro / Darwin arm64 构建得到 libmpv SHA-256 `405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21`，64 个公开导出、253 个链接输入及 56 个 libplacebo 归档成员已校验。静态/源码校验不证明真实 GPU 故障恢复；最终 HAR 仍须由 iMac CI 构建。
+
+T069审查门禁：producer-input-lock.json更新为T066精确生产输入，绑定56ebd3f、iMac CI43624519417及T068 API24证据。原失败源于锁仍指向早期Spec017 mpv；七项mpv清单/来源/绑定更新，六个FFmpeg库、C++库及FFmpeg来源记录未变。仍保留`producerLatestNormalFullCloudRebuildVerified=false`与`formalArtifactAllowed=false`，不跳过哈希检查，不称上游FFmpeg新构建。
