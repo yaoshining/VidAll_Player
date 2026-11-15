@@ -1,0 +1,10 @@
+{
+  "abi": "arm64-v8a",
+  "requiredSymbol": "ohcodec_smb_runtime_configure_v1",
+  "errors": [],
+  "scope": "仅 SMB 宿主运行时前置合同；不代表完整 SDK 或设备验收",
+  "headerSHA256": "b952497cd47e840dfffd2262cfd874caa8521175a88bdc595d9f9910f23c9f26",
+  "librarySHA256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+  "symbolExported": true,
+  "passed": true
+}

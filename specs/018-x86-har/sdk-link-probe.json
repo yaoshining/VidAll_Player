@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+    "--target=x86_64-linux-ohos",
+    "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+    "-I/private/tmp/vidall-player-x86_64/release/inputs/004-normal-core/include",
+    "/tmp/vidall-x86-sdk-link-probe/probe.c",
+    "-L/tmp/vidall-x86-sdk-download/ffmpeg8-ohos-x86_64-20261115-r2/lib",
+    "-Wl,-rpath-link,/tmp/vidall-x86-sdk-download/ffmpeg8-ohos-x86_64-20261115-r2/lib",
+    "-Wl,--no-undefined",
+    "-lavformat",
+    "-o",
+    "/tmp/vidall-x86-sdk-link-probe/probe"
+  ],
+  "returncode": 1,
+  "stdout": "",
+  "stderr": "ld.lld: error: undefined symbol: ohcodec_smb_runtime_configure_v1\n>>> referenced by probe.c\n>>>               /var/folders/7s/y7kx47nj0l7gk98hbd3shvv40000gn/T/probe-50cb0d.o:(main)\nclang-15: error: linker command failed with exit code 1 (use -v to see invocation)\n",
+  "sdkSHA256": "3b3e7763e381a569e8362cd4d828e9c3a89605b7505de6f04b14fb46c870e269",
+  "purpose": "验证现有Player宿主运行时必需的FFmpeg扩展可链接，不执行目标代码"
+}

@@ -1,0 +1,12 @@
+{
+  "abi": "x86_64",
+  "requiredSymbol": "ohcodec_smb_runtime_configure_v1",
+  "errors": [
+    "缺少配套头文件 include/libavformat/ohcodec_smb_runtime.h",
+    "缺少动态导出 ohcodec_smb_runtime_configure_v1"
+  ],
+  "scope": "仅 SMB 宿主运行时前置合同；不代表完整 SDK 或设备验收",
+  "librarySHA256": "5dcf20c331bf51c45015355cef9f8dc79ad96a5e938fe7e03557b402bad0ad0b",
+  "symbolExported": false,
+  "passed": false
+}

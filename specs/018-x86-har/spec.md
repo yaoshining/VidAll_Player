@@ -1,6 +1,6 @@
 # Spec018：x86_64完整播放HAR
 
-状态：依赖受阻，未实现/未交付。基线main `8a3ce572fb4b534cb4308db4c5f7c356cea5332b`，工作分支`codex/x86_64-har`。
+状态：已取得 SDK r2，但宿主运行时接口验收失败；完整 HAR 未实现/未交付。基线main `8a3ce572fb4b534cb4308db4c5f7c356cea5332b`，工作分支`codex/x86_64-har`。
 
 ## 用户目标
 在main基础上补充x86_64可用的完整Player HAR，提供CI原包地址并同步Todoist。当前ARM64产物不变；不使用旧桥或只有NAPI探针的产物冒充完整播放。
@@ -12,8 +12,9 @@
 - R4：缺库、错架构、SONAME/依赖冲突、旧桥/探针、配置未知或哈希不匹配必须在交付前拒绝。保持ARM64完整九库；最终双架构内容和每库哈希显式记录。
 - R5：普通分支由iMac自托管Actions交付原始HAR；记录实际runner、源提交、HAR与每库哈希及消费方式，不重打包Player。
 - R6：分层记录主机、消费构建、x86_64模拟器的正常播放/暂停恢复/seek/关闭重开/坏片续播。模拟器不替代API19 TV硬解验收，#93不并入本次完成结论。
+- R7：软件解码可以不提供 OHCodec，但不能删除现有 SMB 沙箱初始化合同。SDK 须提供匹配的 `libavformat/ohcodec_smb_runtime.h` 和真实动态导出 `ohcodec_smb_runtime_configure_v1`；不以空实现、跳过检查或全局环境变量覆盖冒充兼容。
 
 ## 当前限制
-上游master 32887363的受控producer合同和当前恢复SDK仅ARM64。上游README存在基础FFmpeg8 x86构建说明，但未取得当前可消费的完整x86 SDK。旧TV六库为x86 ELF，缺当前OHCodec扩展符号及受控headers/pkg-config/身份包，不能直接替换当前核心。可行的纯软件分支仍须先获得真实匹配SDK并验证能力，不因缺OHCodec就断言x86软件播放不可行。
+2026-11-16 已下载上游 Release 的 `ffmpeg8-ohos-x86_64-20261115-r2.tar.gz`，核验 309 项摘要与六库 x86_64 架构、SONAME 和依赖闭包。SDK 为本地 macOS arm64 构建的软件解码版本，不提供 OHCodec，这一能力边界可接受；它尚缺 R7 的配套头文件与动态导出。当前 `process_runtime.cpp` 在所有真实 mpv 架构初始化时均调用该接口，最小 OHOS x86_64 链接实际失败，不能宣称可接入。详情见 `sdk-acceptance.md`、`sdk-host-runtime-gate.json`、`sdk-link-probe.json`。SDK 目标运行未验收。
 
-负责会话：[修复 issue #89](thread://01a1bccc-e2cc-7a13-8cd6-31aae7079fb0?hostId=local)；thread ID `01a1bccc-e2cc-7a13-8cd6-31aae7079fb0`；host `local`；更新2026-11-15。
+负责会话：[修复 issue #89](thread://01a1bccc-e2cc-7a13-8cd6-31aae7079fb0?hostId=local)；thread ID `01a1bccc-e2cc-7a13-8cd6-31aae7079fb0`；host `local`；更新2026-11-16。
