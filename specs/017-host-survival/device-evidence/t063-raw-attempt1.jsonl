@@ -1,0 +1,4 @@
+{"event":"raw-start-requested","value":"{\"state\":-1,\"error\":0,\"records\":0,\"bytes\":0,\"width\":0,\"height\":0,\"stride\":0,\"format\":0,\"physicalAccepted\":false}","time":1794671668192,"monoNs":1736938271418430}
+{"event":"failed","value":"RAW_START_TIMEOUT","time":1794671688352,"monoNs":1736958431390305}
+{"event":"raw-closed","value":"{\"state\":-1,\"error\":0,\"records\":0,\"bytes\":0,\"width\":0,\"height\":0,\"stride\":0,\"format\":0,\"physicalAccepted\":false}","time":1794671688381,"monoNs":1736958460417493}
+{"event":"capture-failed","value":"RAW_EMPTY","time":1794671688381,"monoNs":1736958460657336}

@@ -1,23 +1,34 @@
 {
   "schemaVersion": 1,
-  "acceptedDelivery": "004-normal-core-phase30-a-session-close-recovery",
+  "acceptedDelivery": "004-normal-core-spec017-t066-production",
   "producerLatestNormalFullCloudRebuildVerified": false,
   "files": {
-    "manifest.json": "98c688f102be1f3be369cf2534e8cad47bfdbead1aaf673119c3d6ac60d27036",
-    "provenance/source-lock.json": "2cab2d94414e81e0ba513ca53143011f05741c23a01e53e2b88b7c9289275065",
-    "provenance/normal-library-binding.json": "b0e829825928b8a8ff52a97542b3ccdfaf3606e356a52e3906b35694d7700105",
-    "provenance/normal-compile-binding.json": "5379cf1f3ad8ee6bfb4e979eb4864661fb8a21dc71dc03e6621b8f1330e3d742",
+    "manifest.json": "b385f91ee4345ffc00dfb0efae9145c92a842382edc6bfca28b0790bdb0f7ade",
+    "provenance/source-lock.json": "b90978790d3d54e51577485b482b75c027f2b3742203402bbe22d23db474bec3",
+    "provenance/normal-library-binding.json": "b5e706743b101b8e2d9192368f64322e532147d4b6801423e101c73e206e193f",
+    "provenance/normal-compile-binding.json": "8a25124e8dd1d6494846f232e5c503e291af27a27ea9e3fc33971a75da997ec9",
     "arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
     "arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
     "arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
     "arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
-    "arm64-v8a/libmpv.so": "c1997eee1f1190aca663e49ef86e98b96a1403cf5e2f99b16158cd217ef7d56a",
+    "arm64-v8a/libmpv.so": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
     "arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
     "arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
     "arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
     "provenance/ffmpeg-recovery-sdk.json": "7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf",
     "provenance/ffmpeg-recovery-merge.json": "3695ec4419c31999ade8fb947b24b465760f7e62ee54579ea5ee5c1ec9e81b6f",
-    "provenance/ffmpeg-recovery-compatibility.json": "5ef0794dc3bf73464fd0c19252643a1fce21ad62b520a56b5027e7206bd5bd10"
+    "provenance/ffmpeg-recovery-compatibility.json": "5ef0794dc3bf73464fd0c19252643a1fce21ad62b520a56b5027e7206bd5bd10",
+    "provenance/host-recovery-input.json": "9b45cd782e0518f21099764e24684404ef3be2a9ebaf36e2f05b4f06eb0f18e6",
+    "provenance/host-recovery-static-validation.json": "a9f342a7e4994dbee4aaf6e6309f6fc5224eddd8690eb5732bb0e0b51ce0e6e4",
+    "provenance/host-recovery-input-check.json": "3794923f59563b018e361417660735a15f008036e79eeab4814d81283a3b768c"
   },
-  "formalArtifactAllowed": false
+  "formalArtifactAllowed": false,
+  "acceptanceEvidence": {
+    "productionSourceCommit": "56ebd3f7cb918f2c6be2a3eb9e0683f0b8734cb0",
+    "ciRunUrl": "https://github.com/yaoshining/VidAll_Player/actions/runs/43624519417",
+    "ciEvidence": "specs/017-host-survival/device-evidence/t066-ci.json",
+    "deviceEvidence": "specs/017-host-survival/device-evidence/t068-session.json",
+    "scope": "本地MacBook Pro派生mpv输入，iMac CI构建HAR，API24 TV核心验收；不是最新核心云端源码重建/API19/x86_64通过",
+    "ffmpegUpdated": false
+  }
 }

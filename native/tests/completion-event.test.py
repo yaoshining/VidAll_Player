@@ -8,7 +8,7 @@ def method(name):
     while depth:
         depth+=(source[i]=='{')-(source[i]=='}');i+=1
     return source[at:i]
-names=['std::uint64_t BeginCompletion()', 'void InvalidateCompletion()', 'void CompletionReply(', 'void CompleteFile(', 'void DispatchCompletion(']
+names=['std::uint64_t BeginCompletion(', 'void InvalidateCompletion()', 'void CompletionReply(', 'void CompleteFile(', 'void DispatchCompletion(']
 legacy='--legacy-red' in sys.argv
 methods='' if legacy else '\n'.join(method(n) for n in names)
 start=source.index('            if (event->event_id == MPV_EVENT_END_FILE) {');begin=source.index('{',start);depth=1;i=begin+1
@@ -30,7 +30,9 @@ if not legacy:
 
 code=r'''
 #include "session_isolation.h"
+#include "environment_lifetime.h"
 #include <atomic>
+#include <cstdlib>
 #include <mutex>
 #include <vector>
 #include <algorithm>
@@ -42,17 +44,26 @@ code=r'''
 #include <functional>
 #include <condition_variable>
 #include <chrono>
-struct Handle {void* get(){return nullptr;}};
-struct Event {std::string type,message;uint64_t epoch,sequence,generation;std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<std::atomic<bool>> callbackOpen;};
+struct mpv_handle;
+struct Handle {mpv_handle* get(){return nullptr;}};
+struct Event {std::string type,message;uint64_t epoch,sequence,generation;std::shared_ptr<vidall::runtime::SessionIsolation> isolation;std::shared_ptr<std::atomic<bool>> callbackOpen;uint64_t runtimeGeneration;bool compatible;std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment;};
 static constexpr int napi_tsfn_nonblocking=0,napi_ok=0;
-static uint64_t requested=0;static int submitResult=0;
+static bool legacyCore=std::getenv("VIDALL_TEST_LEGACY_LOAD")!=nullptr;
+static uint64_t requested=0,boundSession=0;static int submitResult=0,hostCalls=0;
 static std::function<void()> onSubmit;
-static int test_command_async(void*,uint64_t userdata,const char**){requested=userdata;if(onSubmit)onSubmit();return submitResult;}
+
 #define mpv_command_async test_command_async
 #include <mpv/client.h>
+extern "C" int test_command_async(mpv_handle*,uint64_t userdata,const char**){requested=userdata;if(onSubmit)onSubmit();return submitResult;}
+#define RTLD_DEFAULT nullptr
+static int host_load(mpv_handle*p,uint64_t generation,uint64_t session,const char**args){boundSession=session;hostCalls++;return test_command_async(p,generation,args);}
+namespace vidall::runtime { static void* ResolveMpvSymbol(const char*name){assert(!strcmp(name,"mpv_host_loadfile_async"));return legacyCore?nullptr:reinterpret_cast<void*>(host_load);} }
 namespace vidall { namespace runtime { std::atomic<bool> terminal{false};const char* AdmissionError(){return terminal?"terminal":nullptr;} } }
 class Harness {
 public:
+uint64_t runtimeGeneration_=1;bool compatible_=false;
+std::shared_ptr<vidall::runtime::EnvironmentLifetime> environment_;
+const char* RuntimeAdmissionError(){return vidall::runtime::AdmissionError();}
 std::shared_ptr<vidall::runtime::SessionIsolation> isolation_;
 std::shared_ptr<std::atomic<bool>> callbackOpen_;
 std::mutex completionMutex_,callbackMutex_,lifecycleMutex_;void* eventTsfn_=this;bool rendererReady_=true;std::atomic<uint64_t> eventEpoch_{0},generation_{1},eventSequence_{0};std::atomic<bool> released_{false};
@@ -67,13 +78,17 @@ LOAD
 @@STOP@@
 void process(mpv_event* event){do { @@REPLY@@ @@END_BLOCK@@ } while(false);}
 
+void QueueEventLocked(const std::string&type,const std::string&message,uint64_t epoch){
+ auto* event=new Event{type,message,epoch,++eventSequence_,generation_.load(),isolation_,callbackOpen_,runtimeGeneration_,compatible_,environment_};
+ napi_call_threadsafe_function(eventTsfn_,event,napi_tsfn_nonblocking);
+}
 int napi_call_threadsafe_function(void*,Event* event,int){std::unique_lock<std::mutex> lk(testMutex);if(block){entered=true;cv.notify_all();cv.wait(lk,[&]{return unblock;});}if(verifyOrder)assert(preparing);if(event->message=="completed")sent.push_back({event->epoch,event->generation});else errors.push_back(event->epoch);delete event;return napi_ok;}
 METHODS
 void reply(uint64_t request,int64_t id,int error=0){mpv_node value{};value.format=MPV_FORMAT_INT64;value.u.int64=id;char key[]="playlist_entry_id";char* keys[]={key};mpv_node_list list{1,&value,keys};mpv_event_command command{};command.result.format=MPV_FORMAT_NODE_MAP;command.result.u.list=&list;mpv_event event{};event.event_id=MPV_EVENT_COMMAND_REPLY;event.reply_userdata=request;event.error=error;event.data=&command;process(&event);}
 void end(int64_t id,int reason=MPV_END_FILE_REASON_EOF){mpv_event_end_file end{};end.reason=static_cast<mpv_end_file_reason>(reason);end.playlist_entry_id=id;mpv_event event{};event.event_id=MPV_EVENT_END_FILE;event.data=&end;process(&event);}
 };
 int main(){
- {Harness h;h.load();assert(requested==h.eventEpoch_&&requested>0);h.reply(requested,10);h.end(10);assert(h.sent.size()==1);}
+ {Harness h;h.load();assert(legacyCore?hostCalls==0:(boundSession==1&&hostCalls==1));assert(requested==h.eventEpoch_&&requested>0);h.reply(requested,10);h.end(10);assert(h.sent.size()==1);}
  {Harness h;h.verifyOrder=true;std::future<void> processing;std::promise<void> entered;
   onSubmit=[&]{auto request=requested;
    processing=std::async(std::launch::async,[&,request]{entered.set_value();h.reply(request,10);h.end(10);});
@@ -84,6 +99,10 @@ int main(){
  }
  {Harness h;h.rendererReady_=false;assert(!h.load().ok);h.rendererReady_=true;assert(h.load().ok);h.reply(requested,10);h.end(10);assert(h.sent.size()==1&&h.sent[0].first==2);}
  {Harness h;submitResult=-1;h.load();submitResult=0;h.reply(requested,10);h.end(10);assert(h.sent.empty());}
+ {Harness h;assert(h.Load("same://input","","","",1,3).ok);assert(requested==3&&h.eventEpoch_==3);
+  h.reply(3,10);assert(!h.Load("same://input","","","",1,3).ok);assert(h.eventEpoch_==3);h.end(10);assert(h.sent.size()==1);
+  assert(!h.Load("same://input","","","",1,2).ok);assert(!h.Load("same://input","","","",1,9007199254740992ULL).ok);
+  assert(h.Load("same://input","","","",1,5).ok);assert(requested==5&&h.eventEpoch_==5);}
  {Harness h;auto old=h.BeginCompletion();h.reply(old,10);auto next=h.BeginCompletion();h.reply(next,11);h.end(10,MPV_END_FILE_REASON_ERROR);assert(h.errors.empty());h.end(11,MPV_END_FILE_REASON_ERROR);h.end(11);assert(h.sent.empty()&&h.errors.size()==1&&h.errors[0]==next);}
  {Harness h;auto e=h.BeginCompletion();h.end(10,MPV_END_FILE_REASON_ERROR);h.end(10);h.reply(e,10);assert(h.sent.empty()&&h.errors.size()==1);}
  {Harness h;auto e=h.BeginCompletion();h.end(9);h.reply(e,10);assert(h.sent.empty());h.end(10);assert(h.sent.size()==1);}
@@ -102,7 +121,7 @@ int main(){
  for(int mode=0;mode<6;mode++){Harness h;auto e=h.BeginCompletion();mpv_node values[2]{};for(auto &v:values){v.format=MPV_FORMAT_INT64;v.u.int64=10;}char key[]="playlist_entry_id";char* keys[]={key,key};mpv_node_list list{mode==3?2:1,values,keys};mpv_event_command c{};c.result.format=mode==2?MPV_FORMAT_STRING:MPV_FORMAT_NODE_MAP;c.result.u.list=&list;mpv_event event{};event.reply_userdata=e;event.error=mode==0?-1:0;event.data=mode==1?nullptr:&c;if(mode==4)values[0].format=MPV_FORMAT_DOUBLE;if(mode==5)values[0].u.int64=-1;h.CompletionReply(event);h.reply(e,10);h.end(10);assert(h.sent.empty());}
  {Harness h;auto e=h.BeginCompletion();h.reply(e,10);std::thread t([&]{h.InvalidateCompletion();});t.join();h.end(10);assert(h.sent.empty());}
 }
-'''.replace('METHODS',methods).replace('EXTRAS',extras).replace('LOAD',load).replace('@@STOP@@',stop if not legacy else '').replace('@@REPLY@@',reply_line).replace('@@END_BLOCK@@',end_block)
+'''.replace('METHODS',methods).replace('EXTRAS',extras).replace('\nLOAD\n','\n'+load+'\n').replace('@@STOP@@',stop if not legacy else '').replace('@@REPLY@@',reply_line).replace('@@END_BLOCK@@',end_block)
 if legacy:
     # 原始生产END_FILE分支仅清缓存，不会投递completed；该断言应语义失败。
     before=code[:code.index('int main(){')]
@@ -113,4 +132,5 @@ with tempfile.TemporaryDirectory(prefix='completion-contract-') as out:
  p=pathlib.Path(out);(p/'test.cpp').write_text(code)
  subprocess.run([os.environ.get('CXX','c++'),'-std=c++17','-pthread','-I'+str(ROOT/'native/runtime'),'-I'+str(ROOT/'release/inputs/004-normal-core/include'),str(p/'test.cpp'),'-o',str(p/'test')],check=True)
  subprocess.run([str(p/'test')],check=True)
+ if not legacy: subprocess.run([str(p/'test')],check=True,env={**os.environ,'VIDALL_TEST_LEGACY_LOAD':'1'})
 print('PASS actual Load/Stop/COMMAND_REPLY/END_FILE/DispatchCompletion (NAPI投递替身), Release源码顺序: EOF唯一、非EOF、reply身份/格式、重载、晚到、失效与线程交错')

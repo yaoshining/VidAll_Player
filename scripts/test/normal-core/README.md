@@ -1,6 +1,6 @@
 # 正常核心接入 CI 门禁
 
-本目录包含宿主契约和独立 unsigned HAR 目标构建入口。Ubuntu 宿主成功不代表 HarmonyOS 目标编译；目标构建成功仍不代表真机播放、物理 HDR 或正式发布验收，`formalArtifactAllowed=false` 保持。
+本目录包含当前宿主契约和保留的历史 unsigned HAR 目标构建辅助入口。完整宿主清单由 `host-checks.json` 明确记录，当前为 94 项（含工具/编译步骤，不等于 94 个测试用例）。Ubuntu 宿主成功不代表 HarmonyOS 目标编译；目标构建成功仍不代表真机播放、物理 HDR 或正式发布验收，`formalArtifactAllowed=false` 保持。
 
 ## 运行
 
@@ -25,9 +25,11 @@ python3 -B scripts/test/normal-core/run.py --out /tmp/vidall-normal-core-evidenc
 
 `public/` 仅从固定结果和日志白名单生成，包含库输入清单/产品源码的 SHA，不包含库、HAP、生成的宿主可执行文件、SDK、签名、凭据、媒体或原始来源锁。日志中的本机路径替换为占位符。上传前独立检查 UTF-8、JSON、扩展名、符号链接和路径；边界检查失败不上传。7 个上传门禁测试覆盖正常文本及拒绝路径。
 
-专用工作流 `.github/workflows/normal-core.yml` 在 main 目标 PR、main/集成/文档分支 push、手动和 merge_group 事件运行。PR 默认测试 GitHub 两父 merge SHA，并核对 base/head；merge_group 校验 head 与 base 祖先关系。仓库未启用 merge queue 时不宣称已有远端 merge_group 结果。推送仍须用户批准精确 SHA。
+`.github/workflows/normal-core.yml` 目前只支持手动运行 Ubuntu 宿主契约，不执行目标构建；自动主线/PR 的宿主入口在 `deveco26-pr82-gates.yml`。事件身份辅助器仍覆盖 push、PR、手动和 merge_group；这些单元覆盖不代表仓库已启用 merge queue。
 
-宿主 job 运行现有49项检查（包括工具/编译步骤，不等于49测试用例）和新增 CI 契约。self-hosted macos/deveco job 不读取签名，只用 `devecocli build clean` 和 `devecocli build --modules vidall_player@default` 构建当前 bridge/ArkTS，消费已有固定八库，不重建 producer。fork PR 不进入受控 runner，组合结果将明确失败/待受控验证，不能将跳过视为成功。旧 test-player、build-libmpv 工作流职责不变。
+宿主收证严格匹配 `host-checks.json` 的名称和预期退出码，拒绝缺失、额外、重复、同数替换、跳过/禁用及改写预期退出码；同时保留源码快照和逐项日志检查。同仓修复分支/PR 的完整 HAR 与独立消费者由 `branch-imac.yml` 使用 iMac 自托管运行器验证；实际 main 推送保留云端 Mac 完整流程。正常产物通过 `vidall_player@deveco26` 构建，含固定八库与当前桥组成的 ARM64 九库。不得将 iMac 或本地诊断构建称为云端 Mac，也不得以构建或软件模拟器结果替代真实硬件/音频验收。
+
+以下 `ci-target.py` 是保留的历史辅助器说明，不代表手动 normal-core 工作流仍调度该目标 job。
 
 `ci-target.py` 先记录源码和固定八库字节，执行一次 `DEVECO_CLI_DEBUG=1 devecocli build clean`，从实际 ToolProvider 日志选择 Studio，再严格核验并绑定 `DEVECO_CLI_STUDIO_PATH`；`ci-toolchain-lock.json` 锁定 API24/6.1.1.115 metadata 与实际 clang/nm/readelf 哈希。缺少工具、探测歧义、工具漂移或实际 compile_commands 使用其他 clang/sysroot 均失败，不修改运行器默认 SDK。clean 发生在 SDK 身份核验之前，只清隔离工程生成物；文档 catalog 不可作为工具选择证据，缺失/歧义时不继续 build。clean 后遗留 HAR、bridge 或 compile_commands 会失败；本次 HAR 必须有固定八库及本次真实 ARM64 bridge。
 

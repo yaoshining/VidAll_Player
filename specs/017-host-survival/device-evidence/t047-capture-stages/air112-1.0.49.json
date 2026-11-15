@@ -1,0 +1,83 @@
+{
+  "date": "2026-11-13",
+  "device": "MatePad Air",
+  "model": "WKI-W10",
+  "system": "6.1.0.112",
+  "api": 24,
+  "application": "Spec017录制阶段诊断",
+  "version": "1.0.49",
+  "hapSHA256": "9ef0e1f7bfc3889d217256329a84bd19c0f6009f59816952c464710ed5b7d8e8",
+  "productionCommit": "62e4e3f8d9648f60713e03d182b2e0f45d923118",
+  "harSHA256": "a419c1545680d48ab22983472a8c8ca3311a58bf5904cebdabfde2394e40b704",
+  "harOrigin": "iMac GitHub Actions 43237406546",
+  "hapOrigin": "本地MacBook Pro独立消费HAP；原HAR及九库未改",
+  "runs": [
+    {
+      "flow": "普通内录首次尝试",
+      "pid": 31396,
+      "result": "CAPTURE_START_TIMEOUT",
+      "privacyEvidence": "授权页onPageShow；15秒后消失，未完成允许操作；不能将历史其他机型统一归因"
+    },
+    {
+      "flow": "普通内录重开",
+      "pidQueriedAfterFlow": 43851,
+      "result": "页面显示内录完成；观察到测试画面",
+      "privacyAccepted": true,
+      "fullEventChainObtained": false,
+      "accepted": false
+    },
+    {
+      "flow": "焦点入口首次尝试",
+      "pid": 50821,
+      "result": "CAPTURE_START_TIMEOUT",
+      "note": "确认操作未在15秒期限内成功完成，不计播放验收"
+    },
+    {
+      "flow": "焦点入口重开",
+      "pid": 51399,
+      "result": "SYSTEM_PAUSE_MISSING",
+      "alarmSamples": 280854,
+      "captureReleaseReturned": true,
+      "evidence": "air112-1.0.49-native-cleanup-excerpt.txt"
+    },
+    {
+      "flow": "焦点完整事件复现",
+      "pid": 53964,
+      "result": "SYSTEM_PAUSE_MISSING",
+      "captureStartedMs": 1794560373682,
+      "badMediaReturned": true,
+      "firstFrame": true,
+      "alarmStartedMs": 1794560379026,
+      "alarmSamples": 280854,
+      "captureClosedMs": 1794560385269,
+      "samePidEventChain": true,
+      "evidence": "air112-1.0.49-focus-events.txt"
+    },
+    {
+      "flow": "焦点系统日志补采",
+      "pid": null,
+      "result": "页面再次显示SYSTEM_PAUSE_MISSING",
+      "systemFocusDecisionObtained": false,
+      "evidence": "air112-1.0.49-focus-repeat.jpg"
+    }
+  ],
+  "captureFileExported": false,
+  "audioAccepted": false,
+  "focusAccepted": false,
+  "deviceAccepted": false,
+  "exportLimit": "未建立可用导出路径；Shell访问/data/app/el2返回Permission denied。未绕过权限或此前原始截图下载拒绝。",
+  "limitations": [
+    "普通流程只有页面完成与画面，未取得完整日志或实际音轨，不能证明音质/静音",
+    "已记录OHCodec/Vulkan清理轨迹，但不是两组当前故障诊断包的资格/恢复验收",
+    "未获得系统焦点决定或原生Interrupt入口值，不能断言回调已发送或确定根因",
+    "连续尝试使用同一路径，录音未导出且可能被后续尝试覆盖",
+    "API24不替代API19 TV正式文件入口"
+  ],
+  "freeMinutesBefore": 325,
+  "reservedMinutes": 20,
+  "freeMinutesAfter": 308,
+  "chargedFreeMinutes": 17,
+  "purchased": false,
+  "sessionReleased": true,
+  "prCreated": false
+}

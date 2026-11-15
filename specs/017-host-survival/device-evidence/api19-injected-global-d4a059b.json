@@ -1,0 +1,73 @@
+{
+  "sourceCommit": "d4a059b3117a23d70aa0832d00ed7161fd8c6d5a",
+  "origin": "当前Player完整本地诊断HAR；MacBook Pro / Darwin arm64；不是CI交付",
+  "device": "API 19 TV emulator",
+  "PID": 21377,
+  "profile": "software-control",
+  "scope": "timer-global",
+  "harSHA256": "6d79c863a73be3f852186be90710ae49e3038ef8fe7851a28813e6a6693bfedf",
+  "hapSHA256": "bd34d5b2a9ea0121fc64822c5460d5e3efbfb562202579aa2422d105aa3348f1",
+  "libraries": {
+    "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libs/arm64-v8a/libmpv.so": "311559c460bdd950137a3c3214706f28216bdcdffe31125fd991baf38ca9dcab",
+    "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libs/arm64-v8a/libvidall_player_native.so": "660210c122078146f2608cb072e12c33cbda3e697687a51227e6cdc7dc0e1bdc"
+  },
+  "fixtures": {
+    "Index.ets": "6e4c56782b109f010557d641d7f7fa86f1690ac328ed8cf257d6ed98faadad41",
+    "ProbeChecks.ets": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327",
+    "ProbeProfile.ets": "9d7bbdb6a0b6183cfb164227083c9c084fe4746ead88467a143fb6ea598ebad6"
+  },
+  "media": {
+    "global-probe.mp4": "bee054bffe503fd32a19d30b0d586e9a9fd26abfe1e6f1b26b7fb84df25ebc76",
+    "test_video.mp4": "e227199fde48379861c1e234470b2e3c17c7c5c962d28eaac7b129f29395d5e6"
+  },
+  "events": [
+    "11-11 22:28:19.180 21377 21377 I A03d00/JSAPP: P17 runtime ready",
+    "11-11 22:28:19.204 21377 21377 I A03d00/JSAPP: P17 load-identity {\"sessionId\":\"1\",\"loadGeneration\":\"1\"}",
+    "11-11 22:28:19.211 21377 21377 I A03d00/JSAPP: P17 state preparing",
+    "11-11 22:28:19.262 21377 21377 I A03d00/JSAPP: P17 state playing",
+    "11-11 22:28:19.262 21377 21377 I A03d00/JSAPP: P17 firstFrame 1",
+    "11-11 22:28:19.340 21377 21377 I A03d00/JSAPP: P17 initial-playback {\"profile\":\"software-control\",\"backend\":{\"status\":\"available\",\"unit\":\"text\",\"source\":\"session.actual-render-backend\",\"estimated\":false,\"value\":\"software\"},\"decoder\":{\"status\":\"available\",\"unit\":\"text\",\"source\":\"hwdec-current\",\"estimated\":false,\"value\":\"no\"}}",
+    "11-11 22:28:19.340 21377 21377 I A03d00/JSAPP: P17 pre-terminal-playback {\"profile\":\"software-control\",\"backend\":{\"status\":\"available\",\"unit\":\"text\",\"source\":\"session.actual-render-backend\",\"estimated\":false,\"value\":\"software\"},\"decoder\":{\"status\":\"available\",\"unit\":\"text\",\"source\":\"hwdec-current\",\"estimated\":false,\"value\":\"no\"}}",
+    "11-11 22:28:19.340 21377 21377 I A03d00/JSAPP: P17 before-global-first-frame ",
+    "11-11 22:28:22.215 21377 21377 I A03d00/JSAPP: P17 fault {\"sequence\":1,\"kind\":\"process-terminal\",\"stage\":1,\"platformError\":-4,\"attribution\":{\"state\":\"known\",\"sessionId\":\"1\",\"loadGeneration\":\"1\"}}",
+    "11-11 22:28:22.215 21377 21377 I A03d00/JSAPP: P17 terminal {\"state\":\"terminal\",\"terminal\":{\"stage\":1,\"platformError\":-4,\"firstObservedMs\":11268711,\"deadlineMs\":3000,\"ownerTag\":\"1\",\"attribution\":{\"state\":\"known\",\"sessionId\":\"1\",\"loadGeneration\":\"1\"}},\"recovery\":{\"state\":\"pending\",\"generation\":0},\"faults\":[{\"sequence\":1,\"kind\":\"process-terminal\",\"stage\":1,\"platformError\":-4,\"attribution\":{\"state\":\"known\",\"sessionId\":\"1\",\"loadGeneration\":\"1\"}}]}",
+    "11-11 22:28:22.216 21377 21377 I A03d00/JSAPP: P17 state error",
+    "11-11 22:28:22.216 21377 21377 I A03d00/JSAPP: P17 error PLAYER_TERMINAL",
+    "11-11 22:28:22.264 21377 21377 I A03d00/JSAPP: P17 terminal-status {\"state\":\"terminal\",\"terminal\":{\"stage\":1,\"platformError\":-4,\"firstObservedMs\":11268711,\"deadlineMs\":3000,\"ownerTag\":\"1\",\"attribution\":{\"state\":\"known\",\"sessionId\":\"1\",\"loadGeneration\":\"1\"}},\"recovery\":{\"state\":\"pending\",\"generation\":0},\"faults\":[{\"sequence\":1,\"kind\":\"process-terminal\",\"stage\":1,\"platformError\":-4,\"attribution\":{\"state\":\"known\",\"sessionId\":\"1\",\"loadGeneration\":\"1\"}}]}",
+    "11-11 22:28:22.465 21377 21377 I A03d00/JSAPP: P17 recovery-ready {\"state\":\"terminal\",\"terminal\":{\"stage\":1,\"platformError\":-4,\"firstObservedMs\":11268711,\"deadlineMs\":3000,\"ownerTag\":\"1\",\"attribution\":{\"state\":\"known\",\"sessionId\":\"1\",\"loadGeneration\":\"1\"}},\"recovery\":{\"state\":\"ready\",\"generation\":2},\"faults\":[{\"sequence\":1,\"kind\":\"process-terminal\",\"stage\":1,\"platformError\":-4,\"attribution\":{\"state\":\"known\",\"sessionId\":\"1\",\"loadGeneration\":\"1\"}}]}",
+    "11-11 22:28:22.466 21377 21377 I A03d00/JSAPP: P17 old-release-rejected PLAYER_TERMINAL",
+    "11-11 22:28:22.517 21377 21377 I A03d00/JSAPP: P17 fresh-surface-ready ",
+    "11-11 22:28:22.517 21377 21377 I A03d00/JSAPP: P17 returned-after-global ",
+    "11-11 22:28:22.530 21377 21377 I A03d00/JSAPP: P17 load-identity {\"sessionId\":\"2\",\"loadGeneration\":\"1\"}",
+    "11-11 22:28:22.531 21377 21377 I A03d00/JSAPP: P17 state preparing",
+    "11-11 22:28:22.563 21377 21377 I A03d00/JSAPP: P17 state playing",
+    "11-11 22:28:22.563 21377 21377 I A03d00/JSAPP: P17 firstFrame 2",
+    "11-11 22:28:24.484 21377 21377 I A03d00/JSAPP: P17 recovery-playback {\"position\":{\"status\":\"available\",\"unit\":\"ms\",\"source\":\"time-pos\",\"estimated\":false,\"value\":1666.6666666666667},\"backend\":{\"status\":\"available\",\"unit\":\"text\",\"source\":\"session.actual-render-backend\",\"estimated\":false,\"value\":\"software\"},\"decoder\":{\"status\":\"available\",\"unit\":\"text\",\"source\":\"hwdec-current\",\"estimated\":false,\"value\":\"no\"},\"audio\":{\"status\":\"available\",\"unit\":\"text\",\"source\":\"current-tracks/audio/codec\",\"estimated\":false,\"value\":\"aac\"}}",
+    "11-11 22:28:24.571 21377 21377 I A03d00/JSAPP: P17 state released",
+    "11-11 22:28:24.571 21377 21377 I A03d00/JSAPP: P17 recovery-release ",
+    "11-11 22:28:24.622 21377 21377 I A03d00/JSAPP: P17 third-fresh-surface-ready ",
+    "11-11 22:28:24.629 21377 21377 I A03d00/JSAPP: P17 load-identity {\"sessionId\":\"3\",\"loadGeneration\":\"1\"}",
+    "11-11 22:28:24.631 21377 21377 I A03d00/JSAPP: P17 state preparing",
+    "11-11 22:28:24.656 21377 21377 I A03d00/JSAPP: P17 state playing",
+    "11-11 22:28:24.656 21377 21377 I A03d00/JSAPP: P17 firstFrame 3",
+    "11-11 22:28:25.521 21377 21377 I A03d00/JSAPP: P17 state released",
+    "11-11 22:28:25.525 21377 21377 I A03d00/JSAPP: P17 keepScreen false",
+    "11-11 22:28:25.526 21377 21377 I A03d00/JSAPP: P17 session-end ",
+    "11-11 22:28:25.526 21377 21377 I A03d00/JSAPP: P17 summary {\"profile\":\"software-control\",\"scope\":\"timer-global\",\"firstFrames\":3,\"errors\":0,\"recovery\":{\"state\":\"ready\",\"generation\":2}}"
+  ],
+  "limits": [
+    "首片与恢复会话实际均software/no，不证明OHCodec/Vulkan",
+    "定时注入真实终局管理器，不是GPU/fence真实故障",
+    "音轨/进度不代替可听音频或系统焦点验证",
+    "探针自动流程，不是VidAll_TV正式列表/文件入口",
+    "未在设备注入Stop返回错误或builder失败；这两分支由宿主生产函数回归覆盖"
+  ],
+  "deviceAccepted": false
+}

@@ -1,0 +1,15 @@
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -205,6 +205,12 @@
+     struct ao *ao = opaque;
+     struct priv *p = ao->priv;
+     if (p->renderer) {
++        // remove 已持有本槽控制锁，后续不再 Start；只保留明确 STOPPED 的事实。
++        // Release 未返回时仍保留全部对象和预算，不能把静止等同资源释放。
++        OH_AudioStream_State state;
++        if (OH_AudioRenderer_GetCurrentState(p->renderer, &state) == AUDIOSTREAM_SUCCESS &&
++            state == AUDIOSTREAM_STATE_STOPPED)
++            mp_host_audio_confirm_quiescent(p->recovery_token);
+         if (OH_AudioRenderer_Release(p->renderer) != AUDIOSTREAM_SUCCESS) return -1;
+         p->renderer = NULL;
+     }

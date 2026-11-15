@@ -1,0 +1,560 @@
+[
+  {
+    "shiftMs": -40,
+    "passed": true,
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 0.98001998001998,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 0.9800219758265908,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548034,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 0.9761999206664026,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0.060000000000000005
+      }
+    ]
+  },
+  {
+    "shiftMs": -30,
+    "passed": true,
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 0.98001998001998,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 0.9800219758265908,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548034,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 0.9801666005553356,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0.05
+      }
+    ]
+  },
+  {
+    "shiftMs": -20,
+    "passed": true,
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 0.98001998001998,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 0.9800219758265908,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548034,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 0.9841332804442684,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0.04
+      }
+    ]
+  },
+  {
+    "shiftMs": -10,
+    "passed": true,
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 0.98001998001998,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 0.9800219758265908,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548034,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 0.9880999603332014,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0.03
+      }
+    ]
+  },
+  {
+    "shiftMs": 0,
+    "passed": true,
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 0.98001998001998,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 0.9800219758265908,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548034,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 0.9920666402221342,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0.02
+      }
+    ]
+  },
+  {
+    "shiftMs": 10,
+    "passed": true,
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 0.98001998001998,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 0.9800219758265908,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548034,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 0.9960333201110672,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0.01
+      }
+    ]
+  },
+  {
+    "shiftMs": 20,
+    "passed": true,
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 0.98001998001998,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548034,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      }
+    ]
+  },
+  {
+    "shiftMs": 30,
+    "passed": true,
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      }
+    ]
+  },
+  {
+    "shiftMs": 40,
+    "passed": true,
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      }
+    ]
+  }
+]

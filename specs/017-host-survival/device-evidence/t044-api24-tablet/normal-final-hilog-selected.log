@@ -1,0 +1,29 @@
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 runtime ready
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 keepScreen true
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state error
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 error NATIVE_PLAYBACK_FAILED
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 bad-media-returned
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"2","loadGeneration":"1"}
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+ 2026-11-12 12:49:07 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 1
+ 2026-11-12 12:49:08 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state paused
+ 2026-11-12 12:49:09 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 pause-verified {"before":833.3333333333334,"after":833.3333333333334}
+ 2026-11-12 12:49:09 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+ 2026-11-12 12:49:10 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 resume-verified 1566.6666666666667
+ 2026-11-12 12:49:10 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 seek-target {"target":20000,"reached":20066.666666666668}
+ 2026-11-12 12:49:11 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 seek-verified {"target":20000,"before":1566.6666666666667,"reached":20066.666666666668,"after":20633.333333333332}
+ 2026-11-12 12:49:11 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 diagnostics {"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":20633.333333333332},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 2026-11-12 12:49:11 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+ 2026-11-12 12:49:11 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 release-ok
+ 2026-11-12 12:49:11 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"3","loadGeneration":"1"}
+ 2026-11-12 12:49:11 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+ 2026-11-12 12:49:11 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+ 2026-11-12 12:49:11 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 2
+ 2026-11-12 12:49:13 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+ 2026-11-12 12:49:13 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 reopen-release-ok
+ 2026-11-12 12:49:13 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 summary {"firstFrames":2,"errors":0}
+ 2026-11-12 12:49:13 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 keepScreen false
+ 2026-11-12 12:49:13 51050-51050/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 session-end

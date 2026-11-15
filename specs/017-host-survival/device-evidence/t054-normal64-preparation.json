@@ -1,0 +1,8 @@
+{
+  "version": "1.0.64",
+  "hap": "/tmp/vidall-t054-normal-v64-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+  "sha256": "336afb10e9398bcfe8e6fcb659f8a06ffd7380dab1f0a595b7b56723e06dd46d",
+  "nineLibrariesIdenticalTo1.0.60": true,
+  "source": "c7d56ee iMac CI HAR 43464070369",
+  "buildMachine": "本地MacBook Pro ARM64，仅消费验收HAP"
+}

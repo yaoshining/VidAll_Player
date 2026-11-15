@@ -1,0 +1,30 @@
+{
+  "source": "27b7dba7ad21d792fc82dfc2cd9e9aa5d80bfcfb",
+  "runtimeSHA256": "f61571c12384b134d7d99e257b5afe53064fbadafa0d448fb56a166be4a30b37",
+  "tests": [
+    {
+      "case": "normal",
+      "exitCode": 0,
+      "elapsedMs": 915,
+      "stdout": "PASS\n"
+    },
+    {
+      "case": "deadline",
+      "exitCode": 86,
+      "elapsedMs": 1009,
+      "stdout": ""
+    }
+  ],
+  "harSHA256": "563eaffa04f01fbc2551c6362585a4d0d6254d5449d357508dad5e615d9f73d1",
+  "libraries": [
+    "package/libs/arm64-v8a/libavcodec.so.62",
+    "package/libs/arm64-v8a/libavfilter.so.11",
+    "package/libs/arm64-v8a/libavformat.so.62",
+    "package/libs/arm64-v8a/libavutil.so.60",
+    "package/libs/arm64-v8a/libc++_shared.so",
+    "package/libs/arm64-v8a/libmpv.so",
+    "package/libs/arm64-v8a/libswresample.so.6",
+    "package/libs/arm64-v8a/libswscale.so.9",
+    "package/libs/arm64-v8a/libvidall_player_native.so"
+  ]
+}

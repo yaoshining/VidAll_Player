@@ -1,0 +1,16 @@
+{
+  "recordedColorBarFirstMatch": {
+    "pts": 12.652644,
+    "meanAbsoluteError": 0.15833333333333333
+  },
+  "videoPredicate": "完整首片固定彩条，x200..600 y540条带与14秒参考平均绝对RGB差<10；仅定位首次录入画面",
+  "recorded880HzFirstOnset": 13.25,
+  "source880HzFirstOnset": 0.0,
+  "firstFrameEventMappedAudioPts": 12.659767389297485,
+  "limitations": [
+    "录制画面首次出现不等于物理上屏；音频录制偏移未取消",
+    "首帧playing源码来自VIDEO_RECONFIG而非实际呈现或音频启动确认",
+    "原完整窗口失败保留，不能用后移起点掩盖问题"
+  ],
+  "audioMinusRecordedVideoMs": 597.3559999999995
+}

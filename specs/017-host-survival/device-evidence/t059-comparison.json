@@ -1,0 +1,18 @@
+{
+  "device": "API24 MatePad Air 6.1.0.112 WKI-W10",
+  "sourceCommit": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+  "baselinePackage": "1.0.71",
+  "baselineCaptureSha256": "fb7576cfa23fe4aabd3c377dce4eb5ce102d40656ca5c823d8f0804fdbe85137",
+  "mpvOldMedianMs": 167.81100000000038,
+  "systemMedianMs": 150.07250000000073,
+  "medianDifferenceMs": 17.738499999999647,
+  "baselineSignalPassed": false,
+  "mpvSignalPassed": false,
+  "deviceAccepted": false,
+  "conclusion": "两种独立播放器均在同录制链路呈现约150ms同向偏差，不能仅据MPV内录判定Player回归；仍需区分共同录制与设备输出偏差，不修改原始结果或生产补偿。",
+  "rawArtifacts": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t059-diagnosis",
+  "mpvCurrentPackage": "1.0.71",
+  "mpvCurrentMedianMs": 158.256,
+  "medianDifferenceCurrentMs": 8.1835,
+  "mpvCurrentCaptureSha256": "7fe5ea9bac93db892c00de585b0de51db43ed3659ec6eaa2c80bb9f49dd4d99b"
+}

@@ -1,0 +1,4998 @@
+{
+  "signalPassed": true,
+  "deviceAccepted": false,
+  "sha256": "825a0158531cd14a20047149e9eb4b9dcf61bbdc56dd550f581bcf117fcc08c6",
+  "sampleRate": 48000,
+  "channels": 2,
+  "durationSeconds": 123.134,
+  "segments": [
+    {
+      "name": "完整90秒播放",
+      "passed": true,
+      "coverage": 0.9977789130000222,
+      "longestFailureSeconds": 0.2,
+      "windows": [
+        {
+          "start": 0.933,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": false
+        },
+        {
+          "start": 1.133,
+          "seconds": 0.2,
+          "rmsDbFS": -35.35393228653995,
+          "expectedToneDbFS": -39.248599759590704,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 1.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025026988515997,
+          "expectedToneDbFS": -31.02752550377282,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 1.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076360912264057,
+          "expectedToneDbFS": -31.078208906836554,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 1.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071914545644134,
+          "expectedToneDbFS": -31.07376899113359,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 1.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010858957311154,
+          "expectedToneDbFS": -31.013044493737553,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 2.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.873584562727594,
+          "expectedToneDbFS": -31.121068905596886,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 2.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549174648236768,
+          "expectedToneDbFS": -30.864415785423283,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 2.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.9784413807829,
+          "expectedToneDbFS": -30.98008017303294,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 2.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02819371917812,
+          "expectedToneDbFS": -31.030700162513618,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 2.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025041009387824,
+          "expectedToneDbFS": -31.027539899784852,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 3.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076380744771335,
+          "expectedToneDbFS": -31.078229152320397,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 3.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071916579763567,
+          "expectedToneDbFS": -31.073771169229943,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 3.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010848324922556,
+          "expectedToneDbFS": -31.01303444622694,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 3.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004393715170533,
+          "expectedToneDbFS": -31.005995774946857,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 3.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019805990966233,
+          "expectedToneDbFS": -31.02128368323036,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.938402038221746,
+          "expectedToneDbFS": -31.132724297822413,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.593242077040554,
+          "expectedToneDbFS": -30.890316623239276,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025083888238974,
+          "expectedToneDbFS": -31.027582526288246,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076343710920806,
+          "expectedToneDbFS": -31.078192790607023,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 4.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071917214212732,
+          "expectedToneDbFS": -31.07377146979215,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 5.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010855850357068,
+          "expectedToneDbFS": -31.01304150558256,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 5.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00440508465588,
+          "expectedToneDbFS": -31.00600736566703,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 5.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01981959776183,
+          "expectedToneDbFS": -31.02129719728389,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 5.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978421869393333,
+          "expectedToneDbFS": -30.98006155930747,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 5.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028197029417935,
+          "expectedToneDbFS": -31.030703140073417,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 6.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.86920303293784,
+          "expectedToneDbFS": -31.175692906746217,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 6.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.591587537403473,
+          "expectedToneDbFS": -30.925366591998976,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 6.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071896619064113,
+          "expectedToneDbFS": -31.073750569341833,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 6.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010842978030166,
+          "expectedToneDbFS": -31.013028658646327,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 6.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004373588013014,
+          "expectedToneDbFS": -31.005975398350024,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 7.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.0198003716782,
+          "expectedToneDbFS": -31.021277958732,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 7.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978411618804053,
+          "expectedToneDbFS": -30.98005104650823,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 7.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028188612482168,
+          "expectedToneDbFS": -31.0306947094071,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 7.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025013162674746,
+          "expectedToneDbFS": -31.02751181489718,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 7.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076348228662262,
+          "expectedToneDbFS": -31.078195856508998,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 8.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.87930527929186,
+          "expectedToneDbFS": -31.254742821939363,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 8.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.633046165368707,
+          "expectedToneDbFS": -30.854641133598975,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 8.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00437882765936,
+          "expectedToneDbFS": -31.005980974901167,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 8.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019826783620694,
+          "expectedToneDbFS": -31.02130434934438,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 8.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.97839132696256,
+          "expectedToneDbFS": -30.980030523803926,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02818886366602,
+          "expectedToneDbFS": -31.03069466476321,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02502806907431,
+          "expectedToneDbFS": -31.02752651489473,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076365480766583,
+          "expectedToneDbFS": -31.078213735992406,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071912980419,
+          "expectedToneDbFS": -31.073767130673517,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 9.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010843468558285,
+          "expectedToneDbFS": -31.01302862183728,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 10.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.873582716597365,
+          "expectedToneDbFS": -31.12106134801055,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 10.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549126749417496,
+          "expectedToneDbFS": -30.864414669141414,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 10.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978411027952426,
+          "expectedToneDbFS": -30.980050476024516,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 10.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028178933773624,
+          "expectedToneDbFS": -31.03068524656883,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 10.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025016779640517,
+          "expectedToneDbFS": -31.02751464140461,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 11.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076363604889092,
+          "expectedToneDbFS": -31.078212524152676,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 11.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071887566418738,
+          "expectedToneDbFS": -31.073741860452163,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 11.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010845573177107,
+          "expectedToneDbFS": -31.01303176419141,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 11.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00435433753708,
+          "expectedToneDbFS": -31.005955934207563,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 11.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01985071561098,
+          "expectedToneDbFS": -31.02132889175495,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 12.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.93840879417317,
+          "expectedToneDbFS": -31.132754021101917,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 12.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.593247004633362,
+          "expectedToneDbFS": -30.890315472358214,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 12.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02502182392577,
+          "expectedToneDbFS": -31.02752005292844,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 12.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07635825877765,
+          "expectedToneDbFS": -31.078206544081603,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 12.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07190927672918,
+          "expectedToneDbFS": -31.073763330037615,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 13.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01083868105941,
+          "expectedToneDbFS": -31.01302498444874,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 13.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004365301808093,
+          "expectedToneDbFS": -31.0059665582663,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 13.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01980730920345,
+          "expectedToneDbFS": -31.02128451693448,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 13.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978409016313012,
+          "expectedToneDbFS": -30.980048368049115,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 13.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02821707376001,
+          "expectedToneDbFS": -31.030722815948714,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 14.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.86920053028741,
+          "expectedToneDbFS": -31.175719905343506,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 14.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.591568717050777,
+          "expectedToneDbFS": -30.925348458722645,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 14.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071910184855515,
+          "expectedToneDbFS": -31.073764199570043,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 14.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01085004616017,
+          "expectedToneDbFS": -31.013035860970266,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 14.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004349956721104,
+          "expectedToneDbFS": -31.005951386084018,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 15.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019827001818207,
+          "expectedToneDbFS": -31.0213041358016,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 15.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978397802819224,
+          "expectedToneDbFS": -30.980037073648692,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 15.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02822650296913,
+          "expectedToneDbFS": -31.030732247810956,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 15.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025064846627608,
+          "expectedToneDbFS": -31.027563585713423,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 15.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07636492070235,
+          "expectedToneDbFS": -31.078212841128497,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 16.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.879307768795506,
+          "expectedToneDbFS": -31.254740458086566,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 16.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.633053012928112,
+          "expectedToneDbFS": -30.854662179011967,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 16.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004386326759878,
+          "expectedToneDbFS": -31.005987765148767,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 16.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019813213834762,
+          "expectedToneDbFS": -31.021290843628876,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 16.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978421813976116,
+          "expectedToneDbFS": -30.9800614576076,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 17.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028229720340406,
+          "expectedToneDbFS": -31.030735372896228,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 17.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02503023232565,
+          "expectedToneDbFS": -31.02752824467038,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 17.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076372497905123,
+          "expectedToneDbFS": -31.078220739738185,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 17.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071911896490818,
+          "expectedToneDbFS": -31.073766714040765,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 17.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010847007274954,
+          "expectedToneDbFS": -31.013033087104827,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 18.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.873581919711732,
+          "expectedToneDbFS": -31.121041281756785,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 18.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.54916171775651,
+          "expectedToneDbFS": -30.864419635758765,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 18.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978407355649047,
+          "expectedToneDbFS": -30.98004700732552,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 18.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02819599772047,
+          "expectedToneDbFS": -31.030702098410707,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 18.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025008381936182,
+          "expectedToneDbFS": -31.027505977986532,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 19.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076355674389795,
+          "expectedToneDbFS": -31.078203746910063,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 19.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071901552539998,
+          "expectedToneDbFS": -31.07375558218164,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 19.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010853768598047,
+          "expectedToneDbFS": -31.01303964761087,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 19.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00437741879198,
+          "expectedToneDbFS": -31.005978885216496,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 19.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019842633207784,
+          "expectedToneDbFS": -31.02131983989942,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 20.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.938403922032606,
+          "expectedToneDbFS": -31.13273008670174,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 20.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.59325130687923,
+          "expectedToneDbFS": -30.89034092189827,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 20.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025012185614376,
+          "expectedToneDbFS": -31.027510988457113,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 20.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076350629507182,
+          "expectedToneDbFS": -31.07819875224935,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 20.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071899332650418,
+          "expectedToneDbFS": -31.073753690854392,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 21.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010823413580763,
+          "expectedToneDbFS": -31.013009493360563,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 21.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00437496953541,
+          "expectedToneDbFS": -31.005976052115596,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 21.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019817777854115,
+          "expectedToneDbFS": -31.021295743014974,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 21.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978413592180473,
+          "expectedToneDbFS": -30.98005267105727,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 21.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028225298290693,
+          "expectedToneDbFS": -31.030731534196484,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 22.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.869200860671814,
+          "expectedToneDbFS": -31.175713858818842,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 22.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.59158852694849,
+          "expectedToneDbFS": -30.925312448406995,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 22.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071905965089577,
+          "expectedToneDbFS": -31.07376010089062,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 22.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01082864958211,
+          "expectedToneDbFS": -31.013014565184356,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 22.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004371599354247,
+          "expectedToneDbFS": -31.00597308452993,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 23.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019821193079018,
+          "expectedToneDbFS": -31.021298708559044,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 23.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.97839830341865,
+          "expectedToneDbFS": -30.98003807288591,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 23.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028180940571012,
+          "expectedToneDbFS": -31.030686883762705,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 23.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025012877532067,
+          "expectedToneDbFS": -31.02751071646226,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 23.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076364849445994,
+          "expectedToneDbFS": -31.078213572420985,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 24.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.879301364726707,
+          "expectedToneDbFS": -31.254715212436214,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 24.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.633032952198548,
+          "expectedToneDbFS": -30.8546378419408,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 24.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004336913851276,
+          "expectedToneDbFS": -31.00593843576018,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 24.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01983128824271,
+          "expectedToneDbFS": -31.021309684011843,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 24.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978443376867624,
+          "expectedToneDbFS": -30.980083399439373,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 25.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028219311473592,
+          "expectedToneDbFS": -31.030726217290727,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 25.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02502785755053,
+          "expectedToneDbFS": -31.027526456459974,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 25.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076375956814992,
+          "expectedToneDbFS": -31.078224506333694,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 25.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07190124947229,
+          "expectedToneDbFS": -31.073755564727158,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 25.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010826396085477,
+          "expectedToneDbFS": -31.013012260472067,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 26.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.87358404732471,
+          "expectedToneDbFS": -31.12104336867535,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 26.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549175031765245,
+          "expectedToneDbFS": -30.864409520968486,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 26.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.97843230578686,
+          "expectedToneDbFS": -30.980072147686837,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 26.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02819629241488,
+          "expectedToneDbFS": -31.030702989868068,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 26.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025022506775898,
+          "expectedToneDbFS": -31.027520449349097,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 27.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07633874270619,
+          "expectedToneDbFS": -31.078186880475197,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 27.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071923746375134,
+          "expectedToneDbFS": -31.07377755561839,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 27.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010833610681928,
+          "expectedToneDbFS": -31.013019303887837,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 27.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004369235052273,
+          "expectedToneDbFS": -31.005970859637465,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 27.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01982940385655,
+          "expectedToneDbFS": -31.021307254687784,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 28.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.93840448965449,
+          "expectedToneDbFS": -31.132753054564507,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 28.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.593262148863445,
+          "expectedToneDbFS": -30.890337403080686,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 28.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025036785303342,
+          "expectedToneDbFS": -31.027535450295186,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 28.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07636373147706,
+          "expectedToneDbFS": -31.07821202757605,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 28.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071935901788606,
+          "expectedToneDbFS": -31.07378983620237,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 29.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010856454678873,
+          "expectedToneDbFS": -31.013042089037942,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 29.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004362229494497,
+          "expectedToneDbFS": -31.005964205897634,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 29.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019820093567596,
+          "expectedToneDbFS": -31.021297790945535,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 29.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978448715686255,
+          "expectedToneDbFS": -30.980088302640098,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 29.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028202184705712,
+          "expectedToneDbFS": -31.030707962032608,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 30.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.869203182429978,
+          "expectedToneDbFS": -31.175727175092565,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 30.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.591596771730686,
+          "expectedToneDbFS": -30.925331910018997,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 30.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07191072547119,
+          "expectedToneDbFS": -31.073765218878584,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 30.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010835826163113,
+          "expectedToneDbFS": -31.013021933601674,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 30.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004375299518628,
+          "expectedToneDbFS": -31.005976526948213,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 31.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019841574453242,
+          "expectedToneDbFS": -31.021318905051288,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 31.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978439454630625,
+          "expectedToneDbFS": -30.98007862970704,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 31.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028219912076864,
+          "expectedToneDbFS": -31.03072580333347,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 31.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02501728830991,
+          "expectedToneDbFS": -31.027515629500456,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 31.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076339599666802,
+          "expectedToneDbFS": -31.078187512725,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 32.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.87930076861108,
+          "expectedToneDbFS": -31.254742625713106,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 32.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.633045430248316,
+          "expectedToneDbFS": -30.854638994247907,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 32.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00435843377126,
+          "expectedToneDbFS": -31.005959887071054,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 32.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019846722230007,
+          "expectedToneDbFS": -31.021324696672355,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 32.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978423454589855,
+          "expectedToneDbFS": -30.98006303665369,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 33.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02821552847571,
+          "expectedToneDbFS": -31.030722168791023,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 33.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025011186415,
+          "expectedToneDbFS": -31.027509401371546,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 33.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07636777581607,
+          "expectedToneDbFS": -31.078215671070744,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 33.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071931152434434,
+          "expectedToneDbFS": -31.073785636111424,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 33.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01082508642056,
+          "expectedToneDbFS": -31.01301121631952,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 34.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.873584612434268,
+          "expectedToneDbFS": -31.12107224430853,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 34.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.54917478598756,
+          "expectedToneDbFS": -30.864403952017746,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 34.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978419368494315,
+          "expectedToneDbFS": -30.98005835539737,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 34.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028210348614138,
+          "expectedToneDbFS": -31.03071624913012,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 34.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025005188022718,
+          "expectedToneDbFS": -31.0275031505973,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 35.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07635314236596,
+          "expectedToneDbFS": -31.078201794899392,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 35.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071907184372325,
+          "expectedToneDbFS": -31.07376157038184,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 35.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010855448893885,
+          "expectedToneDbFS": -31.01304128876211,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 35.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004367510009942,
+          "expectedToneDbFS": -31.00596934560953,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 35.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01979994274555,
+          "expectedToneDbFS": -31.021277029787065,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 36.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.938404966673446,
+          "expectedToneDbFS": -31.132736897772183,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 36.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.593261627967635,
+          "expectedToneDbFS": -30.890326334695537,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 36.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.0250188481942,
+          "expectedToneDbFS": -31.027517427998763,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 36.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076392440589462,
+          "expectedToneDbFS": -31.07824066429613,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 36.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07189321090566,
+          "expectedToneDbFS": -31.073746924821627,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 37.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010827590098238,
+          "expectedToneDbFS": -31.013013309730635,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 37.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004367872911217,
+          "expectedToneDbFS": -31.00596954584173,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 37.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019830303555594,
+          "expectedToneDbFS": -31.021307805652164,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 37.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.97844121901669,
+          "expectedToneDbFS": -30.980081018649965,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 37.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02820035460855,
+          "expectedToneDbFS": -31.030707031451755,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 38.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.869200700453458,
+          "expectedToneDbFS": -31.175716898911062,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 38.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.591605178310285,
+          "expectedToneDbFS": -30.925349381249365,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 38.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.0719081380663,
+          "expectedToneDbFS": -31.073762566660996,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 38.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010867677053735,
+          "expectedToneDbFS": -31.01305410182436,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 38.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004348683519083,
+          "expectedToneDbFS": -31.005950661232955,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 39.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01982214286316,
+          "expectedToneDbFS": -31.021299678025876,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 39.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978425573112098,
+          "expectedToneDbFS": -30.980064984682436,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 39.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02818868135085,
+          "expectedToneDbFS": -31.030694630951196,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 39.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025029830350256,
+          "expectedToneDbFS": -31.02752798674244,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 39.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076359331940104,
+          "expectedToneDbFS": -31.078207978726482,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 40.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.879302832034885,
+          "expectedToneDbFS": -31.25470163488337,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 40.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.633050258059505,
+          "expectedToneDbFS": -30.854673710052882,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 40.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00435543234356,
+          "expectedToneDbFS": -31.005957149025747,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 40.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01986009416948,
+          "expectedToneDbFS": -31.02133783835005,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 40.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978422671095778,
+          "expectedToneDbFS": -30.98006246978514,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 41.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02817769680958,
+          "expectedToneDbFS": -31.030683455883683,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 41.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02503491252762,
+          "expectedToneDbFS": -31.02753284961027,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 41.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07636281540133,
+          "expectedToneDbFS": -31.07821120118606,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 41.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071915109179248,
+          "expectedToneDbFS": -31.073769301426637,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 41.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010842706578046,
+          "expectedToneDbFS": -31.01302912378216,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 42.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.87358113343005,
+          "expectedToneDbFS": -31.121053567722477,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 42.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549137824917157,
+          "expectedToneDbFS": -30.864404914008084,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 42.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978406695394774,
+          "expectedToneDbFS": -30.980046520231504,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 42.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02818776523729,
+          "expectedToneDbFS": -31.030693918572222,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 42.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02500935552811,
+          "expectedToneDbFS": -31.02750788748675,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 43.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076345024838673,
+          "expectedToneDbFS": -31.07819370923735,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 43.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07192602290048,
+          "expectedToneDbFS": -31.073780409833567,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 43.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01084990019792,
+          "expectedToneDbFS": -31.013035342125896,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 43.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00437338943912,
+          "expectedToneDbFS": -31.005975281045217,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 43.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01983650207945,
+          "expectedToneDbFS": -31.02131419982035,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 44.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.93840148026005,
+          "expectedToneDbFS": -31.13272849891316,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 44.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.593266405143247,
+          "expectedToneDbFS": -30.890341926175413,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 44.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025037267034413,
+          "expectedToneDbFS": -31.027535640610758,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 44.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076348802489715,
+          "expectedToneDbFS": -31.078197217690757,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 44.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071925381709164,
+          "expectedToneDbFS": -31.073779880324516,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 45.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010830640668058,
+          "expectedToneDbFS": -31.013016537596933,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 45.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00436523172332,
+          "expectedToneDbFS": -31.005966607548384,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 45.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019791891607667,
+          "expectedToneDbFS": -31.021269859122953,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 45.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978384286656482,
+          "expectedToneDbFS": -30.98002322756752,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 45.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02824060758159,
+          "expectedToneDbFS": -31.030746723881393,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 46.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.870528292997363,
+          "expectedToneDbFS": -31.174006894031358,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 46.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.642108597542936,
+          "expectedToneDbFS": -30.927755225577567,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 46.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071900835855008,
+          "expectedToneDbFS": -31.07375545297308,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 46.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010824682035675,
+          "expectedToneDbFS": -31.013010517556843,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 46.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004362676815575,
+          "expectedToneDbFS": -31.005964328530546,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 47.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019821000191605,
+          "expectedToneDbFS": -31.02129810936875,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 47.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978402944455734,
+          "expectedToneDbFS": -30.980042039681006,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 47.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028205300891024,
+          "expectedToneDbFS": -31.030711517683397,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 47.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025028022928517,
+          "expectedToneDbFS": -31.027525897976027,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 47.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07636269933989,
+          "expectedToneDbFS": -31.078211062857058,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 48.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.879301987438225,
+          "expectedToneDbFS": -31.254706015305093,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 48.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.63302975393347,
+          "expectedToneDbFS": -30.854647414456746,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 48.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00438407368339,
+          "expectedToneDbFS": -31.00598540079951,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 48.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019792333593973,
+          "expectedToneDbFS": -31.021270027084768,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 48.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978441267572943,
+          "expectedToneDbFS": -30.9800805843241,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 49.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028213789931428,
+          "expectedToneDbFS": -31.030719984420607,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 49.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025045143851855,
+          "expectedToneDbFS": -31.027543347244702,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 49.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076357743249506,
+          "expectedToneDbFS": -31.07820646642795,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 49.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071935552071594,
+          "expectedToneDbFS": -31.073789822796094,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 49.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010824662095594,
+          "expectedToneDbFS": -31.013010170550665,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 50.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.873584141507923,
+          "expectedToneDbFS": -31.121058189742897,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 50.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549179027441003,
+          "expectedToneDbFS": -30.864400721067703,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 50.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978410220446527,
+          "expectedToneDbFS": -30.98004949998296,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 50.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028206799992102,
+          "expectedToneDbFS": -31.030713079249526,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 50.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.024988066723417,
+          "expectedToneDbFS": -31.027486605858176,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 51.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076387531429805,
+          "expectedToneDbFS": -31.07823621478881,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 51.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071894745655165,
+          "expectedToneDbFS": -31.073748844505317,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 51.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01082824147474,
+          "expectedToneDbFS": -31.01301452987685,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 51.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004379282415403,
+          "expectedToneDbFS": -31.00598120517008,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 51.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019866480030416,
+          "expectedToneDbFS": -31.021344078773527,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 52.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.938405957550216,
+          "expectedToneDbFS": -31.132733139197093,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 52.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.593247144092473,
+          "expectedToneDbFS": -30.890323235124452,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 52.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025018137070415,
+          "expectedToneDbFS": -31.02751573443081,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 52.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07637793391454,
+          "expectedToneDbFS": -31.078226135791795,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 52.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071917351726164,
+          "expectedToneDbFS": -31.07377203115432,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 53.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010813572765418,
+          "expectedToneDbFS": -31.012999793822296,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 53.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00434107856058,
+          "expectedToneDbFS": -31.005942735438893,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 53.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019829435826903,
+          "expectedToneDbFS": -31.021306930740632,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 53.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978396449327438,
+          "expectedToneDbFS": -30.98003571385086,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 53.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02822048385125,
+          "expectedToneDbFS": -31.030727122183826,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 54.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.86920193700042,
+          "expectedToneDbFS": -31.175711195628764,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 54.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.59158535050917,
+          "expectedToneDbFS": -30.925340681795085,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 54.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07188693655765,
+          "expectedToneDbFS": -31.07374119283449,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 54.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01085781513438,
+          "expectedToneDbFS": -31.013043282552992,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 54.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00436129609351,
+          "expectedToneDbFS": -31.005963126106543,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 55.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.0198125445913,
+          "expectedToneDbFS": -31.021290338620638,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 55.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.9784340063081,
+          "expectedToneDbFS": -30.980073170666405,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 55.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02819288954983,
+          "expectedToneDbFS": -31.030699555225798,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 55.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.0250385884609,
+          "expectedToneDbFS": -31.02753713802658,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 55.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076360600517784,
+          "expectedToneDbFS": -31.078209228172852,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 56.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.879300817602804,
+          "expectedToneDbFS": -31.2547415620828,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 56.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.63304324655947,
+          "expectedToneDbFS": -30.854630727353562,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 56.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004378652712358,
+          "expectedToneDbFS": -31.005980196387778,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 56.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019826632294457,
+          "expectedToneDbFS": -31.021304258498894,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 56.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978385599241637,
+          "expectedToneDbFS": -30.980024851491944,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 57.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02819503569284,
+          "expectedToneDbFS": -31.03070067061219,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 57.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025001850340317,
+          "expectedToneDbFS": -31.027500036892132,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 57.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07635213155417,
+          "expectedToneDbFS": -31.078201074876027,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 57.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071899590150004,
+          "expectedToneDbFS": -31.073753237132564,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 57.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010852597708734,
+          "expectedToneDbFS": -31.0130380893253,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 58.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.87358297748807,
+          "expectedToneDbFS": -31.12105661988853,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 58.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549165221685577,
+          "expectedToneDbFS": -30.86440615650782,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 58.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978415989366937,
+          "expectedToneDbFS": -30.980055419751906,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 58.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02820255414199,
+          "expectedToneDbFS": -31.030709217119128,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 58.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025053474141995,
+          "expectedToneDbFS": -31.027552124082508,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 59.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076345785173004,
+          "expectedToneDbFS": -31.0781939503839,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 59.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071945593302225,
+          "expectedToneDbFS": -31.073799671230837,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 59.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010851652011127,
+          "expectedToneDbFS": -31.013036931340107,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 59.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004384122530567,
+          "expectedToneDbFS": -31.005985235967692,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 59.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019842976090853,
+          "expectedToneDbFS": -31.021320438543555,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 60.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.9384081840389,
+          "expectedToneDbFS": -31.13275891950279,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 60.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.59325375369513,
+          "expectedToneDbFS": -30.890314051907104,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 60.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02504941142309,
+          "expectedToneDbFS": -31.027547619354348,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 60.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076387456394308,
+          "expectedToneDbFS": -31.078235838325693,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 60.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071902009568294,
+          "expectedToneDbFS": -31.073756235891107,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 61.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010855411938003,
+          "expectedToneDbFS": -31.013040662283192,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 61.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00435494971545,
+          "expectedToneDbFS": -31.005956213381968,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 61.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01982896586277,
+          "expectedToneDbFS": -31.021306600923225,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 61.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978425282567315,
+          "expectedToneDbFS": -30.980064283911585,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 61.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02818285287521,
+          "expectedToneDbFS": -31.030688884511367,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 62.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.86920078881482,
+          "expectedToneDbFS": -31.175722743682947,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 62.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.59159042302629,
+          "expectedToneDbFS": -30.92535344093477,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 62.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.0718956130639,
+          "expectedToneDbFS": -31.073750264440715,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 62.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01083432693121,
+          "expectedToneDbFS": -31.013019713750005,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 62.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004393284305664,
+          "expectedToneDbFS": -31.00599529349193,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 63.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019853088888965,
+          "expectedToneDbFS": -31.021330559615595,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 63.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.9784514316752,
+          "expectedToneDbFS": -30.980090738055324,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 63.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028217817973818,
+          "expectedToneDbFS": -31.03072395607353,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 63.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025017229894285,
+          "expectedToneDbFS": -31.0275158578729,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 63.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076390142827822,
+          "expectedToneDbFS": -31.07823867337506,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 64.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.879306335772725,
+          "expectedToneDbFS": -31.254755595993675,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 64.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.633045998117787,
+          "expectedToneDbFS": -30.854642262545728,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 64.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004370320040007,
+          "expectedToneDbFS": -31.005971933235475,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 64.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01980779861377,
+          "expectedToneDbFS": -31.02128551065151,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 64.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.9784306050024,
+          "expectedToneDbFS": -30.980069692180653,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 65.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028189440508047,
+          "expectedToneDbFS": -31.030695021235427,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 65.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025011360061217,
+          "expectedToneDbFS": -31.02750986239668,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 65.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076362153581268,
+          "expectedToneDbFS": -31.078210327633627,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 65.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071904056893892,
+          "expectedToneDbFS": -31.07375830743525,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 65.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01084703067144,
+          "expectedToneDbFS": -31.013032386932082,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 66.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.87358485795263,
+          "expectedToneDbFS": -31.121069917606718,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 66.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549161744357825,
+          "expectedToneDbFS": -30.86440945653825,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 66.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978420139848794,
+          "expectedToneDbFS": -30.980059504195307,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 66.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028195398455175,
+          "expectedToneDbFS": -31.030701309695964,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 66.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.024999879687194,
+          "expectedToneDbFS": -31.02749844783037,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 67.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076353617407094,
+          "expectedToneDbFS": -31.078201522833517,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 67.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07190120579171,
+          "expectedToneDbFS": -31.073755354577365,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 67.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01083282849743,
+          "expectedToneDbFS": -31.013018209271216,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 67.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00437765612518,
+          "expectedToneDbFS": -31.005979195741816,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 67.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019810021608322,
+          "expectedToneDbFS": -31.021287389937076,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 68.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.938410659437473,
+          "expectedToneDbFS": -31.13278341376389,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 68.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.59323287300224,
+          "expectedToneDbFS": -30.890337423331367,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 68.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025052898249825,
+          "expectedToneDbFS": -31.027550952613524,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 68.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076372320573647,
+          "expectedToneDbFS": -31.078220239133305,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 68.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071904549514066,
+          "expectedToneDbFS": -31.073758851868728,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 69.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010853631941103,
+          "expectedToneDbFS": -31.013039394553253,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 69.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00435744063986,
+          "expectedToneDbFS": -31.005959538261067,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 69.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.0198403531826,
+          "expectedToneDbFS": -31.021318519163202,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 69.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978450580091618,
+          "expectedToneDbFS": -30.980089949847883,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 69.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028219811175504,
+          "expectedToneDbFS": -31.030726539375003,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 70.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.86920014753165,
+          "expectedToneDbFS": -31.175692833287854,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 70.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.59160331157475,
+          "expectedToneDbFS": -30.925343530663028,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 70.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071908820778653,
+          "expectedToneDbFS": -31.073762816836535,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 70.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010846765865793,
+          "expectedToneDbFS": -31.01303276967817,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 70.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004356633339146,
+          "expectedToneDbFS": -31.005958091961055,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 71.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01981071989101,
+          "expectedToneDbFS": -31.021288669653654,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 71.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978421068218815,
+          "expectedToneDbFS": -30.980060986451935,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 71.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028204501690983,
+          "expectedToneDbFS": -31.030710283721987,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 71.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025003180558354,
+          "expectedToneDbFS": -31.02750148148135,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 71.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076368578530357,
+          "expectedToneDbFS": -31.078217012634624,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 72.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.879299527244605,
+          "expectedToneDbFS": -31.254686670575225,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 72.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.63305441938104,
+          "expectedToneDbFS": -30.85465907258035,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 72.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004350550846777,
+          "expectedToneDbFS": -31.005952027868435,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 72.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019832416796724,
+          "expectedToneDbFS": -31.021310114872904,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 72.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.97843404826697,
+          "expectedToneDbFS": -30.98007342658155,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 73.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028179815184117,
+          "expectedToneDbFS": -31.030685760381644,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 73.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025012775371508,
+          "expectedToneDbFS": -31.02751098720638,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 73.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076390151465006,
+          "expectedToneDbFS": -31.078238705730392,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 73.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071903837142713,
+          "expectedToneDbFS": -31.07375828261116,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 73.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010841729510076,
+          "expectedToneDbFS": -31.013027065457813,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 74.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.8735834850559,
+          "expectedToneDbFS": -31.121058129545993,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 74.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549164217680385,
+          "expectedToneDbFS": -30.864400902076532,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 74.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.97843537564513,
+          "expectedToneDbFS": -30.980074719571085,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 74.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028192310571878,
+          "expectedToneDbFS": -31.030698654202055,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 74.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02500822589476,
+          "expectedToneDbFS": -31.02750677039278,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 75.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07634604293636,
+          "expectedToneDbFS": -31.078194468631807,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 75.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071910541311325,
+          "expectedToneDbFS": -31.073764827084112,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 75.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010842588266403,
+          "expectedToneDbFS": -31.013028195614094,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 75.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00439203073604,
+          "expectedToneDbFS": -31.00599282168207,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 75.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01981625180706,
+          "expectedToneDbFS": -31.021293806670556,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 76.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.93840301809517,
+          "expectedToneDbFS": -31.132741958644555,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 76.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.59324294879557,
+          "expectedToneDbFS": -30.89031293466958,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 76.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02504096404211,
+          "expectedToneDbFS": -31.02753972209821,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 76.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076345999211057,
+          "expectedToneDbFS": -31.078194200183432,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 76.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071917490857402,
+          "expectedToneDbFS": -31.073771677169354,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 77.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01084013429753,
+          "expectedToneDbFS": -31.013025550515167,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 77.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004376174253025,
+          "expectedToneDbFS": -31.005978144200284,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 77.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019845453268637,
+          "expectedToneDbFS": -31.021322935167408,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 77.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978406704103165,
+          "expectedToneDbFS": -30.98004659175508,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 77.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028201520841616,
+          "expectedToneDbFS": -31.03070772407481,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 78.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.869199133245946,
+          "expectedToneDbFS": -31.17573709902303,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 78.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.591589963332403,
+          "expectedToneDbFS": -30.925322633331685,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 78.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071876320607956,
+          "expectedToneDbFS": -31.07373083252535,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 78.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010851730974345,
+          "expectedToneDbFS": -31.013038025934215,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 78.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00433044884353,
+          "expectedToneDbFS": -31.005932213966577,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 79.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01980383111481,
+          "expectedToneDbFS": -31.021281655852402,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 79.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978418161191573,
+          "expectedToneDbFS": -30.980057119991002,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 79.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028195467590898,
+          "expectedToneDbFS": -31.03070117656928,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 79.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02502544703374,
+          "expectedToneDbFS": -31.027524164085687,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 79.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07637212164931,
+          "expectedToneDbFS": -31.07822096444863,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 80.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.879301011474897,
+          "expectedToneDbFS": -31.25471977883469,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 80.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.633049370379993,
+          "expectedToneDbFS": -30.854665891140716,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 80.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004374155063662,
+          "expectedToneDbFS": -31.005975471635324,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 80.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.01982889899146,
+          "expectedToneDbFS": -31.021306470895667,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 80.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978403216790582,
+          "expectedToneDbFS": -30.9800421783987,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 81.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02818868028312,
+          "expectedToneDbFS": -31.030694963135943,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 81.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025012407806898,
+          "expectedToneDbFS": -31.027510542746903,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 81.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076359484439312,
+          "expectedToneDbFS": -31.07820783513381,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 81.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07191769335268,
+          "expectedToneDbFS": -31.073771740205935,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 81.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010811218247177,
+          "expectedToneDbFS": -31.01299743664859,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 82.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.8735816634359,
+          "expectedToneDbFS": -31.121059094207176,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 82.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549164965099777,
+          "expectedToneDbFS": -30.864425722368587,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 82.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978396509230457,
+          "expectedToneDbFS": -30.98003608422558,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 82.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02820111590325,
+          "expectedToneDbFS": -31.030706694981227,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 82.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025026130151176,
+          "expectedToneDbFS": -31.027524235034534,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 83.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076358220990244,
+          "expectedToneDbFS": -31.07820631747961,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 83.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071883209162422,
+          "expectedToneDbFS": -31.073737777552537,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 83.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010822074139575,
+          "expectedToneDbFS": -31.01300834083853,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 83.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00435370651029,
+          "expectedToneDbFS": -31.005954986048803,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 83.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019841560599385,
+          "expectedToneDbFS": -31.02131967611967,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 84.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.93840481266708,
+          "expectedToneDbFS": -31.13274826865297,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 84.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.593258467896035,
+          "expectedToneDbFS": -30.89030994879017,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 84.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02506658284481,
+          "expectedToneDbFS": -31.027565509548587,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 84.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076375597563285,
+          "expectedToneDbFS": -31.07822360312207,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 84.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071909273493578,
+          "expectedToneDbFS": -31.073763701324154,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 85.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010838820906308,
+          "expectedToneDbFS": -31.013024405545558,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 85.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.00434381716176,
+          "expectedToneDbFS": -31.005945647341893,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 85.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019845370411836,
+          "expectedToneDbFS": -31.021322990982124,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 85.733,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978429711464077,
+          "expectedToneDbFS": -30.98006952366935,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 85.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02820019418146,
+          "expectedToneDbFS": -31.030706469577666,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 86.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.869202429570343,
+          "expectedToneDbFS": -31.175682494078266,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 86.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.591571479324674,
+          "expectedToneDbFS": -30.925346396289505,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 86.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071941122471078,
+          "expectedToneDbFS": -31.073795635578378,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 86.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010815702095407,
+          "expectedToneDbFS": -31.013001767890238,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 86.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004363722246264,
+          "expectedToneDbFS": -31.00596557992978,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 87.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019870228854067,
+          "expectedToneDbFS": -31.021347661664493,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 87.333,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978418685015786,
+          "expectedToneDbFS": -30.980057822047517,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 87.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028218527219313,
+          "expectedToneDbFS": -31.030725097185297,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 87.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.025039468167336,
+          "expectedToneDbFS": -31.027537194851934,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 87.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.076391976340567,
+          "expectedToneDbFS": -31.078240990500703,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 88.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.879303321171946,
+          "expectedToneDbFS": -31.25471369611255,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 88.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.633060216978997,
+          "expectedToneDbFS": -30.8546472160832,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 88.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.004363034672473,
+          "expectedToneDbFS": -31.005964617853135,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 88.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.019802694575684,
+          "expectedToneDbFS": -31.021280768810733,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 88.933,
+          "seconds": 0.2,
+          "rmsDbFS": -30.97841517288782,
+          "expectedToneDbFS": -30.980054510488813,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 89.133,
+          "seconds": 0.2,
+          "rmsDbFS": -31.028196665854658,
+          "expectedToneDbFS": -31.03070261892396,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 89.333,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02500231739697,
+          "expectedToneDbFS": -31.02750051592676,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 89.533,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07637857225472,
+          "expectedToneDbFS": -31.078227179754805,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 89.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.071915030985377,
+          "expectedToneDbFS": -31.07376951757128,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 89.933,
+          "seconds": 0.2,
+          "rmsDbFS": -31.010840067032746,
+          "expectedToneDbFS": -31.013026346191687,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 90.133,
+          "seconds": 0.2,
+          "rmsDbFS": -16.873583057129473,
+          "expectedToneDbFS": -31.121055238377615,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 90.333,
+          "seconds": 0.2,
+          "rmsDbFS": -24.549172907617205,
+          "expectedToneDbFS": -30.864405917005875,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 90.533,
+          "seconds": 0.2,
+          "rmsDbFS": -30.978440328379,
+          "expectedToneDbFS": -30.98007980074561,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 90.733,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02821528209514,
+          "expectedToneDbFS": -31.030722127113386,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 90.933,
+          "seconds": 0.046,
+          "rmsDbFS": -31.140791977810288,
+          "expectedToneDbFS": -31.12522731945895,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "seek后完整10秒播放",
+      "passed": true,
+      "coverage": 1.0,
+      "longestFailureSeconds": 0,
+      "windows": [
+        {
+          "start": 96.988,
+          "seconds": 0.2,
+          "rmsDbFS": -31.000784726379432,
+          "expectedToneDbFS": -31.002788301022388,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 97.188,
+          "seconds": 0.2,
+          "rmsDbFS": -30.99971224733748,
+          "expectedToneDbFS": -31.001363631529667,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 97.388,
+          "seconds": 0.2,
+          "rmsDbFS": -31.03890197641104,
+          "expectedToneDbFS": -31.040614677684765,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 97.588,
+          "seconds": 0.2,
+          "rmsDbFS": -30.97365482960692,
+          "expectedToneDbFS": -30.97522404141268,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 97.788,
+          "seconds": 0.2,
+          "rmsDbFS": -31.086658546568827,
+          "expectedToneDbFS": -31.088858269314596,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 97.988,
+          "seconds": 0.2,
+          "rmsDbFS": -31.05291215121827,
+          "expectedToneDbFS": -31.05536428383673,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 98.188,
+          "seconds": 0.2,
+          "rmsDbFS": -28.330793699469798,
+          "expectedToneDbFS": -30.927348710014698,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 98.388,
+          "seconds": 0.2,
+          "rmsDbFS": -16.48420278081136,
+          "expectedToneDbFS": -31.181721894693474,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 98.588,
+          "seconds": 0.2,
+          "rmsDbFS": -31.000805184660795,
+          "expectedToneDbFS": -31.002808962067512,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 98.788,
+          "seconds": 0.2,
+          "rmsDbFS": -30.999706123612473,
+          "expectedToneDbFS": -31.001357374001625,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 98.988,
+          "seconds": 0.2,
+          "rmsDbFS": -31.038916546561843,
+          "expectedToneDbFS": -31.04062978433701,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 99.188,
+          "seconds": 0.2,
+          "rmsDbFS": -30.973645898780457,
+          "expectedToneDbFS": -30.975214816749556,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 99.388,
+          "seconds": 0.2,
+          "rmsDbFS": -31.086653713178748,
+          "expectedToneDbFS": -31.088853024241597,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 99.588,
+          "seconds": 0.2,
+          "rmsDbFS": -31.05288911929565,
+          "expectedToneDbFS": -31.055340307075305,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 99.788,
+          "seconds": 0.2,
+          "rmsDbFS": -31.075075240116263,
+          "expectedToneDbFS": -31.076922905673207,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 99.988,
+          "seconds": 0.2,
+          "rmsDbFS": -31.063003895457527,
+          "expectedToneDbFS": -31.06485418668092,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 100.188,
+          "seconds": 0.2,
+          "rmsDbFS": -28.313896531851313,
+          "expectedToneDbFS": -30.90665182503976,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 100.388,
+          "seconds": 0.2,
+          "rmsDbFS": -16.488815822289908,
+          "expectedToneDbFS": -31.126096011138465,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 100.588,
+          "seconds": 0.2,
+          "rmsDbFS": -31.03890740746523,
+          "expectedToneDbFS": -31.040620568169178,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 100.788,
+          "seconds": 0.2,
+          "rmsDbFS": -30.973673635804893,
+          "expectedToneDbFS": -30.97524233754484,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 100.988,
+          "seconds": 0.2,
+          "rmsDbFS": -31.086645129426714,
+          "expectedToneDbFS": -31.08884443699903,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 101.188,
+          "seconds": 0.2,
+          "rmsDbFS": -31.05291199121801,
+          "expectedToneDbFS": -31.05536392144083,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 101.388,
+          "seconds": 0.2,
+          "rmsDbFS": -31.07507417158835,
+          "expectedToneDbFS": -31.07692134739279,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 101.588,
+          "seconds": 0.2,
+          "rmsDbFS": -31.06302947117724,
+          "expectedToneDbFS": -31.064879693343567,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 101.788,
+          "seconds": 0.2,
+          "rmsDbFS": -31.000792953765686,
+          "expectedToneDbFS": -31.002796773483393,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 101.988,
+          "seconds": 0.2,
+          "rmsDbFS": -30.999711505870927,
+          "expectedToneDbFS": -31.001363101667046,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 102.188,
+          "seconds": 0.2,
+          "rmsDbFS": -28.36965480040833,
+          "expectedToneDbFS": -30.890894858615134,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 102.388,
+          "seconds": 0.2,
+          "rmsDbFS": -16.470857783517854,
+          "expectedToneDbFS": -31.110379625798306,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 102.588,
+          "seconds": 0.2,
+          "rmsDbFS": -31.08665027312858,
+          "expectedToneDbFS": -31.088849352746706,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 102.788,
+          "seconds": 0.2,
+          "rmsDbFS": -31.05290163282467,
+          "expectedToneDbFS": -31.055353651161454,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 102.988,
+          "seconds": 0.2,
+          "rmsDbFS": -31.075070529421215,
+          "expectedToneDbFS": -31.07691863828629,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 103.188,
+          "seconds": 0.2,
+          "rmsDbFS": -31.0629963778692,
+          "expectedToneDbFS": -31.064846969929963,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 103.388,
+          "seconds": 0.2,
+          "rmsDbFS": -31.000786756898076,
+          "expectedToneDbFS": -31.002790751761992,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 103.588,
+          "seconds": 0.2,
+          "rmsDbFS": -30.999679941947925,
+          "expectedToneDbFS": -31.001331534253023,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 103.788,
+          "seconds": 0.2,
+          "rmsDbFS": -31.03891488213325,
+          "expectedToneDbFS": -31.04062827149983,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 103.988,
+          "seconds": 0.2,
+          "rmsDbFS": -30.973675544292036,
+          "expectedToneDbFS": -30.975244266297892,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 104.188,
+          "seconds": 0.2,
+          "rmsDbFS": -28.369555316406615,
+          "expectedToneDbFS": -30.91478931066263,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 104.388,
+          "seconds": 0.2,
+          "rmsDbFS": -16.475447416639774,
+          "expectedToneDbFS": -31.143982620552464,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 104.588,
+          "seconds": 0.2,
+          "rmsDbFS": -31.075078195029022,
+          "expectedToneDbFS": -31.076925249148218,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 104.788,
+          "seconds": 0.2,
+          "rmsDbFS": -31.062997773861063,
+          "expectedToneDbFS": -31.06484832871983,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 104.988,
+          "seconds": 0.2,
+          "rmsDbFS": -31.000760924952033,
+          "expectedToneDbFS": -31.002764795498784,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 105.188,
+          "seconds": 0.2,
+          "rmsDbFS": -30.999708432339585,
+          "expectedToneDbFS": -31.001359995211857,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 105.388,
+          "seconds": 0.2,
+          "rmsDbFS": -31.038921726631642,
+          "expectedToneDbFS": -31.04063469470478,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 105.588,
+          "seconds": 0.2,
+          "rmsDbFS": -30.97366473868089,
+          "expectedToneDbFS": -30.975233862800785,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 105.788,
+          "seconds": 0.2,
+          "rmsDbFS": -31.08664609015029,
+          "expectedToneDbFS": -31.08884587986517,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 105.988,
+          "seconds": 0.2,
+          "rmsDbFS": -31.05289791497688,
+          "expectedToneDbFS": -31.05534996443478,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 106.188,
+          "seconds": 0.2,
+          "rmsDbFS": -28.330801904100195,
+          "expectedToneDbFS": -30.92736394639889,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 106.388,
+          "seconds": 0.2,
+          "rmsDbFS": -16.48420512118246,
+          "expectedToneDbFS": -31.181727956332722,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 106.588,
+          "seconds": 0.2,
+          "rmsDbFS": -31.000770239564936,
+          "expectedToneDbFS": -31.002774009628414,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 106.788,
+          "seconds": 0.2,
+          "rmsDbFS": -30.999697594645234,
+          "expectedToneDbFS": -31.00134849367536,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "重开后完整10秒播放",
+      "passed": true,
+      "coverage": 0.9800000000000001,
+      "longestFailureSeconds": 0.2,
+      "windows": [
+        {
+          "start": 110.241,
+          "seconds": 0.2,
+          "rmsDbFS": -150.0,
+          "expectedToneDbFS": -150.0,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": false
+        },
+        {
+          "start": 110.441,
+          "seconds": 0.2,
+          "rmsDbFS": -36.005622491281194,
+          "expectedToneDbFS": -40.57643576818186,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 110.641,
+          "seconds": 0.2,
+          "rmsDbFS": -31.063511916320966,
+          "expectedToneDbFS": -31.06527206196171,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 110.841,
+          "seconds": 0.2,
+          "rmsDbFS": -31.082884197050078,
+          "expectedToneDbFS": -31.084855682769383,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 111.041,
+          "seconds": 0.2,
+          "rmsDbFS": -30.931599079693513,
+          "expectedToneDbFS": -30.933252270343093,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 111.241,
+          "seconds": 0.2,
+          "rmsDbFS": -31.039641765606806,
+          "expectedToneDbFS": -31.04124216358045,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 111.441,
+          "seconds": 0.2,
+          "rmsDbFS": -17.46181844785501,
+          "expectedToneDbFS": -30.96381688610919,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 111.641,
+          "seconds": 0.2,
+          "rmsDbFS": -22.127999345240855,
+          "expectedToneDbFS": -31.014491675822306,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 111.841,
+          "seconds": 0.2,
+          "rmsDbFS": -31.044741692273774,
+          "expectedToneDbFS": -31.04681169248672,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 112.041,
+          "seconds": 0.2,
+          "rmsDbFS": -31.024457636495608,
+          "expectedToneDbFS": -31.027239498272312,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 112.241,
+          "seconds": 0.2,
+          "rmsDbFS": -31.063513782618845,
+          "expectedToneDbFS": -31.065273958412263,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 112.441,
+          "seconds": 0.2,
+          "rmsDbFS": -31.08285558068955,
+          "expectedToneDbFS": -31.08482665089728,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 112.641,
+          "seconds": 0.2,
+          "rmsDbFS": -30.931559476295824,
+          "expectedToneDbFS": -30.93321282057215,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 112.841,
+          "seconds": 0.2,
+          "rmsDbFS": -31.03961635186986,
+          "expectedToneDbFS": -31.041216584260567,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 113.041,
+          "seconds": 0.2,
+          "rmsDbFS": -31.007924224467764,
+          "expectedToneDbFS": -31.00943992848763,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 113.241,
+          "seconds": 0.2,
+          "rmsDbFS": -30.94346567729376,
+          "expectedToneDbFS": -30.944859420316767,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 113.441,
+          "seconds": 0.2,
+          "rmsDbFS": -17.49601034610691,
+          "expectedToneDbFS": -31.02491085053311,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 113.641,
+          "seconds": 0.2,
+          "rmsDbFS": -22.14144608129655,
+          "expectedToneDbFS": -31.01131038451438,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 113.841,
+          "seconds": 0.2,
+          "rmsDbFS": -31.06352261626029,
+          "expectedToneDbFS": -31.06528227279749,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 114.041,
+          "seconds": 0.2,
+          "rmsDbFS": -31.082863088130765,
+          "expectedToneDbFS": -31.084833499495645,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 114.241,
+          "seconds": 0.2,
+          "rmsDbFS": -30.931557559337843,
+          "expectedToneDbFS": -30.93321131370457,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 114.441,
+          "seconds": 0.2,
+          "rmsDbFS": -31.039607011644314,
+          "expectedToneDbFS": -31.041208135910765,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 114.641,
+          "seconds": 0.2,
+          "rmsDbFS": -31.007912234148534,
+          "expectedToneDbFS": -31.009427347360607,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 114.841,
+          "seconds": 0.2,
+          "rmsDbFS": -30.943498674018567,
+          "expectedToneDbFS": -30.944892683049147,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 115.041,
+          "seconds": 0.2,
+          "rmsDbFS": -31.044755719863822,
+          "expectedToneDbFS": -31.046825467379897,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 115.241,
+          "seconds": 0.2,
+          "rmsDbFS": -31.024484360818015,
+          "expectedToneDbFS": -31.02726559215075,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 115.441,
+          "seconds": 0.2,
+          "rmsDbFS": -17.486882015538747,
+          "expectedToneDbFS": -31.037962866497402,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 115.641,
+          "seconds": 0.2,
+          "rmsDbFS": -22.151596360204806,
+          "expectedToneDbFS": -31.07717679861908,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 115.841,
+          "seconds": 0.2,
+          "rmsDbFS": -30.931535349523887,
+          "expectedToneDbFS": -30.933188948461122,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 116.041,
+          "seconds": 0.2,
+          "rmsDbFS": -31.039640978484222,
+          "expectedToneDbFS": -31.041241212543135,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 116.241,
+          "seconds": 0.2,
+          "rmsDbFS": -31.007933773651928,
+          "expectedToneDbFS": -31.00944932156461,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 116.441,
+          "seconds": 0.2,
+          "rmsDbFS": -30.943487858937367,
+          "expectedToneDbFS": -30.944881891145137,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 116.641,
+          "seconds": 0.2,
+          "rmsDbFS": -31.044741477108136,
+          "expectedToneDbFS": -31.046811043398343,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 116.841,
+          "seconds": 0.2,
+          "rmsDbFS": -31.024435398267933,
+          "expectedToneDbFS": -31.02721648219374,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 117.041,
+          "seconds": 0.2,
+          "rmsDbFS": -31.06353218998338,
+          "expectedToneDbFS": -31.065292279484467,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 117.241,
+          "seconds": 0.2,
+          "rmsDbFS": -31.082875582090075,
+          "expectedToneDbFS": -31.084846197158722,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 117.441,
+          "seconds": 0.2,
+          "rmsDbFS": -17.474103088942744,
+          "expectedToneDbFS": -30.949224428189225,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 117.641,
+          "seconds": 0.2,
+          "rmsDbFS": -22.12836173110388,
+          "expectedToneDbFS": -31.021254364801393,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 117.841,
+          "seconds": 0.2,
+          "rmsDbFS": -31.007921034857354,
+          "expectedToneDbFS": -31.009436575442756,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 118.041,
+          "seconds": 0.2,
+          "rmsDbFS": -30.943491181939798,
+          "expectedToneDbFS": -30.944884673837695,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 118.241,
+          "seconds": 0.2,
+          "rmsDbFS": -31.044748418951862,
+          "expectedToneDbFS": -31.046817632124206,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 118.441,
+          "seconds": 0.2,
+          "rmsDbFS": -31.024445580440076,
+          "expectedToneDbFS": -31.027226361976837,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 118.641,
+          "seconds": 0.2,
+          "rmsDbFS": -31.063518710617917,
+          "expectedToneDbFS": -31.06527862981313,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 118.841,
+          "seconds": 0.2,
+          "rmsDbFS": -31.08287924026978,
+          "expectedToneDbFS": -31.084850305630173,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 119.041,
+          "seconds": 0.2,
+          "rmsDbFS": -30.931542029738203,
+          "expectedToneDbFS": -30.93319533507146,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 119.241,
+          "seconds": 0.2,
+          "rmsDbFS": -31.03961855264285,
+          "expectedToneDbFS": -31.04121867292339,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 119.441,
+          "seconds": 0.2,
+          "rmsDbFS": -17.461822575447098,
+          "expectedToneDbFS": -30.963796156595023,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 119.641,
+          "seconds": 0.2,
+          "rmsDbFS": -22.12800047468743,
+          "expectedToneDbFS": -31.014464754282194,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 119.841,
+          "seconds": 0.2,
+          "rmsDbFS": -31.04476743907638,
+          "expectedToneDbFS": -31.04683719778851,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        },
+        {
+          "start": 120.041,
+          "seconds": 0.2,
+          "rmsDbFS": -31.02446740212782,
+          "expectedToneDbFS": -31.027248734627108,
+          "oldToneDbFS": -150.0,
+          "mixed": false,
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "只核对指定测试音，不证明自然音质或物理扬声器效果",
+    "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+    "合成音回归不计作设备验收"
+  ]
+}

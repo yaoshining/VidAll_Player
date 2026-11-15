@@ -1,0 +1,35 @@
+{
+  "device": {
+    "model": "MateTV Pro EDIS-790A",
+    "API": 24,
+    "system": "6.1.0.130(SP10C00E2R1P3)"
+  },
+  "productionSource": "444e812cd729d85ea5b91d9552266e31091b047d",
+  "diagnosticVersion": "1.0.84",
+  "pidBefore": 60246,
+  "pidAfter": 60246,
+  "pidUnchanged": true,
+  "scope": "三秒计时全局终局注入，不是自然GPU故障或永久平台Release挂起",
+  "firstBackend": "OHCodec/Vulkan",
+  "recoveryBackend": "software/no",
+  "manualReturnAndNext": true,
+  "firstFrames": 3,
+  "errorsAfterRecovery": 0,
+  "videoFramesInspectedAtSeconds": [
+    17,
+    101,
+    113
+  ],
+  "captureSHA256": "4662ccd6af8e86cb108a96bba2d37c68ce437d62e45c18cdb36c41d2c81e58ba",
+  "postFaultAudioWindowsPassed": true,
+  "wholeAudioGatePassed": false,
+  "physicalAccepted": false,
+  "api19Accepted": false,
+  "remaining": [
+    "首片首帧至终局声音窗口覆盖79.101%，连续失败600ms，完整门槛失败保留",
+    "源素材从0秒有声；录制彩条12.652644秒首次出现、880Hz于13.25秒开始；尚缺本轮原生AO启动时序",
+    "已STOPPED且Release挂起修复已宿主/CI验证，当前计时终局没有制造平台Release永久挂起，不能据此宣称真机挂起验收完成",
+    "未知Stop/Release或查询挂起及16槽耗尽；系统整体故障可信判据",
+    "物理音画同步、API19正式入口、API26/路由、x86_64交付"
+  ]
+}

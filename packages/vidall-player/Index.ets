@@ -8,6 +8,7 @@ export {
   FrameData,
   MediaSource,
   PlayerError,
+  PlayerLoadIdentity,
   PlayerEvent,
   PlayerEventType,
   PlayerLog,
@@ -22,4 +23,4 @@ export {
 
 export { DiagnosticStatus, DiagnosticField, PlayerDiagnosticsFields, PlayerDiagnosticsSnapshot } from './src/main/ets/public/diagnostics';
 
-export { initializePlayerRuntime, getPlayerRuntimeStatus, onPlayerTerminal, PlayerRuntimeOptions, PlayerRuntimeStatus, PlayerTerminalInfo } from './src/main/ets/public/runtime';
+export { initializePlayerRuntime, getPlayerRuntimeStatus, onPlayerTerminal, onPlayerFault, PlayerRuntimeOptions, PlayerRuntimeStatus, PlayerRecoveryStatus, PlayerTerminalInfo, PlayerFaultAttribution, PlayerFaultInfo } from './src/main/ets/public/runtime';

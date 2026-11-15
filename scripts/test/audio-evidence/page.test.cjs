@@ -1,0 +1,78 @@
+// 运行真实页面流程；首帧和系统录制均为替身。
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),Module=require('node:module');
+const ts=require(process.env.TYPESCRIPT_PATH||'/Applications/DevEco-Studio.app/Contents/plugins/codelinter/node_modules/typescript');
+const file=path.resolve(__dirname,'../../../fixtures/normal-core-consumer/audio-evidence/Index.ets');
+const source=fs.readFileSync(file,'utf8');
+let calls=[],recording=false;
+global.XComponentController=class{};
+const original=Module._load;
+Module._load=function(name,parent,main){
+ if(name==='./SeekRun'){const f=path.join(path.dirname(file),'SeekRun.ets');const sm=new Module(f,module);sm._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,f);return sm.exports;}
+ if(name==='./SystemBaseline')return{SystemBaseline:class{async run(){calls.push('system-baseline');}async close(){}}};
+ if(name==='./EvidenceChunks')return{EvidenceChunks:class{async begin(kind,busy){calls.push(['begin',kind,busy]);if(busy)throw Error('CAPTURE_BUSY');}async next(busy){calls.push(['next',busy]);}async repeat(busy){calls.push(['repeat',busy]);}close(){calls.push('chunks-close');}}};
+ if(name==='./EvidenceFiles')return{EvidenceFiles:class{start(){}close(){}async exportFile(){return true;}}};
+ if(name==='./AudioCapture')return{AudioCapture:class{async start(){calls.push('capture-start');recording=true;}assertRecording(){assert(recording);}async finish(){calls.push('capture-finish');recording=false;}}};
+ if(name==='./FocusAlarm')return{FocusAlarm:class{async start(){} async stop(){} samplesWritten(){return 48000;}}};
+ if(name==='./FocusRun')return{runFocusProbe:async port=>{await port.confirmManualResume();await port.resume();}};
+ if(name==='@kit.ArkUI')return{window:{getLastWindow:async()=>({setWindowKeepScreenOn:async()=>{},getWindowProperties:()=>({isKeepScreenOn:false})})}};
+ if(name.startsWith('@kit.'))return{};
+ if(name==='@vidall/player')return{getPlayerRuntimeStatus:()=>({state:'ready'}),createPlayer:()=>{throw Error('MUST_NOT_CREATE_AFTER_EXIT');}};
+ return original.call(this,name,parent,main);
+};
+const stripped=source.slice(0,source.indexOf('  build() {')).replace('@Entry','').replace('@Component','').replace('struct Index','class Index').replace(/@State /g,'')+'}\nexports.Index=Index;';
+const m=new Module(file,module);m.filename=file;m.paths=module.paths;
+m._compile(ts.transpileModule(stripped,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,file);
+(async()=>{
+ assert(source.includes(".id('audio-copy-capture')"));
+ const copying=new m.exports.Index();copying.root='/own';
+ await copying.copyEvidence('events');await copying.copyEvidence('next');await copying.copyEvidence('repeat');
+ assert.deepEqual(calls,[['begin','events',false],['next',false],['repeat',false]]);
+ copying.captureBusy=true;await copying.copyEvidence('capture');assert.match(copying.evidenceStatus,/CAPTURE_BUSY/);
+ copying.aboutToDisappear();assert(calls.includes('chunks-close'));calls=[];
+ assert(source.includes(".id('audio-export-capture')"));
+ assert(source.indexOf('this.evidence.start()') < source.indexOf('await initializePlayerRuntime'));
+ const busy=new m.exports.Index();busy.record('capture-stage','start-call');assert.equal(busy.captureBusy,true);busy.record('capture-closed');assert.equal(busy.captureBusy,false);
+ const visible=new m.exports.Index();
+ for(let i=0;i<20;i++)visible.record('capture-stage','stage-'+i+'x'.repeat(300)+'\nforged');
+ const trace=visible.captureTrace.split('\n');assert.equal(trace.length,12);assert(trace.every(line=>line.length<=160));
+ assert(!trace.some(line=>line==='forged'));assert(trace[0].includes('stage-8'));assert(trace[11].includes('stage-19'));
+ assert(source.includes("Text(this.captureTrace)"));
+ const p=new m.exports.Index();p.context={};p.root='/fake';p.ready=true;p.surface=true;
+ p.run=async()=>{assert(recording);calls.push('playback');};
+ p.record=()=>{};await p.startCaptured();assert.deepEqual(calls,['capture-start','playback','capture-finish']);
+ calls=[];await p.startCaptured();assert.deepEqual(calls,[],'不允许重复录制复用状态');
+ const q=new m.exports.Index();q.context={};q.root='/fake';q.ready=true;q.surface=true;q.record=()=>{};
+ q.run=async()=>{throw Error('PLAYBACK_FAILED');};q.finish=async()=>calls.push('player-finish');
+ await q.startCaptured();assert.match(q.status,/失败/);assert(calls.includes('capture-finish'));
+ assert(source.includes(".id('audio-capture-start')"));
+ const stopped=new m.exports.Index();stopped.record=()=>{};stopped.aboutToDisappear();
+ await assert.rejects(stopped.open(1),/PROBE_CANCELLED/);
+ const focus=new m.exports.Index();focus.record=()=>{};
+ focus.delay=async()=>{assert.equal(focus.awaitingManualResume,true);focus.acceptManualResume();};
+ let resumed=0;await focus.focusFlow({play:async()=>resumed++});assert.equal(resumed,1);
+ assert(source.includes(".id('audio-focus-start')"));
+ // 执行完整run，使用生产契约的durationMs estimated=true，不能只模拟主流程成功。
+ async function normalCase(duration, positionEstimated=false, stalled=false) {
+  const page=new m.exports.Index();page.context={};page.capture={assertRecording(){}};
+  page.record=(event,value)=>{calls.push([event,value]);};page.delay=async()=>{};page.badMedia=async()=>{};page.firstFrames=2;
+  let diagnostics=0;
+  const field=(value,estimated=false)=>({status:'available',value,estimated});
+  const player={pause:async()=>{},play:async()=>{},seekPercent:async()=>{},release:async()=>{},
+   getDiagnostics:async()=>{const n=++diagnostics;return {fields:{
+    paused:field(n<=2), positionMs:field(n>=5 ? (stalled ? 20000 : 20000+(n-4)*500) : [5000,5000,8000,20000][n-1],positionEstimated),
+    buffering:field(false),durationMs:duration,renderBackend:field('vulkan'),hardwareDecoder:field('ohcodec')
+   }};}};
+  page.open=async()=>{page.player=player;return player;};await page.run();return page.status;
+ }
+ const duration={status:'available',value:30000,estimated:true};
+ assert.match(await normalCase(duration),/正常路径完成/);
+ await assert.rejects(normalCase(duration,true),/DIAGNOSTIC_UNAVAILABLE/);
+ await assert.rejects(normalCase({...duration,status:'unavailable'}),/DIAGNOSTIC_UNAVAILABLE/);
+ await assert.rejects(normalCase({...duration,value:NaN}),/DIAGNOSTIC_UNAVAILABLE/);
+ await assert.rejects(normalCase({...duration,value:60000}),/FIXTURE_DURATION_MISMATCH/);
+ calls=[];await assert.rejects(normalCase(duration,false,true),/SEEK_NOT_ADVANCING/);
+ assert(calls.some(x=>Array.isArray(x)&&x[0]==='seek-failed-diagnostics'),'失败前必须记录原始检查快照');
+ assert.equal(calls.filter(x=>Array.isArray(x)&&x[0]==='seek-followup').length,20,'保留失败后10秒完整观察，不见推进即停止');
+ assert(!calls.some(x=>Array.isArray(x)&&x[0]==='seek-verified'),'后来推进不能覆盖原始失败');
+ console.log('PASS: 录制开始后才播放、一次性启动、失败清理、退出禁止新会话、手动恢复');
+})().catch(e=>{console.error(e);process.exitCode=1;});

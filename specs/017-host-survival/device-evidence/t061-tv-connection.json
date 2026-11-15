@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-14",
+  "target": "192.168.3.85:5555",
+  "scope": "本机和iMac；未排查其他局域网主机",
+  "before": {
+    "localServerPid": 94030,
+    "imacServerPid": 74924,
+    "localTargetState": "Unknown",
+    "localSocket": "CLOSED; fixed local port 60533",
+    "imacTargetState": "Offline",
+    "continuousConnectClientFound": false,
+    "passiveObservationSeconds": 20,
+    "socketRecreatedObserved": false
+  },
+  "actions": [
+    "仅针对TV执行hdc tconn -remove",
+    "核对变为Offline且套接字消失",
+    "单次重连最多12秒；超时后再次清除该目标"
+  ],
+  "after": {
+    "localTargetState": "Offline",
+    "localTvSocketPresent": false,
+    "singleReconnect": "timeout; target cancelled",
+    "imacTvSocketPresent": false
+  },
+  "conclusion": "未发现本机/iMac持续连接脚本；本机有已清理的Unknown残留。已从当前安装IDE实现确认Operation too frequent可由重复连接+无在线目标状态改写产生，不能单凭该提示判断请求频率或TV限流。单次重连超时，当前已取消、无目标套接字。",
+  "deviceConnected": false,
+  "todoistOverall": "2/4",
+  "messageOrigin": {
+    "userConfirmed": "DevEco Studio IP Connection窗口",
+    "installedPlugin": "ohos-debugger-26.0.0.851.jar",
+    "pluginSHA256": "2f7127d1abfcac8360c44f935dbe39cc6ce531ab0db9edbf8ed4eedadce7fc40",
+    "class": "com.huawei.deveco.debugger.ohos.uiviewer.processor.IPConnectDataInfoProcessor",
+    "method": "getTipWhenRepeatOperation",
+    "verifiedMapping": "连接结果包含repeat operation，HDC连接器存在且在线设备列表不含目标时，改写成operation too frequent；此分支不按时间或请求次数计数。",
+    "observation": "窗口当前显示No connected devices；未点击Connect重复测试。"
+  }
+}

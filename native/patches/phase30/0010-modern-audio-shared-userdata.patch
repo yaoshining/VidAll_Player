@@ -1,0 +1,27 @@
+diff --git a/audio/out/ao_ohaudio.c b/audio/out/ao_ohaudio.c
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -260,6 +260,14 @@
+     return 0;
+ }
+ 
++// 平台的写入/中断回调可能共用 userData；两者必须统一传 token。
++static OH_AudioData_Callback_Result modern_write(OH_AudioRenderer *renderer, void *user,
++                                                 void *data, int32_t size)
++{
++    legacy_write(renderer, user, data, size);
++    return AUDIO_DATA_CALLBACK_RESULT_VALID;
++}
++
+ // 现代 API 返回 void；中断处理仍走同一 token/恢复代隔离路径。
+ static void modern_interrupt(OH_AudioRenderer *renderer, void *user,
+                              OH_AudioInterrupt_ForceType type, OH_AudioInterrupt_Hint hint)
+@@ -277,7 +285,7 @@
+         return AUDIOSTREAM_ERROR_SYSTEM;
+     if (OH_GetSdkApiVersion() >= 20) {
+         OH_AudioStream_Result result = OH_AudioStreamBuilder_SetRendererWriteDataCallback(
+-            p->builder, audio_on_write_callback, ao);
++            p->builder, modern_write, token);
+         if (result != AUDIOSTREAM_SUCCESS)
+             return result;
+         // 新符号只在现代系统查找，避免 API19 动态装载时依赖 API20 符号。

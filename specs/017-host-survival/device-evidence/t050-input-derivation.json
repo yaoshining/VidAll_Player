@@ -1,0 +1,14 @@
+{
+  "parentPackageSHA256": "5cb014c0495b2fe146accfd549526318afd8e8ec78bbbded136bd9513568657f",
+  "parentLockMatchesGitHEAD": true,
+  "allParentFilesVerified": true,
+  "changedFiles": [
+    "sources/mpv/audio/out/ao_ohaudio.c"
+  ],
+  "newPatch": {
+    "path": "native/patches/phase30/0010-modern-audio-shared-userdata.patch",
+    "sha256": "af1313fc735fdc13ff0b89f0e828813e0310178598ecc5079d94452c92d009f2"
+  },
+  "newPackageSHA256": "6b683322ea5109afddcf28abfd632988b8b60efcf6221258d8bbcd750d831308",
+  "note": "封存原基线路径已不存在；从逐文件验证的T046完整输入派生，仅叠加0010，无FFmpeg变更。"
+}

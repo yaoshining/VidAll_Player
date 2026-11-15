@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-13T01:55:26.241187+00:00",
+  "sourceCommit": "930b01a9ad6064b06c0e57a49afe3f1fb07d6cb1",
+  "verificationSource": "GitHub Actions 当前 jobs 查询",
+  "runs": [
+    {
+      "url": "https://github.com/yaoshining/VidAll_Player/actions/runs/43347619195",
+      "jobId": 131630671756,
+      "type": "iMac 自托管 HAR 与独立消费者验证",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "url": "https://github.com/yaoshining/VidAll_Player/actions/runs/43347835462",
+      "jobId": 131631375719,
+      "type": "Ubuntu 宿主与音频回归",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "deviceAccepted": false,
+  "audioAccepted": false,
+  "note": "CI 通过不替代设备验收；当前云端最新可见版本为1.0.48，1.0.49尚待上传。"
+}

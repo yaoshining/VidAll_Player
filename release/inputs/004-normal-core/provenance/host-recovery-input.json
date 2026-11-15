@@ -1,0 +1,87 @@
+{
+  "baselineManifestSHA256": "ba6747a77f6d4a18d2cd004f0301b2cb6f1aa940be1fa2bad0b1bd38bcd78fc4",
+  "ffmpegManifestSHA256": "7fd9cc6e5916b0b0b864e0c522e4134795774c1bb8c45e4f331d4788c17f4bbf",
+  "patches": [
+    {
+      "path": "native/patches/mpv/0001-ohaudio-legacy-interrupt.patch",
+      "sha256": "fd91b22df8e46b49acb3b120e1f38bfd3bad4d8c12e7d95e2f26d1256a161e72"
+    },
+    {
+      "path": "native/patches/phase30/0001-close-untransferred-release-fence.patch",
+      "sha256": "1a7f71893d223a2d40aa0cc9ada7a9d44e8780478e2664e294ff2ed7363bca2f"
+    },
+    {
+      "path": "native/patches/phase30/0002-isolate-ohcodec-owner.patch",
+      "sha256": "64e9b858a02cf76fbdc9ead77f260df9a564dd0ec609cedb589ee19d72b399a2"
+    },
+    {
+      "path": "native/patches/phase30/0003-preserve-owner-fault-event.patch",
+      "sha256": "4282a983d0a90f3ca0585602a6a4f69634d26d3e2b54bd999c6bce69d89a0eac"
+    },
+    {
+      "path": "native/patches/phase30/0004-host-audio-generation.patch",
+      "sha256": "e2d1a7040d119e9afd81beb8f5e320d4ae8773b363c616f36a2b3386ff685cc4"
+    },
+    {
+      "path": "native/patches/phase30/0005-fault-media-context.patch",
+      "sha256": "2528fd8c8bda7cfa59467a63c13336b70a429d629bbaf52e7a86f85b8354e087"
+    },
+    {
+      "path": "native/patches/phase30/0006-isolate-legacy-audio-callbacks.patch",
+      "sha256": "d35a126644500e410e79b81fcea80e5f5536ec524e07083ade489f99ebe1893e"
+    },
+    {
+      "path": "native/patches/phase30/0007-preserve-audio-quiescence.patch",
+      "sha256": "1dc9055798f11245affb3d4ed7b4a6c710855f578eb85ef885ebbcd8a14d0e2b"
+    },
+    {
+      "path": "native/patches/phase30/0008-confirm-returned-audio-stop.patch",
+      "sha256": "dc7a638a2a7bcbe0fac0ed57a7f3aaff7173e67648075ecf702d031e14723bc7"
+    },
+    {
+      "path": "native/patches/phase30/0009-modern-audio-interrupt.patch",
+      "sha256": "7907879aa4bcbc45d3bd8a31d1cc2ff8c2e84af3d4aec9c29106e030030822aa"
+    },
+    {
+      "path": "native/patches/phase30/0010-modern-audio-shared-userdata.patch",
+      "sha256": "af1313fc735fdc13ff0b89f0e828813e0310178598ecc5079d94452c92d009f2"
+    },
+    {
+      "path": "native/patches/phase30/0011-modern-audio-library-lookup.patch",
+      "sha256": "5bf4b42f8b0a1694a62ad6f5745261425dbd1f353da853d3d602b795ed18921c"
+    },
+    {
+      "path": "native/patches/phase30/0012-ohaudio-clock-outside-callback.patch",
+      "sha256": "f6bdf17e14eb1ca449b93b715fbd18fdbf0d8681c62cad13621967cdb10ae813"
+    },
+    {
+      "path": "native/patches/phase30/0013-preserve-stopped-before-release.patch",
+      "sha256": "12d5c325e52c89fe162f5404b59bebe376be03b3c9763532a504d829a3d6163a"
+    },
+    {
+      "path": "native/patches/phase30/0014-ohaudio-clock-domain.patch",
+      "sha256": "a289fc3841f6f5730b5c903634effb2289b499758923a79dbc4b17e6190f5806"
+    },
+    {
+      "path": "native/patches/phase30/0015-ohaudio-zero-position.patch",
+      "sha256": "c42a9f0097d9148d6b46db89f1415b95b23626554c8d11001baf9c3da4a2b262"
+    }
+  ],
+  "addedSources": [
+    {
+      "path": "native/mpv/host_recovery.c",
+      "target": "common/host_recovery.c",
+      "sha256": "d4b5bf5764871ea691dcb4f63df397af6dd7038e489324d04424fcc5fe742e9a"
+    },
+    {
+      "path": "native/mpv/host_recovery.h",
+      "target": "common/host_recovery.h",
+      "sha256": "94f68a51cb8238a9ebd16d3b1a7d459c925c43ef2b6a817a045e072944d7e4ee"
+    },
+    {
+      "path": "native/mpv/host_recovery_api.h",
+      "target": "common/host_recovery_api.h",
+      "sha256": "e09bc8464b6e32b9e85921964e4b419203ce5346b63013b7dcfe6b715681128c"
+    }
+  ]
+}

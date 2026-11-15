@@ -15,9 +15,9 @@
     "size": 554871
   },
   "python": {
-    "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
-    "sha256": "5504147b44ff4544bb4f1039d2b4a7bed66aac3cfa4534471e32ef559687f28d",
-    "size": 34640
+    "path": "/Users/yaoshining/anaconda3/bin/python3",
+    "sha256": "06ae60aeac71bc6a243a553f1c48461882ccc681b566abc8aaeea7462aa16a2f",
+    "size": 3879776
   },
   "clang": {
     "path": "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",

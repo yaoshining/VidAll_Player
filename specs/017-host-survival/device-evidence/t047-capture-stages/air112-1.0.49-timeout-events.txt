@@ -1,0 +1,17 @@
+11-13 16:50:58.174 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage create-call
+11-13 16:50:58.183 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage create-returned
+11-13 16:50:58.183 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage init-call
+11-13 16:50:58.188 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage init-returned
+11-13 16:50:58.189 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage mic-off-call
+11-13 16:50:58.189 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage mic-off-returned
+11-13 16:50:58.189 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage start-call
+11-13 16:50:58.204 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage start-returned
+11-13 16:50:58.204 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage waiting-started
+11-13 16:51:13.209 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-failed CAPTURE_START_TIMEOUT
+11-13 16:51:13.210 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-failed CAPTURE_START_TIMEOUT
+11-13 16:51:13.211 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-failed CAPTURE_START_TIMEOUT
+11-13 16:51:13.211 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage stop-call
+11-13 16:51:13.229 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage stop-returned
+11-13 16:51:13.229 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 capture-stage release-call
+11-13 16:51:13.263 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 keepScreen false
+11-13 16:51:13.263 31396 31396 I A03D00/com.yaoshining.vidallplayer/JSAPP: P17 session-end

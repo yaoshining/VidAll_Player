@@ -1,0 +1,19 @@
+{
+  "layer": "API19 TV模拟器，本地完整HAR独立消费者",
+  "productionCommit": "62e4e3f8d9648f60713e03d182b2e0f45d923118",
+  "pid": 2390,
+  "hapSHA256": "86c4facabf825fb83c8fa13b2738fc65194342675d3119b3fa986dbb67efb959",
+  "localHarSHA256": "c832f79079212d55e114d7ebc7b36feb51e334f5ea18d0396e0f179fd9ca5060",
+  "nineLibrariesMatchHar": true,
+  "badMediaThenGood": true,
+  "pauseManualResume": true,
+  "seek": true,
+  "releaseReopen": true,
+  "firstFrames": 2,
+  "errors": 0,
+  "backend": "software",
+  "hardwareDecoder": "no",
+  "audibleAudioAccepted": false,
+  "api19TVFormalEntryAccepted": false,
+  "ciHarExecuted": false
+}

@@ -1,0 +1,7 @@
+{
+  "vulkanStatus": "unsupported",
+  "eglStatus": "unknown",
+  "actualPresentationMeasured": false,
+  "syncAccepted": false,
+  "nextRequirement": "候选能力仍需窗口级支持、唯一帧ID和非零实际呈现时间；不可用时需要平台时间线或外部音画同钟采集。"
+}

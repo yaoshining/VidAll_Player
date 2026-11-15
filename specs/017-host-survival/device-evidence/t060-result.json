@@ -1,0 +1,343 @@
+{
+  "date": "2026-11-14",
+  "device": "API24 MatePad Air 6.1.0.112 WKI-W10",
+  "productionSource": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+  "productionChanged": false,
+  "hostToolSuites": 17,
+  "normalPidBefore": 44162,
+  "normalPidAfter": 44162,
+  "fencePidBefore": 62640,
+  "fencePidAfter": 62640,
+  "fenceNativeLateCloseSeconds": 7,
+  "fenceReleaseHeartbeat": {
+    "elapsedMs": 5002,
+    "ticks": 25
+  },
+  "sessionDecoders": [
+    "ohcodec",
+    "ohcodec",
+    "ohcodec",
+    "no"
+  ],
+  "sessionRenderers": [
+    "vulkan",
+    "vulkan",
+    "vulkan",
+    "vulkan"
+  ],
+  "faultSessionIds": [
+    "1",
+    "3"
+  ],
+  "fenceFlowPassed": true,
+  "fenceInternalAudioAccepted": true,
+  "physicalAudioAccepted": false,
+  "syncAccepted": false,
+  "syncClassification": "inconclusive",
+  "raw200ms": {
+    "signalPassed": false,
+    "deviceAccepted": false,
+    "sha256": "898225f0b9e625a197a4cafc1ea74e0a78b640aa6c0248084379e7848b20c387",
+    "sampleRate": 16000,
+    "channels": 2,
+    "durationSeconds": 151.422,
+    "limits": [
+      "只核对指定测试音，不证明自然音质或物理扬声器效果",
+      "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+      "合成音回归不计作设备验收"
+    ],
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": false,
+        "coverage": 0.9790209790209791,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 0.9800219758265907,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548031,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": false,
+        "coverage": 0.9206664022213409,
+        "longestFailureSeconds": 0.2
+      }
+    ]
+  },
+  "calibrated200ms": {
+    "signalPassed": false,
+    "deviceAccepted": false,
+    "sha256": "898225f0b9e625a197a4cafc1ea74e0a78b640aa6c0248084379e7848b20c387",
+    "sampleRate": 16000,
+    "channels": 2,
+    "durationSeconds": 151.422,
+    "limits": [
+      "只核对指定测试音，不证明自然音质或物理扬声器效果",
+      "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+      "合成音回归不计作设备验收"
+    ],
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": false,
+        "coverage": 0.9790209790209791,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": false,
+        "coverage": 0.9800219758265907,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548031,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": false,
+        "coverage": 0.9206664022213409,
+        "longestFailureSeconds": 0.2
+      }
+    ]
+  },
+  "raw10ms": {
+    "signalPassed": false,
+    "deviceAccepted": false,
+    "sha256": "898225f0b9e625a197a4cafc1ea74e0a78b640aa6c0248084379e7848b20c387",
+    "sampleRate": 16000,
+    "channels": 2,
+    "durationSeconds": 151.422,
+    "limits": [
+      "只核对指定测试音，不证明自然音质或物理扬声器效果",
+      "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+      "合成音回归不计作设备验收"
+    ],
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 0.9800199800199801,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 0.9800219758265907,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548031,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": false,
+        "coverage": 0.9444664815549386,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0.13999999999999999
+      }
+    ]
+  },
+  "calibrated10ms": {
+    "signalPassed": true,
+    "deviceAccepted": false,
+    "sha256": "898225f0b9e625a197a4cafc1ea74e0a78b640aa6c0248084379e7848b20c387",
+    "sampleRate": 16000,
+    "channels": 2,
+    "durationSeconds": 151.422,
+    "limits": [
+      "只核对指定测试音，不证明自然音质或物理扬声器效果",
+      "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+      "合成音回归不计作设备验收"
+    ],
+    "segments": [
+      {
+        "name": "会话1完整播放",
+        "passed": true,
+        "coverage": 0.9800637958532696,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话2完整播放",
+        "passed": true,
+        "coverage": 0.9800199800199801,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话3完整播放",
+        "passed": true,
+        "coverage": 0.9800219758265907,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话4完整播放",
+        "passed": true,
+        "coverage": 0.9800279608548031,
+        "measurementWindowSeconds": 0.2,
+        "longestFailureSeconds": 0.2
+      },
+      {
+        "name": "会话1返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "会话3返回列表等待",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "迟到关闭接口完成至人工确认",
+        "passed": true,
+        "coverage": 1.0,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0
+      },
+      {
+        "name": "最后释放至校准前",
+        "passed": true,
+        "coverage": 0.9920666402221341,
+        "measurementWindowSeconds": 0.01,
+        "longestFailureSeconds": 0.02
+      }
+    ]
+  },
+  "deviceAccepted": false,
+  "api19TvAccepted": false,
+  "sessionReleased": true,
+  "freeBalanceMinutesAtRelease": 192,
+  "paidPurchase": false,
+  "todoCompleted": 2,
+  "todoTotal": 4,
+  "artifactRoot": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t060-anchors",
+  "artifacts": {
+    "normal-capture.mp4": {
+      "bytes": 5687957,
+      "sha256": "cf7b715bc43ac09140272d88a36b9c44b1067e33fc9186eba9909392d632db1f"
+    },
+    "normal-events.jsonl": {
+      "bytes": 183999,
+      "sha256": "a4cea98f4f059ed8f9917000ea388555fc52be0fc0894226070b88e56605c968"
+    },
+    "fence-capture.mp4": {
+      "bytes": 13944544,
+      "sha256": "33999c6741190c91ad5e5e3b387165dfa51f6c5f4857c4f404b205f3c7adfc0f"
+    },
+    "fence-events.jsonl": {
+      "bytes": 144454,
+      "sha256": "c7d7ecc5b7df059ec1299c622d0a41dd216c318ca19ef2197d83807ce85a4958"
+    },
+    "fence-native-before-confirm.txt": {
+      "bytes": 3184,
+      "sha256": "e9ad64d87d227591925cfd67090b21b843d6c692f0f63b6c8c7b0234601a1d61"
+    },
+    "normal-completed.png": {
+      "bytes": 58224,
+      "sha256": "263c562c4c374c09544b5ce8a0ec66979bf612040db565b76d72dd94b1ca32a8"
+    },
+    "fence-completed.png": {
+      "bytes": 63812,
+      "sha256": "95517056798c22444ebd29bae5b77ff89289b75531f59e58316a3dfe84d92489"
+    }
+  }
+}

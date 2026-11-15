@@ -1,0 +1,50 @@
+[
+  {
+    "shiftMs": -60,
+    "signalPassed": false,
+    "failed": [
+      "首片完整起音至全局故障",
+      "系统打断保持暂停",
+      "主动暂停静音",
+      "所有会话释放至校准前静音"
+    ]
+  },
+  {
+    "shiftMs": -40,
+    "signalPassed": false,
+    "failed": [
+      "系统打断保持暂停",
+      "主动暂停静音"
+    ]
+  },
+  {
+    "shiftMs": -20,
+    "signalPassed": false,
+    "failed": [
+      "系统打断保持暂停",
+      "主动暂停静音"
+    ]
+  },
+  {
+    "shiftMs": 0,
+    "signalPassed": false,
+    "failed": [
+      "系统打断保持暂停"
+    ]
+  },
+  {
+    "shiftMs": 20,
+    "signalPassed": true,
+    "failed": []
+  },
+  {
+    "shiftMs": 40,
+    "signalPassed": true,
+    "failed": []
+  },
+  {
+    "shiftMs": 60,
+    "signalPassed": true,
+    "failed": []
+  }
+]

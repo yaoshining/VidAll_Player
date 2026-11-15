@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.5.0)
+project(presentation_probe)
+set(CMAKE_CXX_STANDARD 17)
+add_library(presentation_probe SHARED presentation_probe.cpp)
+target_link_libraries(presentation_probe PUBLIC libace_napi.z.so libvulkan.so libEGL.so)

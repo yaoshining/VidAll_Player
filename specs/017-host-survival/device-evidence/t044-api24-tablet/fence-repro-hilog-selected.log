@@ -1,0 +1,14 @@
+ 2026-11-12 12:22:11 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F runtime ready
+ 2026-11-12 12:22:11 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F load-identity {"index":1,"identity":{"sessionId":"1","loadGeneration":"1"}}
+ 2026-11-12 12:22:11 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":1,"type":"state","state":"preparing"}
+ 2026-11-12 12:22:11 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":1,"type":"state","state":"playing"}
+ 2026-11-12 12:22:11 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":1,"type":"firstFrame","surfaceGeneration":1}
+ 2026-11-12 12:22:11 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-observed {"index":1,"identity":{"sessionId":"1","loadGeneration":"1"},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 2026-11-12 12:22:11 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-path {"index":1,"identity":{"sessionId":"1","loadGeneration":"1"},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 2026-11-12 12:22:13 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-progress {"index":1,"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":1400},"audio":{"status":"available","unit":"text","source":"current-tracks/audio/codec","estimated":false,"value":"aac"},"audibleAudioAccepted":false}
+ 2026-11-12 12:22:13 8900-9023/hdc E/A0D001/com.yaoshining.vidallplayer/VidAllFenceProbe: FENCE_PROBE wait real=0 injected=-4 reason=2 pid=8900
+ 2026-11-12 12:22:18 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":1,"type":"state","state":"released"}
+ 2026-11-12 12:22:18 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F release-heartbeat {"index":1,"elapsedMs":5004,"ticks":25}
+ 2026-11-12 12:22:18 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F release-interface-completed 1
+ 2026-11-12 12:22:28 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F failed INDEPENDENT_CLOSE_FAULT_TIMEOUT
+ 2026-11-12 12:22:28 8900-8900/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F keepScreen false

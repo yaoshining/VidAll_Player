@@ -1,0 +1,237 @@
+[
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/Index.ets",
+    "size": 22719,
+    "sha256": "602d1fef35afe03b552867c9cc0e956713519f68ae7cb0300ad364e89bd5d73b"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/ao_ohaudio_shared.c",
+    "size": 10156,
+    "sha256": "4f2575e782c7c48b4477d546fab36ab0317eb1b92557a269a5d3b7251f1aaddf"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/audio-full.json",
+    "size": 532747,
+    "sha256": "e9180491deba97b36b6dffeaca448b3618acaa6c33544ec217aba8caa7dffe62"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/audio-summary.json",
+    "size": 5966,
+    "sha256": "352a74569f0802a41b0fea298397f57ae6c9ffcd29084d1428acb98c1550c8b2"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/audio-windows.json",
+    "size": 4566,
+    "sha256": "771af9315c01e7f317c0590031c5894395c8c46d93669197efb6be1cdb77ff63"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/audio_output_adapter.c",
+    "size": 10234,
+    "sha256": "9d4d24022c529198335e2ce8e6e6fcf070f2fac7f9812d34e1bd1eb266c9f1d9"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/audio_output_adapter.h",
+    "size": 1589,
+    "sha256": "e73a06ae861355021a4aaf930f86bda3fe062e16d7a40a95a9c0dc816147b6be"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/capture.wav",
+    "size": 29908686,
+    "sha256": "0a4d1ae197d895d58dd089c3c63031e1beb4f2be7b4f4f3bc64fa03921c93f89"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/t067-analyze.py",
+    "size": 2971,
+    "sha256": "43695d351b619eef9fdb374de6ac76c1e4cdf4a70e01e3cbca2db9f9e34c9663"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-adapter-drive.json",
+    "size": 548,
+    "sha256": "e26c060403a22c10e22ffe7b7e03ec555b0ebc7a477c6cdc8153f46ccbaa5e3a"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-adapter-events.jsonl",
+    "size": 134049,
+    "sha256": "c6a502bf5337fb1ace28e272c8c7216855f9b69c5b3853eb6b6aa54430da5df7"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-adapter-hilog.log",
+    "size": 543424,
+    "sha256": "ae70e59f69b5782a3016d067b3262d5638c06ead4421e07adb1074af2aa2d065"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-adapter-v4-drive.json",
+    "size": 671,
+    "sha256": "aa41802fec1a7312d2aaea3aae05023f855780c51df3fc1fd1fd97feff3ab24c"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-adapter-v4-events.jsonl",
+    "size": 155041,
+    "sha256": "28a3d9c96ea1ff94bb3a55324ade2a4cf1b23d5e4e80904683cfea88b7e970c5"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-adapter-v4-hilog.log",
+    "size": 1021259,
+    "sha256": "d107a590bb4d2bf6f1ffd23ca6c1f50383de54f6789bf5d0c2ec2fac7d7123e1"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-adapter-v4.mp4",
+    "size": 5181364,
+    "sha256": "592371441c4ced2090afbfd894e1ed110fa106c1f3bb51818700811e9c114712"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-v2-crashes.log",
+    "size": 89,
+    "sha256": "759844d57a9c8233edea93df87fe850ee94b89a783604014f1bd713ac129e3b6"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-v4-anchor.json",
+    "size": 1883,
+    "sha256": "a6e6b1a0ab7eb74de2f64d1f1ae573c35ec167a6434f27870ed74e7df5f4dc99"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-v4-host.json",
+    "size": 825,
+    "sha256": "47903db39c5e4693fb03337de07188fbcf547318d9473822c84d5980cb0fa830"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter/vidall-t067-v4-process-status.txt",
+    "size": 1125,
+    "sha256": "c93eb5032212118b80a51ec7cd8cd74cd340d7cd885e570bb601d67dbb070d64"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/Index.ets",
+    "size": 22719,
+    "sha256": "3f5d75db99e7123282c286a5f3e20bdef20681f8da5e904d7b45ef6d4f45ba63"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/ao_ohaudio_shared.c",
+    "size": 12999,
+    "sha256": "83399eb43d08b7ed57ec861c9d5591baf4d8244f1c35d224bca75b1ea333ac2d"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/audio-full.json",
+    "size": 555032,
+    "sha256": "3391dc845f0484e77d006ae334a3fd7a688707c051cbf039aa47c292ff6cf800"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/audio-windows.json",
+    "size": 4715,
+    "sha256": "1a34f5e8caf6e3d03f78176eca0d9f0e918eedfa74eda7406de6e0a3b1ad865a"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/audio_output_adapter.c",
+    "size": 15853,
+    "sha256": "a79ef628ace5cc9db6727c3fb44d90c6c1619ac72d968c815fceab189f609f0a"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/audio_output_adapter.h",
+    "size": 1687,
+    "sha256": "566f30be74a98662fdb02a13370ae750c5e333213eabf3d76c05dba53450df29"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/capture.wav",
+    "size": 29666958,
+    "sha256": "a109a83ca304241ab3adda8d66b44c27c53d20dd8bee780e4367853032e94f0d"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/diagnostic.hap",
+    "size": 45487448,
+    "sha256": "36884764234cd70a53046f4d34af22e8d1b0d1fa920e38ce31688ef29c3e9a49"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/diagnostic.har",
+    "size": 22290606,
+    "sha256": "c8c1acc2b1377ea0273ae4678be168c001d5b2e73659a2e0e59579d47e01e8c1"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/t067-analyze-v5.py",
+    "size": 3008,
+    "sha256": "9934118a4796707d9624f603dbeda00cc334ce473e8f355f9e8b1c3f43126ca1"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/vidall-t067-adapter-v5-drive.json",
+    "size": 673,
+    "sha256": "65a3481f8e7b832bc8efb1416e2480e079871b869847e8ff1d7943d92f9d66e5"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/vidall-t067-adapter-v5-events.jsonl",
+    "size": 154020,
+    "sha256": "e9ea265d631f3fe185922859c1e98ac92430ef4c4e6bb6ec1f529f1ca597d5bb"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/vidall-t067-adapter-v5-hilog.log",
+    "size": 1046995,
+    "sha256": "57464c7622be647a1fbe95aea8186c1a7484a7dceb7006c41b610257e6607782"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/vidall-t067-adapter-v5.mp4",
+    "size": 5172883,
+    "sha256": "baff421b9431480398450c47d5f85b1c3f8f07b79a2b56c62570c983f5cd5670"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/vidall-t067-v5-anchor.json",
+    "size": 1870,
+    "sha256": "b1888181e968a8109aeea67d53eabb87b469d59e4b6fdbb2c30ab4125370d54e"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-adapter-v5/vidall-t067-v5-host.json",
+    "size": 1141,
+    "sha256": "073c18876f1510bb8302cb82ad08f88bf20f4d2ea2f4f12157f60feaf6d266ae"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/Index.ets",
+    "size": 22759,
+    "sha256": "18913e71aba96bb1be6199b8fe828e5ea828ab4912fc4f381e5abb8b54ca860e"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/diagnostic.hap",
+    "size": 26502429,
+    "sha256": "26305d540fab0c71ba6f8bd4ce44dceff58d269c71e50785b10f70949518ed8f"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/diagnostic.har",
+    "size": 22290606,
+    "sha256": "c8c1acc2b1377ea0273ae4678be168c001d5b2e73659a2e0e59579d47e01e8c1"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/t067-sync-record-flash.png",
+    "size": 32880,
+    "sha256": "fe0012760f9088729636843fe66f2eb927ebfc124bc8cacf788db6b0a49ff3a8"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/vidall-t067-sync-anchor.json",
+    "size": 1872,
+    "sha256": "22299f04449840ae3acf6ace5450748e5c20b1c5d3f279bd12d0c3fabf463113"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/vidall-t067-sync-drive.json",
+    "size": 673,
+    "sha256": "c84df3956082cfb5bd1e5636ce9d1c9304fab963d7e42e98fcc1e6aa12d35978"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/vidall-t067-sync-events.jsonl",
+    "size": 89716,
+    "sha256": "eb9f5818ba53b3f2d860b39c871089299fd5ce9306084ef204c248911502efb8"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/vidall-t067-sync-hilog.log",
+    "size": 526183,
+    "sha256": "1da63506f9fff8c1f8054363097742577ba348402bb3f645a7e227ef926e90f0"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/vidall-t067-sync-measure.json",
+    "size": 3265,
+    "sha256": "8d7668c5e5b53d872703e5834be368b53fa76fad46e68c24bccf96fa2859b4f2"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/vidall-t067-sync-windows.json",
+    "size": 489,
+    "sha256": "4eff5186723a3bef4a2af03830813d2b846514c09d44db23d91843c54703aca9"
+  },
+  {
+    "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t067-sync/vidall-t067-sync.mp4",
+    "size": 1812498,
+    "sha256": "111cfdb07cd6a7ec43d008d7e01c1a1036ac615afaf44fa2d2cdeb476ddad4d5"
+  }
+]

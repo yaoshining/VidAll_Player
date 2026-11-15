@@ -1,0 +1,7 @@
+Assertion failed: (h.delivered==0), function main, file test.cpp, line 19.
+Traceback (most recent call last):
+  File "<repo>/native/tests/host-survival/first-frame.test.py", line 33, in <module>
+    p=Path(d);(p/'test.cpp').write_text(code);subprocess.run(['clang++','-std=c++17','-I'+str(root/'native/render'),str(p/'test.cpp'),'-o',str(p/'test')],check=True);subprocess.run([str(p/'test')],check=True)
+  File "/Users/yaoshining/anaconda3/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/var/folders/7s/y7kx47nj0l7gk98hbd3shvv40000gn/T/tmpqjf3jvnf/test']' died with <Signals.SIGABRT: 6>.

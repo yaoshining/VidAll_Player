@@ -1,0 +1,33 @@
+{
+  "origin": "本地宿主，Darwin arm64",
+  "passed": true,
+  "checks": 94,
+  "summarySHA256": "09b51af6a5b2451ff2b2a76d5a87fc66e312f8d97f482280f923468dcc17aab6",
+  "newChecks": [
+    {
+      "name": "hardware-probe-contract",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "seconds": 0.273
+    },
+    {
+      "name": "fence-probe-contract",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "seconds": 0.263
+    },
+    {
+      "name": "fence-probe-page",
+      "exit": 0,
+      "expectedExit": 0,
+      "passed": true,
+      "seconds": 0.286
+    }
+  ],
+  "additionalVerification": "ArkTS 限定 throw 语法调整后，hardware-probe-contract 再次通过，并重新构建及实跑两种 profile。",
+  "limits": [
+    "宿主平台替身，不是设备硬解/可听音频验收"
+  ]
+}

@@ -6,6 +6,17 @@ P=Path(__file__).with_name('host.py')
 def module():
  s=importlib.util.spec_from_file_location('cloudhost',P);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 class Tests(unittest.TestCase):
+ def test_ctest_summary_versions_and_failures(self):
+  m=module()
+  for text in ['100% tests passed, 0 tests failed out of 14', '100% tests passed out of 14']:
+   self.assertTrue(m.ctest_passed(text),text)
+  for text in ['100% tests passed out of 13', '99% tests passed, 1 tests failed out of 14',
+               '100% tests passed, 1 tests failed out of 14',
+               '100% tests passed out of 14\n 1 - example (Skipped)',
+               '100% tests passed out of 14\n 1 - example (Not Run)',
+               '100% tests passed out of 14\n 1 - example (Disabled)',
+               'reported: 100% tests passed out of 14']:
+   self.assertFalse(m.ctest_passed(text),text)
  def test_inventory_exact(self):
   m=module();names=list(m.EXPECTED)
   self.assertTrue(m.test_inventory({'tests':[{'name':n} for n in names]}))

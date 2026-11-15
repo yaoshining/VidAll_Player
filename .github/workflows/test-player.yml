@@ -9,6 +9,9 @@ on:
       - 'entry/src/main/resources/base/profile/main_pages.json'
       - 'entry/src/main/ets/player/DiagnosticsProbeChecks.ets'
       - 'scripts/test/diagnostics79/**'
+      - 'scripts/test/audio-evidence/**'
+      - 'fixtures/normal-core-consumer/audio-evidence/**'
+      - 'fixtures/normal-core-consumer/recovery-*/**'
       - 'entry/build-profile.json5'
       - 'entry/oh-package.json5'
       - 'entry/oh-package-lock.json5'
@@ -16,6 +19,11 @@ on:
       - 'native/diagnostics/**'
       - 'native/tests/**'
       - 'native/patches/mpv/**'
+      - 'native/patches/phase30/**'
+      - 'native/mpv/**'
+      - 'native/scripts/prepare-audio-ci-input.py'
+      - 'release/inputs/004-normal-core/provenance/host-recovery-input.json'
+      - 'release/inputs/004-normal-core/arm64-v8a/libmpv.so'
       - 'build-profile.json5'
       - 'oh-package.json5'
       - 'oh-package-lock.json5'
@@ -35,6 +43,9 @@ on:
       - 'entry/src/main/resources/base/profile/main_pages.json'
       - 'entry/src/main/ets/player/DiagnosticsProbeChecks.ets'
       - 'scripts/test/diagnostics79/**'
+      - 'scripts/test/audio-evidence/**'
+      - 'fixtures/normal-core-consumer/audio-evidence/**'
+      - 'fixtures/normal-core-consumer/recovery-*/**'
       - 'entry/build-profile.json5'
       - 'entry/oh-package.json5'
       - 'entry/oh-package-lock.json5'
@@ -42,6 +53,11 @@ on:
       - 'native/diagnostics/**'
       - 'native/tests/**'
       - 'native/patches/mpv/**'
+      - 'native/patches/phase30/**'
+      - 'native/mpv/**'
+      - 'native/scripts/prepare-audio-ci-input.py'
+      - 'release/inputs/004-normal-core/provenance/host-recovery-input.json'
+      - 'release/inputs/004-normal-core/arm64-v8a/libmpv.so'
       - 'build-profile.json5'
       - 'oh-package.json5'
       - 'oh-package-lock.json5'
@@ -72,6 +88,8 @@ jobs:
           node-version: '22'
       - name: 安装锁定TypeScript
         run: npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
+      - name: 系统内录证据工具与真实焦点流程宿主回归
+        run: python3 -B scripts/test/audio-evidence/run.py --out "$RUNNER_TEMP/audio-evidence"
       - name: 校验发布审计工具和示例公开入口
         run: |
           python3 -B scripts/release/test-candidate-integrity.py
@@ -84,11 +102,34 @@ jobs:
           ref: 6edeee00a07b9b76f197aa71eee3d029fb090de4
           path: .cache/mpv-interrupt
           persist-credentials: false
-      - name: 音频中断回调与换集隔离回归
+      - name: 当前交付音频源、中断与恢复回归
+        shell: bash
         run: |
-          python3 -B native/tests/audio-interrupt/prepare.test.py
-          git -C .cache/mpv-interrupt apply "$GITHUB_WORKSPACE/native/patches/mpv/0001-ohaudio-legacy-interrupt.patch"
-          python3 -B native/tests/audio-interrupt/interrupt.test.py .cache/mpv-interrupt
+          set -euo pipefail
+          AUDIO_OUT="$RUNNER_TEMP/player-audio-regressions"
+          mkdir -p "$AUDIO_OUT"
+          python3 -B native/tests/audio-interrupt/prepare.test.py 2>&1 | tee "$AUDIO_OUT/prepare-tests.log"
+          python3 -B native/tests/audio-interrupt/ci-input.test.py 2>&1 | tee "$AUDIO_OUT/ci-input-tests.log"
+          python3 -B native/scripts/prepare-audio-ci-input.py --source .cache/mpv-interrupt --output "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/input.log"
+          python3 -B native/tests/audio-interrupt/interrupt.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/interrupt.log"
+          python3 -B native/tests/audio-interrupt/legacy-lifetime.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/legacy-lifetime.log"
+          python3 -B native/tests/host-survival/audio-data.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/data.log"
+          python3 -B native/tests/host-survival/audio-control.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/control.log"
+          python3 -B native/tests/host-survival/audio-lifecycle.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/lifecycle.log"
+          python3 -B native/tests/host-survival/audio-clock.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/clock.log"
+          python3 -B native/tests/host-survival/audio-close-order.test.py "$AUDIO_OUT/mpv" 2>&1 | tee "$AUDIO_OUT/close-order.log"
+          python3 -B native/tests/host-survival/audio-adapter-runner.test.py 2>&1 | tee "$AUDIO_OUT/adapter-runner.log"
+      - name: 保存音频回归结果与源码身份
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-audio-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/audio-evidence/
+            ${{ runner.temp }}/player-audio-regressions/*.log
+            ${{ runner.temp }}/player-audio-regressions/mpv/audio-input.json
+          if-no-files-found: error
+          retention-days: 14
       - name: 窗口旋转、重绘与媒体结束事件回归
         run: |
           python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp

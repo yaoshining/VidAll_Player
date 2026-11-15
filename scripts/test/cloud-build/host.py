@@ -10,6 +10,9 @@ def test_inventory(data):
  names=[x['name'] for x in data['tests']]
  if set(names)!=EXPECTED or len(names)!=len(EXPECTED):raise ValueError('CTest独有检查集合缺失/重复/扩大')
  return True
+def ctest_passed(text):
+ # 不同 CTest 版本会省略零失败短语；跳过/禁用仍不得算作14项执行通过。
+ return bool(re.search(r'^100% tests passed(?:, 0 tests failed)? out of 14\s*$',text,re.M)) and not re.search(r'\b(?:Skipped|Not Run|Disabled)\b',text,re.I)
 def proof(r,source):
  return r.get('passed') is True and r.get('sourceBefore')==source==r.get('sourceAfter') and r.get('ctestNames')==sorted(EXPECTED) and r.get('ctestPassed')==14 and r.get('diagnosticsJS')==['diagnostics-session','diagnostics-device']
 def execute(root,out):
@@ -21,7 +24,7 @@ def execute(root,out):
   command('legacy-native-build',['cmake','--build',build,'--parallel','4'],root,child,work,rows,300)
   inventory=json.loads(command('legacy-native-inventory',['ctest','--test-dir',build,'--show-only=json-v1'],root,child,work,rows,30));test_inventory(inventory)
   text=command('legacy-native-ctest',['ctest','--test-dir',build,'--output-on-failure'],root,child,work,rows,180)
-  if not re.search(r'100% tests passed, 0 tests failed out of 14',text):raise ValueError('缺少14项真实CTest全部成功结论')
+  if not ctest_passed(text):raise ValueError('缺少14项真实CTest全部成功结论')
   for name in ['diagnostics-session','diagnostics-device']:command('legacy-'+name,['node',root/('native/tests/'+name+'.test.cjs')],root,child,work,rows,90)
   result.update(passed=True,sourceAfter=E.CONTEXT.assert_snapshot(root,source),ctestNames=sorted(EXPECTED),ctestPassed=14,diagnosticsJS=['diagnostics-session','diagnostics-device'])
  except Exception as error:result.update(errorType=type(error).__name__,error=E.redact(str(error)))

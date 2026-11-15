@@ -4,12 +4,14 @@ const fs = require('node:fs');
 const Module = require('node:module');
 const ts = require(process.env.TYPESCRIPT_PATH || '/Applications/DevEco-Studio.app/Contents/plugins/codelinter/node_modules/typescript');
 let state = 'unconfigured';
+let recovery,configuredPolicy,requestedGeneration;
+let faults=[];
 let creates = 0, configurations = 0, nativeReleases = 0, callbackFailure = false;
 const native = new Proxy({
-  getRuntimeStatus: () => JSON.stringify({state, terminal: state === 'terminal' ? {stage:1,platformError:-4,firstObservedMs:100,deadlineMs:3000,ownerTag:'1'} : undefined}),
-  configureRuntime: async () => { configurations++;state='ready'; return {ok:true,handle:0,code:'OK'}; },
+  getRuntimeStatus: () => JSON.stringify({state, recovery, faults, terminal: state === 'terminal' ? {stage:1,platformError:-4,firstObservedMs:100,deadlineMs:3000,ownerTag:'1'} : undefined}),
+  configureRuntime: async (_root,_text,_deadline,policy) => { configuredPolicy=policy;configurations++;state='ready'; return {ok:true,handle:0,code:'OK'}; },
   rejectRuntimeResources:()=>{state='failed';return {ok:false,handle:0,code:'RUNTIME_RESOURCE_FAILED'};},
-  createSession: async () => {creates++;return {ok:true,handle:1,code:'OK'};},
+  createSession: async (...args) => {requestedGeneration=args[5];creates++;return {ok:true,handle:1,code:'OK'};},
   setEventCallback:()=>({ok:!callbackFailure,handle:1,code:callbackFailure?'NATIVE_PLAYBACK_FAILED':'OK'}),
   releaseSession:async()=>{nativeReleases++;return {ok:true,handle:1,code:'RELEASED'};},
 }, {get:(o,k)=>o[k]||(()=>({ok:true,handle:1,code:'OK'}))});
@@ -19,7 +21,12 @@ Module._load = function(n,p,m) {
   if(n==='@kit.ArkTS') return {util:{TextDecoder:class{decodeToString(b){return new TextDecoder().decode(b);}}}};
   return load.call(this,n,p,m);
 };
-require.extensions['.ets']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,f);
+require.extensions['.ets']=(m,f)=>{
+  let source=fs.readFileSync(f,'utf8');
+  // 只在测试编译中观测实际全局注册表，不给产品增加调试接口，也不依赖不确定的 GC 时机。
+  if(f.endsWith('/public/runtime.ets')) source+='\nexport function testTerminalListenerCount(): number { return listeners.length; }';
+  m._compile(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,f);
+};
 const {PlayerSession}=require('../../packages/vidall-player/src/main/ets/internal/playerSession.ets');
 const {createPlayer}=require('../../packages/vidall-player/src/main/ets/public/player.ets');
 const runtime=require('../../packages/vidall-player/src/main/ets/public/runtime.ets');
@@ -27,7 +34,116 @@ const tick=()=>new Promise(r=>setImmediate(r));
 async function bounded(p){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(Error('TEST_TIMEOUT')),150))]);}
 async function main(){
   const which=process.argv[2];
-  if(which==='bridge-callback-fail') {
+  if(which.startsWith('terminal-publication-')) {
+    const preserve=which.endsWith('preserve');
+    const reentrant=which.includes('reentrant');
+    let poll,clears=0,reads=0,terminal;
+    global.setInterval=fn=>{poll=fn;return 47;};
+    global.clearInterval=id=>{assert.equal(id,47);clears++;};
+    native.getRuntimeStatus=()=>{reads++;return JSON.stringify({state,terminal,recovery,faults});};
+    const context={filesDir:'/private/app',resourceManager:{getRawFileContent:async()=>new TextEncoder().encode('[global]\nclient min protocol = SMB2_02\n')}};
+    await runtime.initializePlayerRuntime(context,{terminalPolicy:preserve?'preserve-host':'controlled-app-exit',deadlineMs:3000});
+    const bridge=new Proxy({subscribe:()=>()=>{},attachSurface:()=>new Promise(()=>{})}, {get:(o,k)=>o[k]||(()=>Promise.resolve())});
+    const player=new PlayerSession(undefined,bridge);
+    const rejected=assert.rejects(bounded(player.attachSurface({componentId:'s',generation:1,width:1,height:1})),/PLAYER_TERMINAL/);
+    const initial={stage:0,platformError:0,firstObservedMs:0,deadlineMs:3000,ownerTag:'0',attribution:{state:'unknown'}};
+    const complete={stage:2,platformError:-7,firstObservedMs:123,deadlineMs:3000,ownerTag:'5',attribution:{state:'known',sessionId:'17',loadGeneration:'4'}};
+    const early=[],late=[];let nested=0;
+    runtime.onPlayerTerminal(info=>{
+      early.push(info);
+      if(reentrant) {
+        terminal=complete;
+        const refreshed=runtime.getPlayerRuntimeStatus();
+        assert.equal(refreshed.terminal.firstObservedMs,123);
+        runtime.onPlayerTerminal(info=>{nested++;late.push(info);});
+      } else runtime.getPlayerRuntimeStatus();
+    });
+    runtime.onPlayerTerminal(()=>{throw Error('监听者失败不得阻止发布');});
+    state='terminal';terminal=initial;
+    if(preserve)recovery={state:'pending',generation:0};
+    poll();await rejected;
+    assert.equal(player.stateMachine.getState(),'error','元数据未发布也要立即终止旧会话');
+    assert.equal(early.length,1);assert.equal(early[0].firstObservedMs,0);
+    if(!reentrant)assert.equal(clears,0,'不完整元数据不能停止 controlled 策略的后续观察');
+    terminal=complete;faults=[{sequence:1,kind:'process-terminal',stage:2,platformError:-7,attribution:complete.attribution}];
+    if(preserve)recovery={state:'ready',generation:2};
+    poll();
+    const after=runtime.getPlayerRuntimeStatus();
+    assert.deepEqual(after.terminal,complete,'已发布的完整记录必须更新暂态缓存');
+    assert.equal(early.length,1,'同一监听者不得重复收到终局');
+    runtime.onPlayerTerminal(info=>{late.push(info);assert.deepEqual(runtime.getPlayerRuntimeStatus().terminal,complete);});
+    assert.equal(late.length,reentrant?2:1);assert(late.every(info=>info.firstObservedMs===123));
+    assert.equal(nested,reentrant?1:0);assert.equal(runtime.testTerminalListenerCount(),0);
+    assert.equal(clears,preserve?0:1);
+    const lastReads=reads;runtime.getPlayerRuntimeStatus();
+    assert.equal(reads,preserve?lastReads+1:lastReads,'controlled 完整记录才可停止原生读取');
+  } else if(which==='terminal-listener-lifetime') {
+    state='ready';recovery={state:'pending',generation:0};let a=0,b=0,c=0;
+    const off=runtime.onPlayerTerminal(()=>{throw Error('已取消订阅不应执行');});off();off();
+    runtime.onPlayerTerminal(()=>{a++;runtime.onPlayerTerminal(()=>c++);runtime.getPlayerRuntimeStatus();});
+    runtime.onPlayerTerminal(()=>{b++;throw Error('listener');});
+    assert.equal(runtime.testTerminalListenerCount(),2);
+    state='terminal';runtime.getPlayerRuntimeStatus();
+    assert.deepEqual([a,b,c],[1,1,1]);assert.equal(runtime.testTerminalListenerCount(),0,'终局投递后不能保留闭包');
+    for(let i=0;i<100;i++) runtime.onPlayerTerminal(()=>c++);
+    assert.equal(c,101);assert.equal(runtime.testTerminalListenerCount(),0,'终局后重放不能保留闭包');
+  } else if(which==='failed-release-listener') {
+    state='ready';native.createSession=async()=>({ok:false,handle:0,code:'NATIVE_SESSION_LIMIT'});
+    for(let i=0;i<100;i++) {
+      const player=createPlayer();
+      await assert.rejects(player.attachSurface({componentId:'s',generation:1,width:1,height:1}));
+      await assert.rejects(player.release());
+      assert.equal(runtime.testTerminalListenerCount(),0,'创建失败且释放拒绝后不能保留 Player');
+    }
+    assert.equal(nativeReleases,0,'失败创建不伪造原生释放');
+  } else if(which==='pending-release-listener') {
+    state='ready';let finish;
+    const bridge=new Proxy({subscribe:()=>()=>{},release:()=>new Promise(r=>finish=r)}, {get:(o,k)=>o[k]||(()=>Promise.resolve())});
+    const player=new PlayerSession(undefined,bridge);const releasing=player.release();
+    const rejected=assert.rejects(releasing,/PLAYER_TERMINAL/);
+    assert.equal(runtime.testTerminalListenerCount(),1,'释放未结算时仍能收到终局');
+    state='terminal';runtime.getPlayerRuntimeStatus();
+    assert.equal(player.stateMachine.getState(),'error');finish();await rejected;
+    assert.equal(runtime.testTerminalListenerCount(),0);
+  } else if(which==='fault-notifications') {
+    state='ready';const events=[];
+    const off=runtime.onPlayerFault(f=>events.push(f));
+    runtime.onPlayerFault(()=>{throw Error('listener failure');});
+    const player=createPlayer();await player.release();
+    faults=[{sequence:1,kind:'session-quarantined',stage:2,platformError:-7,attribution:{state:'known',sessionId:'17',loadGeneration:'4'}}];
+    runtime.getPlayerRuntimeStatus();runtime.getPlayerRuntimeStatus();
+    assert.equal(events.length,1);assert.equal(events[0].attribution.loadGeneration,'4');
+    let replay=0;const stopReplay=runtime.onPlayerFault(()=>{replay++;runtime.getPlayerRuntimeStatus();});
+    assert.equal(replay,1);
+    faults.push({sequence:2,kind:'process-terminal',stage:3,platformError:-9,attribution:{state:'unknown'}});
+    state='terminal';recovery={state:'ready',generation:2};runtime.getPlayerRuntimeStatus();
+    assert.equal(events.length,2);assert.equal(replay,2);assert.equal(events[1].attribution.state,'unknown');
+    off();stopReplay();faults.push({...faults[1],sequence:3});runtime.getPlayerRuntimeStatus();
+    assert.equal(events.length,2);assert.equal(replay,2);
+  } else if(which==='host-recovery') {
+    const context={filesDir:'/private/app',resourceManager:{getRawFileContent:async()=>new TextEncoder().encode('[global]\nclient min protocol = SMB2_02\n')}};
+    await runtime.initializePlayerRuntime(context,{terminalPolicy:'preserve-host',deadlineMs:3000});
+    assert.equal(configuredPolicy,'preserve-host');
+    const oldErrors=[];const old=createPlayer({playbackMode:'compatible',eventListener:e=>{if(e.type==='error')oldErrors.push(e.error);}});await old.attachSurface({componentId:'old',generation:1,width:10,height:10});assert.equal(requestedGeneration,1);
+    state='terminal';recovery={state:'pending',generation:0};runtime.getPlayerRuntimeStatus();
+    assert.equal(old.stateMachine.getState(),'error');
+    assert.equal(oldErrors.length,1);assert(!oldErrors[0].message.includes('重新打开应用'));
+    assert.throws(()=>createPlayer({playbackMode:'compatible'}),/PLAYER_RECOVERY_PENDING/);
+    recovery={state:'ready',generation:2};
+    assert.throws(()=>createPlayer(),/PLAYER_TERMINAL/);
+    let freshEvent;native.setEventCallback=(_h,cb)=>{freshEvent=cb;return {ok:true,handle:1,code:'OK'};};
+    const fresh=createPlayer({playbackMode:'compatible'});
+    await fresh.attachSurface({componentId:'fresh',generation:1,width:10,height:10});assert.equal(requestedGeneration,2);
+    await fresh.load({kind:'localFile',uri:'file:///test.mp4'});
+    freshEvent({type:'state',message:'preparing',eventEpoch:1,sequence:1,surfaceGeneration:1});
+    await fresh.play();
+    freshEvent({type:'state',message:'playing',eventEpoch:1,sequence:2,surfaceGeneration:1});
+    assert.equal(fresh.stateMachine.getState(),'playing');
+    assert.notEqual(fresh.stateMachine.getState(),'error');
+    await assert.rejects(old.play(),/PLAYER_TERMINAL/);
+    await fresh.release();assert.equal(nativeReleases,1);
+    assert.equal(runtime.getPlayerRuntimeStatus().state,'terminal');
+  } else if(which==='bridge-callback-fail') {
     state='ready';callbackFailure=true;const {createNativePlayerBridge}=require('../../packages/vidall-player/src/main/ets/native/nativeBridge.ets');
     const bridge=createNativePlayerBridge();await assert.rejects(bridge.attachSurface({componentId:'s',generation:1,width:1,height:1}));await tick();assert.equal(nativeReleases,1);
   } else if(which==='bridge-create-fail') {
@@ -92,7 +208,7 @@ async function main(){
     state='ready';let releases=0,commands=0;
     const bridge=new Proxy({subscribe:()=>()=>{},attachSurface:()=>new Promise(()=>{}),release:()=>{releases++;return Promise.resolve();},setPropertyString:()=>{commands++;return Promise.resolve();}}, {get:(o,k)=>o[k]||(()=>Promise.resolve())});
     const player=new PlayerSession(undefined,bridge);
-    if(which==='fatal-queue' || which==='fatal-diagnostics') {player.attachSurface({componentId:'s',generation:1,width:1,height:1});await tick();}
+    if(which==='fatal-queue' || which==='fatal-diagnostics') {player.attachSurface({componentId:'s',generation:1,width:1,height:1}).catch(e=>assert.match(e.message,/PLAYER_TERMINAL/));await tick();}
     state='terminal';
     if(which==='fatal-release') {
       await assert.rejects(bounded(player.release()),/PLAYER_TERMINAL/);assert.equal(releases,0);

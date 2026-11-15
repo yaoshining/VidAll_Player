@@ -1,0 +1,20 @@
+{
+  "version": "1.0.86",
+  "buildMachine": "本地MacBook Pro ARM64",
+  "scope": "时钟域修复+有界启动时序/OSD调用方探针；计时全局注入",
+  "harSHA256": "a19b0d47dad33d798088a84c0dec3c5b29e8765b9d1fc7ad1fb356fd7eb8622c",
+  "hapSHA256": "34d018be105c02836174eda044e1247e025121f4163afd03ae0d52988c70b4fc",
+  "libraries": {
+    "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libs/arm64-v8a/libmpv.so": "6ce23623e02b23ae93f6e3304bc519d5eee99a9a5cd085c36753b4eb5571b4e8",
+    "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libs/arm64-v8a/libvidall_player_native.so": "059a5b1f2781d6d85ede8710528e075f8c6db0998437f86b0577e06aa4a8fa53"
+  },
+  "pidBefore": 12987,
+  "deviceAccepted": false
+}

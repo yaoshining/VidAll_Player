@@ -1,0 +1,130 @@
+{
+  "scope": "API24 TV三次本地诊断；不含平台敏感日志",
+  "files": [
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-queue/anchor.json",
+      "size": 1872,
+      "sha256": "fd06b5a07059580a73981e76d119b27581ec197457940f1e45cd680d824c2d99"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-queue/audio-windows.json",
+      "size": 747,
+      "sha256": "f2213c21d3a2fa7f6f747f9a5e84c5686c05d3b7b51d6d0b1af476564309c773"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-queue/audio.json",
+      "size": 211589,
+      "sha256": "d8330abb21402a795b6e5b52adc42af2d4f372e3438ab22c050fbfa109d22e6d"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-queue/capture.mp4",
+      "size": 1492787,
+      "sha256": "572a4ed0e9262f95381fbedf6a7a19296092a8ec266afedbc7b41c69f86239ae"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-queue/capture.wav",
+      "size": 10710990,
+      "sha256": "7ec71d8d95234f3ab6bf0225308f9867d74ce8039785b7e8356c685d3dd73549"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-queue/events.jsonl",
+      "size": 59721,
+      "sha256": "49cf842f65bd43f5ba39cd415f27595061594e54d39704f3b05be8da5e54fed5"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-queue/navigation.json",
+      "size": 557,
+      "sha256": "2e50b91613d121e2cc2aa209c15befc5f1021e11c8c5fb3d98758df966114aef"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-period/anchor.json",
+      "size": 1872,
+      "sha256": "c1482cae9d571bdce9c1dbbc18b46bea27d0ba2ce5d277bf1221af0d1e125030"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-period/audio-windows.json",
+      "size": 748,
+      "sha256": "35f537aa3fc13511a7497877a4a8967931f037dbda36a5a3165ad92b3d7feb5c"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-period/audio.json",
+      "size": 220037,
+      "sha256": "f8ce3f60adfcea0e37d0f2e29f4bb6f42019abe47e0125f20da9a273a55148ab"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-period/capture.mp4",
+      "size": 1531727,
+      "sha256": "6546aa265815ee6ae977abbe5027d0ee91567a53e329cb66af8387850200667c"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-period/capture.wav",
+      "size": 10649550,
+      "sha256": "7475a86258ca8df495d1b7304e682a74b1c2dd62c9b0a4d413fdfa8dfb1aaba7"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-period/events.jsonl",
+      "size": 59566,
+      "sha256": "10a00ee7dafb7055d98576423e7f65d201cf534a0791cf8636b943007ec813c7"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-period/navigation.json",
+      "size": 557,
+      "sha256": "7c5764c6040c400faaf71dd28e00566d84fa9b72365488fbd226c799abc1cc8e"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/anchor.json",
+      "size": 1871,
+      "sha256": "38ef324b0a4c6f9ea945077dbaeb5959a845e1571f20f5d10cc5c2a220275ac9"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/audio-windows.json",
+      "size": 747,
+      "sha256": "62df72a370c98a3e58ba56d2ac307c3949bcbf78e358b2d94e504a8a9599bd41"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/audio.json",
+      "size": 230407,
+      "sha256": "40080dbcacb8e101f359b54c62c9c2f2b5ced00a1e26292a4bdff6b2ae82d8ea"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/capture.mp4",
+      "size": 1490050,
+      "sha256": "92fdeb5afbccadaf47f7949611a339c4fa7b608fa49e2aa548b3e1fcc61c28ba"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/capture.wav",
+      "size": 10731534,
+      "sha256": "8d34de10fc8c78740e9e332ed52aaaa3d9f1693e89e569f5383a7529c16caf5a"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/events-all.jsonl",
+      "size": 119300,
+      "sha256": "acc09ee35da037951bf1a678154ad01d3961ad0da3119ded81aa9b6ff1830117"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/events.jsonl",
+      "size": 60951,
+      "sha256": "36166a23791ffdabe27cb384c6ac5c48dae8c2bec37cc34c56b59e6d5c219717"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/frame-first.png",
+      "size": 51056,
+      "sha256": "b3373d17b96c28db2fc3aa64819d541c8482264e8d688b1d0b50266c1cf21c31"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/frame-second.png",
+      "size": 112780,
+      "sha256": "da74a7cdb2dcdd8a7bb6fb66a00a06ff07a03008bdab3334eb287cee904bb733"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/frame-third.png",
+      "size": 121554,
+      "sha256": "cdf0c951db64037732938ff62447a06ebdc454aa5d456ba28ff83ffa13c30405"
+    },
+    {
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/t066-fixed/navigation.json",
+      "size": 557,
+      "sha256": "c2111ee9deaeb6a5d3183d699d09f86bf1e3829e713f8cac37185866dca8b2df"
+    }
+  ]
+}

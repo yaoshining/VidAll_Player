@@ -1,0 +1,49 @@
+[
+  {
+    "name": "硬解A有声",
+    "start": 1,
+    "end": 2,
+    "toneHz": 880
+  },
+  {
+    "name": "故障A返回后静音",
+    "start": 3,
+    "end": 16
+  },
+  {
+    "name": "新硬解B无旧音",
+    "start": 17.3,
+    "end": 18.3,
+    "toneHz": 440,
+    "forbiddenHz": 880
+  },
+  {
+    "name": "晚关闭期间静音",
+    "start": 19.3,
+    "end": 42
+  },
+  {
+    "name": "回收名额后硬解C",
+    "start": 43.7,
+    "end": 44.7,
+    "toneHz": 880,
+    "forbiddenHz": 440
+  },
+  {
+    "name": "故障C返回后静音",
+    "start": 46,
+    "end": 60
+  },
+  {
+    "name": "上限后软解D有声",
+    "start": 61.2,
+    "end": 62.2,
+    "toneHz": 440,
+    "forbiddenHz": 880
+  },
+  {
+    "name": "最终关闭静音",
+    "start": 63.1,
+    "end": 64.8
+  }
+]

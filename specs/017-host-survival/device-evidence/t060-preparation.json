@@ -1,0 +1,48 @@
+[
+  {
+    "label": "sync",
+    "version": "1.0.74",
+    "hap": "/tmp/vidall-t060-sync-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+    "hapSha256": "b407a07772d3757c4a8ea654e9db24e4cb70e2c262dcce2128f510e77937a9a9",
+    "bytes": 25956403,
+    "harSha256": "85f3eddab398c8312ad9fb6e49f5f96bfa6a1bc941077e920a3ec16f67407ccb",
+    "nativeLibraries": {
+      "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libs/arm64-v8a/libmpv.so": "d283cc8edc69467d52dbab7854f7171703053003f71d52bdb9bbae1a2797f198",
+      "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libs/arm64-v8a/libvidall_player_native.so": "3edfd042c8ebe00de70af7891a9dd0119a045f076ff9bf0b46aa94ffb995227c"
+    },
+    "productionSource": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+    "toolBase": "c036f04",
+    "buildMachine": "本地MacBook Pro ARM64，仅诊断，非CI最终交付",
+    "deviceAccepted": false
+  },
+  {
+    "label": "fence",
+    "version": "1.0.75",
+    "hap": "/tmp/vidall-t060-fence-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+    "hapSha256": "c55eb3e005353142e8a420893cb312690588e1ce3462cdc57a8610ea1873f3e7",
+    "bytes": 45093843,
+    "harSha256": "452e500cfdb10f297567a97b4f7e6977673f9247b519b99aacad6fd2a09bb1ff",
+    "nativeLibraries": {
+      "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libs/arm64-v8a/libmpv.so": "ee2c70ee79351592ee6a360b52ab445f8371b13233938a36d39c24adf4d43178",
+      "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libs/arm64-v8a/libvidall_player_native.so": "f6576f0b6c8c454c4b051a4f821702e564182bd71685fba19bfea6b024d63ca7"
+    },
+    "productionSource": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+    "toolBase": "c036f04",
+    "buildMachine": "本地MacBook Pro ARM64，仅诊断，非CI最终交付",
+    "deviceAccepted": false
+  }
+]

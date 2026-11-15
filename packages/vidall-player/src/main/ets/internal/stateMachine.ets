@@ -90,7 +90,9 @@ export class SessionStateMachine {
     event.sequence = this.sequence;
     event.eventEpoch = this.eventEpoch;
     const listeners = this.listeners.slice();
-    for (let index = 0; index < listeners.length; index++) { listeners[index](event); }
+    for (let index = 0; index < listeners.length; index++) {
+      try { listeners[index](event); } catch (_) { console.error('VidAllPlayer: player event listener failed'); }
+    }
   }
 
   enterTerminal(): void {
@@ -98,7 +100,7 @@ export class SessionStateMachine {
     this.terminal = true;
     this.state = 'error';
     const error: PlayerError = { domain: 'native', code: 'PLAYER_TERMINAL',
-      message: '播放器无法安全继续，请重新打开应用。', retryable: false, context: {} };
+      message: '当前播放会话无法安全继续。', retryable: false, context: {} };
     const events: PlayerEvent[] = [
       { type: 'state', sequence: 0, state: 'error' },
       { type: 'error', sequence: 0, error }

@@ -1,0 +1,830 @@
+{
+  "host": {
+    "passed": true,
+    "platform": "Darwin",
+    "architecture": "arm64",
+    "formalArtifactAllowed": false,
+    "checks": [
+      {
+        "name": "public-gate-tests",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.052
+      },
+      {
+        "name": "har-normalization-tests",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.675
+      },
+      {
+        "name": "runtime-local-loader",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 2.181
+      },
+      {
+        "name": "recovery-input-tests",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.168
+      },
+      {
+        "name": "public-api-contract",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.042
+      },
+      {
+        "name": "hardware-probe-contract",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.366
+      },
+      {
+        "name": "fence-probe-contract",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.261
+      },
+      {
+        "name": "fence-probe-page",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.28
+      },
+      {
+        "name": "tools",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.014
+      },
+      {
+        "name": "llvm-nm-version",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.026
+      },
+      {
+        "name": "node-version",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.1
+      },
+      {
+        "name": "typescript-version",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.207
+      },
+      {
+        "name": "input-audit",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.229
+      },
+      {
+        "name": "input-mutations",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 6.353
+      },
+      {
+        "name": "ets-terminal-publication-preserve",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.347
+      },
+      {
+        "name": "ets-terminal-publication-controlled",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.34
+      },
+      {
+        "name": "ets-terminal-publication-reentrant-preserve",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.339
+      },
+      {
+        "name": "ets-terminal-publication-reentrant-controlled",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.333
+      },
+      {
+        "name": "ets-terminal-listener-lifetime",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.332
+      },
+      {
+        "name": "ets-failed-release-listener",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.34
+      },
+      {
+        "name": "ets-pending-release-listener",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.34
+      },
+      {
+        "name": "ets-fault-notifications",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.344
+      },
+      {
+        "name": "ets-constructor-terminal-replay",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.336
+      },
+      {
+        "name": "ets-host-recovery",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.342
+      },
+      {
+        "name": "ets-unconfigured",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.341
+      },
+      {
+        "name": "ets-configure",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.342
+      },
+      {
+        "name": "ets-resource-failed",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.341
+      },
+      {
+        "name": "ets-notifications",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.345
+      },
+      {
+        "name": "ets-cached",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.344
+      },
+      {
+        "name": "ets-late",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.34
+      },
+      {
+        "name": "ets-released",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.344
+      },
+      {
+        "name": "ets-fatal-release",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.338
+      },
+      {
+        "name": "ets-fatal-queue",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.339
+      },
+      {
+        "name": "ets-fatal-diagnostics",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.342
+      },
+      {
+        "name": "ets-late-load",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.341
+      },
+      {
+        "name": "ets-bridge-callback-fail",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.341
+      },
+      {
+        "name": "ets-bridge-create-fail",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.345
+      },
+      {
+        "name": "ets-bridge-pending-create",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.339
+      },
+      {
+        "name": "ets-bridge-callback-terminal",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.34
+      },
+      {
+        "name": "load-identity-switch",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.353
+      },
+      {
+        "name": "load-identity-queue-failed",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.344
+      },
+      {
+        "name": "load-identity-callback-failed",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.392
+      },
+      {
+        "name": "load-identity-terminal-in-callback",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.347
+      },
+      {
+        "name": "load-identity-invalid",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.356
+      },
+      {
+        "name": "load-identity-legacy",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.364
+      },
+      {
+        "name": "load-generation-entry",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.715
+      },
+      {
+        "name": "fault-during-close",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 1.907
+      },
+      {
+        "name": "first-frame-event",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.821
+      },
+      {
+        "name": "audio-output-reuse-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.41
+      },
+      {
+        "name": "audio-output-reuse",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.533
+      },
+      {
+        "name": "runtime-napi-entry",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 1.011
+      },
+      {
+        "name": "software-release-fence",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 1.218
+      },
+      {
+        "name": "audio-domain-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.09
+      },
+      {
+        "name": "audio-domain",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.441
+      },
+      {
+        "name": "audio-capacity-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.088
+      },
+      {
+        "name": "audio-capacity-unknown",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.458
+      },
+      {
+        "name": "audio-capacity-quiescent",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.025
+      },
+      {
+        "name": "bounded-command-queue",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.469
+      },
+      {
+        "name": "bounded-event-delivery",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.356
+      },
+      {
+        "name": "compatible-playback",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.339
+      },
+      {
+        "name": "diagnostics-session",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.335
+      },
+      {
+        "name": "diagnostics-probe-contract",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.251
+      },
+      {
+        "name": "survival-runtime-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.746
+      },
+      {
+        "name": "survival-runtime-normal",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 3.564
+      },
+      {
+        "name": "survival-runtime-abi",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.007
+      },
+      {
+        "name": "survival-runtime-old-version",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.005
+      },
+      {
+        "name": "survival-runtime-permanent-stop",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 3.118
+      },
+      {
+        "name": "missing-fault-load-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.765
+      },
+      {
+        "name": "missing-fault-load-rejected",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.267
+      },
+      {
+        "name": "old-core-recovery-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.747
+      },
+      {
+        "name": "old-core-recovery-rejected",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.357
+      },
+      {
+        "name": "diagnostics-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.372
+      },
+      {
+        "name": "diagnostics-native",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.431
+      },
+      {
+        "name": "fault-message-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.268
+      },
+      {
+        "name": "fault-message",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.356
+      },
+      {
+        "name": "environment-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.296
+      },
+      {
+        "name": "environment-lifetime",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.482
+      },
+      {
+        "name": "executor-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.496
+      },
+      {
+        "name": "session-executor",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.513
+      },
+      {
+        "name": "isolation-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.461
+      },
+      {
+        "name": "session-isolation",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.729
+      },
+      {
+        "name": "runtime-compile",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.815
+      },
+      {
+        "name": "runtime-normal",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.452
+      },
+      {
+        "name": "runtime-no-policy",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.006
+      },
+      {
+        "name": "runtime-abi",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.006
+      },
+      {
+        "name": "runtime-register",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.006
+      },
+      {
+        "name": "runtime-enable",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.006
+      },
+      {
+        "name": "runtime-smb",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.006
+      },
+      {
+        "name": "runtime-invalid-config",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.004
+      },
+      {
+        "name": "runtime-invalid-deadline",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.005
+      },
+      {
+        "name": "runtime-resources-rejected",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.004
+      },
+      {
+        "name": "runtime-directory-missing",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.004
+      },
+      {
+        "name": "runtime-directory-file",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.004
+      },
+      {
+        "name": "runtime-directory-symlink",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.004
+      },
+      {
+        "name": "runtime-config-corrupt",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.004
+      },
+      {
+        "name": "native-entry",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 24.294
+      },
+      {
+        "name": "parent-green",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 9.823
+      },
+      {
+        "name": "mutant-guards-final",
+        "exit": 1,
+        "expectedExit": 1,
+        "passed": true,
+        "seconds": 3.289
+      },
+      {
+        "name": "mutant-immediate-final",
+        "exit": 1,
+        "expectedExit": 1,
+        "passed": true,
+        "seconds": 1.351
+      },
+      {
+        "name": "mutant-missing-final",
+        "exit": 1,
+        "expectedExit": 1,
+        "passed": true,
+        "seconds": 8.981
+      },
+      {
+        "name": "parent-verification",
+        "exit": 0,
+        "expectedExit": 0,
+        "passed": true,
+        "seconds": 0.04
+      }
+    ],
+    "limits": [
+      "仅宿主测试，不代表 HarmonyOS 目标构建或真机验收",
+      "平台 API 为替身；没有真实 GPU 故障注入",
+      "输入来源封存及库身份已核对；CI 不重建 producer，不重验本机外部来源路径",
+      "保留真实父级函数、线程、引用和独立 native deadline；完整 RenderLoop 不在提取范围"
+    ]
+  },
+  "clockCases": 42,
+  "lifecycleCases": 19,
+  "audioTools": {
+    "passed": true,
+    "deviceAccepted": false,
+    "tests": [
+      {
+        "test": "test_queue_timing.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_startup_timing.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_prepare_release_hold.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_raw_capture.py",
+        "exitCode": 0
+      },
+      {
+        "test": "raw-capture.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "test_presentation_capabilities.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_presentation_enumeration.py",
+        "exitCode": 0
+      },
+      {
+        "test": "anchor.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "test_time_anchor.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_prepare_anchor.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_sync.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_prepare_sync.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_analyze.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_prepare.py",
+        "exitCode": 0
+      },
+      {
+        "test": "test_receive.py",
+        "exitCode": 0
+      },
+      {
+        "test": "chunks.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "manual.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "capture.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "page.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "baseline.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "seek.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "focus.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "alarm.test.cjs",
+        "exitCode": 0
+      },
+      {
+        "test": "evidence.test.cjs",
+        "exitCode": 0
+      }
+    ]
+  },
+  "source": "56ebd3f7cb918f2c6be2a3eb9e0683f0b8734cb0",
+  "productionMPVSHA256": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
+  "deviceAccepted": false
+}

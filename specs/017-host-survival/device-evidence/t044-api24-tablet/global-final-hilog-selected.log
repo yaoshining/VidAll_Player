@@ -1,0 +1,33 @@
+ 2026-11-12 12:47:20 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 runtime ready
+ 2026-11-12 12:47:20 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"1","loadGeneration":"1"}
+ 2026-11-12 12:47:20 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+ 2026-11-12 12:47:20 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+ 2026-11-12 12:47:20 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 1
+ 2026-11-12 12:47:21 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 initial-playback {"profile":"hardware-first","backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 2026-11-12 12:47:21 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 pre-terminal-playback {"profile":"hardware-first","backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 2026-11-12 12:47:21 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 before-global-first-frame
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 fault {"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 terminal {"state":"terminal","terminal":{"stage":1,"platformError":-4,"firstObservedMs":72691548,"deadlineMs":3000,"ownerTag":"1","attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}},"recovery":{"state":"pending","generation":0},"faults":[{"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}]}
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state error
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 error PLAYER_TERMINAL
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 terminal-status {"state":"terminal","terminal":{"stage":1,"platformError":-4,"firstObservedMs":72691548,"deadlineMs":3000,"ownerTag":"1","attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}},"recovery":{"state":"pending","generation":0},"faults":[{"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}]}
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 recovery-ready {"state":"terminal","terminal":{"stage":1,"platformError":-4,"firstObservedMs":72691548,"deadlineMs":3000,"ownerTag":"1","attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}},"recovery":{"state":"ready","generation":2},"faults":[{"sequence":1,"kind":"process-terminal","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"1","loadGeneration":"1"}}]}
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 old-release-rejected PLAYER_TERMINAL
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 fresh-surface-ready
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 returned-after-global
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"2","loadGeneration":"1"}
+ 2026-11-12 12:47:23 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+ 2026-11-12 12:47:24 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+ 2026-11-12 12:47:24 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 2
+ 2026-11-12 12:47:33 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 recovery-playback {"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":9133.333333333332},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"software"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"no"},"audio":{"status":"available","unit":"text","source":"current-tracks/audio/codec","estimated":false,"value":"aac"}}
+ 2026-11-12 12:47:33 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+ 2026-11-12 12:47:33 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 recovery-release
+ 2026-11-12 12:47:33 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 third-fresh-surface-ready
+ 2026-11-12 12:47:33 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 load-identity {"sessionId":"3","loadGeneration":"1"}
+ 2026-11-12 12:47:33 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state preparing
+ 2026-11-12 12:47:33 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state playing
+ 2026-11-12 12:47:33 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 firstFrame 3
+ 2026-11-12 12:47:42 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 state released
+ 2026-11-12 12:47:42 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 keepScreen false
+ 2026-11-12 12:47:42 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 session-end
+ 2026-11-12 12:47:42 47972-47972/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17 summary {"profile":"hardware-first","scope":"timer-global","firstFrames":3,"errors":0,"recovery":{"state":"ready","generation":2}}

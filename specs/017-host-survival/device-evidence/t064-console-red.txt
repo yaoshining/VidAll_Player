@@ -1,0 +1,7 @@
+libc++abi: terminating due to uncaught exception of type std::out_of_range: map::at:  key not found
+Traceback (most recent call last):
+  File "<repo>/native/tests/ohcodec-fence/initialize.test.py", line 73, in <module>
+    subprocess.run([str(p/'test')],check=True,timeout=5)
+  File "/Users/yaoshining/anaconda3/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/var/folders/7s/y7kx47nj0l7gk98hbd3shvv40000gn/T/tmpj4_2oxs4/test']' died with <Signals.SIGABRT: 6>.

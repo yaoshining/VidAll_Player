@@ -36,13 +36,18 @@ unload = conditional('player/loadfile.c', '    uninit_sub_all(mpctx);\n    if ('
 assert 'uninit_audio_out(mpctx);' in unload
 apply_pause = conditional('player/command.c', '    if (opt_ptr == &opts->pause)', '    if (opt_ptr == &opts->audio_delay)')
 binding = driver[driver.index('struct legacy_binding {'):driver.index('struct priv {')]
-registry = driver[driver.index('static pthread_rwlock_t legacy_lock'):driver.index('static void reset_timing')]
+registry_start = re.search(r'^static pthread_(?:rwlock|mutex)_t legacy_lock', driver, re.M)
+assert registry_start, '缺少 legacy 登记锁'
+registry = driver[registry_start.start():driver.index('static void reset_timing')]
 
 parts = [
     function(ao, 'ao_add_events'), function(ao, 'ao_query_and_reset_events'),
     function(ao, 'ao_request_pause'), function(ao, 'ao_is_per_file'), registry,
-    function(driver, 'uninit'), function(driver, 'legacy_write'),
-    function(driver, 'legacy_interrupt'), function(driver, 'register_callbacks'),
+    function(driver, 'release_for_recovery'), function(driver, 'uninit'), function(driver, 'legacy_write'),
+    function(driver, 'legacy_interrupt'),
+    function(driver, 'modern_write') if 'static OH_AudioData_Callback_Result modern_write(' in driver else '',
+    function(driver, 'modern_interrupt') if 'static void modern_interrupt(' in driver else '',
+    function(driver, 'register_callbacks'),
     function(source('player/playloop.c'), 'get_internal_paused'),
     function(source('player/playloop.c'), 'update_internal_pause_state'),
     function(source('player/playloop.c'), 'step_frame_mute'),
@@ -56,6 +61,11 @@ parts = [
 with tempfile.TemporaryDirectory() as td:
     td = Path(td)
     program = (here / 'harness.c').read_text().replace('/* PRODUCTION */', '\n'.join(parts))
+    lifetime_assert = ('assert(pthread_rwlock_trywrlock(&legacy_lock) == EBUSY);'
+                       if 'pthread_rwlock_t' in registry else
+                       'assert(!pthread_mutex_trylock(&legacy_lock)); '
+                       'assert(p.legacy.in_flight == 1); pthread_mutex_unlock(&legacy_lock);')
+    program = program.replace('/* CALLBACK_LIFETIME_ASSERT */', lifetime_assert)
     (td / 'test.c').write_text(program.replace('/* BINDING */', binding))
-    subprocess.run(['cc', '-std=gnu11', '-pthread', '-Wall', '-Werror', str(td / 'test.c'), '-o', str(td / 'test')], check=True)
+    subprocess.run(['cc', '-std=gnu11', '-pthread', '-Wall', '-Werror', '-I'+str(here.parents[1]/'mpv'), str(td / 'test.c'), str(here.parents[1]/'mpv/host_recovery.c'), '-o', str(td / 'test')], check=True)
     subprocess.run([str(td / 'test')], check=True, timeout=10)

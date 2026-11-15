@@ -1,0 +1,13 @@
+diff --git a/audio/out/ao_ohaudio.c b/audio/out/ao_ohaudio.c
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -142,6 +142,9 @@ static int release_for_recovery(void *opaque)
+         if (OH_AudioRenderer_Release(p->renderer) != AUDIOSTREAM_SUCCESS) return -1;
+         p->renderer = NULL;
+     }
++    // Renderer 已释放或从未创建；Builder 的清理失败不能抹掉音频静止事实。
++    // 槽、AO 和 Builder 仍由 remove 保留，绝不在这里归还资源额度。
++    mp_host_audio_confirm_quiescent(p->recovery_token);
+     if (p->builder) {
+         if (OH_AudioStreamBuilder_Destroy(p->builder) != AUDIOSTREAM_SUCCESS) return -1;
+         p->builder = NULL;

@@ -1,0 +1,12 @@
+{
+  "parentPackageSHA256": "f3cefd9b628b4b67408f5644f593a12484b7afd48bc9f6ae4800e7c62708b4a0",
+  "allParentFilesVerified": true,
+  "changedFiles": [
+    "sources/mpv/audio/out/ao_ohaudio.c"
+  ],
+  "newPackageSHA256": "0a6b9f61c908bb134a09fea8148eb775f2b26f1a85e768baa619300f4c7c13c8",
+  "newPatch": {
+    "path": "native/patches/phase30/0012-ohaudio-clock-outside-callback.patch",
+    "sha256": "f6bdf17e14eb1ca449b93b715fbd18fdbf0d8681c62cad13621967cdb10ae813"
+  }
+}

@@ -1,0 +1,15 @@
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /PROBE_CANCELLED/. Input:
+
+'Error: MUST_NOT_CREATE_AFTER_EXIT'
+
+    at async /Users/yaoshining/DevEcoStudioProjects/VidAll_Player/scripts/test/audio-evidence/page.test.cjs:31:2 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: Error: MUST_NOT_CREATE_AFTER_EXIT
+      at createPlayer (/Users/yaoshining/DevEcoStudioProjects/VidAll_Player/scripts/test/audio-evidence/page.test.cjs:15:105)
+      at Index.open (/Users/yaoshining/DevEcoStudioProjects/VidAll_Player/fixtures/normal-core-consumer/audio-evidence/Index.ets:92:50)
+      at /Users/yaoshining/DevEcoStudioProjects/VidAll_Player/scripts/test/audio-evidence/page.test.cjs:31:31,
+  expected: /PROBE_CANCELLED/,
+  operator: 'rejects',
+  diff: 'simple'
+}

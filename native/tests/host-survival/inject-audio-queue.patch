@@ -1,0 +1,94 @@
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -51,6 +51,24 @@
+     unsigned in_flight;
+ };
+ 
++// T066_TRACE_BEGIN
++struct probe_queue_row {
++    atomic_bool ready;
++    int64_t enter, leave, samples, written, queued, pos, stamp, end, nonzero;
++};
++struct probe_queue_trace { struct probe_queue_row rows[64]; };
++static void probe_record(struct probe_queue_trace *t, unsigned n,
++    int64_t enter, int64_t leave, int64_t samples, int64_t written,
++    int64_t queued, int64_t pos, int64_t stamp, int64_t end, int64_t nonzero)
++{
++    if (n >= 64) return;
++    struct probe_queue_row *r = &t->rows[n];
++    r->enter=enter; r->leave=leave; r->samples=samples; r->written=written;
++    r->queued=queued; r->pos=pos; r->stamp=stamp; r->end=end; r->nonzero=nonzero;
++    atomic_store_explicit(&r->ready,true,memory_order_release);
++}
++// T066_TRACE_END
++
+ struct priv {
+     unsigned long long recovery_token, recovery_generation;
+     OH_AudioStreamBuilder* builder;
+@@ -70,7 +88,8 @@
+     int encoding_type;
+     atomic_llong probe_first_callback,probe_first_return,probe_first_pcm;
+     atomic_uint probe_callbacks;
+-    unsigned probe_queries;
++    unsigned probe_queries, probe_drained;
++    struct probe_queue_trace probe_trace;
+ };
+ 
+ // token 永不复用；全局锁只保护登记和引用计数，不能跨平台回调持锁。
+@@ -192,16 +211,24 @@
+             p->last_query = now;
+             bool valid = p->timestamp_valid;
+             mp_mutex_unlock(&p->timing_lock);
+-            if (p->probe_queries++ < 16)
++            if (p->probe_queries++ < 96)
+                 MP_WARN(ao,"AUDIO_START_TRACE token=%llu mono=%lld mpv=%lld pos=%lld platform=%lld valid=%d cb=%lld ret=%lld pcm=%lld\n",
+                     p->recovery_token,(long long)mono_now,(long long)now,(long long)position,(long long)timestamp,valid,
+                     (long long)atomic_load(&p->probe_first_callback),(long long)atomic_load(&p->probe_first_return),(long long)atomic_load(&p->probe_first_pcm));
++        }
++        while (p->probe_drained < 64 && atomic_load_explicit(
++            &p->probe_trace.rows[p->probe_drained].ready,memory_order_acquire)) {
++            unsigned i=p->probe_drained++; struct probe_queue_row *r=&p->probe_trace.rows[i];
++            MP_WARN(ao,"AUDIO_QUEUE_TRACE token=%llu i=%u rate=%d enter=%lld leave=%lld samples=%lld written=%lld queued=%lld pos=%lld stamp=%lld end=%lld nonzero=%lld\n",
++                p->recovery_token,i,ao->samplerate,(long long)r->enter,(long long)r->leave,
++                (long long)r->samples,(long long)r->written,(long long)r->queued,
++                (long long)r->pos,(long long)r->stamp,(long long)r->end,(long long)r->nonzero);
+         }
+         mp_host_audio_control_unlock(p->recovery_token);
+         if (stop) break;
+         mp_mutex_lock(&p->timing_lock);
+         if (!p->timing_stop)
+-            mp_cond_timedwait(&p->timing_wakeup, &p->timing_lock, MP_TIME_MS_TO_NS(250));
++            mp_cond_timedwait(&p->timing_wakeup, &p->timing_lock, MP_TIME_MS_TO_NS(p->probe_queries < 96 ? 10 : 250));
+         stop = p->timing_stop;
+         mp_mutex_unlock(&p->timing_lock);
+         if (stop) break;
+@@ -319,19 +346,25 @@
+ 
+     int64_t end_time = now +
+         MP_TIME_S_TO_NS(samples + p->queued_frames) / ao->samplerate;
++    int64_t probe_pos=p->frame_position, probe_stamp=p->frame_timestamp, probe_queued=p->queued_frames;
+     p->written_frames += samples;
+     mp_mutex_unlock(&p->timing_lock);
+     ao_read_data(ao, &audioData, samples, end_time, NULL, true, true);
+     if (mp_host_is_retired(p->recovery_generation))
+         memset(audioData, ao->format == AF_FORMAT_U8 ? 128 : 0, audioDataSize);
+     if (!probe_count) atomic_store(&p->probe_first_return,mp_time_ns());
+-    if (probe_count < 64 && !atomic_load(&p->probe_first_pcm)) {
++    int nonzero=0;
++    if (probe_count < 64) {
+         const unsigned char *bytes=audioData;unsigned char silence=ao->format==AF_FORMAT_U8?128:0;
+         for (int i=0;i<audioDataSize && i<65536;i++) if(bytes[i]!=silence){
+-            atomic_store(&p->probe_first_pcm,mp_time_ns());break;
+-        }
+-    }
++            nonzero=1;
++            if (!atomic_load(&p->probe_first_pcm)) atomic_store(&p->probe_first_pcm,mp_time_ns());
++            break;
++        }
++    }
++    probe_record(&p->probe_trace,probe_count,now,mp_time_ns(),samples,written,
++        probe_queued,probe_pos,probe_stamp,end_time,nonzero);
+     return AUDIO_DATA_CALLBACK_RESULT_VALID;
+ }
+ 
+ static int32_t legacy_write(OH_AudioRenderer *renderer, void *user, void *data, int32_t size)

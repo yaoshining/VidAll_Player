@@ -1,0 +1,30 @@
+ 2026-11-12 12:39:29 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F list-visible-after-fault 1
+ 2026-11-12 12:39:29 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F returned-after-close-fault 1
+ 2026-11-12 12:39:40 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F load-identity {"index":2,"identity":{"sessionId":"2","loadGeneration":"1"}}
+ 2026-11-12 12:39:40 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":2,"type":"state","state":"preparing"}
+ 2026-11-12 12:39:40 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":2,"type":"state","state":"playing"}
+ 2026-11-12 12:39:40 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":2,"type":"firstFrame","surfaceGeneration":2}
+ 2026-11-12 12:39:41 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-observed {"index":2,"identity":{"sessionId":"2","loadGeneration":"1"},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 2026-11-12 12:39:41 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-path {"index":2,"identity":{"sessionId":"2","loadGeneration":"1"},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 2026-11-12 12:39:49 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-progress {"index":2,"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":7866.666666666666},"audio":{"status":"available","unit":"text","source":"current-tracks/audio/codec","estimated":false,"value":"aac"},"audibleAudioAccepted":false}
+ 2026-11-12 12:39:49 35486-37261/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllFenceProbe: FENCE_PROBE late-close begin real=0 pid=35486
+ 2026-11-12 12:39:54 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":2,"type":"state","state":"released"}
+ 2026-11-12 12:39:54 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F release-heartbeat {"index":2,"elapsedMs":5004,"ticks":25}
+ 2026-11-12 12:39:54 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F release-interface-completed 2
+ 2026-11-12 12:39:54 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F awaiting-native-late-close-log
+ 2026-11-12 12:39:56 35486-37261/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllFenceProbe: FENCE_PROBE late-close completed real=0 pid=35486
+ 2026-11-12 12:40:25 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F operator-native-log-confirmed 需另附同 PID 原始 hilog；下一步仍强制实际 OHCodec/Vulkan
+ 2026-11-12 12:40:25 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F load-identity {"index":3,"identity":{"sessionId":"3","loadGeneration":"1"}}
+ 2026-11-12 12:40:25 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":3,"type":"state","state":"preparing"}
+ 2026-11-12 12:40:25 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":3,"type":"state","state":"playing"}
+ 2026-11-12 12:40:25 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":3,"type":"firstFrame","surfaceGeneration":3}
+ 2026-11-12 12:40:25 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-observed {"index":3,"identity":{"sessionId":"3","loadGeneration":"1"},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 2026-11-12 12:40:25 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-path {"index":3,"identity":{"sessionId":"3","loadGeneration":"1"},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"ohcodec"}}
+ 2026-11-12 12:40:33 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-progress {"index":3,"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":7899.999999999999},"audio":{"status":"available","unit":"text","source":"current-tracks/audio/codec","estimated":false,"value":"aac"},"audibleAudioAccepted":false}
+ 2026-11-12 12:40:33 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F late-close-slot-reclaimed
+ 2026-11-12 12:40:33 35486-38365/hdc E/A0D001/com.yaoshining.vidallplayer/VidAllFenceProbe: FENCE_PROBE wait real=0 injected=-4 reason=2 pid=35486
+ 2026-11-12 12:40:33 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F runtime-fault {"sequence":2,"kind":"session-quarantined","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"3","loadGeneration":"1"}}
+ 2026-11-12 12:40:33 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":3,"type":"state","state":"released"}
+ 2026-11-12 12:40:33 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F release-heartbeat {"index":3,"elapsedMs":55,"ticks":1}
+ 2026-11-12 12:40:33 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F release-interface-completed 3
+ 2026-11-12 12:40:33 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F close-fault-confirmed {"sequence":2,"kind":"session-quarantined","stage":1,"platformError":-4,"attribution":{"state":"known","sessionId":"3","loadGeneration":"1"}}

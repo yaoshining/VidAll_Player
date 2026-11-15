@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "harSHA256": "589d3673c07490c6fe0223a881c69bdedc866158406e96cadbda4e29f2051546",
+  "libraries": {
+    "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libmpv.so": "23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a",
+    "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libvidall_player_native.so": "bd8c5cde25433aaa36e328f539b5aa295e90751ba0ebbe7a7f86f3a07b3939fd"
+  },
+  "formalArtifactAllowed": false,
+  "date": "2026-11-14",
+  "runner": "本地 MacBook Pro / Darwin arm64",
+  "hostChecks": 94,
+  "hostPassed": true,
+  "audioGroups": [
+    "prepare",
+    "ci-input",
+    "interrupt",
+    "legacy-lifetime",
+    "data",
+    "control",
+    "lifecycle"
+  ],
+  "devicePassed": false,
+  "ciPassed": false,
+  "sourceDerivation": "t051-input-derivation.json",
+  "scope": "本地验证；非最终交付、非设备音画验收"
+}

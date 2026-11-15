@@ -1,0 +1,52 @@
+{
+  "version": "1.0.93",
+  "source": "131c6aa桥+独立诊断核心",
+  "harSHA256": "384418ad21d1bced144c29ce2e586a35707b78a695547a1287a7dfc65bc36231",
+  "hapSHA256": "31af35ae3a7a7a0198580bb807c9ce7c2a470fb4fb431006a831f0096060ee38",
+  "libraries": {
+    "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libs/arm64-v8a/libmpv.so": "8fff9dcfd8ea061a1df109ab1ab368929ac72eb5659bfca5711d0c34ee09211c",
+    "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libs/arm64-v8a/libvidall_player_native.so": "0994a0fc01c3d5885bf7a90e0acd462771336437380a4a51e6b63e30fc172917"
+  },
+  "formalArtifactAllowed": false,
+  "buildMachine": "本地MacBook Pro ARM64",
+  "navigation": {
+    "status": "completed",
+    "pidBefore": "41197",
+    "pidAfter": "41197",
+    "actions": [
+      {
+        "text": "开始故障音频内录",
+        "bounds": "[0,0][673,162]",
+        "wallMs": 1794677754128
+      },
+      {
+        "text": "允许",
+        "bounds": "[1968,1332][2514,1494]",
+        "wallMs": 1794677755709
+      },
+      {
+        "text": "返回视频列表",
+        "bounds": "[0,900][529,1062]",
+        "wallMs": 1794677772746
+      },
+      {
+        "text": "播放另一部视频",
+        "bounds": "[0,900][601,1062]",
+        "wallMs": 1794677774421
+      }
+    ]
+  },
+  "estimatedLatencyMs": {
+    "all": 45,
+    "software": 5,
+    "hardware": 40
+  },
+  "latencyEstimateExcludesRealtimeBuffer": true
+}

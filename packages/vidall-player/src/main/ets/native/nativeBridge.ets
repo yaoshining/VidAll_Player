@@ -1,8 +1,8 @@
-import { assertPlayerRuntimeReady, playerTerminalError } from '../public/runtime';
+import { assertPlayerRuntimeReady, playerTerminalError, capturePlayerRuntimeGeneration } from '../public/runtime';
 import { PlayerDiagnosticsSnapshot } from '../public/diagnostics';
 import { util } from '@kit.ArkTS';
 import nativeSession, { NativeFrameData, NativePlayerEvent, NativeSessionResult } from 'libvidall_player_native.so';
-import { MediaSource, PlayerSurface } from '../public/types';
+import { MediaSource, PlayerSurface, PlayerLoadIdentity } from '../public/types';
 import { PlayerFailure } from '../internal/playerFailure';
 
 export interface DirectSmbCapability {
@@ -30,7 +30,7 @@ export interface NativePlayerBridge {
   attachSurface(surface: PlayerSurface): Promise<void>;
   resizeSurface(surface: PlayerSurface): Promise<void>;
   detachSurface(generation: number): Promise<void>;
-  load(source: MediaSource): Promise<void>;
+  load(source: MediaSource, generation?: number, onIdentity?: (identity: PlayerLoadIdentity) => void): Promise<void>;
   play(): Promise<void>;
   pause(): Promise<void>;
   stop(): Promise<void>;
@@ -50,6 +50,7 @@ export interface NativePlayerBridge {
 }
 
 function nativeFailure(result: NativeSessionResult): PlayerFailure {
+  const eventFailure = result.code === 'PLAYER_EVENT_QUEUE_FULL' || result.code === 'CALLBACK_RESOURCE_LIMIT';
   const backendUnavailable = result.code === 'RENDER_BACKEND_UNAVAILABLE';
   const renderFailure = result.code === 'SURFACE_UNAVAILABLE' || backendUnavailable;
   const inputFailure = result.code === 'INPUT_INVALID';
@@ -57,7 +58,7 @@ function nativeFailure(result: NativeSessionResult): PlayerFailure {
   return new PlayerFailure({
     domain: renderFailure ? 'render' : (inputFailure ? 'input' : (released ? 'lifecycle' : 'native')),
     code: result.code,
-    message: backendUnavailable ? '当前设备没有可用的 MPV 渲染后端。' :
+    message: eventFailure ? '播放器事件处理失败，请释放会话后重新打开视频。' : backendUnavailable ? '当前设备没有可用的 MPV 渲染后端。' :
       (renderFailure ? '当前没有可用的 XComponent 画面。' :
       (inputFailure ? '原生播放器参数无效。' :
         (released ? '播放器会话已释放。' : 'libmpv 原生操作失败。'))),
@@ -134,25 +135,32 @@ export function extractSmbCredentials(source: MediaSource): SmbCredentials {
 }
 
 class HarNativePlayerBridge implements NativePlayerBridge {
+  private readonly runtimeGeneration: number;
+  private readonly compatible: boolean;
   private handle: number = 0;
+  private loadGeneration: number = 0;
   private readonly ready: Promise<number>;
   private released: boolean = false;
   private readonly listeners: Array<(event: NativeBridgeEvent) => void> = [];
 
-  constructor(result: Promise<NativeSessionResult>) {
+  constructor(result: Promise<NativeSessionResult>, generation: number, compatible: boolean) {
+    this.runtimeGeneration = generation;
+    this.compatible = compatible;
     this.ready = result.then(async (created: NativeSessionResult): Promise<number> => {
-      assertPlayerRuntimeReady();
+      assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
       if (!created.ok || created.handle <= 0) throw nativeFailure(created);
       this.handle = created.handle;
       try {
         this.requireResult(nativeSession.setEventCallback(this.handle, (event: NativePlayerEvent): void => {
-        if (this.released || playerTerminalError() !== undefined) return;
+        if (this.released || playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined) return;
         const listeners = this.listeners.slice();
-        for (let index = 0; index < listeners.length; index++) listeners[index](event);
+        for (let index = 0; index < listeners.length; index++) {
+          try { listeners[index](event); } catch (_) { console.error('VidAllPlayer: native event listener failed'); }
+        }
         }));
       } catch (error) {
         // 非终局的半创建失败由真正的 native release 回收；终局保留整个对象。
-        if (playerTerminalError() === undefined) await nativeSession.releaseSession(this.handle);
+        if (playerTerminalError(this.runtimeGeneration, this.compatible) === undefined) await nativeSession.releaseSession(this.handle);
         throw error as Error;
       }
       return this.handle;
@@ -178,11 +186,29 @@ class HarNativePlayerBridge implements NativePlayerBridge {
     return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.detachSurface(handle, generation));
   }
 
-  load(source: MediaSource): Promise<void> {
+  load(source: MediaSource, requestedGeneration?: number,
+    onIdentity?: (identity: PlayerLoadIdentity) => void): Promise<void> {
     const credentials = extractSmbCredentials(source);
-    return this.run((handle: number): Promise<NativeSessionResult> => nativeSession.load(
-      handle, source.uri, buildHttpHeaderFieldsOption(source.headers),
-      credentials.username, credentials.password));
+    const uri = source.uri;
+    const headers = buildHttpHeaderFieldsOption(source.headers);
+    return this.run((handle: number): Promise<NativeSessionResult> => {
+      const generation = requestedGeneration ?? this.loadGeneration + 1;
+      if (!Number.isSafeInteger(generation) || generation <= this.loadGeneration) {
+        throw nativeFailure({ ok: false, handle, code: 'INPUT_INVALID' });
+      }
+      this.loadGeneration = generation;
+      // 先同步绑定本次调用的媒体身份，再让原生开始任何加载工作。
+      if (onIdentity !== undefined) {
+        try { onIdentity({ sessionId: handle.toString(), loadGeneration: generation.toString() }); }
+        catch (_) {
+          throw new PlayerFailure({ domain: 'lifecycle', code: 'LOAD_IDENTITY_REJECTED',
+            message: '无法登记本次播放。', retryable: false, context: {} });
+        }
+      }
+      assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
+      if (this.released) throw nativeFailure({ ok: false, handle, code: 'RELEASED' });
+      return nativeSession.load(handle, uri, headers, credentials.username, credentials.password, generation);
+    });
   }
 
   play(): Promise<void> {
@@ -234,13 +260,13 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 
   async release(): Promise<void> {
-    const fatal = playerTerminalError();
+    const fatal = playerTerminalError(this.runtimeGeneration, this.compatible);
     if (fatal !== undefined) throw fatal;
     if (this.released) return;
     const handle = await this.ready;
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     const result: NativeSessionResult = await nativeSession.releaseSession(handle);
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     if (!result.ok && result.code !== 'ALREADY_RELEASED') throw nativeFailure(result);
     this.released = true;
     this.listeners.splice(0, this.listeners.length);
@@ -257,16 +283,16 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 
   async getDiagnostics(): Promise<PlayerDiagnosticsSnapshot> {
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     await this.ready;
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     if (this.released) throw new Error('DIAGNOSTICS_RELEASED');
     const encoded: string = await nativeSession.getDiagnostics(this.handle);
     return JSON.parse(encoded) as PlayerDiagnosticsSnapshot;
   }
 
   getFrameData(): FrameData | null {
-    if (playerTerminalError() !== undefined || this.handle === 0 || this.released) return null;
+    if (playerTerminalError(this.runtimeGeneration, this.compatible) !== undefined || this.handle === 0 || this.released) return null;
     const result: NativeFrameData | null = nativeSession.getFrameData(this.handle);
     if (result === null || result === undefined) {
       return null;
@@ -280,12 +306,12 @@ class HarNativePlayerBridge implements NativePlayerBridge {
   }
 
   private async run(operation: (handle: number) => Promise<NativeSessionResult>): Promise<void> {
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     const handle = await this.ready;
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     if (this.released) throw nativeFailure({ ok: false, handle, code: 'RELEASED' });
     const result: NativeSessionResult = await operation(handle);
-    assertPlayerRuntimeReady();
+    assertPlayerRuntimeReady(this.runtimeGeneration, this.compatible);
     if (!result.ok) throw nativeFailure(result);
   }
 
@@ -337,9 +363,13 @@ export function resolveHdrComputePeak(mode: string | undefined): string {
 
 export function createNativePlayerBridge(subtitleFontsDir?: string, hardwareDecoding?: 'auto' | 'disabled',
   hdrToneMapping?: 'auto' | 'bt.2390' | 'mobius' | 'reinhard' | 'hable' | 'gamma' | 'linear' | 'clip',
-  hdrComputePeak?: 'auto' | 'enabled' | 'disabled'): NativePlayerBridge {
-  assertPlayerRuntimeReady();
+  hdrComputePeak?: 'auto' | 'enabled' | 'disabled',
+  playbackMode: 'standard' | 'compatible' = 'standard', capturedGeneration?: number): NativePlayerBridge {
+  const compatible = playbackMode === 'compatible';
+  const generation = capturedGeneration ?? capturePlayerRuntimeGeneration(compatible);
+  assertPlayerRuntimeReady(generation, compatible);
+  if (playbackMode !== 'standard' && playbackMode !== 'compatible') throw new Error('INVALID_PLAYBACK_MODE');
   return new HarNativePlayerBridge(nativeSession.createSession(
-    subtitleFontsDir ?? '', resolveHardwareDecoding(hardwareDecoding),
-    resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak)));
+    subtitleFontsDir ?? '', playbackMode === 'compatible' ? 'no' : resolveHardwareDecoding(hardwareDecoding),
+    resolveHdrToneMapping(hdrToneMapping), resolveHdrComputePeak(hdrComputePeak), playbackMode, generation), generation, compatible);
 }

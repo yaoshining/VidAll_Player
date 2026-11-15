@@ -1,0 +1,96 @@
+{
+  "signalPassed": false,
+  "deviceAccepted": false,
+  "sha256": "02b4e80ddf2e7e2336deb042f808aab33fe5a747a6840b116c6193ea92dfdbc7",
+  "sampleRate": 48000,
+  "channels": 2,
+  "durationSeconds": 62.762,
+  "segments": [
+    {
+      "name": "坏片失败后等待用户返回与选片静音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "坏片后首个正常视频完整起音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "系统打断保持暂停",
+      "passed": false,
+      "coverage": 0.8890737659456461,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0.2
+    },
+    {
+      "name": "打断解除至明确恢复静音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "手动恢复完整起音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "主动暂停静音",
+      "passed": true,
+      "coverage": 0.9851632047477749,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0.03
+    },
+    {
+      "name": "主动恢复完整声音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "跳转后声音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "关闭完成到重开静音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "另一部视频完整起音且无旧音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.2,
+      "longestFailureSeconds": 0
+    },
+    {
+      "name": "第二片关闭完成到结束静音",
+      "passed": true,
+      "coverage": 1.0,
+      "measurementWindowSeconds": 0.01,
+      "longestFailureSeconds": 0
+    }
+  ],
+  "limits": [
+    "只核对指定测试音，不证明自然音质或物理扬声器效果",
+    "包哈希、PID、内录来源、时间对齐及系统焦点事件须另行核对",
+    "合成音回归不计作设备验收"
+  ],
+  "alignment": {
+    "wallToAudioPtsSeconds": -1794684712.7774644,
+    "calibrationDriftMs": 1.4917189255356789
+  }
+}

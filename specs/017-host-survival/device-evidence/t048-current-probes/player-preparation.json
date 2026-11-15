@@ -1,0 +1,48 @@
+[
+  {
+    "kind": "fence",
+    "sourceCommit": "930b01a9ad6064b06c0e57a49afe3f1fb07d6cb1",
+    "productionCommit": "62e4e3f8d9648f60713e03d182b2e0f45d923118",
+    "formalArtifactAllowed": false,
+    "deviceExecuted": false,
+    "diagnosticMPVSHA256": "48d7d3fd3f05f2a255ab49ad483e0f00c78996330bcc24aa9fb9f4880ad52375",
+    "nativeBuildRoot": "/tmp/vidall-host-recovery-t048-fence-build",
+    "playerBuildRoot": "/tmp/vidall-t048-fence-player",
+    "buildProfile": {
+      "profile": "stable-target-prefix-macro-map-origin-staging",
+      "stablePrefix": "/usr/local",
+      "ffmpegRelative": "mpv/source/_staged/ffmpeg",
+      "artifact": "/private/tmp/vidall-host-recovery-t048-fence-build/install/usr/local/lib/libmpv.so",
+      "ohcodecLifecycleExperiment": false,
+      "ohcodecDiagnostic": false,
+      "testReturnReplacement": false,
+      "handoffTrace": true,
+      "handoffTest": false
+    },
+    "ffmpegAndCxxUnchanged": true,
+    "buildMachine": "本地 MacBook Pro ARM64，非 CI"
+  },
+  {
+    "kind": "global",
+    "sourceCommit": "930b01a9ad6064b06c0e57a49afe3f1fb07d6cb1",
+    "productionCommit": "62e4e3f8d9648f60713e03d182b2e0f45d923118",
+    "formalArtifactAllowed": false,
+    "deviceExecuted": false,
+    "diagnosticMPVSHA256": "ba85038f46bb60a6270440547e578fbbd7961a10c6da0c3df859abdca77a7e33",
+    "nativeBuildRoot": "/tmp/vidall-host-recovery-t048-global-build",
+    "playerBuildRoot": "/tmp/vidall-t048-global-player",
+    "buildProfile": {
+      "profile": "stable-target-prefix-macro-map-origin-staging",
+      "stablePrefix": "/usr/local",
+      "ffmpegRelative": "mpv/source/_staged/ffmpeg",
+      "artifact": "/private/tmp/vidall-host-recovery-t048-global-build/install/usr/local/lib/libmpv.so",
+      "ohcodecLifecycleExperiment": false,
+      "ohcodecDiagnostic": false,
+      "testReturnReplacement": false,
+      "handoffTrace": true,
+      "handoffTest": true
+    },
+    "ffmpegAndCxxUnchanged": true,
+    "buildMachine": "本地 MacBook Pro ARM64，非 CI"
+  }
+]

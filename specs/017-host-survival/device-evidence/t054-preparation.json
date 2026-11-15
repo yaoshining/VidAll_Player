@@ -1,0 +1,114 @@
+[
+  {
+    "kind": "normal",
+    "version": "1.0.60",
+    "productionCommit": "c7d56ee765f3ffde6059979e80c8f0162089ce01",
+    "hap": {
+      "path": "/tmp/vidall-t054-normal-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "sha256": "8de6f6176a9b74deab53963444b76b29b7765eaf7d94f7a6867226856747b968",
+      "bytes": 45097623
+    },
+    "harSHA256": "6fda6fb1ffa0cb6d78865399e811af1a9d74ae129b518280628afa59e90f9edf",
+    "harOrigin": "iMac自托管CI 43464070369",
+    "buildMachine": "本地MacBook Pro ARM64",
+    "nativeLibraries": {
+      "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libmpv.so": "23fd405c02f8c959bf7811c0cd1f2e40b6fd6f96384fbe8cfda6357dd5b1fb6a",
+      "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libvidall_player_native.so": "3edfd042c8ebe00de70af7891a9dd0119a045f076ff9bf0b46aa94ffb995227c"
+    },
+    "nativeLibrariesUnchangedFromPreviousProbe": true,
+    "supportedArchitectures": [
+      "arm64-v8a"
+    ],
+    "fixtureSHA256": {
+      "EvidenceChunks.ets": "0ea2da708595e9c2799e3e5808961536321ce7265ed2e87c8d7d33c6429f4e79",
+      "FocusAlarm.ets": "6d78d160c2bb58a09e1623a5133c5981e7aae36b9cf43bb6c266a50cad6fd611",
+      "FocusRun.ets": "41b23f8a7d1195be0fd69688d440b8aee003483da6e7b1cd22c09b1e4be3dc26",
+      "Index.ets": "7e7c6e9dff3ee32d5d89948a546eb209622321f841f39a4acbbd55652f3a4ef3",
+      "EvidenceFiles.ets": "ac88f06d8bc42273f0979d3e6c3d99241f0f4e7d0da52cd450d87e0d66348f31",
+      "AudioCapture.ets": "b4b76434e3446d0987640edee2c90aeff60bd2eef6a498ef37660becde58fd5d"
+    },
+    "deviceAccepted": false,
+    "audioAccepted": false
+  },
+  {
+    "kind": "fence",
+    "version": "1.0.61",
+    "productionCommit": "c7d56ee765f3ffde6059979e80c8f0162089ce01",
+    "hap": {
+      "path": "/tmp/vidall-t054-fence-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "sha256": "3fc34056a5e67648dc510f934f5323fe69f9f7e78d4182be5ccc1c01e66ac68a",
+      "bytes": 45450686
+    },
+    "harSHA256": "72f0964e4578220a1b42015946c9265d8dd03510adc114f68d8a7b13a97dcc19",
+    "harOrigin": "T053本地诊断HAR，非交付产物",
+    "buildMachine": "本地MacBook Pro ARM64",
+    "nativeLibraries": {
+      "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libmpv.so": "491eea6c286750b04a5dffac7604d38ad77803d40ccd8a6c792649ffe9b5575c",
+      "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libvidall_player_native.so": "ecd68fc53d1b2a37279adcf346bc07b14e480d6c05a8aba060734a4d20df71a5"
+    },
+    "nativeLibrariesUnchangedFromPreviousProbe": true,
+    "supportedArchitectures": [
+      "arm64-v8a"
+    ],
+    "fixtureSHA256": {
+      "EvidenceChunks.ets": "0ea2da708595e9c2799e3e5808961536321ce7265ed2e87c8d7d33c6429f4e79",
+      "FenceRun.ets": "6ef4c42312d76afee9390ff8cac934c20862560456490939a001baa84c14dc33",
+      "ProbeChecks.ets": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327",
+      "Index.ets": "e1ae84553ace77ddc94f5317f80603edaebc28918fe08746e70e258ef2816574",
+      "AudioCapture.ets": "b4b76434e3446d0987640edee2c90aeff60bd2eef6a498ef37660becde58fd5d"
+    },
+    "deviceAccepted": false,
+    "audioAccepted": false
+  },
+  {
+    "kind": "global",
+    "version": "1.0.62",
+    "productionCommit": "c7d56ee765f3ffde6059979e80c8f0162089ce01",
+    "hap": {
+      "path": "/tmp/vidall-t054-global-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "sha256": "9551600d1243025f1fdaf14982c08ec034c6cad3b7539fabe480fbf06ee68a1d",
+      "bytes": 45417602
+    },
+    "harSHA256": "2a75574ea6d3bedc626688fe82e13254f91f6bd0ed3c314be675f2e9c19724c7",
+    "harOrigin": "T053本地诊断HAR，非交付产物",
+    "buildMachine": "本地MacBook Pro ARM64",
+    "nativeLibraries": {
+      "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libmpv.so": "135dde131fc12962e383c40777edbc1cfbf72bdde9727d5d1f8f6dd7ea56459d",
+      "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libvidall_player_native.so": "2c69c78f3422ca1ec5628708cc0db7ddf918dfbc29dbae9776baab67f76d5e4a"
+    },
+    "nativeLibrariesUnchangedFromPreviousProbe": true,
+    "supportedArchitectures": [
+      "arm64-v8a"
+    ],
+    "fixtureSHA256": {
+      "EvidenceChunks.ets": "0ea2da708595e9c2799e3e5808961536321ce7265ed2e87c8d7d33c6429f4e79",
+      "ProbeChecks.ets": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327",
+      "Index.ets": "6521dc239a89eacae5401e8b7f46035cc9e6323ef87cc3bb38400c77b732da93",
+      "ProbeProfile.ets": "d08f94a85d3cff9b3898413feb873e2f2e82755b2bf30a3c29317ca52bb86ddb",
+      "AudioCapture.ets": "b4b76434e3446d0987640edee2c90aeff60bd2eef6a498ef37660becde58fd5d"
+    },
+    "deviceAccepted": false,
+    "audioAccepted": false
+  }
+]

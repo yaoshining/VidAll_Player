@@ -1,0 +1,62 @@
+[
+  {
+    "round": "fixed",
+    "recordedOnset": 13.286520833333332,
+    "firstFrameToOnsetMs": 609.989756902058,
+    "uncertaintyMs": 10,
+    "frameOrigin": {
+      "originSeconds": 1740392.308799011,
+      "minOriginSeconds": 1740392.302915105,
+      "maxOriginSeconds": 1740392.317589949,
+      "spreadMs": 14.674843987450004,
+      "samples": 9
+    },
+    "platformFirstFrameToRecordedOnsetMs": 5.77785330824554,
+    "firstPCMToPlatformFirstFrameMs": 91.30812482908368,
+    "videoReadyToPlatformFirstFrameMs": 409.9728886503726,
+    "eventToVideoReadyMs": 193.76683235168457,
+    "originalGatePassed": false,
+    "deviceAccepted": false,
+    "physicalAccepted": false
+  },
+  {
+    "round": "console",
+    "recordedOnset": 12.9893125,
+    "firstFrameToOnsetMs": 339.99022865295456,
+    "uncertaintyMs": 10,
+    "frameOrigin": {
+      "originSeconds": 1741112.8594763305,
+      "minOriginSeconds": 1741112.851591565,
+      "maxOriginSeconds": 1741112.867461409,
+      "spreadMs": 15.869844006374478,
+      "samples": 10
+    },
+    "platformFirstFrameToRecordedOnsetMs": 6.227729143574834,
+    "firstPCMToPlatformFirstFrameMs": 84.76820355281234,
+    "videoReadyToPlatformFirstFrameMs": 143.26453465037048,
+    "eventToVideoReadyMs": 190.34385681152344,
+    "originalGatePassed": false,
+    "deviceAccepted": false,
+    "physicalAccepted": false
+  },
+  {
+    "round": "releasefixed",
+    "recordedOnset": 13.0058125,
+    "firstFrameToOnsetMs": 339.9930934905999,
+    "uncertaintyMs": 10,
+    "frameOrigin": {
+      "originSeconds": 1741339.735164065,
+      "minOriginSeconds": 1741339.7291532839,
+      "maxOriginSeconds": 1741339.741156565,
+      "spreadMs": 12.003281153738499,
+      "samples": 6
+    },
+    "platformFirstFrameToRecordedOnsetMs": 4.164557904005051,
+    "firstPCMToPlatformFirstFrameMs": 92.62218698859215,
+    "videoReadyToPlatformFirstFrameMs": 145.39136365056038,
+    "eventToVideoReadyMs": 189.80813026428223,
+    "originalGatePassed": false,
+    "deviceAccepted": false,
+    "physicalAccepted": false
+  }
+]

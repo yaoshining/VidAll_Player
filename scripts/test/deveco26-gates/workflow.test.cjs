@@ -9,11 +9,23 @@ function verify(w){
  assert(!JSON.stringify(h).includes('secrets.'));assert(!JSON.stringify(w.env||{}).includes('secrets.'));assert(!JSON.stringify(t.env||{}).includes('secrets.'));assert.deepEqual(w.permissions,{contents:'read'});
  const bootstrap=t.steps.find(s=>s.id==='bootstrap');assert.deepEqual(Object.keys(bootstrap.env),['DEVECO26_RELEASE_READ_TOKEN']);for(const step of t.steps)if(step!==bootstrap)assert(!JSON.stringify(step).includes('secrets.'));
  for(const j of [h,t]){assert(!j['continue-on-error']);assert(j.steps.every(s=>!s['continue-on-error']));const checkout=j.steps.find(s=>s.uses?.startsWith('actions/checkout@'));assert(checkout);assert(!checkout.with.ref);assert.equal(checkout.with['fetch-depth'],0);assert.equal(checkout.with['persist-credentials'],false);assert(j.steps.some(s=>s.run?.includes('ci-context.py')))}
- const dependencyRun=h.steps.find(s=>s.id==='dependencies').run;
- const install=dependencyRun.match(/^\s*sudo apt-get install -y ([^\n]+)$/m);assert(install,'missing Ubuntu dependency install');
- const packages=install[1].trim().split(/\s+/);for(const name of ['clang','llvm','cmake','ripgrep'])assert(packages.includes(name),'missing Ubuntu host dependency '+name);
+ const dependencies=h.steps.find(s=>s.id==='dependencies');assert(dependencies&&!dependencies.if);assert.equal(dependencies.shell,'bash');
+ assert.equal(dependencies.run.trim(),[
+  'set -euo pipefail','{',
+  '  if ! python3 -B scripts/test/normal-core/select-llvm18.py; then',
+  '    sudo apt-get update','    sudo apt-get install -y clang llvm',
+  '    python3 -B scripts/test/normal-core/select-llvm18.py','  fi',
+  '  if ! command -v cmake >/dev/null 2>&1 || ! command -v rg >/dev/null 2>&1; then',
+  '    sudo apt-get update','    sudo apt-get install -y cmake ripgrep','  fi',
+  '  cmake --version','  rg --version',
+  '  npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund',
+  '} 2>&1 | tee "$CI_OUT/work/dependencies.log"'
+ ].join('\n'));
+ assert.equal(h.steps.find(s=>s.id==='host').env.LLVM_NM,'llvm-nm');
  const targetDependencies=t.steps.find(s=>s.id==='runtime').run;assert(targetDependencies.includes('if ! command -v rg >/dev/null 2>&1; then brew install ripgrep; fi'));assert(targetDependencies.includes('rg --version'));assert(targetDependencies.includes('packaging-dependencies.log'));
  const reviewContracts=h.steps.find(s=>s.id==='contracts');
+ assert(!reviewContracts.if);assert.equal(reviewContracts.shell,'bash');
+ assert(reviewContracts.run.split('\n').includes('python3 -B scripts/test/normal-core/select-llvm18.test.py 2>&1 | tee "$CI_OUT/work/llvm-selection-tests.log"'));
  for(const name of ['pr-review-runtime','har-native-packaging'])assert(reviewContracts.run.includes('python3 -B native/tests/'+name+'.test.py 2>&1 | tee'), 'missing PR review contract '+name);
  assert(h.steps.some(s=>s.run?.includes('normal-core/run.py')));assert(h.steps.some(s=>s.run?.includes('deveco26-gates/gates.test.py')));
  for(const id of ['context','trust','bootstrap','runtime','target','api_negative','consumer','cleanup','public_gate','assess'])assert(t.steps.some(s=>s.id===id));
@@ -33,6 +45,17 @@ mutations.push(w=>w.jobs['target-har'].steps.find(s=>s.id==='bootstrap').run='py
 for(const name of ['pr-review-runtime','har-native-packaging'])mutations.push(w=>{const step=w.jobs['host-contracts'].steps.find(s=>s.id==='contracts');step.run=step.run.replace(name+'.test.py','omitted.test.py');});
 mutations.push(w=>{const step=w.jobs['target-har'].steps.find(s=>s.id==='consumer');step.run=step.run.replace('har-native-packaging.test.sh --artifacts','omitted.sh --artifacts');});
 mutations.push(w=>{const step=w.jobs['host-contracts'].steps.find(s=>s.id==='dependencies');step.run=step.run.replace(/\bripgrep\b/g,'');});
+for(const change of [
+ text=>text.replace('if ! python3 -B scripts/test/normal-core/select-llvm18.py; then','if false; then'),
+ text=>text.replace('select-llvm18.py; then','select-llvm18.py --tool-dir /usr/bin; then'),
+ text=>text.replace('sudo apt-get install -y clang llvm','true'),
+ text=>text.replace('    python3 -B scripts/test/normal-core/select-llvm18.py','    true'),
+ text=>text.replace('! command -v cmake >/dev/null 2>&1 || ! command -v rg >/dev/null 2>&1','false'),
+ text=>text.replace('set -euo pipefail','set +e'),
+ text=>'sudo apt-get update\n'+text
+])mutations.push(w=>{const step=w.jobs['host-contracts'].steps.find(s=>s.id==='dependencies');step.run=change(step.run);});
+mutations.push(w=>{const step=w.jobs['host-contracts'].steps.find(s=>s.id==='contracts');step.run=step.run.replace('select-llvm18.test.py','omitted.test.py');});
+mutations.push(w=>w.jobs['host-contracts'].steps.find(s=>s.id==='host').env.LLVM_NM='llvm-nm-17');
 mutations.push(w=>{const step=w.jobs['target-har'].steps.find(s=>s.id==='runtime');step.run=step.run.replace('brew install ripgrep','true');});
 for(const mutation of mutations){const w=structuredClone(original);mutation(w);assert.throws(()=>verify(w));}
 console.log(JSON.stringify({passed:true,mutationsRejected:mutations.length,scope:'local workflow structure; remote environment protection pending'}));

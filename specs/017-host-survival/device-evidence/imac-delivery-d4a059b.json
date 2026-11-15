@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "d4a059b3117a23d70aa0832d00ed7161fd8c6d5a",
+  "workflowRun": "https://github.com/yaoshining/VidAll_Player/actions/runs/43038228044",
+  "artifactId": 13864581509,
+  "artifactURL": "https://github.com/yaoshining/VidAll_Player/actions/runs/43038228044/artifacts/13864581509",
+  "buildMachine": "iMac self-hosted macOS X64",
+  "runnerName": "yaoshiningdeiMac",
+  "coreBuildMachine": "MacBook Pro / Darwin arm64",
+  "harSHA256": "a8ce9ee5d73a47ed4a4eed0f9fdb22664cc4db7b43a34fbf0aecc625ab3da1d3",
+  "architectures": [
+    "arm64-v8a"
+  ],
+  "libraries": {
+    "package/libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "package/libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "package/libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "package/libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "package/libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "package/libs/arm64-v8a/libmpv.so": "ee78bf290d9697ff825eb3f4590d09120474834eec9edb11eb53ea83fbcb5267",
+    "package/libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "package/libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "package/libs/arm64-v8a/libvidall_player_native.so": "94d9e545b5dd56b258932394370d15092e14e91a76fd8dccbaa21d7c6049a443"
+  },
+  "deviceAccepted": false,
+  "ubuntuRegressionRun": "https://github.com/yaoshining/VidAll_Player/actions/runs/43038251489",
+  "hostGateRun": "https://github.com/yaoshining/VidAll_Player/actions/runs/43038250441",
+  "hostGateCount": 94,
+  "ffmpegUnchanged": true
+}

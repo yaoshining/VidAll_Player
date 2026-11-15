@@ -1,0 +1,4 @@
+    - listitem: "2026-11-14 00:24:36 49561-49698/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ao/ohaudio]: requested format: 48000 Hz, mono channels, floatp"
+    - listitem: "2026-11-14 00:24:36 49561-49698/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ao/ohaudio]: Fail to register renderer callbacks: error code 3."
+    - listitem: "2026-11-14 00:24:40 49561-49914/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ao/ohaudio]: requested format: 48000 Hz, mono channels, floatp"
+    - listitem: "2026-11-14 00:24:40 49561-49914/hdc I/A0D001/com.yaoshining.vidallplayer/VidAllPlayerNative: mpv[ao/ohaudio]: Fail to register renderer callbacks: error code 3."

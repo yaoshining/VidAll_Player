@@ -1,0 +1,20 @@
+{
+  "runId": 43586493407,
+  "source": "e35c31d177d25b3ac60d5278f87093c6083fa701",
+  "jobId": 132422011993,
+  "jobName": "iMac 构建 HAR 并验证独立消费工程",
+  "conclusion": "success",
+  "verifiedSteps": [
+    "完整构建与审计HAR",
+    "缺失公共API消费端编译负例",
+    "同一HAR独立消费者及九库",
+    "同一HAR的Hypium编译",
+    "上传分支HAR"
+  ],
+  "deviceAccepted": false,
+  "artifactDownloadedThisTurn": false,
+  "runnerName": "yaoshiningdeiMac",
+  "machineName": "yaoshiningdeiMac",
+  "runnerType": "iMac 自托管，非云端 Mac",
+  "formalArtifactAllowed": false
+}

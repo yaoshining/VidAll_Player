@@ -1,0 +1,37 @@
+{
+  "recordings": [
+    {
+      "scenario": "t054-normal",
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/spec017-device-audio/t054-normal.mp4",
+      "bytes": 9989539,
+      "sha256": "c6e90075e4a27a4f10c629d1a6b3f43cb60123de97a8f9085b9c7b2177db8209"
+    },
+    {
+      "scenario": "t054-normal64",
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/spec017-device-audio/t054-normal64.mp4",
+      "bytes": 6121711,
+      "sha256": "b252685e26086ca5b3fdb3834533046548843799f67fad63808356feeba44d5a"
+    },
+    {
+      "scenario": "t054-fence",
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/spec017-device-audio/t054-fence.mp4",
+      "bytes": 7370779,
+      "sha256": "c53906596015012d3aeebc7ea93433119ab7256d1ca59edc4f01de448c51b3ce"
+    },
+    {
+      "scenario": "t054-global",
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/spec017-device-audio/t054-global.mp4",
+      "bytes": 1715141,
+      "sha256": "24be6d81b16d6eba5050406d05e2ee4dd12cea1f0555e9086322da7870e7655e"
+    },
+    {
+      "scenario": "t055-global",
+      "path": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/spec017-device-audio/t055-global.mp4",
+      "bytes": 3013270,
+      "sha256": "ce2e017093a2fcb6ff6d8cc2eeb3a643ded57b4d4e6c0f8cb42d961c98029ddd"
+    }
+  ],
+  "scope": "实际系统内录；API24平板；不等同API19TV或物理扬声器听感",
+  "freeSessionReleased": true,
+  "freeMinutesRemaining": 291
+}

@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "deviceAccepted": false,
+  "tests": [
+    {
+      "test": "test_analyze.py",
+      "exitCode": 0
+    },
+    {
+      "test": "test_prepare.py",
+      "exitCode": 0
+    },
+    {
+      "test": "capture.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "page.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "focus.test.cjs",
+      "exitCode": 0
+    },
+    {
+      "test": "alarm.test.cjs",
+      "exitCode": 0
+    }
+  ]
+}

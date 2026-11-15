@@ -1,0 +1,122 @@
+[
+  {
+    "kind": "fence",
+    "productionCommit": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+    "sourceBaseCommit": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+    "buildMachine": "本地 MacBook Pro ARM64，非 CI",
+    "formalArtifactAllowed": false,
+    "har": {
+      "path": "/tmp/vidall-t058-fence-player/packages/vidall-player/build/default/outputs/deveco26/vidall_player.har",
+      "sha256": "452e500cfdb10f297567a97b4f7e6977673f9247b519b99aacad6fd2a09bb1ff"
+    },
+    "hap": {
+      "path": "/tmp/vidall-t058-fence-audio-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "sha256": "940ecd35467a7e16db7eefc567c91d63ec19faa807e57f112301689eaaf25179",
+      "bytes": 45087703,
+      "version": "1.0.67"
+    },
+    "nativeLibraries": {
+      "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libmpv.so": "ee2c70ee79351592ee6a360b52ab445f8371b13233938a36d39c24adf4d43178",
+      "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libvidall_player_native.so": "f6576f0b6c8c454c4b051a4f821702e564182bd71685fba19bfea6b024d63ca7"
+    },
+    "bridgeSourceSHA256": {
+      "packages/vidall-player/src/main/cpp/napi_init.cpp": "9301c68ed995517c79b0470b8895cc64f627cdb0a6e2be3385fd917ec7e84edf",
+      "native/runtime/process_runtime.cpp": "3415a14968d2cd1c4fc6e3b849fc9474745d1c808de7630b8db2fad49bf4d3ca",
+      "native/render/render_backend_policy.cpp": "2f8f2a3882d428a796c14c5eeb76c31f03b8e1dc2d0942ac97b12b7aa2b557fd"
+    },
+    "fixtureSHA256": {
+      "EvidenceChunks.ets": "0ea2da708595e9c2799e3e5808961536321ce7265ed2e87c8d7d33c6429f4e79",
+      "FenceRun.ets": "6ef4c42312d76afee9390ff8cac934c20862560456490939a001baa84c14dc33",
+      "ProbeChecks.ets": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327",
+      "Index.ets": "a27ba5b925c8b837588275968b22baa1572f0450529495c4c4415128fa32e07f",
+      "AudioCapture.ets": "b4b76434e3446d0987640edee2c90aeff60bd2eef6a498ef37660becde58fd5d"
+    },
+    "rawfileSHA256": {
+      "global-probe.mp4": "bee054bffe503fd32a19d30b0d586e9a9fd26abfe1e6f1b26b7fb84df25ebc76",
+      "test_video.mp4": "e227199fde48379861c1e234470b2e3c17c7c5c962d28eaac7b129f29395d5e6"
+    },
+    "supportedArchitectures": [
+      "arm64-v8a"
+    ],
+    "deviceTypes": [
+      "tv",
+      "tablet"
+    ],
+    "exportsMatchProduction": true,
+    "modernInterruptResolvedDynamically": true,
+    "sevenDependencyLibrariesMatchCI": true,
+    "installedIdentityVerified": true,
+    "cloudUploaded": true,
+    "deviceExecuted": true,
+    "audioAccepted": false,
+    "deviceAccepted": false,
+    "deviceExecutionStatus": "部分执行；替换包中断收尾，证据未完整导出"
+  },
+  {
+    "kind": "global",
+    "productionCommit": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+    "sourceBaseCommit": "cbfc5863832e6becd0f5aa4f099f234ef23f940d",
+    "buildMachine": "本地 MacBook Pro ARM64，非 CI",
+    "formalArtifactAllowed": false,
+    "har": {
+      "path": "/tmp/vidall-t058-global-player/packages/vidall-player/build/default/outputs/deveco26/vidall_player.har",
+      "sha256": "16b81515b67bd087847e4f01a927f6eb601c52db342303a4a01af9f7ea8f4df0"
+    },
+    "hap": {
+      "path": "/tmp/vidall-t058-global-audio-tablet/entry/build/default/outputs/default/entry-default-signed.hap",
+      "sha256": "9e82c4d094207c0b0e4584ea8ef5ad307dc6107397aee04a06352c2520ae25b7",
+      "bytes": 45075312,
+      "version": "1.0.68"
+    },
+    "nativeLibraries": {
+      "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libmpv.so": "f899f42886ee2c92ec024cd6804f1c87243247ba2a31c1903753db1adc84acf1",
+      "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libvidall_player_native.so": "a5100d7bca77609476182bc6ce102a2caa4521fc9700e36ba82fe6eb4a75fb86"
+    },
+    "bridgeSourceSHA256": {
+      "packages/vidall-player/src/main/cpp/napi_init.cpp": "9301c68ed995517c79b0470b8895cc64f627cdb0a6e2be3385fd917ec7e84edf",
+      "native/runtime/process_runtime.cpp": "3415a14968d2cd1c4fc6e3b849fc9474745d1c808de7630b8db2fad49bf4d3ca",
+      "native/render/render_backend_policy.cpp": "2f8f2a3882d428a796c14c5eeb76c31f03b8e1dc2d0942ac97b12b7aa2b557fd"
+    },
+    "fixtureSHA256": {
+      "EvidenceChunks.ets": "0ea2da708595e9c2799e3e5808961536321ce7265ed2e87c8d7d33c6429f4e79",
+      "ProbeChecks.ets": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327",
+      "Index.ets": "f43ab9c2699c66268db1ab9c11ad2a0517dbde4add33ed1b04f9a29d3ac4d736",
+      "ProbeProfile.ets": "d08f94a85d3cff9b3898413feb873e2f2e82755b2bf30a3c29317ca52bb86ddb",
+      "AudioCapture.ets": "b4b76434e3446d0987640edee2c90aeff60bd2eef6a498ef37660becde58fd5d"
+    },
+    "rawfileSHA256": {
+      "global-probe.mp4": "bee054bffe503fd32a19d30b0d586e9a9fd26abfe1e6f1b26b7fb84df25ebc76",
+      "test_video.mp4": "e227199fde48379861c1e234470b2e3c17c7c5c962d28eaac7b129f29395d5e6"
+    },
+    "supportedArchitectures": [
+      "arm64-v8a"
+    ],
+    "deviceTypes": [
+      "tv",
+      "tablet"
+    ],
+    "exportsMatchProduction": true,
+    "modernInterruptResolvedDynamically": true,
+    "sevenDependencyLibrariesMatchCI": true,
+    "installedIdentityVerified": true,
+    "cloudUploaded": true,
+    "deviceExecuted": true,
+    "audioAccepted": false,
+    "deviceAccepted": false,
+    "deviceExecutionStatus": "事件流程完成；故障后音频窗口通过，完整声音门槛未通过"
+  }
+]

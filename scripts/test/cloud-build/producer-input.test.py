@@ -8,6 +8,20 @@ def mod():
 class Tests(unittest.TestCase):
  def test_current_frozen(self):
   m=mod();self.assertTrue(m.verify(m.ROOT,m.load_lock())['passed'])
+ def test_current_mpv_matches_ci_and_no_experimental_delivery_claim(self):
+  m=mod();lock=m.load_lock();e=lock['acceptanceEvidence']
+  ci=json.loads((m.ROOT/e['ciEvidence']).read_text())
+  device=json.loads((m.ROOT/e['deviceEvidence']).read_text())
+  self.assertEqual(ci['sourceCommit'],e['productionSourceCommit'])
+  self.assertEqual(ci['runUrl'],e['ciRunUrl'])
+  self.assertEqual(device['sourceCommit'],e['productionSourceCommit'])
+  self.assertEqual(lock['files']['arm64-v8a/libmpv.so'],ci['libraries']['package/libs/arm64-v8a/libmpv.so'])
+  self.assertFalse(lock['producerLatestNormalFullCloudRebuildVerified'])
+  self.assertFalse(lock['formalArtifactAllowed'])
+  self.assertFalse(e['ffmpegUpdated'])
+  compile=json.loads((m.ROOT/'release/inputs/004-normal-core/provenance/normal-compile-binding.json').read_text())
+  self.assertFalse(compile['observedMacros']['EXPERIMENT'])
+  self.assertFalse(compile['observedMacros']['DIAGNOSTIC'])
  def test_wrong_manifest_library_and_path(self):
   m=mod()
   with tempfile.TemporaryDirectory() as d:

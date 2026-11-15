@@ -1,0 +1,80 @@
+{
+  "date": "2026-11-14",
+  "device": {
+    "name": "华为智慧屏 MateTV Pro",
+    "model": "EDIS-790A",
+    "software": "6.1.0.130(SP10C00E2R1P3)",
+    "api": 24,
+    "serial": "192.168.3.85:5555"
+  },
+  "connection": {
+    "initialResult": "repeat operation; actually Offline",
+    "recovery": "确认无在线设备后重启本机HDC，单次连接Connect OK",
+    "imacModified": false,
+    "tvRebooted": false
+  },
+  "installed": {
+    "version": "1.0.77",
+    "pid": 29340,
+    "debug": false,
+    "launchAccepted": true,
+    "playbackAccepted": true,
+    "scope": "普通播放功能与内录声音通过；不包含精确同步和物理扬声器验收"
+  },
+  "collection": {
+    "sandboxRead": "debug安装后使用官方相对模块路径成功；此前绝对路径错误，不能仅归因于非debug",
+    "pidHilog": "empty",
+    "userActionRequested": "用户完成普通内录；随后明确授权助手操作关闭故障，已用设备uitest完成",
+    "userResultReceived": true,
+    "captureRetrieved": true,
+    "captureSha256": "50049c3f96f401530ecf5e4500281c612b12c24c040325f0240b98fd038b1098",
+    "captureBytes": 4726249
+  },
+  "ci": {
+    "runId": 43588939684,
+    "jobId": 132429321555,
+    "source": "9142bb14ae09cb03b199b6cba86aac8fcd65a8cd",
+    "conclusion": "success",
+    "jobName": "iMac 构建 HAR 并验证独立消费工程",
+    "newHarDownloaded": false
+  },
+  "syncAccepted": false,
+  "faultContinuationAccepted": true,
+  "api19TvAccepted": false,
+  "todoistCompleted": 2,
+  "todoistTotal": 4,
+  "normalPidAfterCapture": 29340,
+  "exportDebugPid": 33934,
+  "normalFlowPassed": true,
+  "normalRawSyncMedianMs": 141.367,
+  "visualUncertaintyMs": 168.394,
+  "faultInternalAudioAccepted": true,
+  "physicalAudioAccepted": false,
+  "fencePidBefore": 36362,
+  "fencePidAfter": 36362,
+  "fenceNativeLateCloseSeconds": 7,
+  "fenceReleaseHeartbeat": {
+    "elapsedMs": 5002,
+    "ticks": 25
+  },
+  "fencePaths": [
+    "ohcodec/vulkan",
+    "ohcodec/vulkan",
+    "ohcodec/vulkan",
+    "no/vulkan"
+  ],
+  "fenceCaptureSha256": "bfb15d8eb9d6694d94d0b9f075bad759315dd29728436806b6bf912c319d8122",
+  "fenceCaptureBytes": 5066602,
+  "fenceAudioWindowsPassed": 8,
+  "fenceSensitivityRunsPassed": 9,
+  "normalAudioWindowsPassed": 4,
+  "normalSensitivityRunsPassed": 9,
+  "deviceAccepted": false,
+  "currentInstalled": {
+    "version": "1.0.79",
+    "pid": 36362,
+    "debug": true,
+    "captureClosed": true,
+    "testRunning": false
+  }
+}

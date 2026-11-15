@@ -39,8 +39,11 @@ jobs:
         run: |
           set -euo pipefail
           {
-            sudo apt-get update
-            sudo apt-get install -y clang llvm
+            if ! python3 -B scripts/test/normal-core/select-llvm18.py; then
+              sudo apt-get update
+              sudo apt-get install -y clang llvm
+              python3 -B scripts/test/normal-core/select-llvm18.py
+            fi
             npm ci --prefix scripts/test/normal-core --ignore-scripts --no-audit --no-fund
           } 2>&1 | tee "$CI_OUT/work/dependencies.log"
       - name: CI 事件、失败路径与工作流回归
@@ -48,6 +51,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 -B scripts/test/normal-core/select-llvm18.test.py 2>&1 | tee "$CI_OUT/work/llvm-selection-tests.log"
           python3 -B scripts/test/normal-core/ci-schema.test.py 2>&1 | tee "$CI_OUT/work/schema-archive-tests.log"
           python3 -B scripts/test/normal-core/ci-schema.py --out "$CI_OUT" 2>&1 | tee "$CI_OUT/work/schema.log"
           node scripts/test/normal-core/ci-workflow.test.cjs 2>&1 | tee "$CI_OUT/work/workflow.log"

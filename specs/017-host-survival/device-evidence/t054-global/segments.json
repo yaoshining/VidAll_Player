@@ -1,0 +1,27 @@
+[
+  {
+    "name": "全局故障前硬解有声",
+    "start": 1,
+    "end": 2.6,
+    "toneHz": 880
+  },
+  {
+    "name": "全局故障后兼容有声且无旧音",
+    "start": 3.9,
+    "end": 5.2,
+    "toneHz": 440,
+    "forbiddenHz": 880
+  },
+  {
+    "name": "第三会话重开有声且无旧音",
+    "start": 6.4,
+    "end": 7.7,
+    "toneHz": 440,
+    "forbiddenHz": 880
+  },
+  {
+    "name": "最终关闭静音",
+    "start": 8.9,
+    "end": 10.5
+  }
+]

@@ -1,0 +1,7 @@
+Assertion failed: (ready), function wait_sample, file test.c, line 371.
+Traceback (most recent call last):
+  File "<repo>/native/tests/host-survival/audio-clock.test.py", line 220, in <module>
+    subprocess.run([str(p/'test'),sdk,case],check=True,timeout=10)
+  File "/Users/yaoshining/anaconda3/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/var/folders/7s/y7kx47nj0l7gk98hbd3shvv40000gn/T/tmppjr0j3fj/test', '19', 'domain-offset']' died with <Signals.SIGABRT: 6>.

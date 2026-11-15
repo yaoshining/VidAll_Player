@@ -1,0 +1,56 @@
+--- a/player/client.c
++++ b/player/client.c
+@@ -26,6 +26,11 @@
+ #include "common/global.h"
+ #if HAVE_OHOS
+ #include "common/host_recovery_api.h"
++#if defined(MP_OHCODEC_HANDOFF_TEST)
++#include <pthread.h>
++#include <time.h>
++#include "video/out/hwdec/ohcodec_terminal.h"
++#endif
+ #endif
+ #include "common/msg.h"
+ #include "common/msg_control.h"
+@@ -1273,6 +1278,22 @@
+ }
+ 
+ #if HAVE_OHOS
++#if defined(MP_OHCODEC_HANDOFF_TEST)
++// 仅独立诊断包：定时进入真实终局管理器，不模拟 GPU/fence 失败。
++struct host_probe_context { uint64_t session, generation; };
++static atomic_bool host_probe_started;
++static void *host_probe_enter(void *opaque)
++{
++    struct host_probe_context value = *(struct host_probe_context *)opaque;
++    free(opaque);
++    struct timespec delay = {3, 0};
++    nanosleep(&delay, NULL);
++    mp_ohcodec_terminal_enter_context(-4, MP_OHCODEC_TERMINAL_DRAIN,
++        1, value.session, value.generation);
++    return NULL;
++}
++#endif
++
+ int mpv_host_loadfile_async(mpv_handle *ctx, uint64_t generation, uint64_t session_id, const char **args)
+ {
+     if (!ctx || !generation || !session_id || !args || !args[0] || strcmp(args[0], "loadfile"))
+@@ -1284,6 +1305,18 @@
+     struct mp_cmd *cmd = mp_input_parse_cmd_strv(ctx->log, args);
+     if (!cmd) return MPV_ERROR_INVALID_PARAMETER;
+     cmd->host_load_generation = generation;
++#if defined(MP_OHCODEC_HANDOFF_TEST)
++    if (args[1] && strstr(args[1], "global-probe.mp4") &&
++        !atomic_exchange(&host_probe_started, true)) {
++        struct host_probe_context *value = malloc(sizeof(*value));
++        if (value) {
++            *value = (struct host_probe_context){session_id, generation};
++            pthread_t thread;
++            if (pthread_create(&thread, NULL, host_probe_enter, value)) free(value);
++            else pthread_detach(thread);
++        }
++    }
++#endif
+     return run_async_cmd(ctx, generation, cmd);
+ }
+ #endif

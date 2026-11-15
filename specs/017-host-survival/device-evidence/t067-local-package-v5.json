@@ -1,0 +1,24 @@
+{
+  "version": "1.0.99",
+  "formalArtifactAllowed": false,
+  "buildMachine": "本地MacBook Pro ARM64",
+  "sourceBase": "3bd1d79",
+  "harSHA256": "c8c1acc2b1377ea0273ae4678be168c001d5b2e73659a2e0e59579d47e01e8c1",
+  "hapSHA256": "36884764234cd70a53046f4d34af22e8d1b0d1fa920e38ce31688ef29c3e9a49",
+  "libraries": {
+    "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libmpv.so": "20d89e533850820cf1fc2abd0566572c1440ee6490cb63466c3ea61966e25fc2",
+    "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libvidall_player_native.so": "0994a0fc01c3d5885bf7a90e0acd462771336437380a4a51e6b63e30fc172917"
+  },
+  "sources": {
+    "native/experimental/audio_output_adapter.h": "566f30be74a98662fdb02a13370ae750c5e333213eabf3d76c05dba53450df29",
+    "native/experimental/audio_output_adapter.c": "a79ef628ace5cc9db6727c3fb44d90c6c1619ac72d968c815fceab189f609f0a"
+  },
+  "harnessSHA256": "3f5d75db99e7123282c286a5f3e20bdef20681f8da5e904d7b45ef6d4f45ba63"
+}

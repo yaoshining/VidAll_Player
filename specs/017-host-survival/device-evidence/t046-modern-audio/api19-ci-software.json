@@ -1,0 +1,20 @@
+{
+  "layer": "API19 TV模拟器，原始iMac CI HAR独立消费者",
+  "productionCommit": "62e4e3f8d9648f60713e03d182b2e0f45d923118",
+  "pid": 2334,
+  "hapSHA256": "5e99c958089e6a6aab82ca64dab4014ae727073db0bc4c994f00795a6d97a1ef",
+  "nineLibrariesMatchHar": true,
+  "badMediaThenGood": true,
+  "pauseManualResume": true,
+  "seek": true,
+  "releaseReopen": true,
+  "firstFrames": 2,
+  "errors": 0,
+  "backend": "software",
+  "hardwareDecoder": "no",
+  "audibleAudioAccepted": false,
+  "api19TVFormalEntryAccepted": false,
+  "ciHarExecuted": true,
+  "harSHA256": "a419c1545680d48ab22983472a8c8ca3311a58bf5904cebdabfde2394e40b704",
+  "observedAt": "2026-11-13T09:15:39+08:00"
+}

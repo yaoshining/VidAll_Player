@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.5.0)
+project(raw_capture)
+set(CMAKE_CXX_STANDARD 17)
+add_library(raw_capture SHARED raw_capture.cpp)
+target_link_libraries(raw_capture PUBLIC libace_napi.z.so libnative_avscreen_capture.so libnative_media_core.so libnative_buffer.so)

@@ -1,0 +1,14 @@
+diff --git a/audio/out/ao_ohaudio.c b/audio/out/ao_ohaudio.c
+--- a/audio/out/ao_ohaudio.c
++++ b/audio/out/ao_ohaudio.c
+@@ -283,7 +283,9 @@
+     OH_AudioStream_State state;
+     if (OH_AudioRenderer_GetCurrentState(renderer, &state) != AUDIOSTREAM_SUCCESS) return -1;
+     if (state == AUDIOSTREAM_STATE_PREPARED || state == AUDIOSTREAM_STATE_STOPPED) return 0;
+-    if (OH_AudioRenderer_Stop(renderer) != AUDIOSTREAM_SUCCESS) return -1;
++    // Stop 已返回；返回错误也可能伴随状态转换，仍须以随后明确 STOPPED 为准。
++    // 未返回时不会执行查询；这里不重试 Stop，也不释放仍保留的 renderer。
++    OH_AudioRenderer_Stop(renderer);
+     return OH_AudioRenderer_GetCurrentState(renderer, &state) == AUDIOSTREAM_SUCCESS &&
+         state == AUDIOSTREAM_STATE_STOPPED ? 0 : -1;
+ }

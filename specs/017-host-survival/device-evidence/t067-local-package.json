@@ -1,0 +1,24 @@
+{
+  "version": "1.0.97",
+  "formalArtifactAllowed": false,
+  "buildMachine": "arm64",
+  "sourceBase": "3bd1d79",
+  "scope": "T067 实验；全局计时故障1次、确认停止后的Release入口挂起1次、23会话；非20次平台挂起",
+  "harSHA256": "b5a699cf7e5fa717cf58f16446f36a471e18d67ad587a08780b0f9c2381490ef",
+  "hapSHA256": "771fe0b100d5055ea06426f53f12cdef36a571970ebe7cd8cdb03af56880e151",
+  "libraries": {
+    "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libmpv.so": "7bbef9ca79444ccb959fc35930defd9d8111e3fcab216fc1a748d627a3306edc",
+    "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libvidall_player_native.so": "0994a0fc01c3d5885bf7a90e0acd462771336437380a4a51e6b63e30fc172917"
+  },
+  "sources": {
+    "native/experimental/ao_ohaudio_shared.c": "4f2575e782c7c48b4477d546fab36ab0317eb1b92557a269a5d3b7251f1aaddf",
+    "native/experimental/audio_output_adapter.c": "8c0a01c1d0981ea6d5c0aab8a7cc025105e3ca7ab988d5a929d451a457f8c8fc"
+  }
+}

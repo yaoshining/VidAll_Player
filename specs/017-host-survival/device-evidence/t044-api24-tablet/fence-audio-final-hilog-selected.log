@@ -1,0 +1,16 @@
+ 2026-11-12 12:41:23 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F list-visible-after-fault 3
+ 2026-11-12 12:41:23 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F returned-after-close-fault 3
+ 2026-11-12 12:41:30 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F load-identity {"index":4,"identity":{"sessionId":"4","loadGeneration":"1"}}
+ 2026-11-12 12:41:30 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":4,"type":"state","state":"preparing"}
+ 2026-11-12 12:41:31 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":4,"type":"state","state":"playing"}
+ 2026-11-12 12:41:31 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":4,"type":"firstFrame","surfaceGeneration":4}
+ 2026-11-12 12:41:31 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-observed {"index":4,"identity":{"sessionId":"4","loadGeneration":"1"},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"no"}}
+ 2026-11-12 12:41:31 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-path {"index":4,"identity":{"sessionId":"4","loadGeneration":"1"},"backend":{"status":"available","unit":"text","source":"session.actual-render-backend","estimated":false,"value":"vulkan"},"decoder":{"status":"available","unit":"text","source":"hwdec-current","estimated":false,"value":"no"}}
+ 2026-11-12 12:41:39 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F playback-progress {"index":4,"position":{"status":"available","unit":"ms","source":"time-pos","estimated":false,"value":7866.666666666666},"audio":{"status":"available","unit":"text","source":"current-tracks/audio/codec","estimated":false,"value":"aac"},"audibleAudioAccepted":false}
+ 2026-11-12 12:41:39 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F isolation-limit-software-fallback
+ 2026-11-12 12:41:39 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F player-event {"index":4,"type":"state","state":"released"}
+ 2026-11-12 12:41:39 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F release-heartbeat {"index":4,"elapsedMs":195,"ticks":1}
+ 2026-11-12 12:41:39 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F release-interface-completed 4
+ 2026-11-12 12:41:39 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F probe-flow-completed
+ 2026-11-12 12:41:39 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F keepScreen false
+ 2026-11-12 12:41:39 35486-35486/hdc I/A03D00/com.yaoshining.vidallplayer/JSAPP: P17F summary {"scope":"real-close-wait","runtime":"ready","faults":2,"firstFrames":[1,1,1,1],"nativeLogAndAudibleAudioAcceptance":"pending-evidence-review"}

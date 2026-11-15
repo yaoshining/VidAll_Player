@@ -1,0 +1,34 @@
+{
+  "sourceCommit": "62e4e3f8d9648f60713e03d182b2e0f45d923118",
+  "workflowRun": "https://github.com/yaoshining/VidAll_Player/actions/runs/43237406546",
+  "artifactId": 13953676510,
+  "artifactURL": "https://github.com/yaoshining/VidAll_Player/actions/runs/43237406546/artifacts/13953676510",
+  "buildMachine": "iMac self-hosted macOS X64",
+  "runnerName": "yaoshiningdeiMac",
+  "coreBuildMachine": "MacBook Pro / Darwin arm64",
+  "harSHA256": "a419c1545680d48ab22983472a8c8ca3311a58bf5904cebdabfde2394e40b704",
+  "architectures": [
+    "arm64-v8a"
+  ],
+  "libraries": {
+    "package/libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "package/libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "package/libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "package/libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "package/libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "package/libs/arm64-v8a/libmpv.so": "b81a0f2d54cc01defcc26849cb0e65404936528fc16f57ddf08b847591627086",
+    "package/libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "package/libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "package/libs/arm64-v8a/libvidall_player_native.so": "3edfd042c8ebe00de70af7891a9dd0119a045f076ff9bf0b46aa94ffb995227c"
+  },
+  "deviceAccepted": false,
+  "hostGateCount": 94,
+  "ffmpegUnchanged": true,
+  "localHostGate": "t046-modern-audio/host-summary.json",
+  "notes": [
+    "T046现代音频打断修复原始iMac CI HAR；尚未完成设备音频验收",
+    "已核验ARM64九库；FFmpeg六库及固定libc++与e1fd452完全相同",
+    "本地94项宿主门禁与当前提交Ubuntu回归分别记录，不替代实机"
+  ],
+  "ubuntuWorkflowRun": "https://github.com/yaoshining/VidAll_Player/actions/runs/43237652695"
+}

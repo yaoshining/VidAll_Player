@@ -1,0 +1,7 @@
+Assertion failed: (calls==3&&opens==1&&closes==1), function main, file test.c, line 30.
+Traceback (most recent call last):
+  File "<repo>/native/tests/host-survival/audio-latency-probe.test.py", line 28, in <module>
+    p=Path(d);(p/'test.c').write_text(code);subprocess.run(['clang','-std=c11',str(p/'test.c'),'-o',str(p/'test')],check=True);subprocess.run([str(p/'test')],check=True)
+  File "/Users/yaoshining/anaconda3/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/var/folders/7s/y7kx47nj0l7gk98hbd3shvv40000gn/T/tmp7cx0rcxc/test']' died with <Signals.SIGABRT: 6>.

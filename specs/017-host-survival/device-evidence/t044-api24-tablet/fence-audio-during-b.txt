@@ -1,0 +1,12 @@
+Playback Streams
+- 1 Playback stream (s) available:
+  Stream 1
+  - Stream Id: 100087
+  - Device Name: Speaker
+  - Application Name: com.yaoshining.vidallplayer
+  - Process Id: 35486
+  - Offload Enable: false
+  - stream can be captured: true
+  - Stream Configuration: f32le 1ch 48000Hz
+  - Status: RUNNING
+  - Stream Start Time: Thu Nov 12 12:39:40 2026

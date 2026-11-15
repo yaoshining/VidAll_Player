@@ -1,0 +1,48 @@
+{
+  "version": "1.0.91",
+  "source": "eb71941+独立诊断注入",
+  "harSHA256": "9abc18dc556bd4c029c6f1eb6cf10bc7ccfe6e37f7e1389d7f782e4878538526",
+  "hapSHA256": "bbd224300b5fe372331eba99a3572889626b91a0d3d7b741063b8ec6f30524cf",
+  "libraries": {
+    "libs/arm64-v8a/libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+    "libs/arm64-v8a/libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+    "libs/arm64-v8a/libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+    "libs/arm64-v8a/libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+    "libs/arm64-v8a/libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+    "libs/arm64-v8a/libmpv.so": "16c460bae2f173db05e4e60b9c5b4ace641b3982ecbd438c2f38bdbd52eba954",
+    "libs/arm64-v8a/libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+    "libs/arm64-v8a/libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+    "libs/arm64-v8a/libvidall_player_native.so": "3eef9ce40bf8f26be1405792a117f31946f8ac60fd1697f4879d766171dd0450"
+  },
+  "formalArtifactAllowed": false,
+  "buildMachine": "本地MacBook Pro ARM64",
+  "navigation": {
+    "status": "completed",
+    "pidBefore": "33124",
+    "pidAfter": "33124",
+    "actions": [
+      {
+        "text": "开始故障音频内录",
+        "bounds": "[0,0][673,162]",
+        "wallMs": 1794677093926
+      },
+      {
+        "text": "允许",
+        "bounds": "[1968,1332][2514,1494]",
+        "wallMs": 1794677095513
+      },
+      {
+        "text": "返回视频列表",
+        "bounds": "[0,900][529,1062]",
+        "wallMs": 1794677112628
+      },
+      {
+        "text": "播放另一部视频",
+        "bounds": "[0,900][601,1062]",
+        "wallMs": 1794677114367
+      }
+    ]
+  },
+  "lookup": "RTLD_DEFAULT未取得接口；系统库导出存在，不能宣称设备不支持",
+  "systemLibrarySHA256": "ab6cee196a312d2432f0e09aec0f5502de0cf9fb80c7b6460a58dcf7ce29cdc2"
+}

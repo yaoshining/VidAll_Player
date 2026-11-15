@@ -7,6 +7,18 @@ spec=importlib.util.spec_from_file_location('audit',ROOT/'scripts/audit/normal-c
 audit=importlib.util.module_from_spec(spec);spec.loader.exec_module(audit)
 BASE=ROOT/'release/inputs/004-normal-core'
 class BindingTests(unittest.TestCase):
+ def test_host_recovery_exports_required(self):
+  manifest=json.loads((BASE/'manifest.json').read_text())
+  self.assertTrue({'mpv_host_recovery_api_version','mpv_host_recovery_generation','mpv_host_recovery_audio_pending','mpv_host_recovery_stop_audio','mpv_host_loadfile_async','mpv_host_fault_snapshot'}.issubset(manifest['requiredExports']['libmpv.so']))
+ def test_host_recovery_input_binding(self):
+  lock=json.loads((BASE/'provenance/source-lock.json').read_text())
+  self.assertEqual(lock['hostRecovery']['inputLock'],'host-recovery-input.json')
+  for item in json.loads((BASE/'provenance/host-recovery-input.json').read_text())['addedSources']:
+   self.assertEqual(audit.sha(ROOT/item['path']),item['sha256'])
+ def test_current_sdk_compilation_identity(self):
+  compilation=json.loads((BASE/'provenance/normal-compile-binding.json').read_text())
+  self.assertEqual(compilation['ffmpegInputManifestSHA256'],audit.FFMPEG_SDK_SHA)
+  self.assertNotIn('ffmpegExplicitFlags',compilation)
  def test_actual_current_inputs(self):self.assertEqual(audit.verify(BASE),[])
  def mutated(self,change):
   d=json.loads((BASE/'manifest.json').read_text());change(d)

@@ -1,0 +1,16 @@
+{
+  "device": "API24 MatePad Mini MLR-AL10 6.1.0.125(SP20C00E125R1P4)",
+  "pidBefore": 33028,
+  "pidAfter": 33028,
+  "hapVersion": "1.0.65",
+  "hapSHA256": "db7c76481c7a983f9c48f1c8f2125e8c39113a8d1a88837dd895078118d07fee",
+  "capturePath": "/Users/yaoshining/.codex/visualizations/2026/11/08/01a1bccc-e2cc-7a13-8cd6-31aae7079fb0/spec017-device-audio/t055-global.mp4",
+  "captureSHA256": "ce2e017093a2fcb6ff6d8cc2eeb3a643ded57b4d4e6c0f8cb42d961c98029ddd",
+  "captureBytes": 3013270,
+  "productionCore": "c7d56ee",
+  "diagnosticHar": "T053本地完整HAR；九库与1.0.63一致",
+  "signalPassed": true,
+  "manualReturnAndOpen": true,
+  "api19TvAccepted": false,
+  "humanListeningAccepted": false
+}

@@ -1,0 +1,396 @@
+{
+  "sourceCommit": "d4a059b3117a23d70aa0832d00ed7161fd8c6d5a",
+  "kind": "t042-current-t041-mapper-close-diagnostic",
+  "formalArtifactAllowed": false,
+  "deviceExecuted": false,
+  "baseFormalMPVSHA256": "ee78bf290d9697ff825eb3f4590d09120474834eec9edb11eb53ea83fbcb5267",
+  "diagnosticMPVSHA256": "c4c0a254aafa7254588d1b58c1a3a888f65a2fbb371d1a8d27345a8ea9e45907",
+  "diagnosticInputPackageSHA256": "63b5043f4a840b7bced086a71975ae7cc5bb56d303377b34625622ee9e7b8686",
+  "nativeBuildRoot": "/tmp/vidall-host-recovery-t041-fence-build",
+  "buildHost": {
+    "system": "Darwin",
+    "architecture": "arm64",
+    "machineModel": "MacBookPro18,4",
+    "runner": "local workstation, not GitHub Actions"
+  },
+  "ffmpegAndCxxUnchanged": true,
+  "productionOwnerIsolationPreserved": true,
+  "handoffTraceOnly": true,
+  "nativeFenceProbeStringsPresent": true,
+  "globalTimerProbePresent": false,
+  "har": {
+    "path": "/tmp/vidall-host-survival-t041-fence-player/packages/vidall-player/build/default/outputs/deveco26/vidall_player.har",
+    "sha256": "cb11ef7cbadd869527726ecd53c35fe854da66b0b4461b56e24066ed5b8695f7",
+    "bytes": 22286562,
+    "supportedArchitectures": [
+      "arm64-v8a"
+    ],
+    "nativeLibraries": [
+      {
+        "path": "package/libs/arm64-v8a/libavcodec.so.62",
+        "name": "libavcodec.so.62",
+        "sha256": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "bytes": 12305456,
+        "elfClass": 64,
+        "elfMachine": "AArch64",
+        "elfType": "DYN"
+      },
+      {
+        "path": "package/libs/arm64-v8a/libavfilter.so.11",
+        "name": "libavfilter.so.11",
+        "sha256": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "bytes": 3942968,
+        "elfClass": 64,
+        "elfMachine": "AArch64",
+        "elfType": "DYN"
+      },
+      {
+        "path": "package/libs/arm64-v8a/libavformat.so.62",
+        "name": "libavformat.so.62",
+        "sha256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "bytes": 19264304,
+        "elfClass": 64,
+        "elfMachine": "AArch64",
+        "elfType": "DYN"
+      },
+      {
+        "path": "package/libs/arm64-v8a/libavutil.so.60",
+        "name": "libavutil.so.60",
+        "sha256": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+        "bytes": 683352,
+        "elfClass": 64,
+        "elfMachine": "AArch64",
+        "elfType": "DYN"
+      },
+      {
+        "path": "package/libs/arm64-v8a/libc++_shared.so",
+        "name": "libc++_shared.so",
+        "sha256": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "bytes": 1262504,
+        "elfClass": 64,
+        "elfMachine": "AArch64",
+        "elfType": "DYN"
+      },
+      {
+        "path": "package/libs/arm64-v8a/libmpv.so",
+        "name": "libmpv.so",
+        "sha256": "c4c0a254aafa7254588d1b58c1a3a888f65a2fbb371d1a8d27345a8ea9e45907",
+        "bytes": 15724296,
+        "elfClass": 64,
+        "elfMachine": "AArch64",
+        "elfType": "DYN"
+      },
+      {
+        "path": "package/libs/arm64-v8a/libswresample.so.6",
+        "name": "libswresample.so.6",
+        "sha256": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "bytes": 91704,
+        "elfClass": 64,
+        "elfMachine": "AArch64",
+        "elfType": "DYN"
+      },
+      {
+        "path": "package/libs/arm64-v8a/libswscale.so.9",
+        "name": "libswscale.so.9",
+        "sha256": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "bytes": 738672,
+        "elfClass": 64,
+        "elfMachine": "AArch64",
+        "elfType": "DYN"
+      },
+      {
+        "path": "package/libs/arm64-v8a/libvidall_player_native.so",
+        "name": "libvidall_player_native.so",
+        "sha256": "4d4faa5fc4c205a74ab17526519b5c9f5e0f5e56f480d966830a98f6c45e9433",
+        "bytes": 749792,
+        "elfClass": 64,
+        "elfMachine": "AArch64",
+        "elfType": "DYN"
+      }
+    ]
+  },
+  "consumerHARPath": "/tmp/vidall-t041-fence-api19/entry/libs/current.har",
+  "consumerHARMatchesWholeProducerHAR": true,
+  "oldT037ResultsInherited": false,
+  "haps": [
+    {
+      "path": "/tmp/vidall-t041-fence-api19/entry/build/default/outputs/default/entry-default-unsigned.hap",
+      "sha256": "f6511b4fda86984a06d60721ac7daa013608797c4260ca1ed6bcdebbdaaef810",
+      "bytes": 76862825,
+      "signed": false,
+      "supportedArchitectures": [
+        "arm64-v8a"
+      ],
+      "sdk": {
+        "compileSdkVersion": "26.0.0.105",
+        "minAPIVersion": 50003015,
+        "targetAPIVersion": 60002022
+      },
+      "sdkMatchesPreviousConsumerTemplate": true,
+      "intendedDeviceAPI": 19,
+      "nativeLibraries": [
+        {
+          "path": "libs/arm64-v8a/libavfilter.so.11",
+          "name": "libavfilter.so.11",
+          "sha256": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+          "bytes": 3942968,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libavformat.so.62",
+          "name": "libavformat.so.62",
+          "sha256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+          "bytes": 19264304,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libswscale.so.9",
+          "name": "libswscale.so.9",
+          "sha256": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+          "bytes": 738672,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libavcodec.so.62",
+          "name": "libavcodec.so.62",
+          "sha256": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+          "bytes": 12305456,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libmpv.so",
+          "name": "libmpv.so",
+          "sha256": "c4c0a254aafa7254588d1b58c1a3a888f65a2fbb371d1a8d27345a8ea9e45907",
+          "bytes": 15724296,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libc++_shared.so",
+          "name": "libc++_shared.so",
+          "sha256": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+          "bytes": 1262504,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libvidall_player_native.so",
+          "name": "libvidall_player_native.so",
+          "sha256": "4d4faa5fc4c205a74ab17526519b5c9f5e0f5e56f480d966830a98f6c45e9433",
+          "bytes": 749792,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libswresample.so.6",
+          "name": "libswresample.so.6",
+          "sha256": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+          "bytes": 91704,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libavutil.so.60",
+          "name": "libavutil.so.60",
+          "sha256": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+          "bytes": 683352,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        }
+      ],
+      "librariesMatchWholeHAR": true
+    },
+    {
+      "path": "/tmp/vidall-t041-fence-api19/entry/build/default/outputs/default/entry-default-signed.hap",
+      "sha256": "439de3db8a072f826fb91ee074a83d99279bf9ffa9221432f6c94218de050a9d",
+      "bytes": 77404388,
+      "signed": true,
+      "supportedArchitectures": [
+        "arm64-v8a"
+      ],
+      "sdk": {
+        "compileSdkVersion": "26.0.0.105",
+        "minAPIVersion": 50003015,
+        "targetAPIVersion": 60002022
+      },
+      "sdkMatchesPreviousConsumerTemplate": true,
+      "intendedDeviceAPI": 19,
+      "nativeLibraries": [
+        {
+          "path": "libs/arm64-v8a/libavcodec.so.62",
+          "name": "libavcodec.so.62",
+          "sha256": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+          "bytes": 12305456,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libavfilter.so.11",
+          "name": "libavfilter.so.11",
+          "sha256": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+          "bytes": 3942968,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libavformat.so.62",
+          "name": "libavformat.so.62",
+          "sha256": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+          "bytes": 19264304,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libavutil.so.60",
+          "name": "libavutil.so.60",
+          "sha256": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+          "bytes": 683352,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libc++_shared.so",
+          "name": "libc++_shared.so",
+          "sha256": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+          "bytes": 1262504,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libmpv.so",
+          "name": "libmpv.so",
+          "sha256": "c4c0a254aafa7254588d1b58c1a3a888f65a2fbb371d1a8d27345a8ea9e45907",
+          "bytes": 15724296,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libswresample.so.6",
+          "name": "libswresample.so.6",
+          "sha256": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+          "bytes": 91704,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libswscale.so.9",
+          "name": "libswscale.so.9",
+          "sha256": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+          "bytes": 738672,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        },
+        {
+          "path": "libs/arm64-v8a/libvidall_player_native.so",
+          "name": "libvidall_player_native.so",
+          "sha256": "4d4faa5fc4c205a74ab17526519b5c9f5e0f5e56f480d966830a98f6c45e9433",
+          "bytes": 749792,
+          "elfClass": 64,
+          "elfMachine": "AArch64"
+        }
+      ],
+      "librariesMatchWholeHAR": true
+    }
+  ],
+  "input": {
+    "sourceCommit": "d4a059b3117a23d70aa0832d00ed7161fd8c6d5a",
+    "baseInput": "/tmp/vidall-host-recovery-t041-input",
+    "basePackageSHA256": "5d223ee219cc9ebdffb00101ece9cdc1112835dd24b04bfa6d929bf8d1236dbb",
+    "diagnosticInput": "/tmp/vidall-host-recovery-t041-fence-input",
+    "diagnosticPackageSHA256": "63b5043f4a840b7bced086a71975ae7cc5bb56d303377b34625622ee9e7b8686",
+    "kind": "spec017-t042-t041-mapper-close",
+    "description": "本地完整诊断构建；真实 close/wait 成功后替换或延迟返回",
+    "patch": {
+      "path": "native/tests/ohcodec-fence/inject-wait.patch",
+      "sha256": "32cd43c0d578867f64c53762f4f02d2e05aee96799d27911bff13b24df301ba8"
+    },
+    "sourceChanges": [
+      {
+        "path": "sources/mpv/meson.build",
+        "beforeSHA256": "b985c140990c8f540b557a5ce2260dddce4c59a3c12a9e23983ffb080a821704",
+        "afterSHA256": "68f930d0abab3b46440a8356bc392edfe87ece909a293b8e77260af2d18e3cfa"
+      },
+      {
+        "path": "sources/mpv/video/out/hwdec/hwdec_ohcodec_pl.c",
+        "beforeSHA256": "3531af0bbb8d7fa9f73f7731dbd6df3e5468aec824e946266cedea9281c6b8e1",
+        "afterSHA256": "0578dfcaa57ae01ac02d70b95502baa28107be5e9c1cca301b0c7a452e353c26"
+      }
+    ],
+    "ffmpegModified": false,
+    "formalArtifactAllowed": false,
+    "deviceAcceptance": false
+  },
+  "fixture": {
+    "consumer": "/tmp/vidall-t041-fence-api19",
+    "template": "/tmp/vidall-t037-fence-api19",
+    "fixtureSourceCommit": "d4a059b3117a23d70aa0832d00ed7161fd8c6d5a",
+    "fixtures": [
+      {
+        "source": "fixtures/normal-core-consumer/recovery-fence/Index.ets",
+        "consumerPath": "/tmp/vidall-t041-fence-api19/entry/src/main/ets/pages/Index.ets",
+        "sha256": "45f85b742549ee81ec0c72fc7263d5e818e726d35bfd5d230e891a7bc838de37"
+      },
+      {
+        "source": "fixtures/normal-core-consumer/recovery-fence/FenceRun.ets",
+        "consumerPath": "/tmp/vidall-t041-fence-api19/entry/src/main/ets/pages/FenceRun.ets",
+        "sha256": "6ef4c42312d76afee9390ff8cac934c20862560456490939a001baa84c14dc33"
+      },
+      {
+        "source": "fixtures/normal-core-consumer/recovery-terminal/ProbeChecks.ets",
+        "consumerPath": "/tmp/vidall-t041-fence-api19/entry/src/main/ets/pages/ProbeChecks.ets",
+        "sha256": "fa5c2474034931ec75c022ebe176570a21c8450567962c21fd3a3d0c9a58c327"
+      }
+    ],
+    "media": [
+      {
+        "name": "global-probe.mp4",
+        "sha256": "bee054bffe503fd32a19d30b0d586e9a9fd26abfe1e6f1b26b7fb84df25ebc76",
+        "bytes": 348460
+      },
+      {
+        "name": "test_video.mp4",
+        "sha256": "e227199fde48379861c1e234470b2e3c17c7c5c962d28eaac7b129f29395d5e6",
+        "bytes": 21291801
+      }
+    ],
+    "signatureConfigurationCopiedLocally": true,
+    "signatureConfigurationPublished": false,
+    "deviceExecuted": false,
+    "formalArtifactAllowed": false
+  },
+  "baseInputUnchangedAfterBuild": true,
+  "staticValidation": {
+    "publicExportCount": 64,
+    "allAllocatedSectionsExactlyBound": true,
+    "freshRootVerified": true,
+    "targetExecuted": false,
+    "inputFinalCheck": {
+      "packagePayloadUnchanged": true,
+      "sourceTreesUnchanged": true,
+      "freshSourcesWithoutBuildObjects": true,
+      "declaredExternalFFmpeg": "mpv/source/_staged/ffmpeg",
+      "sourceAndExternalUnionExact": true,
+      "externalPCRelocationsVerified": true
+    }
+  },
+  "commands": {
+    "core": "fresh_build.py --handoff-trace; 无 handoff-test/ohcodec-diagnostic",
+    "har": "devecocli build --product default --modules vidall_player@deveco26",
+    "hap": "devecocli build --product default --modules entry@default"
+  },
+  "logs": {
+    "nativeBuild": "/tmp/vidall-host-recovery-t041-fence-build.log",
+    "nativeSteps": "/tmp/vidall-host-recovery-t041-fence-build/logs",
+    "nativeValidation": "/tmp/vidall-host-recovery-t041-fence-build/validation",
+    "harBuild": "/tmp/vidall-host-survival-t041-fence-har.log",
+    "hapBuild": "/tmp/vidall-t041-fence-consumer-build.log",
+    "sourceIdentity": "/tmp/vidall-host-survival-t041-fence-source.json",
+    "consumerPreparation": "/tmp/vidall-t041-fence-consumer-preparation.json"
+  },
+  "deviceQualified": false,
+  "audibleAudioAccepted": false
+}

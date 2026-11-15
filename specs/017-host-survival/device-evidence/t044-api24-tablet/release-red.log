@@ -1,0 +1,7 @@
+Assertion failed: (gpuClosed||renderBackend_==vidall::render::RenderBackend::Software||!mpvInitialized_), function StopRendererLocked, file test.cpp, line 36.
+Traceback (most recent call last):
+  File "<repo>/native/tests/host-survival/release-owner-lifetime.test.py", line 77, in <module>
+    for case in range(6):subprocess.run([str(p/'test'),str(case)],check=True,timeout=5)
+  File "<python>/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['<temporary-build>/test', '0']' died with <Signals.SIGABRT: 6>.

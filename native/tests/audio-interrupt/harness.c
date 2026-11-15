@@ -1,6 +1,8 @@
 // 宿主只替换平台边界。注册、事件合并和播放器消费逻辑由测试从 mpv 原样编译。
 #include <assert.h>
+#include "host_recovery.h"
 #include <errno.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdatomic.h>
 #include <stdint.h>
@@ -10,8 +12,13 @@
 typedef void OH_AudioRenderer;
 typedef void OH_AudioStreamBuilder;
 typedef int OH_AudioStream_Result;
+typedef int OH_AudioStream_State;
+#define AUDIOSTREAM_STATE_STOPPED 3
+typedef int OH_AudioData_Callback_Result;
+enum { AUDIO_DATA_CALLBACK_RESULT_VALID = 0 };
 typedef int OH_AudioInterrupt_ForceType;
 typedef int OH_AudioInterrupt_Hint;
+typedef void (*OH_AudioRenderer_OnInterruptCallback)(OH_AudioRenderer *, void *, int, int);
 enum { AO_EVENT_PAUSE = 4, AUDIOSTREAM_INTERRUPT_HINT_RESUME = 1,
        AUDIOSTREAM_INTERRUPT_HINT_PAUSE, AUDIOSTREAM_INTERRUPT_HINT_STOP };
 typedef struct {
@@ -19,7 +26,7 @@ typedef struct {
     int32_t (*OH_AudioRenderer_OnInterruptEvent)(OH_AudioRenderer *, void *, int, int);
 } OH_AudioRenderer_Callbacks;
 /* BINDING */
-struct priv { OH_AudioStreamBuilder *builder; OH_AudioRenderer *renderer; struct legacy_binding legacy; };
+struct priv { bool timing_initialized; pthread_mutex_t timing_lock; pthread_cond_t timing_wakeup; unsigned long long recovery_token,recovery_generation; OH_AudioStreamBuilder *builder; OH_AudioRenderer *renderer; struct legacy_binding legacy; };
 struct ao { struct priv *priv; atomic_uint events_; bool per_file;
             void (*wakeup_cb)(void *); void *wakeup_ctx; };
 struct MPOpts { bool pause; int gapless_audio; };
@@ -49,19 +56,49 @@ static unsigned unloaded;
 #define MP_TRACE(...) ((void)0)
 enum { AUDIOSTREAM_SUCCESS, AUDIOSTREAM_ERROR_SYSTEM = 3 };
 static void reset_timing(struct priv *p) {}
-static int OH_AudioRenderer_GetUnderflowCount(void *r, uint32_t *n) { *n=0; return 0; }
-static void OH_AudioRenderer_Release(void *r) {}
-static void OH_AudioStreamBuilder_Destroy(void *b) {}
+static void stop_timing_worker(struct priv *p) {(void)p;}
+#define mp_mutex_destroy pthread_mutex_destroy
+#define mp_cond_destroy pthread_cond_destroy
+static int OH_AudioRenderer_GetCurrentState(void *r, int *state) {(void)r;*state=2;return 0;}
+static int OH_AudioRenderer_Release(void *r) {return 0;}
+static int OH_AudioStreamBuilder_Destroy(void *b) {return 0;}
+#define MP_TIME_MS_TO_NS(v) ((v)*1000000LL)
+static void mp_sleep_ns(long long ns) {assert(!"意外进入释放失败保留路径");}
 static void uninit_audio_out(struct MPContext *ctx) { unloaded++; ctx->ao=NULL; }
 
 static int OH_GetSdkApiVersion(void) { return sdk; }
+static void *expected_write_ao;
 static int audio_on_write_callback(OH_AudioRenderer *r, void *u, void *buf, int32_t len)
-{ assert(u && len == 16); writes++; return 0; }
+{ assert(u && len == 16); if (expected_write_ao) assert(u == expected_write_ao); writes++; return 0; }
 static int OH_AudioStreamBuilder_SetRendererCallback(void *b, OH_AudioRenderer_Callbacks c, void *u)
 { callbacks = c; user = u; return result; }
+static int (*modern_write_cb)(OH_AudioRenderer *, void *, void *, int32_t);
+static void *shared_user;
 static int OH_AudioStreamBuilder_SetRendererWriteDataCallback(void *b,
     int (*cb)(OH_AudioRenderer *, void *, void *, int32_t), void *u)
-{ assert(cb == audio_on_write_callback); modern++; return result; }
+{ modern_write_cb = cb; shared_user = u; modern++; return result; }
+static void (*modern_interrupt_cb)(OH_AudioRenderer *, void *, int, int);
+static void *modern_user;
+static int interrupt_result;
+static int __attribute__((unused)) OH_AudioStreamBuilder_SetRendererInterruptCallback(void *b,
+    void (*cb)(OH_AudioRenderer *, void *, int, int), void *u)
+{ modern_interrupt_cb = cb; modern_user = u; shared_user = u; return interrupt_result; }
+#define MP_ERR(ao, ...) ((void)(ao))
+#define RTLD_DEFAULT ((void *)0)
+#define RTLD_NOW 2
+#define RTLD_LOCAL 0
+static void *audio_library = (void *)0x1234;
+static bool interrupt_symbol_available = true;
+static bool default_symbol_visible = true, library_openable = true;
+static unsigned library_opens, library_closes;
+static void *__attribute__((unused)) dlopen(const char *name, int flags)
+{ assert(sdk>=20 && !strcmp(name,"libohaudio.so") && flags==(RTLD_NOW|RTLD_LOCAL));
+  library_opens++; return library_openable ? audio_library : NULL; }
+static int __attribute__((unused)) dlclose(void *handle)
+{ assert(handle==audio_library);library_closes++;return 0; }
+static void *__attribute__((unused)) dlsym(void *handle, const char *name)
+{ assert(sdk>=20 && (handle==RTLD_DEFAULT || handle==audio_library) && !strcmp(name,"OH_AudioStreamBuilder_SetRendererInterruptCallback"));
+  return interrupt_symbol_available && (handle==audio_library || default_symbol_visible) ? (void *)OH_AudioStreamBuilder_SetRendererInterruptCallback : NULL; }
 static pthread_mutex_t gate = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t changed = PTHREAD_COND_INITIALIZER;
 static bool block_wake, entered, retiring, released;
@@ -129,7 +166,7 @@ static void *release_thread(void *ao) {
 
 int main(void)
 {
-    struct priv p = {0};
+    struct priv p = {.recovery_generation=mp_host_generation(),.recovery_token=mp_host_audio_begin(mp_host_generation())};
     struct ao old = {.priv=&p, .wakeup_cb=wake}, next = {.priv=&p, .wakeup_cb=wake};
     struct MPOpts opts = {0};
     struct MPContext ctx = {.ao=&old, .opts=&opts};
@@ -183,7 +220,7 @@ int main(void)
     assert(!pthread_create(&interrupt, NULL, interrupt_thread, user));
     pthread_mutex_lock(&gate);
     while (!entered) pthread_cond_wait(&changed, &gate);
-    assert(pthread_rwlock_trywrlock(&legacy_lock) == EBUSY);
+    /* CALLBACK_LIFETIME_ASSERT */
     assert(!pthread_create(&retire, NULL, release_thread, &next));
     while (!retiring) pthread_cond_wait(&changed, &gate);
     assert(!released);
@@ -260,12 +297,68 @@ int main(void)
     ctx.shown_vframes++;
     handle_each_frame_screenshot(&ctx);
     assert(audio_paused && video_paused);
-    sdk = 20;
-    assert(register_callbacks(&next) == 0 && modern == 1 && !next.per_file);
+    const int modern_sdks[] = {20,24,26};
+    for (unsigned i = 0; i < sizeof(modern_sdks)/sizeof(modern_sdks[0]); i++) {
+        sdk = modern_sdks[i];
+        modern_interrupt_cb = NULL; modern_user = NULL; modern = 0;
+        next.per_file = false; atomic_store(&next.events_,0); ctx.ao = &next;
+        set_user_pause_option(&ctx,false);
+        assert(register_callbacks(&next) == 0 && modern == 1 && next.per_file);
+        assert(modern_interrupt_cb && modern_user && "现代分支必须注册真实中断回调");
+        void *token = modern_user;
+        char modern_buffer[16]; memset(modern_buffer, 0x7f, sizeof(modern_buffer));
+        expected_write_ao = &next; int before_write = writes;
+        assert(modern_write_cb(NULL,shared_user,modern_buffer,16) == AUDIO_DATA_CALLBACK_RESULT_VALID);
+        assert(writes == before_write + 1); expected_write_ao = NULL;
+        modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
+        handle_audio_interrupt(&ctx); assert(opts.pause && audio_paused && video_paused);
+        modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_RESUME);
+        handle_audio_interrupt(&ctx); assert(opts.pause);
+        set_user_pause_option(&ctx,false);assert(!opts.pause && !audio_paused);
+        uninit(&next);assert(legacy_bindings == NULL);
+        assert(register_callbacks(&next) == 0 && modern_user != token);
+        before_write = writes; modern_write_cb(NULL,token,modern_buffer,16);
+        assert(writes == before_write);
+        for (unsigned j = 0; j < sizeof(modern_buffer); j++) assert(modern_buffer[j] == 0);
+        modern_interrupt_cb(NULL,token,0,AUDIOSTREAM_INTERRUPT_HINT_STOP);
+        handle_audio_interrupt(&ctx);assert(!opts.pause);
+        uninit(&next);
+        // 系统库以局部可见方式加载时，RTLD_DEFAULT 不一定能查到公开符号。
+        default_symbol_visible = false;
+        unsigned old_opens=library_opens, old_closes=library_closes;
+        assert(register_callbacks(&next)==0);
+        assert(library_opens==old_opens+1 && library_closes==old_closes+1);
+        modern_interrupt_cb(NULL,modern_user,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
+        handle_audio_interrupt(&ctx);assert(opts.pause);
+        uninit(&next);set_user_pause_option(&ctx,false);
+        library_openable=false;
+        assert(register_callbacks(&next)==AUDIOSTREAM_ERROR_SYSTEM);
+        assert(library_closes==old_closes+1);
+        uninit(&next);library_openable=true;default_symbol_visible=true;
+        result = -1; modern_interrupt_cb = NULL;
+        assert(register_callbacks(&next) == result && !modern_interrupt_cb);
+        uninit(&next);assert(legacy_bindings == NULL);result = 0;
+        interrupt_symbol_available = false;
+        old_opens=library_opens;old_closes=library_closes;
+        assert(register_callbacks(&next) == AUDIOSTREAM_ERROR_SYSTEM);
+        assert(library_opens==old_opens+1 && library_closes==old_closes+1);
+        uninit(&next);assert(legacy_bindings == NULL);interrupt_symbol_available = true;
+        interrupt_result = -2;default_symbol_visible=false;
+        old_opens=library_opens;old_closes=library_closes;
+        assert(register_callbacks(&next) == interrupt_result);
+        assert(library_opens==old_opens+1 && library_closes==old_closes+1);
+        uninit(&next);assert(legacy_bindings == NULL);interrupt_result = 0;default_symbol_visible=true;
+    }
     result = -1;
-    assert(register_callbacks(&next) == result);
     sdk = 15;
     assert(register_callbacks(&old) == result);
     uninit(&old);
     assert(legacy_bindings == NULL);
+    result=0;assert(register_callbacks(&old)==0);
+    mp_host_retire_all();previous_wakes=wakes;
+    callbacks.OH_AudioRenderer_OnInterruptEvent(NULL,user,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
+    assert(wakes==previous_wakes);uninit(&old);assert(legacy_bindings==NULL);
+    sdk=24;assert(register_callbacks(&old)==0);previous_wakes=wakes;
+    modern_interrupt_cb(NULL,modern_user,0,AUDIOSTREAM_INTERRUPT_HINT_PAUSE);
+    assert(wakes==previous_wakes);uninit(&old);assert(legacy_bindings==NULL);
 }

@@ -39,20 +39,59 @@ def main():
     py = [sys.executable, '-B']
     run('public-gate-tests', py+['scripts/test/normal-core/check-public.test.py'])
     run('har-normalization-tests', py+['scripts/test/normal-core/normalize-har.test.py'])
+    run('runtime-local-loader', py+['native/tests/host-survival/runtime-local-loader.test.py'])
+    run('recovery-input-tests', py+['native/tests/host-survival/prepare-input.test.py'])
+    run('public-api-contract', py+['native/tests/host-survival/public-api-gate.test.py'])
+    run('hardware-probe-contract', ['node', 'native/tests/host-survival/recovery-hardware.test.cjs'])
+    run('fence-probe-contract', ['node', 'native/tests/host-survival/recovery-fence.test.cjs'])
+    run('fence-probe-page', ['node', 'native/tests/host-survival/recovery-fence-page.test.cjs'])
     run('tools', ['clang++', '--version'])
     run('llvm-nm-version', [env['LLVM_NM'], '--version'])
     run('node-version', ['node', '--version'])
     run('typescript-version', ['node', '-e', 'const t=require(process.env.TYPESCRIPT_PATH); console.log(t.version); if(t.version!=="5.6.3")process.exit(1)'])
     run('input-audit', py+['scripts/audit/normal-core-verify.py'])
     run('input-mutations', py+['native/tests/normal-core-input.test.py'])
-    ets_cases = ['unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
+    ets_cases = ['terminal-publication-preserve', 'terminal-publication-controlled', 'terminal-publication-reentrant-preserve', 'terminal-publication-reentrant-controlled', 'terminal-listener-lifetime', 'failed-release-listener', 'pending-release-listener', 'fault-notifications', 'constructor-terminal-replay', 'host-recovery', 'unconfigured', 'configure', 'resource-failed', 'notifications', 'cached', 'late', 'released', 'fatal-release', 'fatal-queue', 'fatal-diagnostics', 'late-load', 'bridge-callback-fail', 'bridge-create-fail', 'bridge-pending-create', 'bridge-callback-terminal']
     for case in ets_cases:
         run('ets-'+case, ['node', 'native/tests/normal-runtime.test.cjs', case])
+    for case in ['switch', 'queue-failed', 'callback-failed', 'terminal-in-callback', 'invalid', 'legacy']:
+        run('load-identity-'+case, ['node', 'native/tests/host-survival/load-identity.test.cjs', case])
+    run('load-generation-entry', py+['native/tests/host-survival/load-entry.test.py'])
+    run('fault-during-close', py+['native/tests/host-survival/fault-close.test.py'])
+    run('first-frame-event', py+['native/tests/host-survival/first-frame.test.py'])
+    if run('audio-output-reuse-compile', ['clang++', '-std=c++17', '-pthread', '-Wall', '-Wextra', '-Werror', 'native/tests/host-survival/audio-output-reuse.test.cpp', '-o', work/'audio-output-reuse']):
+        run('audio-output-reuse', [work/'audio-output-reuse'])
+    run('experimental-audio-adapter', py+['native/tests/host-survival/run-audio-adapter.py', '--out', work/'audio-adapter.json'])
+    run('runtime-napi-entry', py+['native/tests/host-survival/runtime-entry.test.py'])
+    run('software-release-fence', py+['native/tests/surface-resize/sw.test.py', 'packages/vidall-player/src/main/cpp/napi_init.cpp'])
+    if run('audio-domain-compile', ['clang', '-std=c11', '-pthread', '-Wall', '-Wextra', '-Werror', '-Inative/mpv', 'native/tests/host-survival/audio-domain.test.c', 'native/mpv/host_recovery.c', '-o', work/'audio-domain']):
+        run('audio-domain', [work/'audio-domain'])
+    if run('audio-capacity-compile', ['clang', '-std=c11', '-pthread', '-Wall', '-Wextra', '-Werror', '-Inative/mpv', 'native/tests/host-survival/audio-capacity.test.c', 'native/mpv/host_recovery.c', '-o', work/'audio-capacity']):
+        for case in ['unknown', 'quiescent']:
+            run('audio-capacity-'+case, [work/'audio-capacity', case])
+    run('bounded-command-queue', ['node', 'native/tests/host-survival/queue.test.cjs'])
+    run('bounded-event-delivery', ['node', 'native/tests/host-survival/event-overflow.test.cjs'])
+    run('compatible-playback', ['node', 'native/tests/host-survival/compatible.test.cjs'])
     run('diagnostics-session', ['node', 'native/tests/diagnostics-session.test.cjs'])
     run('diagnostics-probe-contract', ['node', 'native/tests/diagnostics-device.test.cjs'])
     common = ['clang++', '-std=c++17', '-pthread', '-Irelease/inputs/004-normal-core/include']
+    export_symbols = ['-Wl,-export_dynamic'] if platform.system() == 'Darwin' else ['-rdynamic', '-ldl']
+    survival = common+['-DVIDALL_MPV_AVAILABLE=1', '-Inative/runtime', 'native/tests/host-survival/runtime.test.cpp', 'native/runtime/process_runtime.cpp']
+    if run('survival-runtime-compile', survival+export_symbols+['-o', work/'survival-runtime']):
+        for case in ['normal', 'abi', 'old-version', 'permanent-stop']:
+            run('survival-runtime-'+case, [work/'survival-runtime', case, work/('survival-runtime-'+case)])
+    if run('missing-fault-load-compile', survival+['-DNO_FAULT_LOAD_ABI']+export_symbols+['-o', work/'missing-fault-load']):
+        run('missing-fault-load-rejected', [work/'missing-fault-load', 'normal', work/'missing-fault-load-root'])
+    if run('old-core-recovery-compile', survival+['-DNO_RECOVERY_ABI']+export_symbols+['-o', work/'old-core-recovery']):
+        run('old-core-recovery-rejected', [work/'old-core-recovery', 'abi', work/'old-core-root'])
     if run('diagnostics-compile', common+['-Inative/diagnostics', 'native/tests/diagnostics_test.cpp', '-o', work/'diagnostics']):
         run('diagnostics-native', [work/'diagnostics'])
+    if run('fault-message-compile', common+['-Inative/runtime', 'native/tests/host-survival/fault-message.test.cpp', '-o', work/'fault-message']):
+        run('fault-message', [work/'fault-message'])
+    if run('environment-compile', common+['-Inative/runtime', 'native/tests/host-survival/environment.test.cpp', '-o', work/'environment']):
+        run('environment-lifetime', [work/'environment'])
+    if run('executor-compile', common+['-Inative/runtime', 'native/tests/host-survival/executor.test.cpp', '-o', work/'executor']):
+        run('session-executor', [work/'executor'])
     if run('isolation-compile', common+['-Inative/runtime', 'native/tests/ohcodec-fence/isolation.test.cpp', '-o', work/'isolation']):
         run('session-isolation', [work/'isolation'])
     if run('runtime-compile', common+['-DVIDALL_MPV_AVAILABLE=1', '-Inative/runtime', 'native/tests/normal-process-runtime.test.cpp', 'native/runtime/process_runtime.cpp', '-o', work/'runtime']):
