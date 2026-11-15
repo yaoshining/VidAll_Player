@@ -225,7 +225,7 @@ T068结果见[核心五项与边界](device-evidence/t068-diagnosis.md)。API24 
 
 ### T069：PR与CI跟进（2026-11-15）
 - [x] 已提交[PR #94](https://github.com/yaoshining/VidAll_Player/pull/94)，正文显著标注API19/x86_64剩余缺口；Todoist `6j2cRxqXR7rG9RQG`。
-- [ ] iMac CI当前head/合并预览、原HAR/九库/实际runner核验；Todoist `6j2cRxrwQpXHm5wp`。
+- [x] bc85db8的分支iMac43703061372与合并预览43703067320通过；原HAR/ARM64九库/实际runner核验，102项宿主CI通过，见[CI记录](device-evidence/t069-ci.json)；Todoist `6j2cRxrwQpXHm5wp`。后续提交的最终检查仍由下一子项逐head核对。
 - [ ] 验证并处理自动审查、最终检查和未解决线程；Todoist `6j2cRxw9HPpRP8xG`。
 - [ ] 第4项最终交付及API19 TV正式入口；根任务`6j295Q7jffjHC3qp`保持开放。
 

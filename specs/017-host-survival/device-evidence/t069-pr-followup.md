@@ -30,4 +30,6 @@
 
 首个27ba36c分支iMac CI43700897420已构建HAR/独立消费者/Hypium成功；不是后续最终head通过。最终head的PR合并预览CI、原HAR/九库核验与审查状态继续跟进。API19正式入口、完整x86_64产物、API26历史独立复验和物理同步仍按PR正文披露；#93非阻塞未解决。
 
-Todoist子项：提交PR 6j2cRxqXR7rG9RQG已完成；CI 6j2cRxrwQpXHm5wp、审查6j2cRxw9HPpRP8xG未完成；根任务6j295Q7jffjHC3qp开放。负责会话修复 issue #89 / local / 01a1bccc-e2cc-7a13-8cd6-31aae7079fb0。
+bc85db8最终复核：分支iMac43703061372与合并预览43703067320均成功，真实runner均为yaoshiningdeiMac；原HAR及ARM64九库已核验，详见[t069-ci.json](t069-ci.json)。组合宿主43703067244、原生来源43703067367、诊断43703067271均成功。全量审查仍因额度/体积限制未执行；不能称PR可以合并。后续仅证据文档提交的最终检查在PR会话状态中继续逐head核对。
+
+Todoist子项：提交PR 6j2cRxqXR7rG9RQG、CI 6j2cRxrwQpXHm5wp完成；审查6j2cRxw9HPpRP8xG未完成；根任务6j295Q7jffjHC3qp开放。负责会话修复 issue #89 / local / 01a1bccc-e2cc-7a13-8cd6-31aae7079fb0。

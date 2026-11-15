@@ -2,7 +2,14 @@
 
 2026-11-15：四项待办 **3/4完成**。当前原始CI HAR已完成API24 TV核心五项；已提交[PR #94](https://github.com/yaoshining/VidAll_Player/pull/94)，审查与iMac CI进行中，尚未合并，API19 TV正式文件入口仍未验收。多次永久挂起耗尽资源移至[#93](https://github.com/yaoshining/VidAll_Player/issues/93)，未解决但不再阻塞本次交付。
 
-## 当前生产候选：56ebd3f
+## PR审查候选：bc85db8（不是已合并交付）
+
+- [iMac原始HAR构建43703061372](https://github.com/yaoshining/VidAll_Player/actions/runs/43703061372)，源提交`bc85db8f06037a3449c23911cdbecd07de348ffb`；原始HAR SHA-256：`ada5d4c78bede7191dd55530b793efaea30e5eafedc27c9636cf7935c03f2f0b`。
+- 实际runner为`yaoshiningdeiMac` / self-hosted macOS X64；[原HAR及九库记录](device-evidence/t069-ci.json)。仅ARM64九库，每库与下面T066/T068候选完全一致；总体HAR字节不同，不冒称已用新HAR完成设备重验。
+- 相比56ebd3f，生产Player/runtime/mpv源码未变；本轮修复测试可移植性、回调竞争测试时序、精确检查清单及既有输入锁。102项宿主检查、原生来源及诊断CI通过，详见[T069跟进](device-evidence/t069-pr-followup.md)。
+- 自动审查被额度/体积限制阻塞，未完成有效代码审查；API19正式入口、x86_64完整播放产物等缺口不变，不据CI成功自动合并。
+
+## 设备验收依据：56ebd3f
 
 - 源提交：`56ebd3f7cb918f2c6be2a3eb9e0683f0b8734cb0`；[Actions43624519417](https://github.com/yaoshining/VidAll_Player/actions/runs/43624519417)。
 - 真实运行器：`yaoshiningdeiMac` / self-hosted macOS X64，不是云端Mac。
