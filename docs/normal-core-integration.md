@@ -20,7 +20,7 @@ const player = createPlayer();
 
 `onPlayerTerminal` 是进程内一次性通知，投递后自动移除；终局后的订阅同步重放且不长期持有闭包。刚观察到终局时，完整记录可能尚未发布（firstObservedMs 为 0），该通知立即关闭旧操作；后续状态查询会更新为完整记录，但不重复通知原订阅者。媒体标记应使用 onPlayerFault 的可靠归属，而不是用暂态通知猜测。普通 `onPlayerFault` 仍须由宿主显式取消订阅。`onPlayerTerminal` 用于更新失败状态和导航，**不要调用 killAllProcesses**。终局后旧实例不可再用；释放/放弃旧实例不等待尚未确认安全的 GPU 资源。`getPlayerRuntimeStatus()` 的 state 保持 terminal，recovery.state 独立表示：pending 等待旧音频停止；timeout 超过观察期限但继续保留资源；ready 已确认旧音频停止。ready 后用 `createPlayer({ playbackMode: 'compatible' })` 创建新实例并附加新 Surface。普通模式在本次进程中始终拒绝新建；重启进程后未标记视频重新优先硬解。
 
-compatible 强制软件解码与软件渲染，绕过 Vulkan/EGL/OHCodec interop。原 `hardwareDecoding: 'disabled'` 只控制解码器，不等于兼容恢复。新实例仍按既有事件合同加载、等待准备、播放及释放；恢复成功须以实际首帧与音频确认，不能仅凭 create/load Promise 成功显示“已切换兼容模式”。若旧音频平台 Stop 永久不返回或不能确认停止，保持 pending/timeout，不强行释放或假称续播成功；这是当前安全恢复的实际限制，R3 设备验收仍未完成。
+compatible 强制软件解码与软件渲染，绕过 Vulkan/EGL/OHCodec interop。原 `hardwareDecoding: 'disabled'` 只控制解码器，不等于兼容恢复。新实例仍按既有事件合同加载、等待准备、播放及释放；恢复成功须以实际首帧与音频确认，不能仅凭 create/load Promise 成功显示“已切换兼容模式”。若旧音频平台 Stop 永久不返回或不能确认停止，保持 pending/timeout，不强行释放或假称续播成功；这是当前安全恢复的实际限制；多次永久挂起耗尽资源按[#93](https://github.com/yaoshining/VidAll_Player/issues/93)独立跟进，用户已批准不阻塞本次核心体验交付，不能因此假报ready或无限增加预算。
 
 音频 Stop 已返回后，即使返回错误，也会再次查询真实状态；只有明确 STOPPED 才确认停止，不重试 Stop、不释放旧 renderer。Stop 未返回、状态仍运行或查询失败均不能放行。
 
@@ -46,12 +46,12 @@ compatible 强制软件解码与软件渲染，绕过 Vulkan/EGL/OHCodec interop
 
 不能继续可靠交付时，当前桥会话进入 `PLAYER_EVENT_QUEUE_FULL`，普通命令和读帧停止，安全释放仍可执行。宿主应释放该会话后创建新实例，不应在原会话反复 load。该错误不是媒体硬解故障，不得据此把视频记成需兼容模式。回调代预算耗尽返回 `CALLBACK_RESOURCE_LIMIT`；用户仍能返回列表，待旧回调回收后重开，不自动无限重试。
 
-旧代的排队回调不得进入新会话；NAPI 环境关闭和同地址复用也不能接管旧句柄。旧音频数据回调退休后静音，停止确认与释放有独立登记。API 19 旧回调只在取得/归还在途引用时持登记锁；注销先撤销入口，再等待自身在途回调，不阻止其他实例登记。平台阻塞不占全局登记锁。仍需设备验证真实音频焦点及系统服务行为。
+旧代的排队回调不得进入新会话；NAPI 环境关闭和同地址复用也不能接管旧句柄。旧音频数据回调退休后静音，停止确认与释放有独立登记。API 19 旧回调只在取得/归还在途引用时持登记锁；注销先撤销入口，再等待自身在途回调，不阻止其他实例登记。平台阻塞不占全局登记锁。API24已有真实音频焦点与手动恢复证据，见[T068](../specs/017-host-survival/device-evidence/t068-diagnosis.md)；系统服务整体失效、API19与物理输出仍不得推定通过。
 
 ## 架构、产物与迁移
 
 本候选完整播放核心仅支持 `arm64-v8a`，HAR 含 Player 桥与八个依赖，共九库。x86_64 的旧探针不具备播放能力，不能混入旧 Player 桥来宣称兼容。VidAll_TV 如仍发布 x86_64，当前完整 HAR 尚不能覆盖该架构，需另行取得匹配的上游 FFmpeg x86_64 SDK 并由 Player 构建；不得静默删掉消费端声明。
 
-迁移时核对 CI 原始 HAR 与源提交/九库哈希，一次性替换旧 HAR 和重复六库；不要在 TV 重打包 Player。完成初始化、加载身份登记、独立故障订阅和兼容新实例流程后，分别验证正常播放、音频打断与手动恢复、切集、退出重开、故障后返回并再播另一部、连续故障上限。API 24 或宿主替身不替代 API 19 TV 正式文件入口验收。
+迁移时核对 CI 原始 HAR 与源提交/九库哈希，一次性替换旧 HAR 和重复六库；不要在 TV 重打包 Player。完成初始化、加载身份登记、独立故障订阅和兼容新实例流程后，分别验证正常播放、音频打断与手动恢复、切集、退出重开、故障后返回并再播另一部。重复永久挂起耗尽资源恢复另由#93跟进，普通失败仍须安全返回及续播。API 24 或宿主替身不替代 API 19 TV 正式文件入口验收。
 
 普通分支最终 HAR 来自 iMac 自托管 GitHub Actions；本轮 mpv/libplacebo 交叉构建在 MacBook Pro / Darwin arm64 完成，FFmpeg 使用上游预编译恢复 SDK。最终交付须同时记录这两层来源，不能把 iMac 或本地构建称作云端 Mac。
