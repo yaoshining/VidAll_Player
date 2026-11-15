@@ -16,6 +16,7 @@ code=r'''
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 using namespace std::chrono_literals;
 namespace vidall::render { enum class RenderBackend{Vulkan,Software}; }

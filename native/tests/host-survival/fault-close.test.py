@@ -12,6 +12,7 @@ code=r'''
 #include <mpv/client.h>
 #include <cstring>
 #include <memory>
+#include <string>
 #include <vector>
 #include <cassert>
 #define OH_LOG_Print(...) ((void)0)
