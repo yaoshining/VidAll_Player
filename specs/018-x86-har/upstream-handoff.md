@@ -1,5 +1,7 @@
 # 给ohos_ijkplayer的x86_64 SDK交付要求
 
+已于2026-11-15按用户授权创建[上游Issue #12](https://github.com/yaoshining/ohos_ijkplayer/issues/12)，由用户安排上游处理；当前等待SDK交付。
+
 VidAll_Player已合并Spec017，当前main为`8a3ce572fb4b534cb4308db4c5f7c356cea5332b`。需要补充x86_64完整HAR；Player分支`codex/x86_64-har`已建立，等待可消费的FFmpeg SDK。请由ohos_ijkplayer工程提供已有产物路径，或按其流程构建交付；Player不在本仓编译/修改FFmpeg。
 
 ## 最小输入

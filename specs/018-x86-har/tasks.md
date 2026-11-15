@@ -1,7 +1,7 @@
 # Spec018 任务
 
 - [x] T001 从最新main创建codex/x86_64-har；只读核验依赖。证据evidence.json；Todoist `6j2gC295FrP57H3G`。
-- [ ] T002 取得并核验完整上游x86_64 SDK。**阻塞**，要求见upstream-handoff.md；Todoist `6j2gC2F2HCqQW28G`。
+- [ ] T002 取得并核验完整上游x86_64 SDK。**阻塞**，已交由[上游Issue #12](https://github.com/yaoshining/ohos_ijkplayer/issues/12)跟进，要求见upstream-handoff.md；Todoist `6j2gC2F2HCqQW28G`。
 - [ ] T003 先红后绿补Player多ABI核心、NAPI及HAR构建/审计，保留ARM64及Spec017。Todoist `6j2gC2FR9ChrRGjp`。
 - [ ] T004 iMac CI、独立消费、x86_64模拟器验证，交付原始HAR与哈希。Todoist `6j2gC2GjwFQf4v9p`。
 

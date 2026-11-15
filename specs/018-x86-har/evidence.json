@@ -55,5 +55,7 @@
   "ciTriggered": false,
   "upstreamBuildTriggered": false,
   "productionCodeChanged": false,
-  "blocker": "缺少来源和接口可核验的完整OHOS x86_64 FFmpeg SDK；FFmpeg构建归上游工程。"
+  "blocker": "缺少来源和接口可核验的完整OHOS x86_64 FFmpeg SDK；FFmpeg构建归上游工程。",
+  "upstreamIssue": "https://github.com/yaoshining/ohos_ijkplayer/issues/12",
+  "upstreamIssueStateAtHandoff": "open"
 }
