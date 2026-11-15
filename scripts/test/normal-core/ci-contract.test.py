@@ -143,9 +143,19 @@ class Contracts(unittest.TestCase):
  def test_host_evidence_requires_suite_and_context(self):
   m=module('ci-evidence');out=self.root/'evidence';r=m.finish(out,{s:{'outcome':'success'} for s in ['context','dependencies','contracts','host']},'host');self.assertFalse(r['stepsPassed'])
 
+ def test_host_manifest_requires_new_audio_and_frame_checks(self):
+  m=module('ci-evidence');expected=json.loads((HERE/'host-checks.json').read_text())['checks']
+  required={'first-frame-event','audio-output-reuse-compile','audio-output-reuse','experimental-audio-adapter','survival-runtime-permanent-stop','audio-capacity-compile','audio-capacity-unknown','audio-capacity-quiescent'}
+  self.assertTrue(required <= set(expected))
+  checks=[{'name':name,'passed':True,'exit':code,'expectedExit':code} for name,code in expected.items()]
+  self.assertTrue(m.host_checks_passed({'passed':True,'checks':checks}))
+  for name in required:
+   self.assertEqual(expected[name],0)
+   self.assertFalse(m.host_checks_passed({'passed':True,'checks':[r for r in checks if r['name']!=name]}),name)
+
  def test_host_finish_rejects_post_context_change(self):
   m=module('ci-evidence');identity=module('ci-context');self.repo();before=identity.snapshot(self.root);out=self.root/'evidence';(out/'work').mkdir(parents=True);(out/'suite/public').mkdir(parents=True)
-  (out/'work/context.json').write_text(json.dumps({'passed':True,**before}));checks=[{'name':name,'passed':True,'exit':code,'expectedExit':code} for name,code in json.loads((HERE/'host-checks.json').read_text())['checks'].items()];self.assertEqual(len(checks),94)
+  (out/'work/context.json').write_text(json.dumps({'passed':True,**before}));checks=[{'name':name,'passed':True,'exit':code,'expectedExit':code} for name,code in json.loads((HERE/'host-checks.json').read_text())['checks'].items()];self.assertEqual(len(checks),102)
   (out/'suite/public/summary.json').write_text(json.dumps({'passed':True,'checks':checks}));(out/'suite/public/source-identities.json').write_text('{}')
   for c in checks:(out/'suite/public'/(c['name']+'.log')).write_text('PASS')
   (out/'suite/public/index.json').write_text('{}');steps={s:{'outcome':'success'} for s in ['context','dependencies','contracts','host']}

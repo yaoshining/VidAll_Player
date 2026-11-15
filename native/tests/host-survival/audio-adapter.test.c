@@ -86,6 +86,22 @@ static void wait_flag(atomic_bool *p) {
         usleep(1000);
     assert(*p);
 }
+// 实时回调遇到控制锁竞争必须立即填零，不能要求任意一次调用必有PCM。
+// 正向场景允许暂时静音，但仍限制500ms内交付完整PCM并逐字节校验。
+static int64_t read_submitted;
+static int read_pcm(struct vpa_output *o, unsigned char *data, int bytes) {
+    int64_t deadline = now() + 500000000;
+    do {
+        int frames = vpa_callback(o, data, bytes);
+        read_submitted += bytes / format.stride;
+        if (frames)
+            return frames;
+        for (int i = 0; i < bytes; i++)
+            assert(!data[i]);
+        usleep(1000);
+    } while (now() < deadline);
+    return 0;
+}
 int main(int argc, char **argv) {
     assert(argc == 2);
     vpa_configure(&ops);
@@ -96,14 +112,14 @@ int main(int argc, char **argv) {
     assert(vpa_write(o, 1, data, 960));
     vpa_start(o, 1);
     wait_count(&starts, 1);
-    assert(vpa_callback(o, got, sizeof(got)) == 960);
+    assert(read_pcm(o, got, sizeof(got)) == 960);
     assert(!memcmp(got, data, sizeof(got)));
     if (!strcmp(argv[1], "pause-clock")) {
         for (int i = 0; i < 4; i++) {
             assert(vpa_write(o, 1, data, 960));
-            vpa_callback(o, got, sizeof(got));
+            assert(read_pcm(o, got, sizeof(got)) == 960);
         }
-        clock_position = 3840;
+        clock_position = read_submitted - 960;
         usleep(60000);
         assert(vpa_pause(o, 1, true));
         wait_count(&pauses, 1);
@@ -117,7 +133,7 @@ int main(int argc, char **argv) {
         struct vpa_snapshot s;
         vpa_snapshot(o, 1, &s);
         assert(s.delay >= 0.019);
-        clock_position = 480;
+        clock_position = read_submitted - 480;
         usleep(60000);
         vpa_snapshot(o, 1, &s);
         assert(s.delay < 0.019);
@@ -189,7 +205,7 @@ int main(int argc, char **argv) {
             assert(vpa_pause(o, 1, false));
         }
         wait_count(&starts, 2);
-        assert(vpa_callback(o, got, sizeof(got)) == 960);
+        assert(read_pcm(o, got, sizeof(got)) == 960);
         assert(!memcmp(data, got, sizeof(got)));
         return 0;
     }
@@ -290,7 +306,7 @@ int main(int argc, char **argv) {
             assert(vpa_write(fresh, t, data, 960));
             vpa_start(fresh, t);
             wait_count(&starts, (int)t);
-            assert(vpa_callback(fresh, got, sizeof(got)) == 960);
+            assert(read_pcm(fresh, got, sizeof(got)) == 960);
             assert(!memcmp(data, got, sizeof(got)));
             vpa_detach(fresh, t);
             wait_count(&cleared, (int)t);
@@ -314,7 +330,7 @@ int main(int argc, char **argv) {
         assert(!got[i]);
     assert(vpa_pause(o, 1, false));
     wait_count(&starts, 2);
-    assert(vpa_callback(o, got, sizeof(got)) == 960);
+    assert(read_pcm(o, got, sizeof(got)) == 960);
     vpa_reset(o, 1);
     wait_count(&stops, 1);
     usleep(20000);
@@ -327,7 +343,7 @@ int main(int argc, char **argv) {
         assert(vpa_write(o, t, data, 960));
         vpa_start(o, t);
         wait_count(&starts, (int)t + 1);
-        assert(vpa_callback(o, got, sizeof(got)) == 960);
+        assert(read_pcm(o, got, sizeof(got)) == 960);
         assert(!memcmp(data, got, sizeof(got)));
         vpa_detach(o, t);
         wait_count(&cleared, (int)t);

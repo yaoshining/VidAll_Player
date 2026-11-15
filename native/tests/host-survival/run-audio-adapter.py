@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """S37实验适配器：独立进程隔离永久挂起场景，不把替身当设备验收。"""
-import argparse, json, pathlib, subprocess, tempfile
+import argparse, json, pathlib, subprocess, sys, tempfile
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 CASES = ['normal', 'focus', 'pending-pause', 'unknown-stop', 'flush-error', 'release-hang', 'formats', 'clock', 'pause-clock', 'release-hang-formats', 'async-reset', 'reset-focus', 'reset-detach', 'all-slots-held']
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--out', type=pathlib.Path, required=True)
     args = parser.parse_args()
+    subprocess.run([sys.executable, '-B', str(ROOT / 'native/tests/host-survival/audio-adapter-contention.test.py')], check=True)
     with tempfile.TemporaryDirectory(prefix='vidall-audio-adapter-') as tmp:
         binary = str(pathlib.Path(tmp) / 'test')
         subprocess.run(['clang', '-std=gnu11', '-pthread', '-Wall', '-Wextra', '-Werror',

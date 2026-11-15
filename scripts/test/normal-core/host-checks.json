@@ -95,6 +95,14 @@
     "mutant-guards-final": 1,
     "mutant-immediate-final": 1,
     "mutant-missing-final": 1,
-    "parent-verification": 0
+    "parent-verification": 0,
+    "first-frame-event": 0,
+    "audio-output-reuse-compile": 0,
+    "audio-output-reuse": 0,
+    "experimental-audio-adapter": 0,
+    "survival-runtime-permanent-stop": 0,
+    "audio-capacity-compile": 0,
+    "audio-capacity-unknown": 0,
+    "audio-capacity-quiescent": 0
   }
 }
