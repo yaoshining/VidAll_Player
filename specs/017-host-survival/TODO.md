@@ -26,7 +26,7 @@ Todoist 任务 ID（按上方四项顺序）：`6j295Q448pg9QX8p`、`6j295Q6Rx6R
 
 - 北京时间2026-11-09 18:35：[PR #91](https://github.com/yaoshining/VidAll_Player/pull/91) 合入 main，[#89](https://github.com/yaoshining/VidAll_Player/issues/89) 随之关闭。
 - 北京时间2026-11-11 08:39：[PR #92](https://github.com/yaoshining/VidAll_Player/pull/92) 合入 main，增加单会话故障隔离。
-- 当前分支：`codex/host-survival-contract`；生产候选：`c7d56ee`；当前证据T054/T055，尚无Spec017新PR。
+- 当前分支：`codex/host-survival-contract`；生产候选：`c7d56ee`；当前证据T054/T055，当前为[PR #94](https://github.com/yaoshining/VidAll_Player/pull/94)（未合并）。
 
 API24 平板不替代 API19 TV 正式入口验收；FFmpeg 和 VidAll_TV 的代码不在本 Player 任务内修改。永久平台挂起仍是未解决限制，不能因列入待办而视为需求已满足。
 
@@ -56,3 +56,5 @@ T052重登后复验：API24 Mini 1.0.57前后PID23494一致，手动继续后到
 ## 非阻塞后续事项
 
 [Issue #93](https://github.com/yaoshining/VidAll_Player/issues/93)：多次底层永久挂起耗尽资源，仍未解决。Todoist独立分区Issue93 · 永久挂起资源耗尽；分区ID `6j2R3M4j2v79HFvG`、任务ID `6j2Qrmww9VXrF39G`，迁移后保持未勾选。
+
+2026-11-15 T069：用户授权先进入PR审查，[PR #94](https://github.com/yaoshining/VidAll_Player/pull/94)由`codex/host-survival-contract`指向`main`；API19正式入口和完整x86_64缺口在正文显著标注。iMac CI与审查待结果，第4项仍开放，不以PR创建代替最终交付。

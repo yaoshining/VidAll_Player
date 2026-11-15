@@ -224,7 +224,7 @@ T067补充：1.0.100同HAR四会话/同PID18047同步素材验证，录制校准
 T068结果见[核心五项与边界](device-evidence/t068-diagnosis.md)。API24 TV同PID30178、原CI九库，五项功能及10核心音频区间通过；额外系统打断瞬时200ms门槛仍失败，独立10ms证明短20ms交接，不能改称全部音频全绿。按S38核心范围根清单3/4，API19/正式交付仍开放，#93非阻塞未解决。
 
 ### T069：PR与CI跟进（2026-11-15）
-- [ ] 整理当前main PR及显著API19/x86_64剩余缺口；Todoist `6j2cRxqXR7rG9RQG`。
+- [x] 已提交[PR #94](https://github.com/yaoshining/VidAll_Player/pull/94)，正文显著标注API19/x86_64剩余缺口；Todoist `6j2cRxqXR7rG9RQG`。
 - [ ] iMac CI当前head/合并预览、原HAR/九库/实际runner核验；Todoist `6j2cRxrwQpXHm5wp`。
 - [ ] 验证并处理自动审查、最终检查和未解决线程；Todoist `6j2cRxw9HPpRP8xG`。
 - [ ] 第4项最终交付及API19 TV正式入口；根任务`6j295Q7jffjHC3qp`保持开放。

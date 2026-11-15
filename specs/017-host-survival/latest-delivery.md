@@ -1,6 +1,6 @@
 # Spec017 当前候选与未完成交付
 
-2026-11-15：四项待办 **3/4完成**。当前原始CI HAR已完成API24 TV核心五项；尚未提Spec017 PR或合并，API19 TV正式文件入口仍未验收。多次永久挂起耗尽资源移至[#93](https://github.com/yaoshining/VidAll_Player/issues/93)，未解决但不再阻塞本次交付。
+2026-11-15：四项待办 **3/4完成**。当前原始CI HAR已完成API24 TV核心五项；已提交[PR #94](https://github.com/yaoshining/VidAll_Player/pull/94)，审查与iMac CI进行中，尚未合并，API19 TV正式文件入口仍未验收。多次永久挂起耗尽资源移至[#93](https://github.com/yaoshining/VidAll_Player/issues/93)，未解决但不再阻塞本次交付。
 
 ## 当前生产候选：56ebd3f
 
@@ -55,3 +55,5 @@ Renderer已成功Release后Builder清理挂起属于已有T035可恢复边界；
 4. 全局终局后停止使用旧实例，保留旧 Surface，等待 recovery.ready 后创建 compatible 实例并使用新 Surface。只有实际首帧与音频确认后才提示兼容切换成功。普通坏片与可隔离会话故障沿用原恢复路径。
 5. 按 [接入文档](../../docs/normal-core-integration.md) 处理容量错误和迟到回调；`PLAYER_EVENT_QUEUE_FULL` 是桥会话故障，释放后新建，不作为视频硬解失败标记。自动连播不能解除用户暂停或未结束的音频打断。
 6. 从 API 19 TV 正式文件入口继续验证正常播放、音频打断/手动恢复、切集、退出重开、故障后返回、再播其他视频，分别保存包哈希、PID、音画与原生日志。多次底层永久挂起耗尽资源的恢复另按#93跟进，不阻塞本次交付。
+
+2026-11-15 T069：用户授权先进入PR审查，[PR #94](https://github.com/yaoshining/VidAll_Player/pull/94)由`codex/host-survival-contract`指向`main`；API19正式入口和完整x86_64缺口在正文显著标注。iMac CI与审查待结果，第4项仍开放，不以PR创建代替最终交付。
