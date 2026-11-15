@@ -230,3 +230,12 @@ T068结果见[核心五项与边界](device-evidence/t068-diagnosis.md)。API24 
 - [ ] 第4项最终交付及API19 TV正式入口；根任务`6j295Q7jffjHC3qp`保持开放。
 
 负责会话修复 issue #89 / local / `01a1bccc-e2cc-7a13-8cd6-31aae7079fb0`；复用Spec017分区`6j296fXM7c27Vg7p`。多次底层永久挂起耗尽资源移至#93，仍未解决但非本次交付前置。
+
+### T070：时钟线程关闭锁序复核
+- [x] 审查SHA、交付源及完整调用链核对；当前join在remove取得control之前。
+- [x] 正常关闭、退休恢复、查询迟到与持锁join负例确定性回归；原实现四场景通过，错误顺序稳定检出。
+- [ ] 根据复现结果作最小变更，CI及Spec Kit/Todoist同步。
+
+Todoist `6j2fmV64v5vjrCFG`，负责会话修复 issue #89 / local / 01a1bccc-e2cc-7a13-8cd6-31aae7079fb0；原根清单3/4。
+
+详见[锁序复核与证据](device-evidence/t070-audio-close-order.md)。仅增加测试/CI/文档，当前生产顺序已正确，不将未成立的P1称为已修复生产缺陷。
