@@ -1,0 +1,59 @@
+{
+  "lockedSdkAbi": "arm64-v8a",
+  "legacyX86Libraries": [
+    {
+      "name": "libavcodec.so.62",
+      "sha256": "83dd3f030924757c230f29345c3964c0ec391eae73c0dd8a76e41e95bbb6fdf2",
+      "elfMachine": 62
+    },
+    {
+      "name": "libavfilter.so.11",
+      "sha256": "6054021b3fe48f68eeddfaf932601f27b56283256c2443e8b977e4f37f07213e",
+      "elfMachine": 62
+    },
+    {
+      "name": "libavformat.so.62",
+      "sha256": "4aa481984ff42877e824ca6b180baa234748cec2c861690b12936247e8f6e986",
+      "elfMachine": 62
+    },
+    {
+      "name": "libavutil.so.60",
+      "sha256": "c9f5719863b29ad0901ca59410797a586531dc614845ebb5e814f8148d63bdeb",
+      "elfMachine": 62
+    },
+    {
+      "name": "libswresample.so.6",
+      "sha256": "a867ccd03bb03b7439cc93ecdc728828baafa16f9336b42cba428841650cc0ce",
+      "elfMachine": 62
+    },
+    {
+      "name": "libswscale.so.9",
+      "sha256": "dbed1dd2b3446e87a836cf9954556192759aa1d0f656f5315c876dbb06c22ce4",
+      "elfMachine": 62
+    }
+  ],
+  "checkedAt": "2026-11-15",
+  "playerBase": "8a3ce572fb4b534cb4308db4c5f7c356cea5332b",
+  "branch": "codex/x86_64-har",
+  "upstreamRepo": "yaoshining/ohos_ijkplayer",
+  "upstreamDefaultBranch": "master",
+  "upstreamCommit": "32887363cb103163fe6557ca64c05539ad6d73f2",
+  "upstreamProducerScriptSHA256": "af24c0867667ab5e35446967c2ba072a74da2608d274cc6f8daa902e03441076",
+  "upstreamProducerAcceptedAbi": "arm64-v8a",
+  "releasesFound": 0,
+  "actionsArtifactsPagesChecked": 2,
+  "actionsArtifactsTotal": 198,
+  "currentX86SdkFound": false,
+  "oldLibavcodecExportsAvOhcodecReleaseBuffer": false,
+  "oldLibavcodecExportsSendPacket": true,
+  "legacyRuntimeIsCompleteDevelopmentSdk": false,
+  "playerFullCoreAbis": [
+    "arm64-v8a"
+  ],
+  "currentX86NapiMpvAvailable": false,
+  "harBuilt": false,
+  "ciTriggered": false,
+  "upstreamBuildTriggered": false,
+  "productionCodeChanged": false,
+  "blocker": "缺少来源和接口可核验的完整OHOS x86_64 FFmpeg SDK；FFmpeg构建归上游工程。"
+}
