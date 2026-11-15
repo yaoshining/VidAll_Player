@@ -58,3 +58,5 @@ T052重登后复验：API24 Mini 1.0.57前后PID23494一致，手动继续后到
 [Issue #93](https://github.com/yaoshining/VidAll_Player/issues/93)：多次底层永久挂起耗尽资源，仍未解决。Todoist独立分区Issue93 · 永久挂起资源耗尽；分区ID `6j2R3M4j2v79HFvG`、任务ID `6j2Qrmww9VXrF39G`，迁移后保持未勾选。
 
 2026-11-15 T069：用户授权先进入PR审查，[PR #94](https://github.com/yaoshining/VidAll_Player/pull/94)由`codex/host-survival-contract`指向`main`；API19正式入口和完整x86_64缺口在正文显著标注。bc85db8的iMac原HAR/九库已核验，102项宿主、原生来源和诊断CI通过；自动审查因额度/体积限制未完成。当前证据见[CI记录](device-evidence/t069-ci.json)与[跟进记录](device-evidence/t069-pr-followup.md)。第4项仍开放，不以PR/CI代替最终交付。
+
+2026-11-15 T070：时钟线程关闭锁序已核对；当前join在remove取得control前，真实函数四种交错通过，持锁join负例稳定检出。仅新增回归/CI/证据，未修改生产关闭顺序，详见[复核与CI回执](device-evidence/t070-audio-close-order.md)。这条锁序疑点已处理，PR仍未合并，根清单3/4。

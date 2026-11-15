@@ -30,3 +30,7 @@ ASan/UBSan启用。音频CI接入约束先红后绿，避免新增脚本未执�
 在已核对head及交付源中，所述“关闭持control再join”的P1路径不成立；故意制造该顺序的负例可稳定检出。不能据此宣称平台Stop/查询永久挂起已解决；#93、API19 TV正式入口、x86_64完整产物及既有设备边界仍保留。本轮CI结果在PR后续回执中绑定最终提交，旧CI不替代新测试结果。
 
 Todoist步骤`6j2fmV64v5vjrCFG`；负责会话修复 issue #89 / local / 01a1bccc-e2cc-7a13-8cd6-31aae7079fb0。
+
+## CI回执
+
+提交`0e4c8b1a2a25c1a4b75a944b9bf76798d37edf7b`：[音频/诊断CI43721487483](https://github.com/yaoshining/VidAll_Player/actions/runs/43721487483)成功，公开日志明确记录`mutant-cycle EXPECTED_DEADLOCK`及四个正向PASS；原有音频、中断、尺寸/旋转/完成事件回归继续通过。[102项组合宿主43721487549](https://github.com/yaoshining/VidAll_Player/actions/runs/43721487549)、原生来源43721487624和[iMac分支43721480908](https://github.com/yaoshining/VidAll_Player/actions/runs/43721480908)成功；iMac完成HAR、独立消费者和Hypium编译，实际runner为`yaoshiningdeiMac`。合并预览及之后仅文档提交的最终状态继续按各自SHA核对，不把这笔回执当成未来提交通过。

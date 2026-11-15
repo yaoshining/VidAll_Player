@@ -234,7 +234,7 @@ T068结果见[核心五项与边界](device-evidence/t068-diagnosis.md)。API24 
 ### T070：时钟线程关闭锁序复核
 - [x] 审查SHA、交付源及完整调用链核对；当前join在remove取得control之前。
 - [x] 正常关闭、退休恢复、查询迟到与持锁join负例确定性回归；原实现四场景通过，错误顺序稳定检出。
-- [ ] 根据复现结果作最小变更，CI及Spec Kit/Todoist同步。
+- [x] 根据复现结果仅补回归/CI，0e4c8b1音频/诊断、102项宿主、原生来源及iMac分支通过；Spec Kit/Todoist同步，最终PR检查仍逐head核对。
 
 Todoist `6j2fmV64v5vjrCFG`，负责会话修复 issue #89 / local / 01a1bccc-e2cc-7a13-8cd6-31aae7079fb0；原根清单3/4。
 
