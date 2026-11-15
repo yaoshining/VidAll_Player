@@ -22,6 +22,8 @@
 
 ## 当前状态
 
+813f251的Ubuntu真实关闭回归通过；组合门禁43702073657另发现experimental-audio-adapter失败。原runner只写work目录JSON，公开日志为空；同一14场景在本机ASan/UBSan通过。先以失败日志回归复现缺诊断，再补输出场景名、退出码及原始失败文本，不跳过实验门禁、不关闭sanitizer。远端根因待新CI输出确认。
+
 首个27ba36c分支iMac CI43700897420已构建HAR/独立消费者/Hypium成功；不是后续最终head通过。最终head的PR合并预览CI、原HAR/九库核验与审查状态继续跟进。API19正式入口、完整x86_64产物、API26历史独立复验和物理同步仍按PR正文披露；#93非阻塞未解决。
 
 Todoist子项：提交PR 6j2cRxqXR7rG9RQG已完成；CI 6j2cRxrwQpXHm5wp、审查6j2cRxw9HPpRP8xG未完成；根任务6j295Q7jffjHC3qp开放。负责会话修复 issue #89 / local / 01a1bccc-e2cc-7a13-8cd6-31aae7079fb0。

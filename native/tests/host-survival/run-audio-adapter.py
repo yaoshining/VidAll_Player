@@ -16,6 +16,9 @@ def main():
         for case in CASES:
             run = subprocess.run([binary, case], timeout=15, capture_output=True, text=True)
             results.append(dict(case=case, exit=run.returncode, output=run.stdout + run.stderr))
+            print(f'{case}: {"FAIL" if run.returncode else "PASS"} (exit={run.returncode})', flush=True)
+            if run.returncode:
+                print(run.stdout + run.stderr, flush=True)
         args.out.write_text(json.dumps(dict(layer='host-platform-fake', cases=results), ensure_ascii=False, indent=2) + '\n')
         if any(row['exit'] for row in results):
             raise SystemExit(1)
