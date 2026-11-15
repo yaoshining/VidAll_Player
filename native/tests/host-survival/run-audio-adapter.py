@@ -15,8 +15,17 @@ def main():
             str(ROOT / 'native/experimental/audio_output_adapter.c'), '-o', binary], check=True)
         results = []
         for case in CASES:
-            run = subprocess.run([binary, case], timeout=15, capture_output=True, text=True)
-            results.append(dict(case=case, exit=run.returncode, output=run.stdout + run.stderr))
+            timed_out = False
+            try:
+                run = subprocess.run([binary, case], timeout=15, capture_output=True, text=True)
+            except subprocess.TimeoutExpired as error:
+                # 即使text=True，TimeoutExpired携带的输出也可能仍为bytes。
+                def decode(value):
+                    return value.decode(errors='replace') if isinstance(value, bytes) else (value or '')
+                timed_out = True
+                run = subprocess.CompletedProcess([binary, case], 124, decode(error.stdout),
+                                                   decode(error.stderr) + '\nTIMEOUT after 15 seconds\n')
+            results.append(dict(case=case, exit=run.returncode, output=run.stdout + run.stderr, timedOut=timed_out))
             print(f'{case}: {"FAIL" if run.returncode else "PASS"} (exit={run.returncode})', flush=True)
             if run.returncode:
                 print(run.stdout + run.stderr, flush=True)

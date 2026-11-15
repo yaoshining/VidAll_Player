@@ -87,6 +87,7 @@ class AudioInputTests(unittest.TestCase):
         self.assertIn('prepare-audio-ci-input.py',workflow)
         self.assertIn('audio-interrupt/ci-input.test.py',workflow)
         self.assertIn('audio-interrupt/legacy-lifetime.test.py',workflow)
+        self.assertIn('native/tests/host-survival/audio-adapter-runner.test.py',workflow)
         for suite in ('audio-data','audio-control','audio-lifecycle','audio-clock','audio-close-order'):
             self.assertIn('native/tests/host-survival/'+suite+'.test.py',workflow)
         self.assertNotIn('git -C .cache/mpv-interrupt apply',workflow)

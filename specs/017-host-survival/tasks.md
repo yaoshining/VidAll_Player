@@ -239,3 +239,10 @@ T068结果见[核心五项与边界](device-evidence/t068-diagnosis.md)。API24 
 Todoist `6j2fmV64v5vjrCFG`，负责会话修复 issue #89 / local / 01a1bccc-e2cc-7a13-8cd6-31aae7079fb0；原根清单3/4。
 
 详见[锁序复核与证据](device-evidence/t070-audio-close-order.md)。仅增加测试/CI/文档，当前生产顺序已正确，不将未成立的P1称为已修复生产缺陷。
+
+### T071：公开审查的测试超时证据修复
+- [x] 三种TimeoutExpired输出（bytes/str/None）先红后绿，保留前后所有场景，统一JSON及失败退出。
+- [x] 超时明确记录退出124/timedOut，保留15秒上限；正常失败/成功路径回归保留。
+- [x] 回归接入已有音频CI，接入约束先红后绿；不增加生产或平台改动。
+
+远端CI与审查线程处理结果以[PR94线程](https://github.com/yaoshining/VidAll_Player/pull/94#discussion_r4578674268)的逐提交回执为准，不以上述本地实现勾选冒称远端已通过。Todoist `6j2fv9rj8R447mwG`，负责会话修复 issue #89 / local / 01a1bccc-e2cc-7a13-8cd6-31aae7079fb0。
