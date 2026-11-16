@@ -4,10 +4,10 @@ namespace vidall::render {
 
 RenderBackend SelectRenderBackend(const BackendCapabilities& capabilities)
 {
-    if (capabilities.vulkanSafe) {
+    if (capabilities.gpuBuildAvailable && capabilities.vulkanSafe) {
         return RenderBackend::Vulkan;
     }
-    if (capabilities.openGlesAvailable) {
+    if (capabilities.gpuBuildAvailable && capabilities.openGlesAvailable) {
         return RenderBackend::OpenGles;
     }
     if (capabilities.softwareAvailable) {

@@ -36,6 +36,7 @@ def compiled_output(path):
 def proof(r,source,target):
  try:
   artifact=r['artifact'];expected=target['artifact'];libraries=expected['libraries']
+  if 'architectureLibraries' in target and (artifact.get('architectureLibraries')!=target['architectureLibraries'] or r.get('dependency',{}).get('installedArchitectureLibraries')!=target['architectureLibraries']):return False
   return r.get('passed') is True and r.get('sourceBefore')==source==r.get('sourceAfter') and r.get('inputHAR')==expected['harSHA256'] and r.get('compiled') is True and r.get('signed') is False and r.get('executed') is False and r.get('cleanup',{}).get('passed') is True and r.get('suiteNames')==sorted(SUITES) and r.get('dependency',{}).get('passed') is True and r['dependency'].get('installedLibraries')==libraries and artifact.get('passed') is True and artifact.get('libraries')==libraries and set(libraries)==E.TARGET.NAMES|{'libvidall_player_native.so'} and artifact.get('api')==target['api'] and E.hash_valid(artifact.get('hapSHA256')) and E.hash_valid(r.get('bytecodeSHA256')) and type(r.get('bytecodeBytes')) is int and r['bytecodeBytes']>0 and r.get('moduleName')=='entry_test' and r.get('stagedSources')==suite_sources(ROOT/'entry/src/ohosTest') and type(r.get('buildExit')) is int and r['buildExit']==0
  except (KeyError,TypeError,ValueError,OSError):return False
 
@@ -56,7 +57,7 @@ def execute(root,out,studio,wrapper,common):
    if name=='hypium-clean' and list((project/'entry/build').rglob('*.hap')):raise ValueError('Hypium clean残留HAP')
   result['buildExit']=rows[-1]['exit'];haps=list((project/'entry/build/default/outputs/ohosTest').glob('*-unsigned.hap'))
   if len(haps)!=1:raise ValueError('缺少唯一unsigned Hypium HAP')
-  result['artifact']=C.verify_hap(haps[0],libraries);result.update(compiled_output(haps[0]));result['dependency']=C.installed_identity(project,libraries,dest)
+  result['artifact']=C.verify_hap(haps[0],libraries,target.get('architectureLibraries'));result.update(compiled_output(haps[0]));result['dependency']=C.installed_identity(project,libraries,dest,target.get('architectureLibraries'))
   if suite_sources(project/'entry/src/ohosTest')!=result['stagedSources'] or result['stagedSources']!=suite_sources(root/'entry/src/ohosTest'):raise ValueError('Hypium测试源码漂移')
   C.verify_har_digest(dest,result['inputHAR']);C.verify_har_digest(har,result['inputHAR']);result.update(sourceAfter=E.CONTEXT.assert_snapshot(root,source),passed=True)
  except Exception as error:result.update(errorType=type(error).__name__,error=E.redact(str(error)))

@@ -1,0 +1,10 @@
+{
+  "abi": "x86_64",
+  "requiredSymbol": "ohcodec_smb_runtime_configure_v1",
+  "errors": [],
+  "scope": "仅 SMB 宿主运行时前置合同；不代表完整 SDK 或设备验收",
+  "headerSHA256": "b952497cd47e840dfffd2262cfd874caa8521175a88bdc595d9f9910f23c9f26",
+  "librarySHA256": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51",
+  "symbolExported": true,
+  "passed": true
+}

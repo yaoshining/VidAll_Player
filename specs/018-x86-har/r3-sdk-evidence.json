@@ -1,0 +1,72 @@
+{
+  "archiveSHA256": "df5ea45b19563ec6a7d5116852529dc58b37811dde6a0386c816b9b96472c591",
+  "manifestSHA256": "bdc22242d1848cd51feb1a62ca4da4dd724344b5fb1e4e21f3d0fb9ae41a7e09",
+  "sourceCommit": "bd161c09fa66146b955d54833c0d41fb96460bdc",
+  "actualBuildHost": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "libraries": [
+    {
+      "file": "libavcodec.so",
+      "sha256": "fa0dd2c36ada2ddbd33fd75536f4e52232ccd91edf5eb834ec8f6a17c6f321a9",
+      "soname": "libavcodec.so.62",
+      "needed": [
+        "libswresample.so.6",
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    {
+      "file": "libavfilter.so",
+      "sha256": "7742694428b1e159017cc2cb374eb81c038d633b1850d5eb3247b4927181aa03",
+      "soname": "libavfilter.so.11",
+      "needed": [
+        "libswscale.so.9",
+        "libavformat.so.62",
+        "libavcodec.so.62",
+        "libswresample.so.6",
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    {
+      "file": "libavformat.so",
+      "sha256": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51",
+      "soname": "libavformat.so.62",
+      "needed": [
+        "libavcodec.so.62",
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    {
+      "file": "libavutil.so",
+      "sha256": "4c07f45b7bcdf09ffbfc6236635a849dd33e4dff74c57161d01688e417f60fc1",
+      "soname": "libavutil.so.60",
+      "needed": [
+        "libc.so"
+      ]
+    },
+    {
+      "file": "libswresample.so",
+      "sha256": "d857a8dae52162e3e8fbf8ac2ae6f944cce13986b519c382a2752b77b3962dd3",
+      "soname": "libswresample.so.6",
+      "needed": [
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    {
+      "file": "libswscale.so",
+      "sha256": "9cb5661645fec12716ca846358598368c9fa6021844a89b5dec980003d707ba5",
+      "soname": "libswscale.so.9",
+      "needed": [
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    }
+  ],
+  "sdkFilesVerified": 332,
+  "manifestRecordsVerified": 330,
+  "linkPassed": true,
+  "targetExecuted": false,
+  "api19Acceptance": false
+}

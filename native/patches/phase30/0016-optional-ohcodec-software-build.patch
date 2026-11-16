@@ -1,0 +1,159 @@
+--- a/meson.options
++++ b/meson.options
+@@ -37,6 +37,7 @@
+ option('x11-clipboard', type: 'feature', value: 'auto', description: 'X11 clipboard backend')
+ option('zimg', type: 'feature', value: 'auto', description: 'libzimg support (high quality software scaler)')
+ option('zlib', type: 'feature', value: 'auto', description: 'zlib')
++option('ohcodec', type: 'feature', value: 'enabled', description: 'HarmonyOS OHCodec hardware integration')
+ option('ohos', type: 'feature', value: 'disabled', description: 'System is HarmonyOS')
+ 
+ # audio output features
+--- a/meson.build
++++ b/meson.build
+@@ -478,20 +478,21 @@
+ endif
+ 
+ features += {'ohos': get_option('ohos').enabled()}
++features += {'ohcodec': features['ohos'] and get_option('ohcodec').enabled()}
+ if features['ohos']
+     dependencies += [cc.find_library('ohaudio'),
+                      cc.find_library('deviceinfo_ndk.z'),
+-                     cc.find_library('native_media_codecbase'),
+-                     cc.find_library('native_media_core'),
+-                     cc.find_library('native_media_vdec'),
+-                     cc.find_library('native_buffer'),
+-                     cc.find_library('native_image'),
+                      cc.find_library('native_window')]
+     sources += files('common/host_recovery.c', 'audio/out/ao_ohaudio.c',
+                      'video/out/ohos_common.c',
+-                     'video/out/hwdec/hwdec_ohcodec.c',
+                      'video/out/hwdec/ohcodec_terminal.c',
+                      'video/out/hwdec/ohcodec_terminal_api.c')
++endif
++if features['ohcodec']
++    dependencies += [cc.find_library('native_media_codecbase'), cc.find_library('native_media_core'),
++                     cc.find_library('native_media_vdec'), cc.find_library('native_buffer'),
++                     cc.find_library('native_image')]
++    sources += files('video/out/hwdec/hwdec_ohcodec.c')
+ endif
+ 
+ uwp_opt = get_option('uwp').require(
+@@ -1261,8 +1262,10 @@
+ if features['egl-ohos']
+     dependencies += egl_ohos
+     features += {'gl': true}
+-    sources += files('video/out/opengl/context_ohos.c',
+-                     'video/out/hwdec/hwdec_ohcodec_gl.c')
++    sources += files('video/out/opengl/context_ohos.c')
++    if features['ohcodec']
++        sources += files('video/out/hwdec/hwdec_ohcodec_gl.c')
++    endif
+ endif
+ 
+ egl_drm = get_option('egl-drm').require(
+@@ -1361,8 +1364,10 @@
+ endif
+ 
+ if features['vulkan'] and features['ohos']
+-     sources += files('video/out/vulkan/context_ohos.c',
+-                      'video/out/hwdec/hwdec_ohcodec_pl.c')
++     sources += files('video/out/vulkan/context_ohos.c')
++     if features['ohcodec']
++         sources += files('video/out/hwdec/hwdec_ohcodec_pl.c')
++     endif
+ endif
+ 
+ features += {'vk-khr-display': vulkan.type_name() == 'internal' or
+--- a/video/out/gpu/hwdec.c
++++ b/video/out/gpu/hwdec.c
+@@ -77,7 +77,7 @@
+ #if HAVE_ANDROID_MEDIA_NDK
+     &ra_hwdec_aimagereader,
+ #endif
+-#if HAVE_OHOS
++#if HAVE_OHCODEC
+     &ra_hwdec_ohcodec,
+ #endif
+ #if HAVE_VULKAN
+--- a/video/fmt-conversion.c
++++ b/video/fmt-conversion.c
+@@ -59,7 +59,9 @@
+     {IMGFMT_VDPAU, AV_PIX_FMT_VDPAU},
+     {IMGFMT_VIDEOTOOLBOX,   AV_PIX_FMT_VIDEOTOOLBOX},
+     {IMGFMT_MEDIACODEC, AV_PIX_FMT_MEDIACODEC},
++#if HAVE_OHCODEC
+     {IMGFMT_OHCODEC, AV_PIX_FMT_OHCODEC},
++#endif
+     {IMGFMT_VAAPI, AV_PIX_FMT_VAAPI},
+     {IMGFMT_DXVA2, AV_PIX_FMT_DXVA2_VLD},
+     {IMGFMT_D3D11, AV_PIX_FMT_D3D11},
+--- a/video/decode/vd_lavc.c
++++ b/video/decode/vd_lavc.c
+@@ -903,14 +903,22 @@
+ 
+ static bool ohcodec_lifecycle_enabled(vd_ffmpeg_ctx *ctx)
+ {
++#if HAVE_OHCODEC
+     return ctx->use_hwdec && ctx->vo && ctx->avctx &&
+            ctx->hwdec.lavc_device == AV_HWDEVICE_TYPE_OHCODEC;
++#else
++    return false; // 此构建未注册硬解设备，不执行硬解生命周期操作。
++#endif
+ }
+ 
+ static bool ohcodec_surface_query_enabled(vd_ffmpeg_ctx *ctx)
+ {
++#if HAVE_OHCODEC
+     return ctx->use_hwdec && ctx->vo &&
+            ctx->hwdec.lavc_device == AV_HWDEVICE_TYPE_OHCODEC;
++#else
++    return false; // 此构建未注册硬解设备，不执行硬解生命周期操作。
++#endif
+ }
+ 
+ static bool ohcodec_surface_invalid(vd_ffmpeg_ctx *ctx)
+--- a/video/out/vo_gpu_next.c
++++ b/video/out/vo_gpu_next.c
+@@ -45,7 +45,9 @@
+ #include "placebo/utils.h"
+ #include "gpu/context.h"
+ #include "gpu/hwdec.h"
++#if HAVE_OHCODEC
+ #include "hwdec/hwdec_ohcodec.h"
++#endif
+ #include "gpu/video.h"
+ #include "gpu/video_shaders.h"
+ #include "sub/osd.h"
+@@ -1863,6 +1865,7 @@
+         return VO_TRUE;
+     }
+ 
++#if HAVE_OHCODEC
+     case VOCTRL_OHCODEC_SURFACE: {
+         struct vo_ohcodec_surface_req *req = data;
+         if (!req)
+@@ -1922,6 +1925,8 @@
+         return VO_TRUE;
+     }
+ 
++
++#endif
+     case VOCTRL_RESET:
+         // Defer until the first new frame (unique ID) actually arrives
+         p->want_reset = true;
+@@ -2179,6 +2184,7 @@
+      * barrier inside ohcodec_mapper_drain and never returns, so the queue,
+      * hwdec registry, GPU context and the whole parent tree stay retained.
+      */
++#if HAVE_OHCODEC
+     struct ra_hwdec_mapper *oh_mapper = p->hwdec_mapper;
+     if (oh_mapper && ohcodec_mapper_can_drain(oh_mapper)) {
+         vo_ohcodec_retire_frames(vo);
+@@ -2201,6 +2207,7 @@
+         if (owner && owner->resource_retained)
+             ohcodec_owner_fault(owner, -1, MP_OHCODEC_TERMINAL_LATE);
+     }
++#endif
+     pl_queue_destroy(&p->queue); // destroy this first
+     for (int i = 0; i < MP_ARRAY_SIZE(p->osd_state.entries); i++)
+         pl_tex_destroy(p->gpu, &p->osd_state.entries[i].tex);

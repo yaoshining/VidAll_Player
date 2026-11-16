@@ -4,11 +4,12 @@ import json
 import os
 from pathlib import Path
 
-STAGES = ('checkout', 'init', 'context', 'runtime', 'archive', 'target', 'negative', 'consumer', 'hypium', 'cleanup', 'har')
+STAGES = ('checkout', 'init', 'context', 'runtime', 'archive', 'x86-contracts', 'target', 'negative', 'consumer', 'hypium', 'cleanup', 'har')
 RESULT_FILES = {'target': 'evaluation-result.json', 'negative': 'consumer-negative-result.json',
                 'consumer': 'consumer-result.json', 'hypium': 'hypium-result.json'}
 COMMANDS = {'cli-version', 'node-version', 'clean', 'input-audit', 'har-build', 'bridge-undefined',
-            'bridge-dynamic', 'consumer-negative-clean', 'consumer-negative-build', 'consumer-clean',
+            'bridge-dynamic', 'x86-input-audit', 'arm64-v8a-bridge-dynamic', 'arm64-v8a-bridge-undefined',
+            'x86_64-bridge-dynamic', 'x86_64-bridge-undefined', 'consumer-negative-clean', 'consumer-negative-build', 'consumer-clean',
             'consumer-build', 'hypium-clean', 'hypium-build'}
 OUTCOMES = {'success', 'failure', 'cancelled', 'skipped'}
 

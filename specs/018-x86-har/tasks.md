@@ -1,8 +1,8 @@
 # Spec018 任务
 
 - [x] T001 从最新main创建codex/x86_64-har；只读核验依赖。证据evidence.json；Todoist `6j2gC295FrP57H3G`。
-- [ ] T002 取得并核验完整上游x86_64 SDK。r2 已取得，309 项摘要/六库架构/依赖通过；**阻塞于缺少 SMB 宿主运行时接口**，见 sdk-acceptance.md 及[上游Issue #12](https://github.com/yaoshining/ohos_ijkplayer/issues/12)；Todoist `6j2gC2F2HCqQW28G`。部分完成，不勾选。
-- [ ] T003 先红后绿补Player多ABI核心、NAPI及HAR构建/审计，保留ARM64及Spec017。Todoist `6j2gC2FR9ChrRGjp`。
+- [x] T002 取得并核验上游 r3 x86_64 SDK：332 项摘要、六库架构/依赖、配套 SMB 头文件/动态导出及实际消费者链接通过；证据 r3-sdk-evidence.json、r3-link-probe.json。仅输入验收，不代表运行验收；Todoist `6j2gC2F2HCqQW28G`。
+- [x] T003 先红后绿补Player多ABI核心、NAPI及HAR构建/审计，保留ARM64及Spec017。证据 implementation-evidence.md、host-regression.json、本地双架构 HAR/消费者。Todoist `6j2gC2FR9ChrRGjp`。
   - [x] T003a SDK 宿主运行时前置门禁：9 项单元测试先红后绿；真实 r2 正确拒绝，最小链接复现缺符号。仅完成门禁，不代表多 ABI 核心实现；Todoist `6j2h5Q8mfc68rwvp` 已完成。
 - [ ] T004 iMac CI、独立消费、x86_64模拟器验证，交付原始HAR与哈希。Todoist `6j2gC2GjwFQf4v9p`。
 

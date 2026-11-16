@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "architecture": "x86_64",
+  "libraries": {
+    "libavcodec.so.62": "fa0dd2c36ada2ddbd33fd75536f4e52232ccd91edf5eb834ec8f6a17c6f321a9",
+    "libavfilter.so.11": "7742694428b1e159017cc2cb374eb81c038d633b1850d5eb3247b4927181aa03",
+    "libavformat.so.62": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51",
+    "libavutil.so.60": "4c07f45b7bcdf09ffbfc6236635a849dd33e4dff74c57161d01688e417f60fc1",
+    "libc++_shared.so": "a411fee450ad8e60ee12a3b282d3609f9623307b3f6d2b244e1428091cf54603",
+    "libmpv.so": "9ef5fe37b759fc9e25246c05cd51242415bb7dfafc7b5e91cc36f64cb2bbd4d5",
+    "libswresample.so.6": "d857a8dae52162e3e8fbf8ac2ae6f944cce13986b519c382a2752b77b3962dd3",
+    "libswscale.so.9": "9cb5661645fec12716ca846358598368c9fa6021844a89b5dec980003d707ba5"
+  },
+  "deviceVerified": false
+}

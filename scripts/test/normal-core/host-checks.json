@@ -103,6 +103,8 @@
     "survival-runtime-permanent-stop": 0,
     "audio-capacity-compile": 0,
     "audio-capacity-unknown": 0,
-    "audio-capacity-quiescent": 0
+    "audio-capacity-quiescent": 0,
+    "software-core-elf-tests": 0,
+    "software-core-input-audit": 0
   }
 }

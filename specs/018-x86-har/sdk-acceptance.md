@@ -1,3 +1,5 @@
+> 历史 r2 输入验收，后续 r3 已补齐 SMB 契约并通过；当前证据见 `r3-sdk-evidence.json`、`r3-link-probe.json`。
+
 # x86_64 SDK r2 接收核验（2026-11-16）
 
 ## 已通过的输入检查

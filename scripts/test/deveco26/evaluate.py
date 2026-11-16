@@ -64,15 +64,16 @@ def redact(text):
  return re.sub(r'/(?:private/tmp|Users|Applications|Volumes|home/runner|tmp|opt)/[^\s"\'<>]*','<HOST_PATH>',text)
 def result_passed(result,steps_ok):return steps_ok and result.get('passed') is True
 
-def cpp_abi(root,bridge,native,work,rows,env):
+def cpp_abi(root,bridge,native,work,rows,env,architecture="arm64-v8a"):
+ core="004-normal-core" if architecture=="arm64-v8a" else "018-x86-core"
  nm=native/'llvm/bin/llvm-nm';readelf=native/'llvm/bin/llvm-readelf'
- def command(name,args):return TARGET.command(name,args,root,env,work,rows,60)
+ def command(name,args):return TARGET.command(architecture+'-'+name,args,root,env,work,rows,60)
  needed=command('bridge-dynamic',[readelf,'-d',bridge])
  undefined=command('bridge-undefined',[nm,'-D','--undefined-only','--format=posix',bridge])
  imports={line.split()[0] for line in undefined.splitlines() if len(line.split())>=2}
  cpp={s for s in imports if s.startswith('_Z') or s.startswith(('__cxa_guard','__cxa_throw','__cxa_begin','__cxa_end','__gxx'))}
  providers=set()
- for p in sorted((root/'release/inputs/004-normal-core/arm64-v8a').glob('*.so*')):
+ for p in sorted((root/'release/inputs'/core/architecture).glob('*.so*')):
   text=command('exports-'+p.name,[nm,'-D','--defined-only','--format=posix',p])
   providers.update(line.split()[0] for line in text.splitlines() if len(line.split())>=2)
  missing=sorted(cpp-providers)
@@ -80,16 +81,18 @@ def cpp_abi(root,bridge,native,work,rows,env):
  if missing:raise ValueError('新bridge需要固定八库未提供的C++符号：'+','.join(missing))
  return evidence
 
-def link_identity(ninja,root):
+def link_identity(ninja,root,architecture="arm64-v8a"):
+ if architecture not in {"arm64-v8a","x86_64"}:raise ValueError("不支持的runtime架构")
+ core="004-normal-core" if architecture=="arm64-v8a" else "018-x86-core"
  text=Path(ninja).read_text()
  flags=re.findall(r'^  LINK_FLAGS = (.*)$',text,re.M);libraries=re.findall(r'^  LINK_LIBRARIES = (.*)$',text,re.M)
  if len(flags)!=1 or len(libraries)!=1 or '-nostdlib++' not in shlex.split(flags[0]):raise ValueError('缺少唯一真实link规则或SDK默认runtime未关闭')
  tokens=shlex.split(libraries[0].replace('$ ',r'\ '))
  if any(t in {'-lc++','-lc++_shared','-lstdc++'} for t in tokens):raise ValueError('真实link仍有自动runtime')
  runtimes=[Path(t).resolve() for t in tokens if t.endswith('/libc++_shared.so')]
- expected=(Path(root)/'release/inputs/004-normal-core/arm64-v8a/libc++_shared.so').resolve()
+ expected=(Path(root)/'release/inputs'/core/architecture/'libc++_shared.so').resolve()
  if runtimes!=[expected]:raise ValueError('真实link未唯一绑定固定runtime')
- return {'passed':True,'buildNinjaSHA256':sha(ninja),'runtimeSHA256':'9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042','automaticRuntimeDisabled':True,'linkFlags':flags[0],'linkLibraries':libraries[0]}
+ return {'passed':True,'buildNinjaSHA256':sha(ninja),'runtimeSHA256':('9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042' if architecture=='arm64-v8a' else 'a411fee450ad8e60ee12a3b282d3609f9623307b3f6d2b244e1428091cf54603'),'automaticRuntimeDisabled':True,'linkFlags':flags[0],'linkLibraries':libraries[0]}
 
 def clean_evaluation_native(root):
  # 官方Hvigor只执行ninja clean并删除CMakeCache，保留编译数据库。
@@ -127,12 +130,16 @@ def execute(root,out,studio,wrapper,common,env,timeout=1200):
   if node_version!=lock['nodeVersion'] or version_line(cli('cli-version',['--version']))!=lock['cli']['version']:raise ValueError('实际Node/CLI版本不符')
   base=root/'release/inputs/004-normal-core';manifest=json.loads((base/'manifest.json').read_text());inputs=TARGET.input_bytes(base,manifest['libraries']);result['inputsBefore']=inputs
   if set(inputs)!=TARGET.NAMES:raise ValueError('固定八库集合不符')
+  xbase=root/'release/inputs/018-x86-core';xmanifest=json.loads((xbase/'manifest.json').read_text())
+  xinputs=TARGET.input_bytes(xbase,xmanifest['libraries'])
+  if set(xinputs)!=TARGET.NAMES:raise ValueError('x86固定八库集合不符')
   clean=cli('clean',['build','clean']);selected,_=TARGET.selected_studio(clean)
   if Path(selected).resolve()!=studio:raise ValueError('clean选择不同Studio')
   result['nativeClean']=clean_evaluation_native(root)
   output=root/'packages/vidall-player/build/default/outputs/deveco26';cc=root/'packages/vidall-player/.cxx/default/deveco26/debug/arm64-v8a/compile_commands.json';bridge=root/'packages/vidall-player/build/default/intermediates/stripped_native_libs/deveco26/arm64-v8a/libvidall_player_native.so'
   if list(output.glob('*.har')) or cc.exists() or bridge.exists():raise ValueError('clean残留旧输出')
   TARGET.command('input-audit',[sys.executable,'-B',root/'scripts/audit/normal-core-verify.py'],root,child,work,rows,120)
+  TARGET.command('x86-input-audit',[sys.executable,'-B',root/'scripts/audit/x86-core-verify.py'],root,child,work,rows,120)
   built=cli('har-build',['build','--modules','vidall_player@deveco26']);selected,_=TARGET.selected_studio(built)
   if Path(selected).resolve()!=studio:raise ValueError('build选择不同Studio')
   hars=list(output.glob('*.har'))
@@ -145,6 +152,21 @@ def execute(root,out,studio,wrapper,common,env,timeout=1200):
   if not required.issubset({x['source'] for x in result['compiledSources']}):raise ValueError('缺少真实产品编译单元')
   result['linkIdentity']=link_identity(cc.parent/'build.ninja',root)
   result['compileCommandsSHA256']=sha(cc);result['abi']=cpp_abi(root,bridge,native,work,rows,child)
+  xcc=root/'packages/vidall-player/.cxx/default/deveco26/debug/x86_64/compile_commands.json'
+  xbridge=root/'packages/vidall-player/build/default/intermediates/stripped_native_libs/deveco26/x86_64/libvidall_player_native.so'
+  xartifact=TARGET.verify_har(hars[0],xmanifest['libraries'],xbridge,'x86_64')
+  xunits=json.loads(xcc.read_text())
+  for unit in xunits:
+   args=unit.get('arguments') or shlex.split(unit['command'])
+   if '--target=x86_64-linux-ohos' not in args or '-DVIDALL_MPV_AVAILABLE=1' not in args or '-DVIDALL_SOFTWARE_ONLY=1' not in args:raise ValueError('x86桥缺真实mpv/软件配置或目标架构')
+  xsources=TARGET.compiled_sources(root,xcc,native)
+  if not required.issubset({x['source'] for x in xsources}):raise ValueError('x86缺真实产品编译单元')
+  result['x86']={'artifact':xartifact,'compiledSources':xsources,'linkIdentity':link_identity(xcc.parent/'build.ninja',root,'x86_64'),'abi':cpp_abi(root,xbridge,native,work,rows,child,'x86_64')}
+  result['architectureLibraries']={'arm64-v8a':result['artifact']['libraries'],'x86_64':xartifact['libraries']}
+  with tarfile.open(hars[0]) as archive:
+   abis={item.name.split('/')[2] for item in archive.getmembers() if item.isfile() and item.name.startswith('package/libs/')}
+   if abis!={'arm64-v8a','x86_64'}:raise ValueError('HAR含非预期架构')
+  if TARGET.input_bytes(xbase,xmanifest['libraries'])!=xinputs:raise ValueError('构建修改x86固定八库')
   if TARGET.input_bytes(base,manifest['libraries'])!=inputs:raise ValueError('构建修改固定八库')
   preflight(studio,wrapper,common,lock,platform.machine());result['sourceAfter']=CONTEXT.assert_snapshot(root,before);result['passed']=True
  except Exception as e:result.update(errorType=type(e).__name__,error=redact(str(e)))

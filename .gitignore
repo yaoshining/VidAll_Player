@@ -61,3 +61,6 @@ fixtures/libmpv-player-consumer/oh-package-lock.json5
 !release/inputs/004-normal-core/**
 scripts/test/normal-core/node_modules/
 fixtures/normal-core-consumer/entry/libs/
+
+# Spec018 封存的软件解码核心输入
+!release/inputs/018-x86-core/**

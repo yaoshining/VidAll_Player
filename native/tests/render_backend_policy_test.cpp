@@ -35,5 +35,9 @@ int main()
     // GLES must remain a safe fallback when Vulkan evidence is incomplete.
     passed &= check(SelectRenderBackend({false, true, false}) == RenderBackend::OpenGles,
         "GLES fallback is selected when Vulkan evidence is incomplete");
+    passed &= check(SelectRenderBackend({true, true, true, false}) == RenderBackend::Software,
+        "software-only build ignores vendor GPU files");
+    passed &= check(SelectRenderBackend({true, true, false, false}) == RenderBackend::Unavailable,
+        "software-only build without software renderer cannot advertise GPU");
     return passed ? 0 : 1;
 }

@@ -16,6 +16,12 @@ class ReportTests(unittest.TestCase):
             with self.subTest(outcome=outcome):
                 self.assertEqual(summarize({'archive': {'outcome': outcome}}, {})['archive']['outcome'], outcome)
 
+    def test_x86_stage_and_command(self):
+        reports = {'target': {'commands': [{'name': 'x86-input-audit', 'exit': 1}]}}
+        result = summarize({'x86-contracts': {'outcome': 'success'}, 'target': {'outcome': 'failure'}}, reports)
+        self.assertEqual(result['x86-contracts']['outcome'], 'success')
+        self.assertEqual(result['target']['failedCommands'], [{'name': 'x86-input-audit', 'exit': 1}])
+
     def test_omit_unknown_data(self):
         reports = {'target': {'error': 'private', 'commands': [{'name':'private','exit':1}]}}
         self.assertEqual(summarize({}, reports)['target'], {'outcome':'unknown', 'failedCommands':[]})

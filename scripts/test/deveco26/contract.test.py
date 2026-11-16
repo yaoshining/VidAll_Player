@@ -86,6 +86,9 @@ class Execution(Contract):
   for name in self.m.TARGET.NAMES:
    p=base/name;p.write_text(name);libs.append({'path':name,'sha256':self.m.sha(p)})
   (base/'manifest.json').write_text(json.dumps({'libraries':libs}))
+  xbase=repo/'release/inputs/018-x86-core';xbase.mkdir(parents=True)
+  for name in self.m.TARGET.NAMES:(xbase/name).write_text(name)
+  (xbase/'manifest.json').write_text(json.dumps({'libraries':libs}))
   for args in [('init','-q'),('add','.'),('-c','user.name=test','-c','user.email=test@example.test','commit','-qm','fixture')]:subprocess.run(['git','-C',str(repo),*args],check=True,capture_output=True)
   out=self.root/'out';(out/'work').mkdir(parents=True);before=self.m.CONTEXT.snapshot(repo);(out/'work/context.json').write_text(json.dumps({'passed':True,**before}))
   with patch.object(self.m,'HERE',scripts),patch.object(self.m.platform,'machine',return_value='arm64'),patch.object(self.m,'resolve_cli',return_value={'fixture':True}):
@@ -102,6 +105,11 @@ class LinkIdentity(unittest.TestCase):
  def fixture(self):
   p=self.root/'build.ninja';runtime=self.root/'release/inputs/004-normal-core/arm64-v8a/libc++_shared.so';p.write_text('  LINK_FLAGS = -nostdlib++ -Wl,--no-undefined\n  LINK_LIBRARIES = -lace_napi.z '+str(runtime)+' -lm\n');return p
  def test_real_link_uses_fixed_runtime(self):self.assertTrue(self.m.link_identity(self.fixture(),self.root)['passed'])
+ def test_x86_runtime_is_bound_separately(self):
+  p=self.fixture()
+  with self.assertRaises(ValueError):self.m.link_identity(p,self.root,'x86_64')
+  p.write_text(p.read_text().replace('004-normal-core/arm64-v8a','018-x86-core/x86_64'))
+  self.assertTrue(self.m.link_identity(p,self.root,'x86_64')['passed'])
  def test_sdk_automatic_link_rejected(self):
   p=self.fixture();p.write_text(p.read_text().replace('-nostdlib++',''))
   with self.assertRaises(ValueError):self.m.link_identity(p,self.root)

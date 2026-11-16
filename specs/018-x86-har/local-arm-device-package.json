@@ -1,0 +1,9 @@
+{
+  "localOnly": true,
+  "deviceVerified": false,
+  "inputHAR": "82b36b9a4545229202b96a6649ab742a5b7240a7bd1addd2a8c386bfcdc5e14a",
+  "hapSHA256": "ce93a613e0c7fbbd3d35f7cbeea7c0ee4818786360bc95650015a0f1c5425f8b",
+  "architecture": "arm64-v8a",
+  "passed": true,
+  "reason": "原 ARM64 设备短测合同；交付 HAR 仍双架构"
+}

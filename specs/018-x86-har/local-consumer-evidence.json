@@ -1,0 +1,94 @@
+{
+  "localOnly": true,
+  "inputHAR": "82b36b9a4545229202b96a6649ab742a5b7240a7bd1addd2a8c386bfcdc5e14a",
+  "artifact": {
+    "passed": true,
+    "hapSHA256": "d64e2d2457891dddcfb269551ba703d8c14272de856cca82188da46023fc96d6",
+    "libraries": {
+      "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libmpv.so": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
+      "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libvidall_player_native.so": "15329e75d0f4365cab933d444d86cbaf5b718597394c9d8b096e9e9faa656c66"
+    },
+    "architectureLibraries": {
+      "arm64-v8a": {
+        "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libmpv.so": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
+        "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "libvidall_player_native.so": "15329e75d0f4365cab933d444d86cbaf5b718597394c9d8b096e9e9faa656c66"
+      },
+      "x86_64": {
+        "libavcodec.so.62": "fa0dd2c36ada2ddbd33fd75536f4e52232ccd91edf5eb834ec8f6a17c6f321a9",
+        "libavfilter.so.11": "7742694428b1e159017cc2cb374eb81c038d633b1850d5eb3247b4927181aa03",
+        "libavformat.so.62": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51",
+        "libavutil.so.60": "4c07f45b7bcdf09ffbfc6236635a849dd33e4dff74c57161d01688e417f60fc1",
+        "libc++_shared.so": "a411fee450ad8e60ee12a3b282d3609f9623307b3f6d2b244e1428091cf54603",
+        "libmpv.so": "9ef5fe37b759fc9e25246c05cd51242415bb7dfafc7b5e91cc36f64cb2bbd4d5",
+        "libswresample.so.6": "d857a8dae52162e3e8fbf8ac2ae6f944cce13986b519c382a2752b77b3962dd3",
+        "libswscale.so.9": "9cb5661645fec12716ca846358598368c9fa6021844a89b5dec980003d707ba5",
+        "libvidall_player_native.so": "1ab8f4234375e9afc86e2a36f2e751292a5156897f9d5e850ed5f9c3653d0246"
+      }
+    },
+    "api": {
+      "compileSdkVersion": "26.0.0.105",
+      "minAPIVersion": 50003015,
+      "targetAPIVersion": 60002022
+    },
+    "signed": false,
+    "deviceVerified": false,
+    "formalArtifactAllowed": false
+  },
+  "dependency": {
+    "passed": true,
+    "resolved": "entry/libs/current.har",
+    "registryType": "local",
+    "lockSHA256": "3e6685c9a3c68b90e41b666386c6f07b9690ebc6204225718a52a8958ff8f9c1",
+    "installedRootInsideProject": true,
+    "installedLibraries": {
+      "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libmpv.so": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libvidall_player_native.so": "15329e75d0f4365cab933d444d86cbaf5b718597394c9d8b096e9e9faa656c66",
+      "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2"
+    },
+    "installedArchitectureLibraries": {
+      "arm64-v8a": {
+        "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+        "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+        "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+        "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+        "libmpv.so": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
+        "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+        "libvidall_player_native.so": "15329e75d0f4365cab933d444d86cbaf5b718597394c9d8b096e9e9faa656c66",
+        "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+        "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2"
+      },
+      "x86_64": {
+        "libavfilter.so.11": "7742694428b1e159017cc2cb374eb81c038d633b1850d5eb3247b4927181aa03",
+        "libavformat.so.62": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51",
+        "libswscale.so.9": "9cb5661645fec12716ca846358598368c9fa6021844a89b5dec980003d707ba5",
+        "libavcodec.so.62": "fa0dd2c36ada2ddbd33fd75536f4e52232ccd91edf5eb834ec8f6a17c6f321a9",
+        "libmpv.so": "9ef5fe37b759fc9e25246c05cd51242415bb7dfafc7b5e91cc36f64cb2bbd4d5",
+        "libc++_shared.so": "a411fee450ad8e60ee12a3b282d3609f9623307b3f6d2b244e1428091cf54603",
+        "libvidall_player_native.so": "1ab8f4234375e9afc86e2a36f2e751292a5156897f9d5e850ed5f9c3653d0246",
+        "libswresample.so.6": "d857a8dae52162e3e8fbf8ac2ae6f944cce13986b519c382a2752b77b3962dd3",
+        "libavutil.so.60": "4c07f45b7bcdf09ffbfc6236635a849dd33e4dff74c57161d01688e417f60fc1"
+      }
+    },
+    "publicDeclarationSHA256": "3a5bdd5d74728ff38508aa5829a7fdaf2b223cf4e622ae77a7bccea206f9c3b9"
+  }
+}

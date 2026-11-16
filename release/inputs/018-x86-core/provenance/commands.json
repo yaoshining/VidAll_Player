@@ -1,0 +1,999 @@
+[
+  {
+    "name": "mpv-patch",
+    "argv": [
+      "git",
+      "apply",
+      "--directory=sources/mpv",
+      "/private/tmp/vidall-player-x86_64/native/patches/phase30/0016-optional-ohcodec-software-build.patch"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3/input",
+    "returncode": 0
+  },
+  {
+    "name": "freetype-setup",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "setup",
+      "/private/tmp/vidall-x86-frozen-build-3/freetype-build",
+      "/private/tmp/vidall-x86-frozen-build-3/freetype/freetype-VER-2-13-3",
+      "--cross-file",
+      "/private/tmp/vidall-x86-frozen-build-3/cross.ini",
+      "--prefix",
+      "/private/tmp/vidall-x86-frozen-build-3/deps",
+      "--libdir=lib",
+      "--default-library=static",
+      "--buildtype=release",
+      "--wrap-mode=nodownload",
+      "-Dauto_features=disabled",
+      "-Dzlib=internal",
+      "-Dbrotli=disabled",
+      "-Dbzip2=disabled",
+      "-Dpng=disabled",
+      "-Dharfbuzz=disabled"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "freetype-build",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/ninja",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/freetype-build",
+      "-j8"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "freetype-install",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "install",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/freetype-build",
+      "--no-rebuild"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "harfbuzz-setup",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "setup",
+      "/private/tmp/vidall-x86-frozen-build-3/harfbuzz-build",
+      "/private/tmp/vidall-x86-frozen-build-3/harfbuzz/harfbuzz-10.2.0",
+      "--cross-file",
+      "/private/tmp/vidall-x86-frozen-build-3/cross.ini",
+      "--prefix",
+      "/private/tmp/vidall-x86-frozen-build-3/deps",
+      "--libdir=lib",
+      "--default-library=static",
+      "--buildtype=release",
+      "--wrap-mode=nodownload",
+      "-Dauto_features=disabled",
+      "-Dfreetype=enabled",
+      "-Dglib=disabled",
+      "-Dgobject=disabled",
+      "-Dcairo=disabled",
+      "-Dicu=disabled",
+      "-Dtests=disabled",
+      "-Dutilities=disabled",
+      "-Ddocs=disabled",
+      "-Dintrospection=disabled"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "harfbuzz-build",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/ninja",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/harfbuzz-build",
+      "-j8"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "harfbuzz-install",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "install",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/harfbuzz-build",
+      "--no-rebuild"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "fribidi-setup",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "setup",
+      "/private/tmp/vidall-x86-frozen-build-3/fribidi-build",
+      "/private/tmp/vidall-x86-frozen-build-3/fribidi/fribidi-1.0.16",
+      "--cross-file",
+      "/private/tmp/vidall-x86-frozen-build-3/cross.ini",
+      "--prefix",
+      "/private/tmp/vidall-x86-frozen-build-3/deps",
+      "--libdir=lib",
+      "--default-library=static",
+      "--buildtype=release",
+      "--wrap-mode=nodownload",
+      "-Dauto_features=disabled",
+      "-Ddocs=false",
+      "-Dbin=false",
+      "-Dtests=false"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "fribidi-build",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/ninja",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/fribidi-build",
+      "-j8"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "fribidi-install",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "install",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/fribidi-build",
+      "--no-rebuild"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "libass-setup",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "setup",
+      "/private/tmp/vidall-x86-frozen-build-3/libass-build",
+      "/private/tmp/vidall-x86-frozen-build-3/libass/libass-0.17.3",
+      "--cross-file",
+      "/private/tmp/vidall-x86-frozen-build-3/cross.ini",
+      "--prefix",
+      "/private/tmp/vidall-x86-frozen-build-3/deps",
+      "--libdir=lib",
+      "--default-library=static",
+      "--buildtype=release",
+      "--wrap-mode=nodownload",
+      "-Dauto_features=disabled",
+      "-Dfontconfig=disabled",
+      "-Drequire-system-font-provider=false",
+      "-Dasm=disabled"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "libass-build",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/ninja",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/libass-build",
+      "-j8"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "libass-install",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "install",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/libass-build",
+      "--no-rebuild"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lapi",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lapi.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lapi.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lauxlib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lauxlib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lauxlib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lbaselib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lbaselib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lbaselib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lbitlib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lbitlib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lbitlib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lcode",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lcode.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lcode.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lcorolib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lcorolib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lcorolib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lctype",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lctype.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lctype.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-ldblib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/ldblib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ldblib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-ldebug",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/ldebug.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ldebug.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-ldo",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/ldo.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ldo.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-ldump",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/ldump.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ldump.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lfunc",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lfunc.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lfunc.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lgc",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lgc.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lgc.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-linit",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/linit.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/linit.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-liolib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/liolib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/liolib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-llex",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/llex.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/llex.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lmathlib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lmathlib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lmathlib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lmem",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lmem.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lmem.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-loadlib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/loadlib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/loadlib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lobject",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lobject.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lobject.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lopcodes",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lopcodes.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lopcodes.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-loslib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/loslib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/loslib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lparser",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lparser.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lparser.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lstate",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lstate.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lstate.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lstring",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lstring.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lstring.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lstrlib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lstrlib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lstrlib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-ltable",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/ltable.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ltable.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-ltablib",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/ltablib.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ltablib.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-ltm",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/ltm.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ltm.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lundump",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lundump.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lundump.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lvm",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lvm.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lvm.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-lzio",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+      "--target=x86_64-linux-ohos",
+      "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+      "-fPIC",
+      "-D__MUSL__=1",
+      "-ffile-prefix-map=/private/tmp/vidall-x86-frozen-build-3=/vidall-player/build",
+      "-O2",
+      "-DLUA_USE_POSIX",
+      "-DLUA_USE_DLOPEN",
+      "-c",
+      "/private/tmp/vidall-x86-frozen-build-3/lua/lua-5.2.4/src/lzio.c",
+      "-o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lzio.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "lua-archive",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/llvm-ar",
+      "rcs",
+      "/private/tmp/vidall-x86-frozen-build-3/deps/lib/liblua.a",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lapi.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lauxlib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lbaselib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lbitlib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lcode.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lcorolib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lctype.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ldblib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ldebug.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ldo.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ldump.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lfunc.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lgc.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/linit.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/liolib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/llex.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lmathlib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lmem.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/loadlib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lobject.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lopcodes.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/loslib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lparser.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lstate.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lstring.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lstrlib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ltable.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ltablib.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/ltm.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lundump.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lvm.o",
+      "/private/tmp/vidall-x86-frozen-build-3/lua-objects/lzio.o"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "libplacebo-setup",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "setup",
+      "/private/tmp/vidall-x86-frozen-build-3/libplacebo-build",
+      "/private/tmp/vidall-x86-frozen-build-3/input/sources/libplacebo",
+      "--cross-file",
+      "/private/tmp/vidall-x86-frozen-build-3/cross.ini",
+      "--prefix",
+      "/private/tmp/vidall-x86-frozen-build-3/deps",
+      "--libdir=lib",
+      "--default-library=static",
+      "--buildtype=release",
+      "--wrap-mode=nodownload",
+      "-Dauto_features=disabled",
+      "-Dopengl=enabled",
+      "-Dgl-proc-addr=enabled",
+      "-Ddemos=false",
+      "-Dtests=false",
+      "-Dbench=false"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "libplacebo-build",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/ninja",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/libplacebo-build",
+      "-j8"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "libplacebo-install",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "install",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/libplacebo-build",
+      "--no-rebuild"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "mpv-setup",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "setup",
+      "/private/tmp/vidall-x86-frozen-build-3/mpv-build",
+      "/private/tmp/vidall-x86-frozen-build-3/input/sources/mpv",
+      "--cross-file",
+      "/private/tmp/vidall-x86-frozen-build-3/cross.ini",
+      "--prefix",
+      "/vidall-player",
+      "--libdir=lib",
+      "--default-library=shared",
+      "--buildtype=release",
+      "--wrap-mode=nodownload",
+      "-Dauto_features=disabled",
+      "-Dohos=enabled",
+      "-Dohcodec=disabled",
+      "-Dgl=enabled",
+      "-Degl-ohos=enabled",
+      "-Dvulkan=disabled",
+      "-Dlua=enabled",
+      "-Dcplayer=false",
+      "-Dbuild-date=false",
+      "-Dmanpage-build=disabled",
+      "-Db_lundef=true",
+      "-Dc_link_args=['--target=x86_64-linux-ohos', '-fuse-ld=lld', '-lc++_shared', '-Wl,--no-allow-shlib-undefined', '-Wl,-rpath-link,/private/tmp/vidall-x86-r3-download/ffmpeg8-ohos-x86_64-20261116-r3/lib', '-Wl,-Map,/private/tmp/vidall-x86-frozen-build-3/mpv.map']"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "mpv-build",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/ninja",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/mpv-build",
+      "-j8"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "mpv-install",
+    "argv": [
+      "/Users/yaoshining/anaconda3/bin/meson",
+      "install",
+      "-C",
+      "/private/tmp/vidall-x86-frozen-build-3/mpv-build",
+      "--no-rebuild"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  },
+  {
+    "name": "strip",
+    "argv": [
+      "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/llvm-strip",
+      "--strip-all",
+      "/private/tmp/vidall-x86-frozen-build-3/stage/vidall-player/lib/libmpv.so"
+    ],
+    "cwd": "/private/tmp/vidall-x86-frozen-build-3",
+    "returncode": 0
+  }
+]

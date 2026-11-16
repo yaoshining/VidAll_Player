@@ -57,18 +57,19 @@ def input_bytes(base,libraries):
   result[Path(row['path']).name]=row['sha256']
  return result
 
-def verify_har(har,libraries,bridge):
+def verify_har(har,libraries,bridge,abi="arm64-v8a"):
+ if abi not in {"arm64-v8a","x86_64"}:raise ValueError("不支持的HAR架构")
  expected={Path(r['path']).name:r['sha256'] for r in libraries}
  if set(expected)!=NAMES or len(libraries)!=8:raise ValueError('固定八库集合错误')
  normal=load('normalize-har');actual={}
  with tarfile.open(har,'r:*') as archive:
   for item in normal.members(archive):
-   prefix='package/libs/arm64-v8a/'
+   prefix='package/libs/'+abi+'/'
    if item.isreg() and item.name.startswith(prefix):
     name=item.name[len(prefix):];data=archive.extractfile(item).read();actual[name]=hashlib.sha256(data).hexdigest()
     if name=='libvidall_player_native.so':
-     if len(data)<20 or data[:6]!=b'\x7fELF\x02\x01' or int.from_bytes(data[18:20],'little')!=183:raise ValueError('bridge 不是ARM64 ELF')
- if set(actual)!=NAMES|{'libvidall_player_native.so'}:raise ValueError('HAR ARM64九库集合不完整或混装')
+     if len(data)<20 or data[:6]!=b'\x7fELF\x02\x01' or int.from_bytes(data[18:20],'little')!=({'arm64-v8a':183,'x86_64':62}[abi]):raise ValueError('bridge ELF架构错误')
+ if set(actual)!=NAMES|{'libvidall_player_native.so'}:raise ValueError('HAR目标架构九库集合不完整或混装')
  if any(actual[n]!=h for n,h in expected.items()):raise ValueError('HAR核心库与锁定输入不符')
  if not bridge.is_file() or actual['libvidall_player_native.so']!=sha(bridge):raise ValueError('HAR bridge不是本次目标输出')
  return {'passed':True,'harSHA256':sha(har),'libraries':actual,'formalArtifactAllowed':False}

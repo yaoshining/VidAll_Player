@@ -9,19 +9,20 @@ E=module('evaluate007',HERE.parent/'deveco26/evaluate.py');B=module('bootstrap00
 APIS=['initializePlayerRuntime','onPlayerTerminal','getPlayerRuntimeStatus','createPlayer']
 def verify_har_digest(har,expected):
  if not E.hash_valid(expected) or har.is_symlink() or not har.is_file() or E.sha(har)!=expected:raise ValueError('HAR不是本次target已核输出')
-def verify_hap(path,libraries):
- if set(libraries)!=E.TARGET.NAMES|{'libvidall_player_native.so'}:raise ValueError('预期九库集合不符')
+def verify_hap(path,libraries,by_abi=None):
+ by_abi=by_abi if by_abi is not None else {'arm64-v8a':libraries}
+ if not by_abi or set(by_abi)-{'arm64-v8a','x86_64'}:raise ValueError('非预期架构')
+ for values in by_abi.values():
+  if set(values)!=E.TARGET.NAMES|{'libvidall_player_native.so'}:raise ValueError('预期九库集合不符')
+ expected={'libs/'+abi+'/'+name:digest for abi,values in by_abi.items() for name,digest in values.items()}
  with zipfile.ZipFile(path) as z:
   names=z.namelist()
   if len(names)!=len(set(names)) or any(PurePosixPath(n).is_absolute() or '..' in PurePosixPath(n).parts for n in names):raise ValueError('HAP重复或异常路径')
-  actual={}
-  for n in names:
-   if n.startswith('libs/') and not n.endswith('/'):
-    if not n.startswith('libs/arm64-v8a/') or '/' in n[len('libs/arm64-v8a/'):]:raise ValueError('HAP含非预期架构/嵌套库')
-    actual[n.split('/')[-1]]=hashlib.sha256(z.read(n)).hexdigest()
-  if actual!=libraries:raise ValueError('HAP九库与当次HAR不一致')
+  actual={n:hashlib.sha256(z.read(n)).hexdigest() for n in names if n.startswith('libs/') and not n.endswith('/')}
+  if actual!=expected:raise ValueError('HAP各架构九库与当次HAR不一致')
   api=E.api_metadata(json.loads(z.read('module.json'))['app'])
- return {'passed':True,'hapSHA256':E.sha(path),'libraries':actual,'api':api,'signed':False,'deviceVerified':False}
+ return {'passed':True,'hapSHA256':E.sha(path),'libraries':libraries,'architectureLibraries':by_abi,'api':api,'signed':False,'deviceVerified':False,'formalArtifactAllowed':False}
+
 def resolution_lock(entry,har,lock):
  matches=[v for v in lock.get('packages',{}).values() if v.get('name')=='@vidall/player']
  if len(matches)!=1 or matches[0].get('registryType')!='local':raise ValueError('缺少唯一HAR本地解析')
@@ -62,18 +63,22 @@ def prepare_project(root,project,har):
  dest=project/'entry/libs/current.har';dest.parent.mkdir();shutil.copyfile(har,dest)
  return dest
 
-def installed_identity(project,libraries,har):
+def installed_identity(project,libraries,har,by_abi=None):
+ by_abi=by_abi if by_abi is not None else {'arm64-v8a':libraries}
  lock=json.loads((project/'entry/oh-package-lock.json5').read_text());result=resolution_lock(project/'entry',project/'entry/libs/current.har',lock)
  candidates=[project/'entry/oh_modules/@vidall/player',project/'oh_modules/@vidall/player'];found=[p.resolve() for p in candidates if p.exists()]
  if not found:raise ValueError('缺少实际展开的HAR依赖')
  actual=found[0]
  if any(p!=actual for p in found):raise ValueError('存在不同来源的player解析')
  if not actual.is_relative_to(project.resolve()):raise ValueError('解析逃逸到工程外源码或旧缓存')
- libdir=actual/'libs/arm64-v8a';hashes={p.name:E.sha(p) for p in libdir.iterdir() if p.is_file()}
- if hashes!=libraries:raise ValueError('展开依赖九库并非当次HAR')
+ hashes={}
+ for abi,expected in by_abi.items():
+  libdir=actual/'libs'/abi;found_hashes={p.name:E.sha(p) for p in libdir.iterdir() if p.is_file()}
+  if found_hashes!=expected:raise ValueError('展开依赖各架构九库并非当次HAR')
+  hashes[abi]=found_hashes
  with tarfile.open(har) as t:expected=hashlib.sha256(t.extractfile('package/Index.d.ets').read()).hexdigest()
  if E.sha(actual/'Index.d.ets')!=expected:raise ValueError('展开公共声明不是当次HAR')
- result.update(installedRootInsideProject=True,installedLibraries=hashes,publicDeclarationSHA256=expected)
+ result.update(installedRootInsideProject=True,installedLibraries=hashes.get('arm64-v8a',{}),installedArchitectureLibraries=hashes,publicDeclarationSHA256=expected)
  return result
 
 def stop_project(project,child,studio,work,rows,prefix="consumer"):
@@ -103,10 +108,10 @@ def execute(root,out,studio,wrapper,common):
    selected,_=E.TARGET.selected_studio(output)
    if Path(selected).resolve()!=studio.resolve():raise ValueError('consumer混用SDK')
    if name=='consumer-clean' and list((project/'entry/build').rglob('*.hap')):raise ValueError('consumer clean残留HAP')
-  result['dependency']=installed_identity(project,result['libraries'],dest)
+  result['dependency']=installed_identity(project,result['libraries'],dest,target.get('architectureLibraries'))
   haps=list((project/'entry/build/default/outputs/default').glob('*-unsigned.hap'))
   if len(haps)!=1:raise ValueError('缺少唯一unsigned HAP')
-  result['artifact']=verify_hap(haps[0],result['libraries']);verify_har_digest(dest,result['inputHAR']);verify_har_digest(har,result['inputHAR'])
+  result['artifact']=verify_hap(haps[0],result['libraries'],target.get('architectureLibraries'));verify_har_digest(dest,result['inputHAR']);verify_har_digest(har,result['inputHAR'])
   if E.sha(project/'entry/src/main/ets/pages/Index.ets')!=result['fixtureSourceSHA256']:raise ValueError('consumer源码漂移')
   result['sourceAfter']=E.CONTEXT.assert_snapshot(root,source);result['passed']=True
  except Exception as error:result.update(errorType=type(error).__name__,error=E.redact(str(error)))

@@ -54,8 +54,8 @@ namespace {
 // issue #77：把 RenderBackend 枚举映射为 videoParams 消息末尾的纯值字段
 // （vulkan/opengles/software/unavailable，供 App 端结合 index 0 判断 DV 与渲染后端）。
 // 该值真实反映 Initialize() 中 SelectRenderBackend() 的结果（renderBackend_），非硬编码。
-// 仅在 VIDALL_MPV_AVAILABLE=1（arm64-v8a）时编译：此函数引用 vidall::render::RenderBackend，
-// 而 render_backend_policy.h 只在上述宏下包含；x86_64（=0）仅 NAPI probe，不含此类逻辑。
+// ARM64 与 x86_64 完整核心均在 VIDALL_MPV_AVAILABLE=1 下编译。
+// x86_64 由 VIDALL_SOFTWARE_ONLY 限定软件解码与软件呈现。
 #if VIDALL_MPV_AVAILABLE
 std::string RenderBackendName(vidall::render::RenderBackend backend)
 {
@@ -345,7 +345,7 @@ public:
         const bool vendorGpuStackAvailable = !compatible &&
             access("/vendor/lib64/chipsetsdk/libEGL_impl.so", R_OK) == 0;
         renderBackend_ = vidall::render::SelectRenderBackend(
-            {vendorGpuStackAvailable, vendorGpuStackAvailable, true});
+            {vendorGpuStackAvailable, vendorGpuStackAvailable, true, !VIDALL_SOFTWARE_ONLY});
         if (renderBackend_ == vidall::render::RenderBackend::Vulkan) {
             mpv_set_option_string(player_.get(), "vo", "gpu-next");
             mpv_set_option_string(player_.get(), "gpu-api", "vulkan");
@@ -361,7 +361,7 @@ public:
         // 硬件解码：libmpv 编译时 --enable-ohcodec，链接 libnative_media_vdec.so。
         // hwdec 为空时保留 mpv 默认（软件解码）；"auto-safe" 自动选择 ohcodec 硬解后端，
         // 失败时回退软件解码；"no" 强制软件解码。
-        std::string effectiveHwdec = compatible ? "no" : hwdec;
+        std::string effectiveHwdec = (compatible || VIDALL_SOFTWARE_ONLY) ? "no" : hwdec;
         if (compatible && mpv_set_option_string(player_.get(), "gpu-hwdec-interop", "no") < 0)
             return false;
         if (renderBackend_ == vidall::render::RenderBackend::Vulkan) {

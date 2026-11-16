@@ -22,6 +22,8 @@ class Tests(unittest.TestCase):
  def test_staged_fixture_drift(self):
   har=self.root/'input.har';har.write_bytes(b'test-har')
   project=self.root/'project';proof=P.prepare_project(self.root,project,har)
+  self.assertEqual(json.loads((project/'entry/build-profile.json5').read_text())['buildOption']['externalNativeOptions']['abiFilters'],['arm64-v8a'])
+  self.assertEqual(json.loads((project/'entry/build-profile.json5').read_text())['buildOption']['nativeLib']['filter']['excludes'],['**/x86_64/**'])
   P.verify_staged_fixture(project,proof)
   (project/'entry/src/main/ets/pages/Index.ets').write_text('changed')
   with self.assertRaises(ValueError):P.verify_staged_fixture(project,proof)

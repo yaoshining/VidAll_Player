@@ -81,23 +81,25 @@ class Contracts(unittest.TestCase):
   with self.assertRaises(ValueError):m.sdk_identity(native,lock)
   (native/'llvm/bin/llvm-nm').unlink()
   with self.assertRaises(ValueError):m.sdk_identity(native,lock)
- def test_har_wrong_missing_bridge_and_core(self):
+ def test_har_wrong_missing_bridge_and_core(self):self.har_cases('arm64-v8a')
+ def test_x86_har_wrong_missing_bridge_and_core(self):self.har_cases('x86_64')
+ def har_cases(self,abi):
   m=module('ci-target');base=self.root/'inputs';base.mkdir();names=['libmpv.so','libavcodec.so.62','libavformat.so.62','libavfilter.so.11','libavutil.so.60','libswresample.so.6','libswscale.so.9','libc++_shared.so'];rows=[]
   for n in names:
    p=base/n;p.write_bytes(('core-'+n).encode());rows.append({'path':n,'sha256':sha(p)})
-  bridge=bytearray(64);bridge[:6]=b'\x7fELF\x02\x01';bridge[18:20]=(183).to_bytes(2,'little');bp=self.root/'bridge';bp.write_bytes(bridge)
+  bridge=bytearray(64);bridge[:6]=b'\x7fELF\x02\x01';bridge[18:20]=(183 if abi=='arm64-v8a' else 62).to_bytes(2,'little');bp=self.root/'bridge';bp.write_bytes(bridge)
   for mode in ['normal','wrong-core','missing-bridge','wrong-bridge','duplicate']:
    har=self.root/(mode+'.har')
    with tarfile.open(har,'w:gz') as t:
     for row in rows:
-     data=(base/row['path']).read_bytes();data=b'wrong' if mode=='wrong-core' and row['path']=='libmpv.so' else data;i=tarfile.TarInfo('package/libs/arm64-v8a/'+row['path']);i.size=len(data);t.addfile(i,io.BytesIO(data))
+     data=(base/row['path']).read_bytes();data=b'wrong' if mode=='wrong-core' and row['path']=='libmpv.so' else data;i=tarfile.TarInfo('package/libs/'+abi+'/'+row['path']);i.size=len(data);t.addfile(i,io.BytesIO(data))
     if mode=='duplicate':
-     data=b'duplicate';i=tarfile.TarInfo('package/libs/arm64-v8a/libmpv.so');i.size=len(data);t.addfile(i,io.BytesIO(data))
+     data=b'duplicate';i=tarfile.TarInfo('package/libs/'+abi+'/libmpv.so');i.size=len(data);t.addfile(i,io.BytesIO(data))
     if mode!='missing-bridge':
-     data=b'wrong' if mode=='wrong-bridge' else bytes(bridge);i=tarfile.TarInfo('package/libs/arm64-v8a/libvidall_player_native.so');i.size=len(data);t.addfile(i,io.BytesIO(data))
-   if mode=='normal':self.assertTrue(m.verify_har(har,rows,bp)['passed'])
+     data=b'wrong' if mode=='wrong-bridge' else bytes(bridge);i=tarfile.TarInfo('package/libs/'+abi+'/libvidall_player_native.so');i.size=len(data);t.addfile(i,io.BytesIO(data))
+   if mode=='normal':self.assertTrue(m.verify_har(har,rows,bp,abi)['passed'])
    else:
-    with self.assertRaises(ValueError):m.verify_har(har,rows,bp)
+    with self.assertRaises(ValueError):m.verify_har(har,rows,bp,abi)
  def test_input_missing_wrong_hash(self):
   m=module('ci-target');p=self.root/'lib';p.write_bytes(b'a');rows=[{'path':'lib','sha256':sha(p)}];m.input_bytes(self.root,rows);p.write_bytes(b'b')
   with self.assertRaises(ValueError):m.input_bytes(self.root,rows)
@@ -155,7 +157,7 @@ class Contracts(unittest.TestCase):
 
  def test_host_finish_rejects_post_context_change(self):
   m=module('ci-evidence');identity=module('ci-context');self.repo();before=identity.snapshot(self.root);out=self.root/'evidence';(out/'work').mkdir(parents=True);(out/'suite/public').mkdir(parents=True)
-  (out/'work/context.json').write_text(json.dumps({'passed':True,**before}));checks=[{'name':name,'passed':True,'exit':code,'expectedExit':code} for name,code in json.loads((HERE/'host-checks.json').read_text())['checks'].items()];self.assertEqual(len(checks),102)
+  (out/'work/context.json').write_text(json.dumps({'passed':True,**before}));checks=[{'name':name,'passed':True,'exit':code,'expectedExit':code} for name,code in json.loads((HERE/'host-checks.json').read_text())['checks'].items()];self.assertEqual(len(checks),104)
   (out/'suite/public/summary.json').write_text(json.dumps({'passed':True,'checks':checks}));(out/'suite/public/source-identities.json').write_text('{}')
   for c in checks:(out/'suite/public'/(c['name']+'.log')).write_text('PASS')
   (out/'suite/public/index.json').write_text('{}');steps={s:{'outcome':'success'} for s in ['context','dependencies','contracts','host']}

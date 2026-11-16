@@ -64,7 +64,8 @@ def prepare_project(root,project,har):
  def write(rel,value):(project/rel).write_text(json.dumps(value,ensure_ascii=False,indent=2)+'\n')
  write('build-profile.json5',{'app':{'signingConfigs':[],'products':[{'name':'default','targetSdkVersion':'6.0.2(22)','compatibleSdkVersion':'5.0.3(15)','runtimeOS':'HarmonyOS','buildOption':{'strictMode':{'caseSensitiveCheck':True,'useNormalizedOHMUrl':True}}}],'buildModeSet':[{'name':'debug'}]},'modules':[{'name':'entry','srcPath':'./entry','targets':[{'name':'default','applyToProducts':['default']}]}]})
  write('oh-package.json5',{'modelVersion':'6.0.2','dependencies':{},'devDependencies':{}})
- write('entry/build-profile.json5',{'apiType':'stageMode','buildOption':{},'targets':[{'name':'default'}]})
+ # 既有设备短测合同只接受 ARM64；正式 HAR 和独立消费者仍保留两架构。
+ write('entry/build-profile.json5',{'apiType':'stageMode','buildOption':{'externalNativeOptions':{'abiFilters':['arm64-v8a']},'nativeLib':{'filter':{'excludes':['**/x86_64/**']}}},'targets':[{'name':'default'}]})
  write('entry/oh-package.json5',{'name':'entry','version':'1.0.0','dependencies':{'@vidall/player':'file:./libs/current.har'}})
  dest=project/'entry/libs/current.har';dest.parent.mkdir();shutil.copy2(har,dest)
  return proof
@@ -111,7 +112,7 @@ def execute(root,out,studio,wrapper,common,local=False):
   result['buildExit']=rows[-1]['exit']
   haps=list((project/'entry/build/default/outputs/default').glob('*-unsigned.hap'))
   if len(haps)!=1:raise ValueError('unsigned设备HAP不唯一')
-  hap=haps[0];result['dependency']=C.installed_identity(project,libraries,dest);result['artifact']=C.verify_hap(hap,libraries)
+  hap=haps[0];result['dependency']=C.installed_identity(project,libraries,dest,target.get('architectureLibraries'));result['artifact']=C.verify_hap(hap,libraries)
   manifest=manifest_for(hap,source if local else cloud_source(context,target,os.environ),libraries,fixture);validate_hap(hap.read_bytes(),manifest)
   if local:
    prepared=out/'device-package/prepared';prepared.mkdir(exist_ok=False);shutil.copy2(hap,prepared/'device-unsigned.hap');manifest['localOnly']=True;(prepared/'local-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n');result['prepared']={'localOnly':True,'unsignedHAP_SHA256':E.sha(hap),'externalApprovalAllowed':False}

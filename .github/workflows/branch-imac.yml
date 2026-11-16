@@ -54,6 +54,16 @@ jobs:
         env:
           VIDALL_PHASE30_INPUT: ${{ vars.VIDALL_PHASE30_INPUT }}
         run: python3 -B native/tests/audio-interrupt/prepare.test.py ArchivedInputTests
+      - name: 双架构输入与打包回归
+        id: x86-contracts
+        run: |
+          python3 -B native/tests/check-ffmpeg-host-runtime.test.py
+          python3 -B native/tests/x86-core/elf.test.py
+          python3 -B scripts/test/deveco26/contract.test.py
+          python3 -B scripts/test/deveco26-gates/consumer.test.py
+          python3 -B scripts/test/cloud-build/hypium.test.py
+          python3 -B scripts/test/branch-ci/report.test.py
+          python3 -B scripts/test/normal-core/ci-contract.test.py
       - name: 完整构建与审计 HAR
         id: target
         run: python3 -B scripts/test/deveco26/evaluate.py build --out "$CI_OUT" --studio "$STUDIO" --wrapper "$WRAPPER" --common "$COMMON"

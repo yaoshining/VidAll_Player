@@ -44,6 +44,13 @@ int main() {
    assert(options.at("sub-fonts-dir")=="/fonts"&&!options.count("sid")); }
  { Harness h;failOption="load-console";assert(!h.Initialize("","no","",""));failOption.clear(); }
  gpu=true;options.clear();
+#if VIDALL_SOFTWARE_ONLY
+ { Harness h;assert(h.Initialize("","auto","",""));
+   assert(h.renderBackend_==vidall::render::RenderBackend::Software);
+   assert(!h.isolation_&&!h.hardwareDecodingRequested_&&options.at("hwdec")=="no");
+   assert(!options.count("gpu-api")&&!options.count("ohcodec-session-isolation")); }
+ return 0;
+#endif
  { Harness h;assert(h.Initialize("","auto","","","compatible"));
    assert(h.renderBackend_==vidall::render::RenderBackend::Software);
    assert(h.executor_&&!h.isolation_&&!h.hardwareDecodingRequested_);
@@ -69,6 +76,7 @@ int main() {
 '''.replace('/* METHOD */',method)
 with tempfile.TemporaryDirectory() as td:
  p=Path(td);(p/'test.cpp').write_text(code)
- subprocess.run(['clang++','-std=c++17','-pthread','-I'+str(root/'native/runtime'),'-I'+str(root/'native/render'),str(p/'test.cpp'),str(root/'native/render/render_backend_policy.cpp'),'-o',str(p/'test')],check=True)
- subprocess.run([str(p/'test')],check=True,timeout=5)
+ for software in [0,1]:
+  subprocess.run(['clang++','-DVIDALL_SOFTWARE_ONLY='+str(software),'-std=c++17','-pthread','-I'+str(root/'native/runtime'),'-I'+str(root/'native/render'),str(p/'test.cpp'),str(root/'native/render/render_backend_policy.cpp'),'-o',str(p/'test')],check=True)
+  subprocess.run([str(p/'test')],check=True,timeout=5)
 print('真实 Initialize 的兼容软件路径、隔离接入、两名额上限和错误分支通过')

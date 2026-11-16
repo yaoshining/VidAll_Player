@@ -1,0 +1,36 @@
+{
+  "sourceArchiveSHA256": "ea078fac70d2221734dd7ecc2dd790eadce7d47382cbc92b088f435f0790d068",
+  "sourceFilesSHA256": "f0182fac104cfe8b5bc1b53410fb14594eda37f37259b2f2d47e4479b562be5e",
+  "baselinePackageSHA256": "086590c041831adf0de8472f74c5a241156bc409bb98aa63196dd682b1fdec5f",
+  "ffmpegSdkArchiveSHA256": "df5ea45b19563ec6a7d5116852529dc58b37811dde6a0386c816b9b96472c591",
+  "ffmpegSdkManifestSHA256": "bdc22242d1848cd51feb1a62ca4da4dd724344b5fb1e4e21f3d0fb9ae41a7e09",
+  "dependencies": [
+    {
+      "name": "freetype",
+      "url": "https://codeload.github.com/freetype/freetype/tar.gz/refs/tags/VER-2-13-3",
+      "sha256": "bc5c898e4756d373e0d991bab053036c5eb2aa7c0d5c67e8662ddc6da40c4103"
+    },
+    {
+      "name": "harfbuzz",
+      "url": "https://codeload.github.com/harfbuzz/harfbuzz/tar.gz/refs/tags/10.2.0",
+      "sha256": "11749926914fd488e08e744538f19329332487a6243eec39ef3c63efa154a578"
+    },
+    {
+      "name": "fribidi",
+      "url": "https://codeload.github.com/fribidi/fribidi/tar.gz/refs/tags/v1.0.16",
+      "sha256": "5a1d187a33daa58fcee2ad77f0eb9d136dd6fa4096239199ba31e850d397e8a8"
+    },
+    {
+      "name": "libass",
+      "url": "https://codeload.github.com/libass/libass/tar.gz/refs/tags/0.17.3",
+      "sha256": "26fbfb7a7bd3e6d5c713f8a65a12b36084d1dde6efaed8a9996489054c4aeca0"
+    },
+    {
+      "name": "lua",
+      "url": "https://www.lua.org/ftp/lua-5.2.4.tar.gz",
+      "sha256": "b9e2e4aad6789b3b63a056d442f7b39f0ecfca3ae0f1fc0ae4e9614401b69f4b"
+    }
+  ],
+  "patchSHA256": "5e0e557e72b3167984f0c3fa429ac87e491e754795ba3a6f8c24ba33f58d32c1",
+  "builderSHA256": "6262a98fdfa9267679cb8154de170bed1e2957987bb5e2552ac4849b302718aa"
+}

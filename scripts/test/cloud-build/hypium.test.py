@@ -32,6 +32,12 @@ class Tests(unittest.TestCase):
   m=load();s={'checkoutSHA':'a'*40,'treeSHA':'b'*40,'trackedBytesSHA256':'c'*64};libs={n:'e'*64 for n in m.C.E.TARGET.NAMES|{'libvidall_player_native.so'}};api={'compileSdkVersion':'26.0.0.105','minAPIVersion':50003015,'targetAPIVersion':60002022};target={'artifact':{'harSHA256':'d'*64,'libraries':libs},'api':api}
   r={'passed':True,'sourceBefore':s,'sourceAfter':s,'inputHAR':'d'*64,'compiled':True,'signed':False,'executed':False,'cleanup':{'passed':True},'suiteNames':sorted(m.SUITES),'dependency':{'passed':True,'installedLibraries':libs},'artifact':{'passed':True,'hapSHA256':'f'*64,'libraries':libs,'api':api},'buildExit':0,'bytecodeSHA256':'1'*64,'bytecodeBytes':123,'moduleName':'entry_test','stagedSources':m.suite_sources(ROOT/'entry/src/ohosTest')}
   self.assertTrue(m.proof(r,s,target))
+  dual={**target,'architectureLibraries':{'arm64-v8a':libs,'x86_64':{k:'9'*64 for k in libs}}}
+  self.assertFalse(m.proof(r,s,dual))
+  both={**r,'artifact':{**r['artifact'],'architectureLibraries':dual['architectureLibraries']},'dependency':{**r['dependency'],'installedArchitectureLibraries':dual['architectureLibraries']}}
+  self.assertTrue(m.proof(both,s,dual))
+  missing={**both,'artifact':{**both['artifact'],'architectureLibraries':{'arm64-v8a':libs}}}
+  self.assertFalse(m.proof(missing,s,dual))
   for k in r:
    bad=dict(r);bad.pop(k);self.assertFalse(m.proof(bad,s,target),k)
   for k,v in [('buildExit',1),('compiled',False),('signed',True),('inputHAR','e'*64),('moduleName','entry'),('bytecodeSHA256',''),('bytecodeBytes',0),('stagedSources',{})]:

@@ -1,0 +1,1843 @@
+{
+  "schemaVersion": 1,
+  "artifactKind": "software-source-build",
+  "targetAbi": "x86_64",
+  "created": "2026-11-15T18:37:36Z",
+  "producerCommit": "bd161c09fa66146b955d54833c0d41fb96460bdc",
+  "buildOrigin": "local-source-build",
+  "ciRunId": null,
+  "sourceArchive": {
+    "file": "ffmpeg8-ohos-x86_64-20261116-r3-sources.tar.gz",
+    "sha256": "c6ba20f67584bab8956d415c40fdfff1f1f2f89a03df7f3b5fc755dea41de0cb"
+  },
+  "buildMachine": "yaoshiningdeMacBook-Pro.local",
+  "smbRuntime": {
+    "apiVersion": 1,
+    "configureBeforeContext": true,
+    "headerSha256": "b952497cd47e840dfffd2262cfd874caa8521175a88bdc595d9f9910f23c9f26"
+  },
+  "buildHost": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "ndk": {
+    "apiVersion": "26",
+    "displayName": "Native",
+    "meta": {
+      "metaVersion": "3.0.2"
+    },
+    "path": "native",
+    "platformVersion": "26.0.0",
+    "releaseType": "Release",
+    "version": "26.0.0.105"
+  },
+  "tools": [
+    {
+      "name": "clang",
+      "sha256": "b9a36b6a434fd245460ddfa9abedefbfafe83b1f87749fe00491ee90d039d723"
+    },
+    {
+      "name": "ld.lld",
+      "sha256": "1148e2fa66adb7159a94aa01310df001fa2b1a608497886706ea89a018953075"
+    },
+    {
+      "name": "llvm-ar",
+      "sha256": "56894c293bd9d5897f865650e73a4a0d9375e2a75bdf5e497e3c6efd8395c50f"
+    },
+    {
+      "name": "llvm-ranlib",
+      "sha256": "56894c293bd9d5897f865650e73a4a0d9375e2a75bdf5e497e3c6efd8395c50f"
+    },
+    {
+      "name": "llvm-nm",
+      "sha256": "e6127c6da61349c9f46d67822ac70fb440a0239edc011d429450511f7721498c"
+    },
+    {
+      "name": "llvm-readelf",
+      "sha256": "512d1c07be253b7ccf761769857466a437ba07397b62a6d402c7293371817dfb"
+    }
+  ],
+  "sources": [
+    {
+      "name": "zlib-1.3.1",
+      "kind": "release-archive",
+      "url": "https://zlib.net/fossils/zlib-1.3.1.tar.gz",
+      "archiveFile": "zlib-1.3.1.tar.gz",
+      "sha256": "9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23",
+      "historicalIdentityProven": false,
+      "role": "target-library"
+    },
+    {
+      "name": "popt-1.19",
+      "kind": "release-archive",
+      "url": "https://distfiles.macports.org/popt/popt-1.19.tar.gz",
+      "archiveFile": "popt-1.19.tar.gz",
+      "sha256": "c25a4838fc8e4c1c8aacb8bd620edb3084a3d63bf8987fdad3ca2758c63240f9",
+      "historicalIdentityProven": false,
+      "role": "target-library"
+    },
+    {
+      "name": "gmp-6.3.0",
+      "kind": "release-archive",
+      "url": "https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz",
+      "archiveFile": "gmp-6.3.0.tar.xz",
+      "sha256": "a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898",
+      "historicalIdentityProven": false,
+      "role": "target-library"
+    },
+    {
+      "name": "nettle-3.9.1",
+      "kind": "release-archive",
+      "url": "https://ftp.gnu.org/gnu/nettle/nettle-3.9.1.tar.gz",
+      "archiveFile": "nettle-3.9.1.tar.gz",
+      "sha256": "ccfeff981b0ca71bbd6fbcb054f407c60ffb644389a5be80d6716d5b550c6ce3",
+      "historicalIdentityProven": false,
+      "role": "target-library"
+    },
+    {
+      "name": "libtasn1-4.19.0",
+      "kind": "release-archive",
+      "url": "https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.19.0.tar.gz",
+      "archiveFile": "libtasn1-4.19.0.tar.gz",
+      "sha256": "1613f0ac1cf484d6ec0ce3b8c06d56263cc7242f1c23b30d82d23de345a63f7a",
+      "historicalIdentityProven": false,
+      "role": "target-library"
+    },
+    {
+      "name": "gnutls-3.8.7",
+      "kind": "release-archive",
+      "url": "https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.8/gnutls-3.8.7.tar.xz",
+      "archiveFile": "gnutls-3.8.7.tar.xz",
+      "sha256": "fe302f2b6ad5a564bcb3678eb61616413ed5277aaf8e7bf7cdb9a95a18d9f477",
+      "historicalIdentityProven": false,
+      "role": "target-library"
+    },
+    {
+      "name": "bison-3.8.2",
+      "kind": "release-archive",
+      "url": "https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz",
+      "archiveFile": "bison-3.8.2.tar.gz",
+      "sha256": "06c9e13bdf7eb24d4ceb6b59205a4f67c2c7e7213119644430fe82fbd14a0abb",
+      "historicalIdentityProven": false,
+      "role": "optional-host-tool"
+    },
+    {
+      "name": "samba-4.20.7",
+      "kind": "git-archive",
+      "url": "https://gitlab.com/samba-team/samba.git",
+      "revision": "3984b04d7085c428ab3126ef4cfac2a396b5b29e",
+      "archivePrefix": "samba-3984b04d7085c428ab3126ef4cfac2a396b5b29e/",
+      "archiveFile": "samba-3984b04d7085c428ab3126ef4cfac2a396b5b29e.tar",
+      "sha256": "9066251c16db8bb711f9edf1298dd3d5480aaa013d5792283f45086f49669759",
+      "historicalIdentityProven": false,
+      "role": "target-library"
+    },
+    {
+      "name": "FFmpeg-8.0",
+      "url": "https://ffmpeg.org/releases/ffmpeg-8.0.tar.xz",
+      "sha256": "b2751fccb6cc4c77708113cd78b561059b6fa904b24162fa0be2d60273d27b8e"
+    }
+  ],
+  "staticDependencies": [
+    {
+      "name": "libz.a",
+      "sha256": "e5c29e278e8bd9ffb296e9c05dc3571a1e32523ea284873eaa07a36f792c9ce1"
+    },
+    {
+      "name": "libpopt.a",
+      "sha256": "4436868b799ca4d59450739ebdad9bf890c03aba3c98e732dbcfbda9dbd31cd3"
+    },
+    {
+      "name": "libgmp.a",
+      "sha256": "5c317aff08490c403e582bacf3f789bbff5d6e29173bf90dda5f36f3c1a75022"
+    },
+    {
+      "name": "libnettle.a",
+      "sha256": "d0fd9057c4a38c99fc3a18b894c30c09c52f88f0ca61e1d0a4c4face05bfd398"
+    },
+    {
+      "name": "libhogweed.a",
+      "sha256": "3d190b7e397923c9e2d4af54c53e0a9f20ea83969696ad712db9dd92c3a491df"
+    },
+    {
+      "name": "libtasn1.a",
+      "sha256": "61a1ac2cc03de05995f8d9ba9733885e6f2cafd362f7eae21dfcab0cc4c5a98b"
+    },
+    {
+      "name": "libgnutls.a",
+      "sha256": "7cec148a09c1f28abc0ea3b68e08314110e0cb205823ee97e69d11b65ff49db5"
+    },
+    {
+      "name": "libsmbclient.a",
+      "sha256": "a42b5d0a9d02537ebc8976feadfc304bd38139f7d7a9d6e0794b73cf9f556933"
+    }
+  ],
+  "fullyVerified": false,
+  "deviceAcceptanceStatus": "pending",
+  "limitations": [
+    "单次源码构建，未证明双 clean 字节重复性",
+    "未执行目标设备播放验收",
+    "API26 构建的低 API 兼容性未验证"
+  ],
+  "files": [
+    {
+      "path": ".ffmpeg8-ohos-sdk-managed",
+      "sizeBytes": 20,
+      "sha256": "e0754966a3cbacb3345b36896ab25b4ffd8a97120164d2b8a8bfb47f49569bcb"
+    },
+    {
+      "path": "DECODERS.txt",
+      "sizeBytes": 15640,
+      "sha256": "9a20fbc46653b17106a294c0250241aa6f928e21f078a190948567f11f54b3b7"
+    },
+    {
+      "path": "ELF-REPORT.txt",
+      "sizeBytes": 1348,
+      "sha256": "72503dcad74df6594ed0cd5b611bd6d29b224854200256e482b18ada44101826"
+    },
+    {
+      "path": "MANIFEST.tsv",
+      "sizeBytes": 6731,
+      "sha256": "70f2d2d9b1e14b4c5d7cbd623d2d2808a9539bcb645317bdf61434ea51d00b5d"
+    },
+    {
+      "path": "PROTOCOLS.txt",
+      "sizeBytes": 237,
+      "sha256": "21da642ae37d095942c67b05313b6ab9a3ec295660dc5168b1eef1f38d07316c"
+    },
+    {
+      "path": "SBOM.spdx.json",
+      "sizeBytes": 6345,
+      "sha256": "204154550a3adfeec8948337c59e4d8b7d7e0219c47748dfd8b551dd888d70b5"
+    },
+    {
+      "path": "VERSION",
+      "sizeBytes": 2327,
+      "sha256": "557f113815c559f112cc0c57b0896e21ec39628a104fba9889c9154fdaf46ed6"
+    },
+    {
+      "path": "capabilities.json",
+      "sizeBytes": 904,
+      "sha256": "716c16f57c0608391c158fc719666681f423083bd0c3093575517264f6cf8ac1"
+    },
+    {
+      "path": "configure-options.txt",
+      "sizeBytes": 1672,
+      "sha256": "02a2739e391dfd38d132fdb1b5fee68a02989d42bf966dd262be08ed7c9b5a92"
+    },
+    {
+      "path": "evidence/audit-x86-sdk.py",
+      "sizeBytes": 5348,
+      "sha256": "56b7dea1d3024256e05208610d507a298cf469298ec5c54ef4ddb629e33980a8"
+    },
+    {
+      "path": "evidence/clang-resources.json",
+      "sizeBytes": 86811,
+      "sha256": "fcdfc919e4044aed2204424904332330e80dd988609c9f5deea1a836f8de5999"
+    },
+    {
+      "path": "evidence/consumer-link.json",
+      "sizeBytes": 1116,
+      "sha256": "fd0c08c4b4d319372ee2adec9cc89fa5f4b865d2f219dc7e4d1f82f8c8842b44"
+    },
+    {
+      "path": "evidence/dependencies/bison-3.8.2/config.log",
+      "sizeBytes": 774246,
+      "sha256": "fb49fe5b0c1126f97ebc83bc3829a944da3fe8e41ca626118676d237fcb325c0"
+    },
+    {
+      "path": "evidence/dependencies/bison-3.8.2/config.status",
+      "sizeBytes": 104230,
+      "sha256": "f531036626d5de0d6d1f5459c821407269f1b5f9c856fa58d6a5498edc1dffdc"
+    },
+    {
+      "path": "evidence/dependencies/gmp-6.3.0/config.h",
+      "sizeBytes": 22171,
+      "sha256": "a56e6a1eba37af6533987864034d96754e53b0c1516f027665989d2ad1a4cf9b"
+    },
+    {
+      "path": "evidence/dependencies/gmp-6.3.0/config.log",
+      "sizeBytes": 624768,
+      "sha256": "1fa02d1d79dcde995bd2b6c81debe54fa1c5e227c9fc3fab85de54d06fa9848c"
+    },
+    {
+      "path": "evidence/dependencies/gmp-6.3.0/config.status",
+      "sizeBytes": 97775,
+      "sha256": "99a1972e6d1d228493d109045341af1cf8aec7fd5b921e29921c9eba9546334f"
+    },
+    {
+      "path": "evidence/dependencies/gnutls-3.8.7/config.h",
+      "sizeBytes": 114086,
+      "sha256": "d1f370c2962fac6d66514042f4f39ab731117540b256366f6059d2f4a987897c"
+    },
+    {
+      "path": "evidence/dependencies/gnutls-3.8.7/config.log",
+      "sizeBytes": 2778695,
+      "sha256": "3526ce061c7f31f4b9d84b47f56f68b3fc24f24bd35bf42dc064b64cbfc77cdb"
+    },
+    {
+      "path": "evidence/dependencies/gnutls-3.8.7/config.status",
+      "sizeBytes": 210289,
+      "sha256": "458cde87dc50a691ceca72936784f8bb0d54ce84ff818091f95337d2c3d8f1fb"
+    },
+    {
+      "path": "evidence/dependencies/libtasn1-4.19.0/config.h",
+      "sizeBytes": 45608,
+      "sha256": "41c967407f2ede50bc67da3fe6b017b300b04c0fe92ea57d9b47aef0f7399ae7"
+    },
+    {
+      "path": "evidence/dependencies/libtasn1-4.19.0/config.log",
+      "sizeBytes": 545538,
+      "sha256": "d77a4e008e0505ac50921b96949beb1eb8c863f21e7cac6d5689334418a0bccb"
+    },
+    {
+      "path": "evidence/dependencies/libtasn1-4.19.0/config.status",
+      "sizeBytes": 104111,
+      "sha256": "1561a26eb06728a64f277d4e6243892458898c9846fe305b82efd9089b1e4614"
+    },
+    {
+      "path": "evidence/dependencies/nettle-3.9.1/config.h",
+      "sizeBytes": 8503,
+      "sha256": "6df22e61e8d92aab89fcf2b4259ecb2b0c3ce75b078e7983ed787efa127666d1"
+    },
+    {
+      "path": "evidence/dependencies/nettle-3.9.1/config.log",
+      "sizeBytes": 140242,
+      "sha256": "82c3723cd763d6c93bfb484475d316a81f328e0694b62bc82405e6846d52988f"
+    },
+    {
+      "path": "evidence/dependencies/nettle-3.9.1/config.status",
+      "sizeBytes": 42055,
+      "sha256": "0df91c2fc1efefcc6c67eafba27a1d6b7d81ab8c719d42916e905e74aae0c715"
+    },
+    {
+      "path": "evidence/dependencies/popt-1.19/config.h",
+      "sizeBytes": 7418,
+      "sha256": "d042ef3753bd04280a39ca693c241f94846b53cc7817c2f417de8002ace41505"
+    },
+    {
+      "path": "evidence/dependencies/popt-1.19/config.log",
+      "sizeBytes": 110610,
+      "sha256": "f4d0beac93eb67c58aa56c09c6ed44fed72e07e24ebd30551ceee86689d7d1c0"
+    },
+    {
+      "path": "evidence/dependencies/popt-1.19/config.status",
+      "sizeBytes": 72457,
+      "sha256": "8d6a6df2007890b59f1bb3bde5c0def58ddbfcce1574953f0616d7c84f5b14ef"
+    },
+    {
+      "path": "evidence/dependencies/samba/bin/config.log",
+      "sizeBytes": 16918791,
+      "sha256": "b72ffba2d442daa8ff916fd4e99aec9df49389647ab32c69116f4e75a4a05587"
+    },
+    {
+      "path": "evidence/dependencies/samba/bin/default/include/config.h",
+      "sizeBytes": 30755,
+      "sha256": "46c87b6dc4718e15da01b38a38ea9715a828081e9a1bc3fc78daba6735d68f1a"
+    },
+    {
+      "path": "evidence/elf-audit.json",
+      "sizeBytes": 36731,
+      "sha256": "7929a97ace26125c2244b4294c84989b95ebe5c395b71629f0e5f7a5713b77e2"
+    },
+    {
+      "path": "evidence/ffmpeg/config.h",
+      "sizeBytes": 24335,
+      "sha256": "65f09050f22bcb7224cf8106587a0f510932d8cdf6b310e149e79eb6a4590c93"
+    },
+    {
+      "path": "evidence/ffmpeg/config_components.h",
+      "sizeBytes": 74588,
+      "sha256": "7756b0e9b14991a4da3028780e8da385c30159c1c2043118c7578d1919448815"
+    },
+    {
+      "path": "evidence/ffmpeg/ffbuild/config.mak",
+      "sizeBytes": 87810,
+      "sha256": "602f85a81f0e5f537ab195f16f8d6404de3a6c620007bc6a329c13d9f498bb1d"
+    },
+    {
+      "path": "evidence/ndk-sysroot.json",
+      "sizeBytes": 413446,
+      "sha256": "90e495e47356c1da67ef28a7a265f4d1401aa33a24fc9ba6841b457a4da91d05"
+    },
+    {
+      "path": "evidence/package-x86-sdk.py",
+      "sizeBytes": 14271,
+      "sha256": "5dc20a7595eab683ed2f9792fb33b7e56210b1aea2700bfe0e121b7ddc970110"
+    },
+    {
+      "path": "evidence/phase20/apply.py",
+      "sizeBytes": 8482,
+      "sha256": "9722674e000be426436f6848ea5fa8cc55c9427becf823b4f840e4ec7382b851"
+    },
+    {
+      "path": "evidence/phase20/runtime/smb_context_wrappers.inc",
+      "sizeBytes": 995,
+      "sha256": "beaaeed6994c88f4d867ef45fa394f6c59e3fd09fa4ed3e04cc02d0fabaf2e9c"
+    },
+    {
+      "path": "evidence/phase20/runtime/smb_runtime.c",
+      "sizeBytes": 5590,
+      "sha256": "3cd90b505226b0a4e753eeeabdb0e215004891556c099bc25e78e17147a669e8"
+    },
+    {
+      "path": "evidence/phase20/runtime/smb_runtime.h",
+      "sizeBytes": 583,
+      "sha256": "b952497cd47e840dfffd2262cfd874caa8521175a88bdc595d9f9910f23c9f26"
+    },
+    {
+      "path": "evidence/phase20/runtime/smb_runtime_internal.h",
+      "sizeBytes": 435,
+      "sha256": "0894082c79db2b3569372049a3031bfb388ed183f34e2df4e85d6ae146d27b22"
+    },
+    {
+      "path": "evidence/phase20/tests/lifecycle.c",
+      "sizeBytes": 4599,
+      "sha256": "901cc3abc099759960fd8b01fec1f328c02ce8e301a7bda4e9ed70208a1fc019"
+    },
+    {
+      "path": "evidence/phase20/tests/test_lifecycle.py",
+      "sizeBytes": 1118,
+      "sha256": "dae9c729556104b9503732796c6e4c432195e7e92e3ec0a1e8cdd0fd3f74fbb8"
+    },
+    {
+      "path": "evidence/phase20/tests/test_runtime.py",
+      "sizeBytes": 6907,
+      "sha256": "b60589e6a06397e2e8f3b1f533e1e1b42c2aafde721e091d18d0455140350e5b"
+    },
+    {
+      "path": "evidence/recipe/README_zh.md",
+      "sizeBytes": 20555,
+      "sha256": "467a6bae51f6895dac3c9ad7c6bfdd4e5b27d06287d48fc0316ac0b391df9d33"
+    },
+    {
+      "path": "evidence/recipe/audit-cache-provenance.py",
+      "sizeBytes": 3092,
+      "sha256": "6dc1a3bc5b4d8ff901a5d7a027607e3c9c03ec88c7358a625768840006c0beab"
+    },
+    {
+      "path": "evidence/recipe/audit-x86-sdk.py",
+      "sizeBytes": 5348,
+      "sha256": "56b7dea1d3024256e05208610d507a298cf469298ec5c54ef4ddb629e33980a8"
+    },
+    {
+      "path": "evidence/recipe/baseline-lock.json",
+      "sizeBytes": 4999,
+      "sha256": "44a0fcd6ff3e4a55459f59301a34908b445d5bd66287f166dd1cf53dbd57a32b"
+    },
+    {
+      "path": "evidence/recipe/build-env.sh",
+      "sizeBytes": 2824,
+      "sha256": "525d5150dc3084e13c5f5724452231857a079854c46df183583dd4008715032d"
+    },
+    {
+      "path": "evidence/recipe/build-libsmbclient.sh",
+      "sizeBytes": 28074,
+      "sha256": "0aedc2778a8790ec660e367d0e1ac7e00d558d81b099b420d2fd09f864ddd53b"
+    },
+    {
+      "path": "evidence/recipe/build-ohcodec.sh",
+      "sizeBytes": 2941,
+      "sha256": "6571741d4343d2b8a50efcf49d72aa7254d9c42735b908c36ad9232d0eb8cce9"
+    },
+    {
+      "path": "evidence/recipe/build.sh",
+      "sizeBytes": 12339,
+      "sha256": "cef4b8692b80ee2c038c2103a7355332019bcd9219b9076dda86b8aebcb8d6f9"
+    },
+    {
+      "path": "evidence/recipe/ci/Dockerfile",
+      "sizeBytes": 1161,
+      "sha256": "c9b304ab0a8bba28a0d1637490fcbcd7259f71dff5885e03943544ea5a9034bc"
+    },
+    {
+      "path": "evidence/recipe/ci-build-ohcodec.sh",
+      "sizeBytes": 4073,
+      "sha256": "da3dc837059b86176ad1448138db7ea4e10502776db3d83fa02767c3f44e7fb8"
+    },
+    {
+      "path": "evidence/recipe/ci-container.sh",
+      "sizeBytes": 1441,
+      "sha256": "7b94e2e7226a50f8ee53b026c80fb8c1a8e89ea2d8392394dba8b0a13bbe4b05"
+    },
+    {
+      "path": "evidence/recipe/ci-gate.py",
+      "sizeBytes": 3957,
+      "sha256": "da731ffdf89705eeae695b833ddc0ac255b74f60bbe4fe93165cdc6cc05ca29e"
+    },
+    {
+      "path": "evidence/recipe/ci-prepare-inputs.py",
+      "sizeBytes": 5111,
+      "sha256": "7227fff3597f0cd9824c68d985a5841e858e8d07471057302f6d0984662e38a3"
+    },
+    {
+      "path": "evidence/recipe/ci-repo-env.sh",
+      "sizeBytes": 298,
+      "sha256": "083905cef93f808a40a5415e23115daef0a7c894e2e0ccd4b2cb8df72b2ddaea"
+    },
+    {
+      "path": "evidence/recipe/codesign-resources.py",
+      "sizeBytes": 4574,
+      "sha256": "70efb45527669e2f267e9f046f25ebd7a295d75c3abc38add9a32974cb258427"
+    },
+    {
+      "path": "evidence/recipe/compare-sdks.py",
+      "sizeBytes": 1452,
+      "sha256": "d0f02840c771305700fec09dee3d6949fe45ade4576abe40f2862e87b29118e0"
+    },
+    {
+      "path": "evidence/recipe/dependency-manifest.py",
+      "sizeBytes": 6288,
+      "sha256": "8661aafdfef9c315e562c49f8d18f9fe89e25216b09804cccfb2fe3ee03da658"
+    },
+    {
+      "path": "evidence/recipe/dependency-paths.py",
+      "sizeBytes": 1028,
+      "sha256": "69243354f6a7656c1b35127528a9a66be3c6e5262f490aaf906ea3ac758bc2e6"
+    },
+    {
+      "path": "evidence/recipe/dependency-repeat.py",
+      "sizeBytes": 2988,
+      "sha256": "f86994aa37e2958e5e6910cc0385fe29de51bae0313cba6a17334284cc905f82"
+    },
+    {
+      "path": "evidence/recipe/dependency-sources.lock.json",
+      "sizeBytes": 3053,
+      "sha256": "70912366853b2948affd3faeaaa862e9ce0b2de25f00494adb236d61d0ca8e47"
+    },
+    {
+      "path": "evidence/recipe/elf-audit.py",
+      "sizeBytes": 3571,
+      "sha256": "7fb8a7238e5b047388e0de26a5c8a09bc6adbff47cc123203bccbd22952168c9"
+    },
+    {
+      "path": "evidence/recipe/fetch-sources.py",
+      "sizeBytes": 2985,
+      "sha256": "8585d08198dc3be6841655aa0de518a2de3a2494d2b831571e5eb18fb15b7bd8"
+    },
+    {
+      "path": "evidence/recipe/generator-lock.py",
+      "sizeBytes": 1951,
+      "sha256": "c2bce02d18d92e77b66962f727b036a110c68a54fa00fc68cf32f586bcd1e31c"
+    },
+    {
+      "path": "evidence/recipe/host-lock.py",
+      "sizeBytes": 7628,
+      "sha256": "38d6175029893dfa055955c67104899daa93b9a60ce38d576a586928c9ef97db"
+    },
+    {
+      "path": "evidence/recipe/new-source-closure.py",
+      "sizeBytes": 8213,
+      "sha256": "7cb315c0494f9b41109888dc50fb09f8ee2f94c36f951283f1c4b12ed0ccfe73"
+    },
+    {
+      "path": "evidence/recipe/package-x86-sdk.py",
+      "sizeBytes": 14271,
+      "sha256": "5dc20a7595eab683ed2f9792fb33b7e56210b1aea2700bfe0e121b7ddc970110"
+    },
+    {
+      "path": "evidence/recipe/patches/0001-libsmbclient-private-credentials.patch",
+      "sizeBytes": 2025,
+      "sha256": "8bc8c8e7fbe25f1622158b346bef39c146b0bc81742e651c488f604431678930"
+    },
+    {
+      "path": "evidence/recipe/patches/ohcodec/support-av3a-audio-vivid.patch",
+      "sizeBytes": 69869,
+      "sha256": "79e970caeaf121c0c866265f70aae92f3a4328724fe061c0a8c4e76e2935f23b"
+    },
+    {
+      "path": "evidence/recipe/patches/ohcodec/support-zero-copy-hardware-decode.patch",
+      "sizeBytes": 27414,
+      "sha256": "c15790cf227aaaa4727fe28f85f4d1e403a1d8f9485aea78e328efe552ef6720"
+    },
+    {
+      "path": "evidence/recipe/producer-inputs.lock.json",
+      "sizeBytes": 862,
+      "sha256": "32be60c3247e2e89ef4329ffdfe34c9408228c85480ed752659461a1ce6d701d"
+    },
+    {
+      "path": "evidence/recipe/producer-sdk.py",
+      "sizeBytes": 32914,
+      "sha256": "af24c0867667ab5e35446967c2ba072a74da2608d274cc6f8daa902e03441076"
+    },
+    {
+      "path": "evidence/recipe/reproduce-history.sh",
+      "sizeBytes": 3151,
+      "sha256": "e80fbed01cb47299534488b243592b278f612ea26d23471e864f1ba0e88eb44d"
+    },
+    {
+      "path": "evidence/recipe/run-dependency-build.py",
+      "sizeBytes": 3901,
+      "sha256": "ed4f89d8337572c56b513e7f4699b320f59244a53c5af5abee031778dfb493f9"
+    },
+    {
+      "path": "evidence/recipe/samba-target-config.py",
+      "sizeBytes": 2668,
+      "sha256": "18e4cf921b61e27d0a6f9a428ce788776b88406c171b73f2944187fc90a3d5c1"
+    },
+    {
+      "path": "evidence/recipe/tests/fixtures/ffmpeg-version.sh",
+      "sizeBytes": 1933,
+      "sha256": "cf34357a8a7ce476e38e30664ae86153f3a4580d00079ea684046997e1f95b0b"
+    },
+    {
+      "path": "evidence/recipe/tests/test-libsmbclient-patch.sh",
+      "sizeBytes": 1164,
+      "sha256": "eeb02ca7d864240554cee325bbeee7bb4711ab09d79a3852d59af85e6b525621"
+    },
+    {
+      "path": "evidence/recipe/tests/test-ohcodec-patches.sh",
+      "sizeBytes": 1272,
+      "sha256": "5ea0b03133514b508dc7a587423e0122e67c7b0dbc379973c57074e3b97b7af8"
+    },
+    {
+      "path": "evidence/recipe/tests/test-sdk-contract.sh",
+      "sizeBytes": 1912,
+      "sha256": "b728d9e2f59f9381e5e755721418d97da49c0631fc0da5bcde4b1bfffbfaaeb7"
+    },
+    {
+      "path": "evidence/recipe/tests/test-smb-service.sh",
+      "sizeBytes": 1849,
+      "sha256": "c001768a05e62bf1e8e0fd1148c9c305dfdf3efe9e8f3b8a0d2e88689e79ba3c"
+    },
+    {
+      "path": "evidence/recipe/tests/test_ci_gate.py",
+      "sizeBytes": 2214,
+      "sha256": "13c179ac2fca8f5c67e5e7f28f49d993424f8ae19a68eda7ff4cb2f06efd99b4"
+    },
+    {
+      "path": "evidence/recipe/tests/test_ci_git_environment.py",
+      "sizeBytes": 1012,
+      "sha256": "c43d549ee225b3c5aa2b0df69afe8e8624304d864f32de939e6efabae6941cc8"
+    },
+    {
+      "path": "evidence/recipe/tests/test_ci_recipe_environment.py",
+      "sizeBytes": 2901,
+      "sha256": "89f0802dc5e3f03a086f5e934091368c5c04c845999e2a1f092230da9424ca81"
+    },
+    {
+      "path": "evidence/recipe/tests/test_closure_evidence.py",
+      "sizeBytes": 4973,
+      "sha256": "a27e2f4146105d872e84a263b34a0dda444dce37ede8ec510dfa0a592d84ebd5"
+    },
+    {
+      "path": "evidence/recipe/tests/test_codesign_resources.py",
+      "sizeBytes": 2321,
+      "sha256": "10dc667325f298729159885a5e3c9935e0b15266907fdb1835116a6b687d1c33"
+    },
+    {
+      "path": "evidence/recipe/tests/test_cross_root_inputs.py",
+      "sizeBytes": 5067,
+      "sha256": "f2a6f8a0a0d594e039125901b1ae2e8647e263edfc48bb36d99b5c153c6defb3"
+    },
+    {
+      "path": "evidence/recipe/tests/test_dependency_features.py",
+      "sizeBytes": 6193,
+      "sha256": "bc7cf84564e32f824ccbba9883e2bf8d9ce6cb8171e7e7af0aa6da6208d69ee4"
+    },
+    {
+      "path": "evidence/recipe/tests/test_dependency_manifest.py",
+      "sizeBytes": 1753,
+      "sha256": "f9e1262e686e4fecb65f872699cd49f1579416324aecc64c18ce117bb7626db9"
+    },
+    {
+      "path": "evidence/recipe/tests/test_dependency_paths.py",
+      "sizeBytes": 1057,
+      "sha256": "f702ce681c3ddfee62962c497f452b15afe1336ee45550a1fe26c65fc18756f2"
+    },
+    {
+      "path": "evidence/recipe/tests/test_dependency_repeat.py",
+      "sizeBytes": 4307,
+      "sha256": "f958abc6f2f8ac8aecaa8767dd3ebc8b3321331fa5ccf113d00a8210b78c0123"
+    },
+    {
+      "path": "evidence/recipe/tests/test_elf_audit.py",
+      "sizeBytes": 1885,
+      "sha256": "fa91af353b658d1a819693911d7ae2085ab3663551f9b0818ee67384b4ca7cfe"
+    },
+    {
+      "path": "evidence/recipe/tests/test_generator_lock.py",
+      "sizeBytes": 2195,
+      "sha256": "c7e0af4fa4fa7ea40b4cba8f998b4bfdb37ccf6caaddc1ed59f1dcd2921df27d"
+    },
+    {
+      "path": "evidence/recipe/tests/test_native_host_environment.py",
+      "sizeBytes": 2573,
+      "sha256": "3aa744789bfe036446aa83fcd0311698fcdef3f98577807b8c736eeb2e405a94"
+    },
+    {
+      "path": "evidence/recipe/tests/test_producer_sdk.py",
+      "sizeBytes": 10203,
+      "sha256": "189b7c01ef13afb355081675eed395c6d6a8eabfa359ccf63c8715dd74e237a3"
+    },
+    {
+      "path": "evidence/recipe/tests/test_python_target_paths.py",
+      "sizeBytes": 4344,
+      "sha256": "f54b3065f4f6fef1f6bec42e0a763e6eb956b579fe93859b0aed9976e140e3ed"
+    },
+    {
+      "path": "evidence/recipe/tests/test_reproducible_build.py",
+      "sizeBytes": 2988,
+      "sha256": "808edfe27d647b54578bfb9f76d44fb791fc3baac0270f0368b45e985a1434b7"
+    },
+    {
+      "path": "evidence/recipe/tests/test_source_inputs.py",
+      "sizeBytes": 3047,
+      "sha256": "49afe676ec0b6156df2f9dbe58470ea511bc2ba84c0cfc150d479c62f807548e"
+    },
+    {
+      "path": "evidence/recipe/tests/test_static_input_set.py",
+      "sizeBytes": 2802,
+      "sha256": "d0657d260baec91034f7bb84d0a10af61807089a2b3a152d4a1fcf151cc0e3d4"
+    },
+    {
+      "path": "evidence/recipe/tests/test_target_configuration.py",
+      "sizeBytes": 6266,
+      "sha256": "0513d361bb6e131d241500c543f7d979423e70ee86d87670640678fa86dd8a7d"
+    },
+    {
+      "path": "evidence/recipe/tests/test_toolchain_zip.py",
+      "sizeBytes": 1908,
+      "sha256": "c8b7e7feb068a1694d0422eca9d8c72cbb4b8b3c8486e6881b7130c71e99817f"
+    },
+    {
+      "path": "evidence/recipe/tests/test_x86_build_record.py",
+      "sizeBytes": 2038,
+      "sha256": "3a3bccaa6c9bb9fb326d0abb6be90e445ea5b8d74a8d4219f3fbe8b159cefcb7"
+    },
+    {
+      "path": "evidence/recipe/tests/test_x86_sdk_audit.py",
+      "sizeBytes": 3943,
+      "sha256": "ab73ab9dc449b77e65eadcfd07cee69c17c03bdfd1ae17b7699a5a311b6b4718"
+    },
+    {
+      "path": "evidence/recipe/tests/test_x86_smb_runtime.py",
+      "sizeBytes": 2574,
+      "sha256": "82f09b022d708a7084f50297ae9568ee8379ca6d96d10c461db80cb2d67d556e"
+    },
+    {
+      "path": "evidence/recipe/tests/test_xcode_dispatch_lock.py",
+      "sizeBytes": 5091,
+      "sha256": "64acfdb0fb218b1c28e6c2f8c28697d24cb5ee6f1b39681ff0113c13276d727a"
+    },
+    {
+      "path": "evidence/recipe/tests/x86-sdk-consumer.c",
+      "sizeBytes": 880,
+      "sha256": "96705a15a62290b4d5a356729c755704751898dc6517d45106fc7787629dcb19"
+    },
+    {
+      "path": "evidence/recipe/verify-dependency-features.py",
+      "sizeBytes": 12503,
+      "sha256": "5ba3b119c3b95fd4abb4ccbdb49ec5ff64e0447124dabe23714a73510cb9ee13"
+    },
+    {
+      "path": "evidence/recipe/verify.sh",
+      "sizeBytes": 6022,
+      "sha256": "a437b054b786f577512dd3114f3bf9fd54521c835ffbcdb727a912e6599ae0c3"
+    },
+    {
+      "path": "evidence/recipe/x86-build-record.py",
+      "sizeBytes": 3504,
+      "sha256": "f07ab9fbab116d2559d3d3a070a1daa726a32c7a428ddcf65b068d214085a06c"
+    },
+    {
+      "path": "evidence/runtime-ffmpeg-patch.json",
+      "sizeBytes": 1993,
+      "sha256": "51affc781419f4687706f254e5a28a7bb24e584e41497563ac3fe44729e33c70"
+    },
+    {
+      "path": "evidence/runtime-ffmpeg.patch",
+      "sizeBytes": 1889,
+      "sha256": "059a36c4ba33a952b1d3efbc58f239bf20eb7ef1c1fcbd9b1dc2b1b37cab6771"
+    },
+    {
+      "path": "evidence/runtime-samba-patch.json",
+      "sizeBytes": 9583,
+      "sha256": "3c9b1d2955c73868da47054fd39509049942fce7f413703aaecd144c845f05ad"
+    },
+    {
+      "path": "evidence/runtime-samba.patch",
+      "sizeBytes": 15997,
+      "sha256": "2ca479b7a3967453996a4915003a054612672b92eb25c0fd4ad9679b6126d797"
+    },
+    {
+      "path": "evidence/x86-runtime-build.json",
+      "sizeBytes": 16370,
+      "sha256": "5887da0bfac98b728dc9133e84180a6fcd726c5b65e00cbe63d7b80e2bbc58c9"
+    },
+    {
+      "path": "evidence/x86-sdk-consumer",
+      "sizeBytes": 13112,
+      "sha256": "6a334e6d3a1c81723bd3e0424ec92319c48698a18d581c01607ccf02076f58d7"
+    },
+    {
+      "path": "evidence/x86-sdk-consumer.c",
+      "sizeBytes": 880,
+      "sha256": "96705a15a62290b4d5a356729c755704751898dc6517d45106fc7787629dcb19"
+    },
+    {
+      "path": "include/libavcodec/ac3_parser.h",
+      "sizeBytes": 1207,
+      "sha256": "200c6d2e96975196e8ba5f5716223dc9dda999d51578dabce2fca93175a05252"
+    },
+    {
+      "path": "include/libavcodec/adts_parser.h",
+      "sizeBytes": 1354,
+      "sha256": "d466583a8dc1260b015e588adbe3abd45f3f8ca0e43722f3088b472e80492a15"
+    },
+    {
+      "path": "include/libavcodec/avcodec.h",
+      "sizeBytes": 108136,
+      "sha256": "0367ee7e67763630d632f193e3a6ef643d30049898a5b8ea82c30c85bf4ab291"
+    },
+    {
+      "path": "include/libavcodec/avdct.h",
+      "sizeBytes": 2726,
+      "sha256": "7c125edc1985ec078f99abb1c9044c4fc76b06a03eb02c026cb968fb9d41fcca"
+    },
+    {
+      "path": "include/libavcodec/bsf.h",
+      "sizeBytes": 11540,
+      "sha256": "cc26676aa44638fa5cbef953d967e19e2084b46aaa100f0a35ba2d34b302301c"
+    },
+    {
+      "path": "include/libavcodec/codec.h",
+      "sizeBytes": 12641,
+      "sha256": "b1c1afa2310c509b95845d526fbd1ec8f5f7130e4ade5920d2d8848ac6e58a13"
+    },
+    {
+      "path": "include/libavcodec/codec_desc.h",
+      "sizeBytes": 3974,
+      "sha256": "4c1a8d02398cc82c1913487405c483f4d74ec71ed3e666ed7e7570f581c8f479"
+    },
+    {
+      "path": "include/libavcodec/codec_id.h",
+      "sizeBytes": 18380,
+      "sha256": "7f0c8ce1a2b94f7b2abbeb4779774f32cb0c00041263ca4c22c98869ac1d0e75"
+    },
+    {
+      "path": "include/libavcodec/codec_par.h",
+      "sizeBytes": 7728,
+      "sha256": "5b74b8ba0d71048d4753cd563f38a6d05608879308c71beb4a8960ef44b1f806"
+    },
+    {
+      "path": "include/libavcodec/d3d11va.h",
+      "sizeBytes": 2610,
+      "sha256": "0a5b324124f3dd67942bac8d8288aba152215fb0ef2dede40d492198e0989346"
+    },
+    {
+      "path": "include/libavcodec/defs.h",
+      "sizeBytes": 13333,
+      "sha256": "f1d391ac2417702b59b7a4b6ae3927eea8c8b5e9858ae9ade6fdd009a60bd9ce"
+    },
+    {
+      "path": "include/libavcodec/dirac.h",
+      "sizeBytes": 4126,
+      "sha256": "09fd1f670422ee61713568abd90fdf371b30e6fe35bc6fb8213f1ad32b45cf56"
+    },
+    {
+      "path": "include/libavcodec/dv_profile.h",
+      "sizeBytes": 3694,
+      "sha256": "19f59e0b20ac583de4bfd76d18889d334bf0b6cdf7b5356723a33f3874738466"
+    },
+    {
+      "path": "include/libavcodec/dxva2.h",
+      "sizeBytes": 2128,
+      "sha256": "3a603c2cf8bc00d0c9df6cc80a5f0ed091d48d20303713baac1c7e432619f0bb"
+    },
+    {
+      "path": "include/libavcodec/jni.h",
+      "sizeBytes": 2263,
+      "sha256": "f98405ffb7ba26665cde92daef33bc4371c91aa6c85b522b36864ed289600ebc"
+    },
+    {
+      "path": "include/libavcodec/mediacodec.h",
+      "sizeBytes": 3570,
+      "sha256": "1f64544000dd2f2ec94604d5fcf7c2a6d26d32d085264356084a4b53a7f0c3f0"
+    },
+    {
+      "path": "include/libavcodec/packet.h",
+      "sizeBytes": 30773,
+      "sha256": "42bd04e20cbbd22f6e8142b5351f339c781357b6f3f2e4c282328c5eda0331cb"
+    },
+    {
+      "path": "include/libavcodec/qsv.h",
+      "sizeBytes": 3844,
+      "sha256": "e45780237ab0e9ea9ec11aab9f62dfb8b059138f846632ecacdc024db16dfb1b"
+    },
+    {
+      "path": "include/libavcodec/smpte_436m.h",
+      "sizeBytes": 11580,
+      "sha256": "6e5a93aad21b7c098fb8ac5d1e4ba469887f8cfce0eb21762b35c2fd1097f2a8"
+    },
+    {
+      "path": "include/libavcodec/vdpau.h",
+      "sizeBytes": 4555,
+      "sha256": "014ec822b00aa33305d503ea128c04287e7d1265194fda3a91cc00cd2a763272"
+    },
+    {
+      "path": "include/libavcodec/version.h",
+      "sizeBytes": 1619,
+      "sha256": "4a8a4f4f5dd267430190aae962b9721efd95516962cb7be19965fa548a4db3f8"
+    },
+    {
+      "path": "include/libavcodec/version_major.h",
+      "sizeBytes": 2154,
+      "sha256": "53ac8fa11a769d53aee97bb99650e39d8ef0773adfde0e1ca06a53aca2a51986"
+    },
+    {
+      "path": "include/libavcodec/videotoolbox.h",
+      "sizeBytes": 2445,
+      "sha256": "b182be72a4404f99dc761680193f647c47c2a792ab50d975f6d8b75984c6f5b9"
+    },
+    {
+      "path": "include/libavcodec/vorbis_parser.h",
+      "sizeBytes": 2285,
+      "sha256": "57077b2e1d28d42636cab0f69e4b92b1ad64ac2eaa2843c270a6afaf308a76ae"
+    },
+    {
+      "path": "include/libavfilter/avfilter.h",
+      "sizeBytes": 45970,
+      "sha256": "b6c47cb142a3dc92aed0756bc63f55964eb91dbed9f36aa529da7c7dca783349"
+    },
+    {
+      "path": "include/libavfilter/buffersink.h",
+      "sizeBytes": 6861,
+      "sha256": "e8145a55e87c2cc18c94a92f05bb17aa6ff9eeef4fe1dd6b8285c7f03f84e199"
+    },
+    {
+      "path": "include/libavfilter/buffersrc.h",
+      "sizeBytes": 6803,
+      "sha256": "46aab1ad49c01771c5729327c2f564797a2157a27bd400fb3127eba67dd5186f"
+    },
+    {
+      "path": "include/libavfilter/version.h",
+      "sizeBytes": 1653,
+      "sha256": "3469d7376608039a622aad725daaf5d624bd8e9e25d6956eea621ab2a237a66b"
+    },
+    {
+      "path": "include/libavfilter/version_major.h",
+      "sizeBytes": 1352,
+      "sha256": "07e3b2d86f0cdedaf3146f644770e51d89586ec1cde698cf8405448e78613fb3"
+    },
+    {
+      "path": "include/libavformat/avformat.h",
+      "sizeBytes": 114855,
+      "sha256": "3abd044fbd0c6be3cb38b821c4e7f32f1da3f623cb0db6b552dd93374cbb4fe1"
+    },
+    {
+      "path": "include/libavformat/avio.h",
+      "sizeBytes": 31142,
+      "sha256": "b1a25f1465b87b62bf2797870c39fbbf81d2e1b4513ac34a66d57963e8facb6f"
+    },
+    {
+      "path": "include/libavformat/ohcodec_smb_runtime.h",
+      "sizeBytes": 583,
+      "sha256": "b952497cd47e840dfffd2262cfd874caa8521175a88bdc595d9f9910f23c9f26"
+    },
+    {
+      "path": "include/libavformat/version.h",
+      "sizeBytes": 1652,
+      "sha256": "70fc05235520c8ef1adcef496a4ceeb02265bf919697c9bd9b36bd0c481fa6cc"
+    },
+    {
+      "path": "include/libavformat/version_major.h",
+      "sizeBytes": 1876,
+      "sha256": "3dde828335345cf56d654fcae728c0fdeb66da23774556d5fed8b09a1fb1a9fc"
+    },
+    {
+      "path": "include/libavutil/adler32.h",
+      "sizeBytes": 1696,
+      "sha256": "f21a861957bf4b1812ed67fdc528890f9cff1bb483facf0f5109e4a51932fe3b"
+    },
+    {
+      "path": "include/libavutil/aes.h",
+      "sizeBytes": 1912,
+      "sha256": "0a86ebeaf9ed33548bf0f92359f7047e521d4d80fe6b0ef1c8ef9505e38b6d28"
+    },
+    {
+      "path": "include/libavutil/aes_ctr.h",
+      "sizeBytes": 2443,
+      "sha256": "fbbb94888bfab2ea7141e7e1afa5872de099e7ee57baea17632c3d4fdd2cba3f"
+    },
+    {
+      "path": "include/libavutil/ambient_viewing_environment.h",
+      "sizeBytes": 2585,
+      "sha256": "00135de08089f8c711bb113588f80575a1d26e86d50b6dac5928a27a0ff9a8c7"
+    },
+    {
+      "path": "include/libavutil/attributes.h",
+      "sizeBytes": 4996,
+      "sha256": "9d429bb37267333d2eee9359a7da862564741e2f0cf4fde6b9d375f7a5270128"
+    },
+    {
+      "path": "include/libavutil/audio_fifo.h",
+      "sizeBytes": 5966,
+      "sha256": "3c513ca46927346c0673cd9db302afe62dbbf976844f36da0307fd10f7f47bfd"
+    },
+    {
+      "path": "include/libavutil/avassert.h",
+      "sizeBytes": 4010,
+      "sha256": "7ee536f633ef2f77504370dcf0b40a623d230d8978991a75b64ebdb60ba58d1f"
+    },
+    {
+      "path": "include/libavutil/avconfig.h",
+      "sizeBytes": 180,
+      "sha256": "975611ad5eba15212d9e1d5fca9d4fdf0daec6d2269b2fcab8e29af8667164bc"
+    },
+    {
+      "path": "include/libavutil/avstring.h",
+      "sizeBytes": 14962,
+      "sha256": "630d231013e996b10b2c9aec98c569f8f88dc53a425491d435d868172a53ecb0"
+    },
+    {
+      "path": "include/libavutil/avutil.h",
+      "sizeBytes": 9492,
+      "sha256": "8f3782efa238fc579463497136e831b4c098664bc022b84928b91bbaca8045e1"
+    },
+    {
+      "path": "include/libavutil/base64.h",
+      "sizeBytes": 2285,
+      "sha256": "81ac13d23f3744fe85ea2651ce903e201cd55fc63fcdd899d2cfe5560d50ef3d"
+    },
+    {
+      "path": "include/libavutil/blowfish.h",
+      "sizeBytes": 2394,
+      "sha256": "b955a63c60c8b3be0203ec6c3973f9084d848cf884fe56cd56088301aeef7992"
+    },
+    {
+      "path": "include/libavutil/bprint.h",
+      "sizeBytes": 8818,
+      "sha256": "5e3800d797fb8f67ffa7917420d3710c759afaca6f84b655fb64bf4dfa4650d2"
+    },
+    {
+      "path": "include/libavutil/bswap.h",
+      "sizeBytes": 2766,
+      "sha256": "041e147bd2916950cc24d4496080d0bde839f5cf9d2b73b6f3e5938bbaebd8e0"
+    },
+    {
+      "path": "include/libavutil/buffer.h",
+      "sizeBytes": 11998,
+      "sha256": "f16742d574216434580573a2b09f56fc5b66b7dda1960d4f02ba59e3269ba548"
+    },
+    {
+      "path": "include/libavutil/camellia.h",
+      "sizeBytes": 2139,
+      "sha256": "1db30753e71c73f1937e807850069e8215cdf37a1bc3ff89d3a6370a719c1fde"
+    },
+    {
+      "path": "include/libavutil/cast5.h",
+      "sizeBytes": 2561,
+      "sha256": "05b2e13aecaa0adbb470081a689f45baffb8e03a71997c31f37a22ea4e383a60"
+    },
+    {
+      "path": "include/libavutil/channel_layout.h",
+      "sizeBytes": 34091,
+      "sha256": "fbd3246297cd72be45268eacd9229d23247dfe394fb15b6a40ce8773422661c6"
+    },
+    {
+      "path": "include/libavutil/common.h",
+      "sizeBytes": 17563,
+      "sha256": "59f038eb4750d1821e2925dfe13a1c97b051ca9d54a1367d059870dd051c184f"
+    },
+    {
+      "path": "include/libavutil/container_fifo.h",
+      "sizeBytes": 4855,
+      "sha256": "d8bbe3f1f4dfcdcd56f40618961736ff3bc34fafd81f52ac6c993c91ef43916a"
+    },
+    {
+      "path": "include/libavutil/cpu.h",
+      "sizeBytes": 6769,
+      "sha256": "f35276b4279f745e5fc9525071d2391535d93d9d3eabc42afa0b6df261c5ccd6"
+    },
+    {
+      "path": "include/libavutil/crc.h",
+      "sizeBytes": 3259,
+      "sha256": "5728cf65705a46723ea28b4f6c8361aad82b76a90e859943efe8af0edb79ec86"
+    },
+    {
+      "path": "include/libavutil/csp.h",
+      "sizeBytes": 6668,
+      "sha256": "0c70be0d220b0075f5fdcbff3d8fe0abc18ef870264862b08b0a0d50389d557d"
+    },
+    {
+      "path": "include/libavutil/des.h",
+      "sizeBytes": 2514,
+      "sha256": "15ebdda1af65d91c4607a3444c5f749d5e9757ff5d7f4b04213b3194603f74d9"
+    },
+    {
+      "path": "include/libavutil/detection_bbox.h",
+      "sizeBytes": 3524,
+      "sha256": "8f5817d77af243a52e905947aa5ae73c218d68dba909040b2f63bd2ca6f93922"
+    },
+    {
+      "path": "include/libavutil/dict.h",
+      "sizeBytes": 9521,
+      "sha256": "b8b7abebb6e5ab5ffa70b8463df52c96d4e774aa2d5574bebbc02f6031e62ad8"
+    },
+    {
+      "path": "include/libavutil/display.h",
+      "sizeBytes": 3472,
+      "sha256": "b9c78c80aa9331b945802b6bcd1db4ecc9ec4f9fad41993cc82b880c0dec2576"
+    },
+    {
+      "path": "include/libavutil/dovi_meta.h",
+      "sizeBytes": 12395,
+      "sha256": "e1372ac9130e91bd48495ed5dc05cece0ae6bae6d07bf1d06594a63abfbb41f7"
+    },
+    {
+      "path": "include/libavutil/downmix_info.h",
+      "sizeBytes": 3235,
+      "sha256": "2fc23ad8f0750d82fcd6aa3b653998e2ea9721f9d1664df7b6cb80e93d7fa3aa"
+    },
+    {
+      "path": "include/libavutil/encryption_info.h",
+      "sizeBytes": 7056,
+      "sha256": "ccc3a4a889b8a3c5aaf37b9fb2407bcdf23a065487c7cba718518a517c463b18"
+    },
+    {
+      "path": "include/libavutil/error.h",
+      "sizeBytes": 5555,
+      "sha256": "bcf4f7e69c7e0d658ad6e81611810f7cf1f0b8334ebe948d27e518c459e4104c"
+    },
+    {
+      "path": "include/libavutil/eval.h",
+      "sizeBytes": 6600,
+      "sha256": "68efeaa9b6600ec47dae9031d1f0869818c88083b24fb133de3c2cf73f8adf1f"
+    },
+    {
+      "path": "include/libavutil/executor.h",
+      "sizeBytes": 1924,
+      "sha256": "db578edacd55adbb7be49ff6662777f3ddb84f530e0ad7d7cd8e0c18f0aae878"
+    },
+    {
+      "path": "include/libavutil/ffversion.h",
+      "sizeBytes": 182,
+      "sha256": "835bb1ef176fe66ea32d183f689d1a3b4440fac92ad6361c595b19d2811edf66"
+    },
+    {
+      "path": "include/libavutil/fifo.h",
+      "sizeBytes": 8487,
+      "sha256": "9d6e9a6db887d32ee3f4bdafab68869d00f9d89590e33718922c37067eb7f5fe"
+    },
+    {
+      "path": "include/libavutil/file.h",
+      "sizeBytes": 2225,
+      "sha256": "10daa0d0f1f2a3bedf2b7d8b5c4fea208dd9cf8caabb81dac341fc6ad24f685f"
+    },
+    {
+      "path": "include/libavutil/film_grain_params.h",
+      "sizeBytes": 9190,
+      "sha256": "414d2755769a6993d0c3f4b5a7e92e22a558675f0c49b44df3afc876473e825c"
+    },
+    {
+      "path": "include/libavutil/frame.h",
+      "sizeBytes": 41912,
+      "sha256": "cd2b592d3e57586dc6d570fa6a84ca8426a203a44b06dc3993fc5c75b0ceefb0"
+    },
+    {
+      "path": "include/libavutil/hash.h",
+      "sizeBytes": 8457,
+      "sha256": "b0896571267220736679eea28c454783795a02a0f1aef008ebe7c40489a75fdd"
+    },
+    {
+      "path": "include/libavutil/hdr_dynamic_metadata.h",
+      "sizeBytes": 14385,
+      "sha256": "0d64ba1388d67453ee677cd50227d4b3bedf3cda6e4572f3517b2331e7a8d017"
+    },
+    {
+      "path": "include/libavutil/hdr_dynamic_vivid_metadata.h",
+      "sizeBytes": 8427,
+      "sha256": "91580e9f4eb39ef296365aa756ef48a170b57c07b288be4bb10affd98ede83f2"
+    },
+    {
+      "path": "include/libavutil/hmac.h",
+      "sizeBytes": 2865,
+      "sha256": "d14d625a897d6bba0668acdf33dc597bb0050237c5c1a5f7e568fe36822782e7"
+    },
+    {
+      "path": "include/libavutil/hwcontext.h",
+      "sizeBytes": 24170,
+      "sha256": "229c918d0809dbbaa0aaebd18848bece039ad458538f0fcafc11015fd2111fc2"
+    },
+    {
+      "path": "include/libavutil/hwcontext_amf.h",
+      "sizeBytes": 1521,
+      "sha256": "5052281b4ce8276c7d9497c549170e7a0781cb4fd2b48bc5f5d5971c4f247c0f"
+    },
+    {
+      "path": "include/libavutil/hwcontext_cuda.h",
+      "sizeBytes": 1843,
+      "sha256": "4878f46347271bc7a9ff26bb1573449a99cc81447684e1034a3edd4b0ff91d9a"
+    },
+    {
+      "path": "include/libavutil/hwcontext_d3d11va.h",
+      "sizeBytes": 6669,
+      "sha256": "d99c1b5c5dab94c23709d4ce6cf489c2a0b4f4bd57bb04e2196371277dca5af7"
+    },
+    {
+      "path": "include/libavutil/hwcontext_d3d12va.h",
+      "sizeBytes": 4189,
+      "sha256": "a195f11ad26806f4adab679611243d647cbd420cc2c914ba84836809f6d2aa04"
+    },
+    {
+      "path": "include/libavutil/hwcontext_drm.h",
+      "sizeBytes": 4673,
+      "sha256": "b598f37f40cf1342f923c0b97784a6f2830b543868eccee046375e096fbd5f24"
+    },
+    {
+      "path": "include/libavutil/hwcontext_dxva2.h",
+      "sizeBytes": 2411,
+      "sha256": "73a0333b65e99675834dcb1b63a5e9339638ccc619f1a2fcba85cdd0e179ade0"
+    },
+    {
+      "path": "include/libavutil/hwcontext_mediacodec.h",
+      "sizeBytes": 1988,
+      "sha256": "8c602859ebca906ba6e43ea548ff28821cf2886b4500b2be1deaaf2d552496d4"
+    },
+    {
+      "path": "include/libavutil/hwcontext_oh.h",
+      "sizeBytes": 1098,
+      "sha256": "62df338901602b1ac41b8a61fb26b2179de39662e78f3e2b87b6464c53895ddc"
+    },
+    {
+      "path": "include/libavutil/hwcontext_opencl.h",
+      "sizeBytes": 3098,
+      "sha256": "c6e9ec709d824a24928e1dd9e5f80411b008657402320d6e02d149df83dc6c3c"
+    },
+    {
+      "path": "include/libavutil/hwcontext_qsv.h",
+      "sizeBytes": 2515,
+      "sha256": "735168cd07100f41000e2cb4121786dcbd7d54fc12585b4682faae28f883d653"
+    },
+    {
+      "path": "include/libavutil/hwcontext_vaapi.h",
+      "sizeBytes": 3787,
+      "sha256": "6f6c6a5250dd0f901cdc7de8b9b3db26102719b7e056cd17500009096bfd9b39"
+    },
+    {
+      "path": "include/libavutil/hwcontext_vdpau.h",
+      "sizeBytes": 1360,
+      "sha256": "6c96373d9e5deb2c500004f3f55ee1d2cea0f76cdfaeabaf5a3ad3e4938e8252"
+    },
+    {
+      "path": "include/libavutil/hwcontext_videotoolbox.h",
+      "sizeBytes": 3877,
+      "sha256": "71bbb6baf2dceff96c8673ef5afc5467548efb7b99c4d98d67df49c624f740c1"
+    },
+    {
+      "path": "include/libavutil/hwcontext_vulkan.h",
+      "sizeBytes": 12398,
+      "sha256": "81f6342f561d6718e2c2e28b3787c3f14d0425c265a8aef657adfe21032d8f6a"
+    },
+    {
+      "path": "include/libavutil/iamf.h",
+      "sizeBytes": 21534,
+      "sha256": "140c55b84d0f075e4cda8c50bea76505293265247cb12938498d8483b1c1f012"
+    },
+    {
+      "path": "include/libavutil/imgutils.h",
+      "sizeBytes": 16326,
+      "sha256": "8e0055fd86fb10b7c9e435e9375736b6db201cb9930a38fb4ff1e1a1da8e0cff"
+    },
+    {
+      "path": "include/libavutil/intfloat.h",
+      "sizeBytes": 1726,
+      "sha256": "3a29e4eebc8c269cfd867b96de91d8231773d392c12a8820e46eaba96d2b4ca1"
+    },
+    {
+      "path": "include/libavutil/intreadwrite.h",
+      "sizeBytes": 19426,
+      "sha256": "6e9c404e70f71a02208af81910434e47c501cbe1b0a80116e731cb673f98c734"
+    },
+    {
+      "path": "include/libavutil/lfg.h",
+      "sizeBytes": 2542,
+      "sha256": "6f094721480df57814cad6e6ce0f3f81867ffec24c58ee4d3e1800ec3484a061"
+    },
+    {
+      "path": "include/libavutil/log.h",
+      "sizeBytes": 14088,
+      "sha256": "b8ef46be6210baadb3ad61eb72ee48e7dd7d6be39c17c3a8bbc8c81ba9e26110"
+    },
+    {
+      "path": "include/libavutil/lzo.h",
+      "sizeBytes": 2048,
+      "sha256": "61e89928dee9d83030adececac06aa6c1ae2aada06c5682fde52c52015c53556"
+    },
+    {
+      "path": "include/libavutil/macros.h",
+      "sizeBytes": 2304,
+      "sha256": "b63b3a268b096f0eed1e91b821714cff334e5dc5bb34365148704393ae15321e"
+    },
+    {
+      "path": "include/libavutil/mastering_display_metadata.h",
+      "sizeBytes": 4284,
+      "sha256": "dbb1584931d4d8ff7d7a868b519097b6d92f0426d781543987cb784f80ba973a"
+    },
+    {
+      "path": "include/libavutil/mathematics.h",
+      "sizeBytes": 9565,
+      "sha256": "e85c71fb77b0fe7823a88db904982e2a9b953e806ced0714fe6cc6b8a0951469"
+    },
+    {
+      "path": "include/libavutil/md5.h",
+      "sizeBytes": 2092,
+      "sha256": "5b42de1758d289f78b4d20c47686f443e4ea8a5a6411c0deb357f709d2ef34d7"
+    },
+    {
+      "path": "include/libavutil/mem.h",
+      "sizeBytes": 20457,
+      "sha256": "bf9a1d8c218c38b333efb16be076c5778d31d66a0691bdd6175f171c08283d7c"
+    },
+    {
+      "path": "include/libavutil/motion_vector.h",
+      "sizeBytes": 1770,
+      "sha256": "dc0b0a15a638c8b91df95a418c5951ee5e787d518f22b6e3d70094922536e8bb"
+    },
+    {
+      "path": "include/libavutil/murmur3.h",
+      "sizeBytes": 3507,
+      "sha256": "649258a51c4737fa19a025a489e2ac9e9b06a96eafa802f2765178c684382887"
+    },
+    {
+      "path": "include/libavutil/opt.h",
+      "sizeBytes": 47238,
+      "sha256": "2a2cd99f0e8dbb799cff0fde4468e28e59e01249a63aeebf5d1dc43e29200120"
+    },
+    {
+      "path": "include/libavutil/parseutils.h",
+      "sizeBytes": 7888,
+      "sha256": "e8efed69396851f429a8258d50e9c4f0431f921687a7c31bf6db13d14f7482c3"
+    },
+    {
+      "path": "include/libavutil/pixdesc.h",
+      "sizeBytes": 16165,
+      "sha256": "5e5b269eae685c54a3f9aa2ff6ab3749e6237a5dfee5bfad1d2c4aef6171a66a"
+    },
+    {
+      "path": "include/libavutil/pixelutils.h",
+      "sizeBytes": 2051,
+      "sha256": "339cd6ffb6460d06401801c5dfb91ca66b9bdc028e1acc9ff4a0f447cfd3785c"
+    },
+    {
+      "path": "include/libavutil/pixfmt.h",
+      "sizeBytes": 47056,
+      "sha256": "cd4b5d4b5065084689f5cc7389ad9259f80b64f1d4885fa81d504121b9e4f946"
+    },
+    {
+      "path": "include/libavutil/random_seed.h",
+      "sizeBytes": 1889,
+      "sha256": "4490fd79919aadb18f765caac0c210d22cafa4d63cddcf9275e6f5bf66e2fdea"
+    },
+    {
+      "path": "include/libavutil/rational.h",
+      "sizeBytes": 6287,
+      "sha256": "f4fb850924b414f9ca35579df4e50d6f406734eb9735bbfbf388ae22ec5a0a9c"
+    },
+    {
+      "path": "include/libavutil/rc4.h",
+      "sizeBytes": 2004,
+      "sha256": "61b69b7bc0183b17e5d6e4a56e991fa2452bb97c0d4512c4b0d70b69656ee305"
+    },
+    {
+      "path": "include/libavutil/refstruct.h",
+      "sizeBytes": 12172,
+      "sha256": "8e7be80109d14fce52e3de7a30932efea283abe963ccdd755787e219a4699b19"
+    },
+    {
+      "path": "include/libavutil/replaygain.h",
+      "sizeBytes": 1607,
+      "sha256": "4ec82edbdc4e5493fba3cae6a27566f0f15d1399ccf16e25073ffd50ba8187ea"
+    },
+    {
+      "path": "include/libavutil/ripemd.h",
+      "sizeBytes": 2158,
+      "sha256": "df9ef8c29ee31e5bd8ea299b03d51bd25fe937583793a994db53d1df2b316620"
+    },
+    {
+      "path": "include/libavutil/samplefmt.h",
+      "sizeBytes": 10301,
+      "sha256": "e844d8b4a691256238d10de762a6a536ffe52995705166aee0d7f01ce79778a9"
+    },
+    {
+      "path": "include/libavutil/sha.h",
+      "sizeBytes": 2368,
+      "sha256": "91280db6995b1b99b9e5aad0aa211a3177dc4d2841da2fea097f54964b7891fd"
+    },
+    {
+      "path": "include/libavutil/sha512.h",
+      "sizeBytes": 2413,
+      "sha256": "da265152798b221706d7fe95293a0e8cd18fa2b5087bf32504a8120f10e7658f"
+    },
+    {
+      "path": "include/libavutil/spherical.h",
+      "sizeBytes": 8607,
+      "sha256": "ab945689e58b593157d8532f315c8fb8674fb4c9f4ac96c1106a5aa62be8889d"
+    },
+    {
+      "path": "include/libavutil/stereo3d.h",
+      "sizeBytes": 7446,
+      "sha256": "32cc28caac01b5bf18ae016af4b0ffffbe40feb77e96cb434d723954a83b776a"
+    },
+    {
+      "path": "include/libavutil/tdrdi.h",
+      "sizeBytes": 5280,
+      "sha256": "9b7ac5326cadef9f3956470e22cdb9ba751c0da90b39f9df4562bffc8e4115a3"
+    },
+    {
+      "path": "include/libavutil/tea.h",
+      "sizeBytes": 2035,
+      "sha256": "3c1e93c566630bb4eeedad3ef3c8719bd6050081ac1c764b1fde81aba4969076"
+    },
+    {
+      "path": "include/libavutil/threadmessage.h",
+      "sizeBytes": 3910,
+      "sha256": "9bb242d7adc48662b947726843108aff7c34547d7a4a0d0e6f58f54a00fc4c9f"
+    },
+    {
+      "path": "include/libavutil/time.h",
+      "sizeBytes": 1800,
+      "sha256": "40e11fa242e0585996753affb054443e78be25919b7c3063042d0aaff1656760"
+    },
+    {
+      "path": "include/libavutil/timecode.h",
+      "sizeBytes": 7843,
+      "sha256": "20936b639afa89e7a356bd5f5317b33745b1f4c3d467486ad043cb9b5d51527a"
+    },
+    {
+      "path": "include/libavutil/timestamp.h",
+      "sizeBytes": 2726,
+      "sha256": "dfd2e2071577f04ddc3cae200abd96ba0fb7d38f53359025af319d4b902f1947"
+    },
+    {
+      "path": "include/libavutil/tree.h",
+      "sizeBytes": 5408,
+      "sha256": "2f8e906917612a05c138036dea7ed9f8faee5899413a523fdad4eb51711bc1e5"
+    },
+    {
+      "path": "include/libavutil/twofish.h",
+      "sizeBytes": 2245,
+      "sha256": "b71714336821e1c606b65620ba4b1ea47e431666be41f3174facbc51047fd814"
+    },
+    {
+      "path": "include/libavutil/tx.h",
+      "sizeBytes": 7141,
+      "sha256": "a1c5c309f493cc22f4637e67696581be676cd33fdcaa0661a01f5bb4345c900a"
+    },
+    {
+      "path": "include/libavutil/uuid.h",
+      "sizeBytes": 4895,
+      "sha256": "e669ce76a6b987e189b4d7ff62d0fd9ad6e334fa4967076cc6d912976574b646"
+    },
+    {
+      "path": "include/libavutil/version.h",
+      "sizeBytes": 4195,
+      "sha256": "4502637d9ff4b9b3c94e412ed8ed752e4d27a1b9d8822b653a112400128740ad"
+    },
+    {
+      "path": "include/libavutil/video_enc_params.h",
+      "sizeBytes": 5991,
+      "sha256": "f287486c4f828f82e579f93ea98fccb98749129544f660decfa56da6f818fd57"
+    },
+    {
+      "path": "include/libavutil/video_hint.h",
+      "sizeBytes": 3585,
+      "sha256": "7ae7b1e152aa7daf0ae55e29b1ed673039678d62d3f7a11d9c9443cfc8236997"
+    },
+    {
+      "path": "include/libavutil/xtea.h",
+      "sizeBytes": 2834,
+      "sha256": "2eb91f780cc4ad86095e4ebbce453475d40f4e9b8737d52bdf20a068dfafcdf0"
+    },
+    {
+      "path": "include/libswresample/swresample.h",
+      "sizeBytes": 22361,
+      "sha256": "b23e625ab295d57a3d1ae0142c937b485dc386a36e4ed63f4b99ed886dc905e1"
+    },
+    {
+      "path": "include/libswresample/version.h",
+      "sizeBytes": 1707,
+      "sha256": "ef5335ca64942dfab264b956bd7c7953a10fb20a8a99dbcd44e5dd346c8ab6cb"
+    },
+    {
+      "path": "include/libswresample/version_major.h",
+      "sizeBytes": 1015,
+      "sha256": "5ded851cffe3a75e556e6914551ee8331c9b6eaa515307c88ceff8c9ab8b2dd1"
+    },
+    {
+      "path": "include/libswscale/swscale.h",
+      "sizeBytes": 25058,
+      "sha256": "c01be7059260430c29322ceb1e45c4582d74a2cc12dee92c51dabb4df3cea925"
+    },
+    {
+      "path": "include/libswscale/version.h",
+      "sizeBytes": 1589,
+      "sha256": "0208d01663f257985dd57b60952aeffa2785986cf52a7264a3539598389c7b90"
+    },
+    {
+      "path": "include/libswscale/version_major.h",
+      "sizeBytes": 1175,
+      "sha256": "00be1f7f4faefb2a98269e901abeccaa28794f347e585bf1ad3cf975d1a3c616"
+    },
+    {
+      "path": "lib/libavcodec.so",
+      "sizeBytes": 14255888,
+      "sha256": "fa0dd2c36ada2ddbd33fd75536f4e52232ccd91edf5eb834ec8f6a17c6f321a9",
+      "symlink": "libavcodec.so.62.11.100"
+    },
+    {
+      "path": "lib/libavcodec.so.62",
+      "sizeBytes": 14255888,
+      "sha256": "fa0dd2c36ada2ddbd33fd75536f4e52232ccd91edf5eb834ec8f6a17c6f321a9",
+      "symlink": "libavcodec.so.62.11.100"
+    },
+    {
+      "path": "lib/libavcodec.so.62.11.100",
+      "sizeBytes": 14255888,
+      "sha256": "fa0dd2c36ada2ddbd33fd75536f4e52232ccd91edf5eb834ec8f6a17c6f321a9"
+    },
+    {
+      "path": "lib/libavfilter.so",
+      "sizeBytes": 4957400,
+      "sha256": "7742694428b1e159017cc2cb374eb81c038d633b1850d5eb3247b4927181aa03",
+      "symlink": "libavfilter.so.11.4.100"
+    },
+    {
+      "path": "lib/libavfilter.so.11",
+      "sizeBytes": 4957400,
+      "sha256": "7742694428b1e159017cc2cb374eb81c038d633b1850d5eb3247b4927181aa03",
+      "symlink": "libavfilter.so.11.4.100"
+    },
+    {
+      "path": "lib/libavfilter.so.11.4.100",
+      "sizeBytes": 4957400,
+      "sha256": "7742694428b1e159017cc2cb374eb81c038d633b1850d5eb3247b4927181aa03"
+    },
+    {
+      "path": "lib/libavformat.so",
+      "sizeBytes": 18618944,
+      "sha256": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51",
+      "symlink": "libavformat.so.62.3.100"
+    },
+    {
+      "path": "lib/libavformat.so.62",
+      "sizeBytes": 18618944,
+      "sha256": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51",
+      "symlink": "libavformat.so.62.3.100"
+    },
+    {
+      "path": "lib/libavformat.so.62.3.100",
+      "sizeBytes": 18618944,
+      "sha256": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51"
+    },
+    {
+      "path": "lib/libavutil.so",
+      "sizeBytes": 689912,
+      "sha256": "4c07f45b7bcdf09ffbfc6236635a849dd33e4dff74c57161d01688e417f60fc1",
+      "symlink": "libavutil.so.60.8.100"
+    },
+    {
+      "path": "lib/libavutil.so.60",
+      "sizeBytes": 689912,
+      "sha256": "4c07f45b7bcdf09ffbfc6236635a849dd33e4dff74c57161d01688e417f60fc1",
+      "symlink": "libavutil.so.60.8.100"
+    },
+    {
+      "path": "lib/libavutil.so.60.8.100",
+      "sizeBytes": 689912,
+      "sha256": "4c07f45b7bcdf09ffbfc6236635a849dd33e4dff74c57161d01688e417f60fc1"
+    },
+    {
+      "path": "lib/libswresample.so",
+      "sizeBytes": 108648,
+      "sha256": "d857a8dae52162e3e8fbf8ac2ae6f944cce13986b519c382a2752b77b3962dd3",
+      "symlink": "libswresample.so.6.1.100"
+    },
+    {
+      "path": "lib/libswresample.so.6",
+      "sizeBytes": 108648,
+      "sha256": "d857a8dae52162e3e8fbf8ac2ae6f944cce13986b519c382a2752b77b3962dd3",
+      "symlink": "libswresample.so.6.1.100"
+    },
+    {
+      "path": "lib/libswresample.so.6.1.100",
+      "sizeBytes": 108648,
+      "sha256": "d857a8dae52162e3e8fbf8ac2ae6f944cce13986b519c382a2752b77b3962dd3"
+    },
+    {
+      "path": "lib/libswscale.so",
+      "sizeBytes": 1082392,
+      "sha256": "9cb5661645fec12716ca846358598368c9fa6021844a89b5dec980003d707ba5",
+      "symlink": "libswscale.so.9.1.100"
+    },
+    {
+      "path": "lib/libswscale.so.9",
+      "sizeBytes": 1082392,
+      "sha256": "9cb5661645fec12716ca846358598368c9fa6021844a89b5dec980003d707ba5",
+      "symlink": "libswscale.so.9.1.100"
+    },
+    {
+      "path": "lib/libswscale.so.9.1.100",
+      "sizeBytes": 1082392,
+      "sha256": "9cb5661645fec12716ca846358598368c9fa6021844a89b5dec980003d707ba5"
+    },
+    {
+      "path": "lib/pkgconfig/libavcodec.pc",
+      "sizeBytes": 343,
+      "sha256": "734f832323085e4858216ea4007cd9d8671e4f8bdb9a889b403177df3f6bb631"
+    },
+    {
+      "path": "lib/pkgconfig/libavfilter.pc",
+      "sizeBytes": 433,
+      "sha256": "026bf4fb0f86077bde2b1a1a26df9a96167fcdc24c38877dd88e6a57ad6a9623"
+    },
+    {
+      "path": "lib/pkgconfig/libavformat.pc",
+      "sizeBytes": 766,
+      "sha256": "dae176d1dd2608e9e4b750ccc347c55aeae60fe0c97a45d494b71a12ee6403f0"
+    },
+    {
+      "path": "lib/pkgconfig/libavutil.pc",
+      "sizeBytes": 295,
+      "sha256": "63da8a031b38d2e9a00698192a9b56766f299afd898193a21151905c054cfb32"
+    },
+    {
+      "path": "lib/pkgconfig/libswresample.pc",
+      "sizeBytes": 323,
+      "sha256": "fa1166cf741a4851b48ad04ce08ceabd0f4c7410829cccfbaf4f704b38ca7fbd"
+    },
+    {
+      "path": "lib/pkgconfig/libswscale.pc",
+      "sizeBytes": 316,
+      "sha256": "3fc4e8d0141605465788884abf5ae55cc3a3cdf740122a7b8ea27331c60e52bd"
+    },
+    {
+      "path": "licenses/FFmpeg-LGPL-2.1-or-later.txt",
+      "sizeBytes": 26517,
+      "sha256": "246041b6ecf9bc32d718a62c57877c78b5eb397b6467e74ed7ae2626ab189c30"
+    },
+    {
+      "path": "licenses/GPL-3.0-or-later.txt",
+      "sizeBytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "licenses/bison-3.8.2/COPYING",
+      "sizeBytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "path": "licenses/gmp-6.3.0/COPYING",
+      "sizeBytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "licenses/gmp-6.3.0/COPYING.LESSERv3",
+      "sizeBytes": 7639,
+      "sha256": "a853c2ffec17057872340eee242ae4d96cbf2b520ae27d903e1b2fef1a5f9d1c"
+    },
+    {
+      "path": "licenses/gmp-6.3.0/COPYINGv2",
+      "sizeBytes": 18092,
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+    },
+    {
+      "path": "licenses/gmp-6.3.0/COPYINGv3",
+      "sizeBytes": 35150,
+      "sha256": "e6037104443f9a7829b2aa7c5370d0789a7bda3ca65a0b904cdc0c2e285d9195"
+    },
+    {
+      "path": "licenses/gnutls-3.8.7/LICENSE",
+      "sizeBytes": 936,
+      "sha256": "3e043d77917e48e262301b8f880812fcd82236482630a421d555a38804eee643"
+    },
+    {
+      "path": "licenses/gnutls-3.8.7/doc/COPYING",
+      "sizeBytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "path": "licenses/gnutls-3.8.7/doc/COPYING.LESSER",
+      "sizeBytes": 26530,
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    },
+    {
+      "path": "licenses/libtasn1-4.19.0/COPYING",
+      "sizeBytes": 605,
+      "sha256": "7446831f659f7ebfd8d497acc7f05dfa8e31c6cb6ba1b45df33d4895ab80f5a6"
+    },
+    {
+      "path": "licenses/libtasn1-4.19.0/doc/COPYING",
+      "sizeBytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "licenses/libtasn1-4.19.0/doc/COPYING.LESSER",
+      "sizeBytes": 26530,
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    },
+    {
+      "path": "licenses/nettle-3.9.1/COPYING.LESSERv3",
+      "sizeBytes": 7639,
+      "sha256": "a853c2ffec17057872340eee242ae4d96cbf2b520ae27d903e1b2fef1a5f9d1c"
+    },
+    {
+      "path": "licenses/nettle-3.9.1/COPYINGv2",
+      "sizeBytes": 18092,
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+    },
+    {
+      "path": "licenses/nettle-3.9.1/COPYINGv3",
+      "sizeBytes": 35150,
+      "sha256": "e6037104443f9a7829b2aa7c5370d0789a7bda3ca65a0b904cdc0c2e285d9195"
+    },
+    {
+      "path": "licenses/popt-1.19/COPYING",
+      "sizeBytes": 1061,
+      "sha256": "2b488b239927935f34769a39309c0680be16e3725a1f55dbb06ed20d53852801"
+    },
+    {
+      "path": "licenses/samba/COPYING",
+      "sizeBytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "licenses/zlib-1.3.1/LICENSE",
+      "sizeBytes": 1002,
+      "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243"
+    },
+    {
+      "path": "share/ffmpeg/examples/Makefile",
+      "sizeBytes": 2103,
+      "sha256": "e2a4f8f5829caaf9c0f1cf93d28d944d5c8c79e760d4ce64d2eaf89df9f1bf2d"
+    },
+    {
+      "path": "share/ffmpeg/examples/README",
+      "sizeBytes": 921,
+      "sha256": "62449d3a232b8cd634f6293afdac97330ce0b7a67130e1a126df8670c5ff87b4"
+    },
+    {
+      "path": "share/ffmpeg/examples/avio_http_serve_files.c",
+      "sizeBytes": 5250,
+      "sha256": "1a8e90bb702d32074bab2d5a72e7de1f077fdc7006d29db70e6e7e0984b2f929"
+    },
+    {
+      "path": "share/ffmpeg/examples/avio_list_dir.c",
+      "sizeBytes": 4218,
+      "sha256": "a9281301000b5ab55783ef134a5aa07fe187aee97d7891a721235a558f907d03"
+    },
+    {
+      "path": "share/ffmpeg/examples/avio_read_callback.c",
+      "sizeBytes": 4099,
+      "sha256": "6ac07cdbed4d7487208b701df024e0af4146f4f355382b8185f2d2faa63f893f"
+    },
+    {
+      "path": "share/ffmpeg/examples/decode_audio.c",
+      "sizeBytes": 7423,
+      "sha256": "5d9a16e09501b0d4767ab2733375f2ba4791f792caf2d92a28d36e505e6f1384"
+    },
+    {
+      "path": "share/ffmpeg/examples/decode_filter_audio.c",
+      "sizeBytes": 11083,
+      "sha256": "6773545f8833410e849aaa66b4e646a73204ea7c31d3119e8b42f8104e95c2bc"
+    },
+    {
+      "path": "share/ffmpeg/examples/decode_filter_video.c",
+      "sizeBytes": 10417,
+      "sha256": "414ad3e3f19a51b7ec3b4648b42323e648c9238cdd4ec9924e4497af94671392"
+    },
+    {
+      "path": "share/ffmpeg/examples/decode_video.c",
+      "sizeBytes": 5557,
+      "sha256": "8e8a79d2e12e4318bee800093c3f9c9c31b348fbe0528b81f271ae0f6e3ffb2a"
+    },
+    {
+      "path": "share/ffmpeg/examples/demux_decode.c",
+      "sizeBytes": 13536,
+      "sha256": "4720ebaa59c5756d336f51512d40c6a97ff702bcc05115c0bb3ba838a2b24c06"
+    },
+    {
+      "path": "share/ffmpeg/examples/encode_audio.c",
+      "sizeBytes": 6747,
+      "sha256": "a1018290570c728de2e933ab78f52e1ec88e2fc096a087ad8f036b1d5f8363b6"
+    },
+    {
+      "path": "share/ffmpeg/examples/encode_video.c",
+      "sizeBytes": 6633,
+      "sha256": "c9b1c21af4f6af47c40d36391d03b4e1d920e9199c6aae98064fb648b620beb5"
+    },
+    {
+      "path": "share/ffmpeg/examples/extract_mvs.c",
+      "sizeBytes": 6218,
+      "sha256": "51dfd8fe549a094aad385b81e79a8246d5a98b696821678f937f53c8ba500be7"
+    },
+    {
+      "path": "share/ffmpeg/examples/filter_audio.c",
+      "sizeBytes": 11899,
+      "sha256": "5ce4d08d9eb229ff69bdf66e961fb24af83e28255758afdd6afc7ef36c7a27ad"
+    },
+    {
+      "path": "share/ffmpeg/examples/hw_decode.c",
+      "sizeBytes": 8078,
+      "sha256": "7794d07a1fbff98fd7d1c605c04fd05e967fa7a9fcb521fa62e0cc9043b034d6"
+    },
+    {
+      "path": "share/ffmpeg/examples/mux.c",
+      "sizeBytes": 20872,
+      "sha256": "004253615fc144060706de954022d5a54514a84cb741f06ad0f38efbff4047fd"
+    },
+    {
+      "path": "share/ffmpeg/examples/qsv_decode.c",
+      "sizeBytes": 7042,
+      "sha256": "7611cb11d78973861f745c06494f6ef25b5824a65425e4350db2a93e8967cf6e"
+    },
+    {
+      "path": "share/ffmpeg/examples/qsv_transcode.c",
+      "sizeBytes": 15167,
+      "sha256": "a4ca80fd43754d647a94c4eebc4c16ef6b59011a4da041bdd30257c2b2672bc8"
+    },
+    {
+      "path": "share/ffmpeg/examples/remux.c",
+      "sizeBytes": 6563,
+      "sha256": "6a660dc43945bbddbb7a95c94362221a907e961f2682a9cd59f4fd67fd28d92d"
+    },
+    {
+      "path": "share/ffmpeg/examples/resample_audio.c",
+      "sizeBytes": 8222,
+      "sha256": "cb2eaba58e7d21e57367d0e925f254f06ea6b8368af0d17168417d1e8487f4b5"
+    },
+    {
+      "path": "share/ffmpeg/examples/scale_video.c",
+      "sizeBytes": 5105,
+      "sha256": "c56a52fc425bd0e47d5ee06e14f5127b614d9e75560eff02d345083df297ca0f"
+    },
+    {
+      "path": "share/ffmpeg/examples/show_metadata.c",
+      "sizeBytes": 2092,
+      "sha256": "fe5315ac3fe6b82632fc0f51bbe5c63fee4fee9734d4b9221ed0c0c3787661ac"
+    },
+    {
+      "path": "share/ffmpeg/examples/transcode.c",
+      "sizeBytes": 24648,
+      "sha256": "e7af8e679304af34c8cd166f7f1e8fc1cf3a8f3de86b4e1cd98342fec6d84447"
+    },
+    {
+      "path": "share/ffmpeg/examples/transcode_aac.c",
+      "sizeBytes": 34225,
+      "sha256": "e95a94ffc5f8ded9c70edb5dba6ad0d9c5c4b34699f27d7f0973f09ded15a63f"
+    },
+    {
+      "path": "share/ffmpeg/examples/vaapi_encode.c",
+      "sizeBytes": 7138,
+      "sha256": "58a09ece5043d38b2ad23174d855adff9774985fe1330ea78fc6fdd58a905e24"
+    },
+    {
+      "path": "share/ffmpeg/examples/vaapi_transcode.c",
+      "sizeBytes": 9979,
+      "sha256": "4f2d1eed691d53d754c5c8beb3153ad549aebb4545627a55ceb50edbf5032b92"
+    },
+    {
+      "path": "x86-sdk-build.json",
+      "sizeBytes": 22268,
+      "sha256": "b229dd7a944ac73d9b8816043524d03b5b93389a1884338d7451784e5fb7bfd7"
+    }
+  ]
+}

@@ -2,3 +2,5 @@
 
 # 精确来源输入含原始 CRLF 许可证，禁止行尾归一化破坏锁定字节。
 release/inputs/004-normal-core/** -text
+
+release/inputs/018-x86-core/** -text

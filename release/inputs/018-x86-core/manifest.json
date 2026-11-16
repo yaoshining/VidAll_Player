@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "architecture": "x86_64",
+  "capabilities": {
+    "softwareDecode": true,
+    "ohcodec": false,
+    "vulkan": false,
+    "softwareRender": true,
+    "ohaudio": true,
+    "hostRecovery": true,
+    "fontProvider": "host-supplied"
+  },
+  "sdkArchiveSHA256": "df5ea45b19563ec6a7d5116852529dc58b37811dde6a0386c816b9b96472c591",
+  "libraries": [
+    {
+      "path": "x86_64/libavcodec.so.62",
+      "size": 14255888,
+      "sha256": "fa0dd2c36ada2ddbd33fd75536f4e52232ccd91edf5eb834ec8f6a17c6f321a9",
+      "soname": "libavcodec.so.62",
+      "needed": [
+        "libswresample.so.6",
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    {
+      "path": "x86_64/libavfilter.so.11",
+      "size": 4957400,
+      "sha256": "7742694428b1e159017cc2cb374eb81c038d633b1850d5eb3247b4927181aa03",
+      "soname": "libavfilter.so.11",
+      "needed": [
+        "libswscale.so.9",
+        "libavformat.so.62",
+        "libavcodec.so.62",
+        "libswresample.so.6",
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    {
+      "path": "x86_64/libavformat.so.62",
+      "size": 18618944,
+      "sha256": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51",
+      "soname": "libavformat.so.62",
+      "needed": [
+        "libavcodec.so.62",
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    {
+      "path": "x86_64/libavutil.so.60",
+      "size": 689912,
+      "sha256": "4c07f45b7bcdf09ffbfc6236635a849dd33e4dff74c57161d01688e417f60fc1",
+      "soname": "libavutil.so.60",
+      "needed": [
+        "libc.so"
+      ]
+    },
+    {
+      "path": "x86_64/libc++_shared.so",
+      "size": 1294904,
+      "sha256": "a411fee450ad8e60ee12a3b282d3609f9623307b3f6d2b244e1428091cf54603",
+      "soname": "libc++_shared.so",
+      "needed": [
+        "libc.so"
+      ]
+    },
+    {
+      "path": "x86_64/libmpv.so",
+      "size": 5326584,
+      "sha256": "9ef5fe37b759fc9e25246c05cd51242415bb7dfafc7b5e91cc36f64cb2bbd4d5",
+      "soname": "libmpv.so",
+      "needed": [
+        "libc++_shared.so",
+        "libavcodec.so.62",
+        "libavfilter.so.11",
+        "libavformat.so.62",
+        "libavutil.so.60",
+        "libswresample.so.6",
+        "libswscale.so.9",
+        "libohaudio.so",
+        "libdeviceinfo_ndk.z.so",
+        "libnative_window.so",
+        "libEGL.so",
+        "libc.so"
+      ]
+    },
+    {
+      "path": "x86_64/libswresample.so.6",
+      "size": 108648,
+      "sha256": "d857a8dae52162e3e8fbf8ac2ae6f944cce13986b519c382a2752b77b3962dd3",
+      "soname": "libswresample.so.6",
+      "needed": [
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    },
+    {
+      "path": "x86_64/libswscale.so.9",
+      "size": 1082392,
+      "sha256": "9cb5661645fec12716ca846358598368c9fa6021844a89b5dec980003d707ba5",
+      "soname": "libswscale.so.9",
+      "needed": [
+        "libavutil.so.60",
+        "libc.so"
+      ]
+    }
+  ],
+  "coreBuildMachine": "本地 macOS arm64；最终 HAR 待 iMac Actions",
+  "deviceAcceptance": false,
+  "symbolCompanion": {
+    "path": "symbols/libmpv.so",
+    "sha256": "4871286eb2934295c1701d55b4efa8518da5e06740493f287f82cdee23bd4ad4"
+  },
+  "producerEvidence": "provenance/result.json",
+  "sourceCommitBase": "8a3ce572fb4b534cb4308db4c5f7c356cea5332b"
+}

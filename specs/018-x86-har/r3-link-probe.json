@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/llvm/bin/clang",
+    "--target=x86_64-linux-ohos",
+    "--sysroot=/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot",
+    "-I/tmp/vidall-x86-r3-download/ffmpeg8-ohos-x86_64-20261116-r3/include",
+    "/private/tmp/vidall-player-x86_64/specs/018-x86-har/sdk-host-runtime-probe.c",
+    "-L/tmp/vidall-x86-r3-download/ffmpeg8-ohos-x86_64-20261116-r3/lib",
+    "-Wl,-rpath-link,/tmp/vidall-x86-r3-download/ffmpeg8-ohos-x86_64-20261116-r3/lib",
+    "-Wl,--no-undefined",
+    "-Wl,--no-allow-shlib-undefined",
+    "-lavformat",
+    "-o",
+    "/tmp/vidall-x86-r3-download/player-probe"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "executed": false,
+  "sdkSHA256": "df5ea45b19563ec6a7d5116852529dc58b37811dde6a0386c816b9b96472c591",
+  "manifestVerifiedFiles": 330
+}

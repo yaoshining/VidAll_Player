@@ -23,6 +23,14 @@ class Consumer(unittest.TestCase):
   return p,libs
  def test_hap_exact_nine_libraries(self):
   p,libs=self.hap_fixture();self.assertTrue(self.subject().verify_hap(p,libs)['passed'])
+ def test_dual_abi_hap_and_missing_x86(self):
+  p,libs=self.hap_fixture();both={'arm64-v8a':libs,'x86_64':libs}
+  with self.assertRaises(ValueError):self.subject().verify_hap(p,libs,both)
+  with zipfile.ZipFile(p,'a') as z:
+   for n in libs:z.writestr('libs/x86_64/'+n,n.encode())
+  self.assertTrue(self.subject().verify_hap(p,libs,both)['passed'])
+  with zipfile.ZipFile(p,'a') as z:z.writestr('libs/armeabi-v7a/libmpv.so',b'wrong')
+  with self.assertRaises(ValueError):self.subject().verify_hap(p,libs,both)
  def test_hap_missing_extra_duplicate(self):
   for options in [{'missing':'libmpv.so'},{'extra':'libwrong.so'},{'duplicate':True}]:
    p,libs=self.hap_fixture(**options)

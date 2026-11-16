@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "architecture": "x86_64",
+  "artifact": "/private/tmp/vidall-x86-frozen-build-3/stage/vidall-player/lib/libmpv.so",
+  "sha256": "9ef5fe37b759fc9e25246c05cd51242415bb7dfafc7b5e91cc36f64cb2bbd4d5",
+  "symbolCompanionSHA256": "4871286eb2934295c1701d55b4efa8518da5e06740493f287f82cdee23bd4ad4",
+  "sourceArchiveSHA256": "ea078fac70d2221734dd7ecc2dd790eadce7d47382cbc92b088f435f0790d068",
+  "scriptSHA256": "6262a98fdfa9267679cb8154de170bed1e2957987bb5e2552ac4849b302718aa",
+  "ffmpegSdkManifestSHA256": "bdc22242d1848cd51feb1a62ca4da4dd724344b5fb1e4e21f3d0fb9ae41a7e09",
+  "targetExecuted": false
+}

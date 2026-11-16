@@ -55,3 +55,11 @@ compatible 强制软件解码与软件渲染，绕过 Vulkan/EGL/OHCodec interop
 迁移时核对 CI 原始 HAR 与源提交/九库哈希，一次性替换旧 HAR 和重复六库；不要在 TV 重打包 Player。完成初始化、加载身份登记、独立故障订阅和兼容新实例流程后，分别验证正常播放、音频打断与手动恢复、切集、退出重开、故障后返回并再播另一部。重复永久挂起耗尽资源恢复另由#93跟进，普通失败仍须安全返回及续播。API 24 或宿主替身不替代 API 19 TV 正式文件入口验收。
 
 普通分支最终 HAR 来自 iMac 自托管 GitHub Actions；本轮 mpv/libplacebo 交叉构建在 MacBook Pro / Darwin arm64 完成，FFmpeg 使用上游预编译恢复 SDK。最终交付须同时记录这两层来源，不能把 iMac 或本地构建称作云端 Mac。
+
+## Spec018 双架构接入候选
+
+新增 x86_64 软件播放核心，保留 ARM64 原有零拷贝硬解。消费端保留 `arm64-v8a` 和 `x86_64` 声明，整体替换 CI 交付的 HAR；不得混入旧桥或手工替换单个 `.so`。`initializePlayerRuntime` 和 `preserve-host` 公共契约不变。每个 ABI 应包含 mpv、六个 FFmpeg 库、C++ 运行库及当前 NAPI 桥，共九库。
+
+x86_64 固定软件解码/呈现，不因设备目录中出现 GPU 文件而选入未交付的 Vulkan 路径；音频和宿主恢复仍由真实实现提供。字幕使用宿主提供字体。硬件 HDR/DV 呈现及性能不与 ARM64 等同；详见 `release/inputs/018-x86-core/README.md`。当前验收进度和最终 CI 下载信息以 `specs/018-x86-har/tasks.md` 为准；API19 TV 的剩余缺口独立保留。
+
+Spec018 的独立消费者与 Hypium 同时检查两架构各九库；既有 ARM64 设备短测包显式限定 ARM64，以保留其已审查的设备合同。该测试包过滤不修改交付 HAR，也不要求 VidAll_TV 移除 x86_64。
