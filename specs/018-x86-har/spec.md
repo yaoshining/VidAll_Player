@@ -1,6 +1,6 @@
 # Spec018：x86_64完整播放HAR
 
-状态：r3 SDK 输入验收通过，x86_64 核心和本地双架构 HAR 已构建；正式 CI HAR 未交付。基线main `8a3ce572fb4b534cb4308db4c5f7c356cea5332b`，工作分支`codex/x86_64-har`。
+状态：r3 SDK 输入验收通过，x86_64 核心和本地双架构 HAR 已构建；iMac CI HAR 已交付，目标播放运行尚未验收。基线main `8a3ce572fb4b534cb4308db4c5f7c356cea5332b`，工作分支`codex/x86_64-har`。
 
 ## 用户目标
 在main基础上补充x86_64可用的完整Player HAR，提供CI原包地址并同步Todoist。当前ARM64产物不变；不使用旧桥或只有NAPI探针的产物冒充完整播放。
@@ -23,4 +23,4 @@
 r3 已补齐 R7；332 项摘要和真实 x86_64 链接通过，证据 r3-sdk-evidence.json。后续仅 x86_64 禁用 OHCodec 与 Vulkan，使用软件解码和现有 render API 路径；保留真实 OHOS 音频、host recovery 和 terminal API。ARM64 输入/行为不变。x86 字幕使用宿主提供字体，编译库与能力单独记录，不宣称与 ARM64 硬件/HDR 路径等价。
 
 ## 当前验收边界
-本地双架构 HAR 和独立消费者构建成功，均非最终交付。iMac 未安装模拟器实例或镜像，x86_64 运行验收尚未完成；不以构建通过标记 R1/R6 的播放验收完成。API19 TV 缺口仍单独跟踪。
+本地和 iMac CI 双架构 HAR、独立消费者构建成功，交付见 delivery.md。iMac 未安装模拟器实例或镜像，x86_64 运行验收尚未完成；不以构建通过标记 R1/R6 的播放验收完成。API19 TV 缺口仍单独跟踪。

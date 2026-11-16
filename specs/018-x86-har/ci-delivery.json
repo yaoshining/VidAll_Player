@@ -1,0 +1,80 @@
+{
+  "sourceCommit": "a66cd41e73842937a929a53fa18918363f6266f7",
+  "branch": "codex/x86_64-har",
+  "runId": 43822153744,
+  "runUrl": "https://github.com/yaoshining/VidAll_Player/actions/runs/43822153744",
+  "ciConclusion": "success",
+  "runner": {
+    "name": "yaoshiningdeiMac",
+    "labels": [
+      "self-hosted",
+      "macOS",
+      "X64",
+      "deveco"
+    ],
+    "machine": "Intel iMac"
+  },
+  "coreBuildMachine": "本地 macOS arm64 交叉构建；配方/来源已封存",
+  "ffmpegSdk": "上游本地 macOS arm64 构建的 r3 SDK；不称为上游 CI 编译",
+  "artifactId": 14205341445,
+  "artifactUrl": "https://github.com/yaoshining/VidAll_Player/actions/runs/43822153744/artifacts/14205341445",
+  "artifactZipSHA256": "cc38325d1088cbba2c5251104043bffc016bce864f387146fc989dde748ff57d",
+  "artifactExpiresAt": "2026-11-30T07:15:04Z",
+  "harName": "vidall_player.har",
+  "harBytes": 41057326,
+  "harSHA256": "d8813a573872de3a034b5b94aa54b8b317c0e509f2b6ada4c88684bb2c562dec",
+  "architectureLibraries": {
+    "arm64-v8a": {
+      "libavcodec.so.62": "692a946baf97629287c4e23461c243b2080e91a825be11efb4ac4764972bbdd3",
+      "libavfilter.so.11": "82b431c76910f2a826c7679b3cfb9273dd131c1566d06cee1f80818f23c2622c",
+      "libavformat.so.62": "106d9d216b11c45fc96c5b0073288ff7f247018a5d9aeced1bfdf612d6f40a37",
+      "libavutil.so.60": "ba410532a07b16e018d6d57bc744576b3cfa2e246d4fa028c2adae95205777e2",
+      "libc++_shared.so": "9b67147034bfc1d2b7b51b97b638713f90bd8ca9cf4acbcdac6cbc6d155f6042",
+      "libmpv.so": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
+      "libswresample.so.6": "4244a9e1e2697bd8ec35436148d55d5e8b2c09080c40754cc505a05c5fc52e3b",
+      "libswscale.so.9": "f1982cde4d2b6d899f99e38ae4cfb50dcda4859e9912a6b4f18913ebaf9836a0",
+      "libvidall_player_native.so": "2d0677dcc3755eb8a3c3c0835907ebe8dd3abae79525c0f5bcae0360ced01ff1"
+    },
+    "x86_64": {
+      "libavcodec.so.62": "fa0dd2c36ada2ddbd33fd75536f4e52232ccd91edf5eb834ec8f6a17c6f321a9",
+      "libavfilter.so.11": "7742694428b1e159017cc2cb374eb81c038d633b1850d5eb3247b4927181aa03",
+      "libavformat.so.62": "45749d6fe1942ec4f1e12302cb9483b07cc2530ac0a5c19112833af87fd32c51",
+      "libavutil.so.60": "4c07f45b7bcdf09ffbfc6236635a849dd33e4dff74c57161d01688e417f60fc1",
+      "libc++_shared.so": "a411fee450ad8e60ee12a3b282d3609f9623307b3f6d2b244e1428091cf54603",
+      "libmpv.so": "9ef5fe37b759fc9e25246c05cd51242415bb7dfafc7b5e91cc36f64cb2bbd4d5",
+      "libswresample.so.6": "d857a8dae52162e3e8fbf8ac2ae6f944cce13986b519c382a2752b77b3962dd3",
+      "libswscale.so.9": "9cb5661645fec12716ca846358598368c9fa6021844a89b5dec980003d707ba5",
+      "libvidall_player_native.so": "5df1eed97e3180ae34f251c9fbd856f86d1a42c4e398e961f1592360f37f1c01"
+    }
+  },
+  "fixedInputsAndCIBridgesMatch": true,
+  "ciChecks": {
+    "Set up job": "success",
+    "Run actions/checkout@v4": "success",
+    "初始化本次构建目录和固定 CLI": "success",
+    "绑定分支提交或 PR 合并预览提交": "success",
+    "SDK 头文件和运行库契约": "success",
+    "核对 iMac 可用的 Phase30 A 封存输入": "skipped",
+    "双架构输入与打包回归": "success",
+    "完整构建与审计 HAR": "success",
+    "验证缺失公共 API 的消费端编译失败": "success",
+    "使用同一 HAR 构建独立消费者并验证九库": "success",
+    "使用同一 HAR 编译 Hypium 套件": "success",
+    "停止本轮工程的 daemon": "success",
+    "上传通过验证的分支 HAR": "success",
+    "生成公开的步骤与失败命令摘要": "success",
+    "保存本次构建诊断摘要": "success",
+    "Post Run actions/checkout@v4": "success",
+    "Complete job": "success"
+  },
+  "x86RuntimeVerified": false,
+  "api19TVVerified": false,
+  "support": {
+    "arm64-v8a": "原零拷贝硬解及恢复核心保留",
+    "x86_64": "真实 mpv 软件解码/软件呈现/OHAudio；无 OHCodec/Vulkan 硬解"
+  },
+  "todoist": {
+    "ciDelivery": "6j2q9jhRPR4WJvRp",
+    "x86Runtime": "6j2q9jp4qjfq86Gp"
+  }
+}

@@ -9,4 +9,4 @@
 - [x] T003红绿测试与实现完成，见 implementation-evidence.md、host-regression.json。
 - [ ] T004完整HAR、消费编译、目标运行与交付通过。
 
-结论：r3 已解除 SDK 阻塞；本地核心与双架构 HAR 构建通过。iMac CI 及目标运行待核验，不能宣称 x86 播放验收完成。
+结论：r3 已解除 SDK 阻塞；本地核心与双架构 HAR 构建通过。iMac CI 与原包核验已通过，目标运行仍待验收，不能宣称 x86 播放验收完成。

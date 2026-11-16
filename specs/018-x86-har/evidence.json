@@ -16,13 +16,13 @@
   "currentX86NapiMpvAvailable": true,
   "harBuilt": true,
   "localHarEvidence": "local-har-evidence.json",
-  "ciTriggered": false,
+  "ciTriggered": true,
   "upstreamBuildTriggered": false,
   "productionCodeChanged": true,
   "deviceVerified": false,
   "remaining": [
-    "iMac Actions 正式 HAR",
     "x86_64 模拟器未安装实例或镜像，播放运行验收未完成",
     "API19 TV 验收单独跟踪"
-  ]
+  ],
+  "ciDelivery": "ci-delivery.json"
 }

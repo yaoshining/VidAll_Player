@@ -6,6 +6,9 @@
   - [x] T003a SDK 宿主运行时前置门禁：9 项单元测试先红后绿；真实 r2 正确拒绝，最小链接复现缺符号。仅完成门禁，不代表多 ABI 核心实现；Todoist `6j2h5Q8mfc68rwvp` 已完成。
 - [ ] T004 iMac CI、独立消费、x86_64模拟器验证，交付原始HAR与哈希。Todoist `6j2gC2GjwFQf4v9p`。
 
-分组`Spec018 · x86_64 HAR交付`，section `6j2g9x5HHGRfcVwp`；复用原x86总任务`6j2g2Cx8C3QRMQvp`，自Spec017迁入，未完成。没有新的x86 HAR地址，不在后台自动等待或触发上游构建。
+- [x] T004a iMac CI 原始 HAR、独立消费者及 Hypium 编译通过，原包和18库核验完成。见 delivery.md、ci-delivery.json；Todoist `6j2q9jhRPR4WJvRp`。
+- [ ] T004b x86_64 模拟器运行：iMac 无实例/镜像，正常音画、暂停恢复、seek、关闭重开、坏片续播未验收。Todoist `6j2q9jp4qjfq86Gp`。
+
+分组`Spec018 · x86_64 HAR交付`，section `6j2g9x5HHGRfcVwp`；复用原x86总任务`6j2g2Cx8C3QRMQvp`，自Spec017迁入，未完成。CI HAR 地址已记录于 delivery.md；未触发上游构建，运行验收缺口保持未完成。
 
 负责会话：[修复 issue #89](thread://01a1bccc-e2cc-7a13-8cd6-31aae7079fb0?hostId=local)；thread ID `01a1bccc-e2cc-7a13-8cd6-31aae7079fb0`；host `local`；更新2026-11-16。
