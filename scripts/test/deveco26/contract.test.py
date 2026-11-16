@@ -91,7 +91,7 @@ class Execution(Contract):
   (xbase/'manifest.json').write_text(json.dumps({'libraries':libs}))
   for args in [('init','-q'),('add','.'),('-c','user.name=test','-c','user.email=test@example.test','commit','-qm','fixture')]:subprocess.run(['git','-C',str(repo),*args],check=True,capture_output=True)
   out=self.root/'out';(out/'work').mkdir(parents=True);before=self.m.CONTEXT.snapshot(repo);(out/'work/context.json').write_text(json.dumps({'passed':True,**before}))
-  with patch.object(self.m,'HERE',scripts),patch.object(self.m.platform,'machine',return_value='arm64'),patch.object(self.m,'resolve_cli',return_value={'fixture':True}):
+  with patch.dict(os.environ,{'VIDALL_IMAC_GATE':'0'}),patch.object(self.m,'HERE',scripts),patch.object(self.m.platform,'machine',return_value='arm64'),patch.object(self.m,'resolve_cli',return_value={'fixture':True}):
    result=self.m.execute(repo,out,studio,cli/'cli.js',cli/'common.js',dict(os.environ),5)
   self.assertFalse(result['passed']);self.assertEqual(result['commands'][-1]['name'],'clean');self.assertEqual(result['commands'][-1]['exit'],7)
   self.assertNotIn('har-build',[x['name'] for x in result['commands']]);self.assertFalse(self.m.publish(repo,out,True)['passed'])
