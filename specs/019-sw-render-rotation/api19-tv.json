@@ -36,7 +36,43 @@
           "270": 111.84
         }
       },
-      "rotationFilterLogged": false
+      "rotationFilterLogged": false,
+      "onReadyDeviceLogTime": "11-18 20:53:59.614",
+      "markedFirstFrame": {
+        "sampleSHA256": "369c4476c0fb21b3faed1446e2f98becfbb33ed5f6e24772a026598569eb6ec8",
+        "onReadyDeviceLogTime": "11-19 01:24:38.907",
+        "earlyCaptureRequestSecondsAfterClickReturn": 2.2,
+        "earlyScreenshotSHA256": "dd2e5cdb959c8e13cd65bf15894bd6331e9cca2a94b95366a3a93e4d84c4c371",
+        "firstFrameQuadrantsRGB": [
+          [
+            254,
+            0,
+            0
+          ],
+          [
+            0,
+            254,
+            0
+          ],
+          [
+            0,
+            0,
+            255
+          ],
+          [
+            255,
+            255,
+            0
+          ]
+        ],
+        "lateCaptureRequestSecondsAfterClickReturn": 7.004,
+        "lateMarkerAbsent": true,
+        "whiteMarkerRGBAtAllFourPoints": [
+          255,
+          255,
+          255
+        ]
+      }
     },
     {
       "rotationDegrees": 90,
@@ -59,7 +95,43 @@
           "270": 203.74
         }
       },
-      "rotationFilterLogged": true
+      "rotationFilterLogged": true,
+      "onReadyDeviceLogTime": "11-18 20:54:14.087",
+      "markedFirstFrame": {
+        "sampleSHA256": "6c1dc1ed59e560189fc7e81c67f672aeefaa6f313ace068b4fd7e8629dff3e5e",
+        "onReadyDeviceLogTime": "11-19 01:24:54.833",
+        "earlyCaptureRequestSecondsAfterClickReturn": 2.2,
+        "earlyScreenshotSHA256": "10a56870b34e15a18769cb1a0531dd1f2465c61ea6f77bc51ffd185b3288adc4",
+        "firstFrameQuadrantsRGB": [
+          [
+            0,
+            254,
+            0
+          ],
+          [
+            255,
+            255,
+            0
+          ],
+          [
+            254,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            255
+          ]
+        ],
+        "lateCaptureRequestSecondsAfterClickReturn": 7.004,
+        "lateMarkerAbsent": true,
+        "whiteMarkerRGBAtAllFourPoints": [
+          255,
+          255,
+          255
+        ]
+      }
     },
     {
       "rotationDegrees": 180,
@@ -82,7 +154,63 @@
           "270": 125.38
         }
       },
-      "rotationFilterLogged": true
+      "rotationFilterLogged": true,
+      "onReadyDeviceLogTime": "11-18 20:54:28.701",
+      "markedFirstFrame": {
+        "sampleSHA256": "50eb7a699a22e6a060c864c7748eab19bfc3a7fec70d2868f799499856645e98",
+        "onReadyDeviceLogTime": "11-19 01:25:10.778",
+        "earlyCaptureRequestSecondsAfterClickReturn": 2.203,
+        "earlyScreenshotSHA256": "ab5a78cf52c5b53fbd7677578622d16112c4bb5579802f9f72b1a08e11c1f8c6",
+        "firstFrameQuadrantsRGB": [
+          [
+            255,
+            255,
+            0
+          ],
+          [
+            0,
+            0,
+            255
+          ],
+          [
+            0,
+            254,
+            0
+          ],
+          [
+            254,
+            0,
+            0
+          ]
+        ],
+        "lateCaptureRequestSecondsAfterClickReturn": 7.005,
+        "lateMarkerAbsent": true,
+        "whiteMarkerRGBAtAllFourPoints": [
+          255,
+          255,
+          255
+        ]
+      }
     }
-  ]
+  ],
+  "screenshotTiming": {
+    "reference": "测试脚本的文件点击命令返回时刻",
+    "earlyRequestSeconds": 2.2,
+    "lateRequestSeconds": 7,
+    "firstFrameSignal": "同次播放的 onReady 日志表示播放器报告就绪。截图独立定时，未与该事件或帧序号绑定。"
+  },
+  "markedFirstFrameRerun": {
+    "date": "2026-11-19",
+    "pid": "2365",
+    "fixture": "H.264 640×360、24 fps。首个帧的中心仅出现一次白色 120×120 方块，后续帧不含该标记。固定角度仅修改 MP4 显示矩阵。",
+    "markerFrameIndex": 0,
+    "markerFramePTSSeconds": 0,
+    "secondFramePTSSeconds": 4.041667,
+    "orientationMethod": "采样左上、右上、左下、右下象限，按显示矩阵核对其位置。4 个中心采样点识别仅存在于帧 0 的白块，晚期截图重复核对象限并确认白块已消失。",
+    "preview": "api19-first-frame.png",
+    "entry": "正式文件源 WebDAV → MPV standard",
+    "harSHA256": "07d9807602727d73a96c64ec84ad51b8b646260e4c7e4d97f9c19d84c582c816",
+    "hapSHA256": "b2174645bbd8ce7c175b36f58806344d964c5629cae7613de89223d66f8c5c66",
+    "previewSHA256": "d0b5cbc2b84c50037a6e76d3e66d8a00d721b16236d4641ef85823961418d4ec"
+  }
 }

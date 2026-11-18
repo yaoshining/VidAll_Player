@@ -183,3 +183,8 @@ jobs:
           for angle in 0 90 180 270; do
             "$test_dir/play" "$test_dir/fixtures/rotate-$angle.mp4" "$((angle / 90))"
           done
+          status=0
+          "$test_dir/play" "$test_dir/fixtures/black-first.mp4" 0 > "$test_dir/black-first.log" 2>&1 || status=$?
+          cat "$test_dir/black-first.log"
+          test "$status" -eq 1
+          grep -F 'first frame has incorrect orientation' "$test_dir/black-first.log"

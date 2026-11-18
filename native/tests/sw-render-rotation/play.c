@@ -81,6 +81,7 @@ int main(int argc, char **argv)
     require_mpv(mpv_set_option_string(mpv, "audio", "no"), "audio");
     require_mpv(mpv_set_option_string(mpv, "hwdec", "no"), "hwdec");
     require_mpv(mpv_set_option_string(mpv, "osd-level", "0"), "osd");
+    require_mpv(mpv_set_option_string(mpv, "pause", "yes"), "pause on load");
     require_mpv(mpv_initialize(mpv), "initialize");
 
     mpv_render_context *render = NULL;
@@ -107,7 +108,7 @@ int main(int argc, char **argv)
     };
     const char *load[] = {"loadfile", argv[1], NULL};
     require_mpv(mpv_command_async(mpv, 1, load), "loadfile");
-    bool visible = false, moving = false;
+    bool first_frame = false, moving = false;
     const double deadline = monotonic_seconds() + 8;
     while (!moving && monotonic_seconds() < deadline) {
         for (mpv_event *event; (event = mpv_wait_event(mpv, 0))->event_id;) {
@@ -117,25 +118,33 @@ int main(int argc, char **argv)
                 const mpv_event_end_file *end = event->data;
                 require_mpv(end->error, "end file");
             }
-        }
-        if (mpv_render_context_update(render) & MPV_RENDER_UPDATE_FRAME) {
-            require_mpv(mpv_render_context_render(render, target), "render");
-            if (color_at(WIDTH / 2 - size[0] / 10, HEIGHT / 4) != BLACK) {
+            if (event->event_id == MPV_EVENT_PLAYBACK_RESTART && !first_frame) {
+                // 暂停使 VO 保留启动帧。排队超时后也可显式渲染该帧。
+                require_mpv(mpv_render_context_render(render, target), "render first frame");
                 if (!correct_orientation(quarter_turns)) {
-                    fprintf(stderr, "%d°: visible frame has incorrect orientation\n",
+                    fprintf(stderr, "%d°: first frame has incorrect orientation\n",
                             90 * quarter_turns);
-                    break;
+                    goto done;
                 }
-                bool marker = color_at(WIDTH / 2, HEIGHT / 2) == WHITE;
-                moving = visible && marker;
-                visible |= !marker;
+                first_frame = true;
+                require_mpv(mpv_set_property_string(mpv, "pause", "no"), "resume playback");
             }
+        }
+        if (first_frame && (mpv_render_context_update(render) & MPV_RENDER_UPDATE_FRAME)) {
+            require_mpv(mpv_render_context_render(render, target), "render");
+            if (!correct_orientation(quarter_turns)) {
+                fprintf(stderr, "%d°: later frame has incorrect orientation\n",
+                        90 * quarter_turns);
+                break;
+            }
+            moving = color_at(WIDTH / 2, HEIGHT / 2) == WHITE;
         }
         nanosleep(&(struct timespec){.tv_nsec = 5000000}, NULL);
     }
 
+done:
     mpv_render_context_free(render);
     mpv_terminate_destroy(mpv);
-    printf("%d°: first frame=%d, later frame=%d\n", 90 * quarter_turns, visible, moving);
+    printf("%d°: first frame=%d, later frame=%d\n", 90 * quarter_turns, first_frame, moving);
     return moving ? EXIT_SUCCESS : EXIT_FAILURE;
 }
