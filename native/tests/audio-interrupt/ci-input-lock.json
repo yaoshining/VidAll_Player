@@ -1,7 +1,7 @@
 {
   "description": "仅供宿主音频测试；最终摘要与 Spec 017 已构建 mpv 输入逐文件一致，不重建 FFmpeg 或核心。",
   "upstreamCommit": "6edeee00a07b9b76f197aa71eee3d029fb090de4",
-  "mpvLibrarySHA256": "405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21",
+  "mpvLibrarySHA256": "4e35bcc57b47745e7b94b8912b6ba2cbde50cb055c6a38afb38c3ca6e3e67ee2",
   "files": {
     "audio/out/ao_ohaudio.c": {
       "baselineSHA256": "a3e83b8746711bfd2e3e18cb6c15bf3f98338b913b0b1c5230ef677f5a1d973a",

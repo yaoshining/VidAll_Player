@@ -33,3 +33,7 @@ Spec 017 已使用恢复 SDK 作为当前 mpv 链接输入；`normal-compile-bin
 此次 MacBook Pro / Darwin arm64 构建得到 libmpv SHA-256 `405ce871811e9956fce593a19651a8f50b826a8ff46612881646f0c7685afa21`，64 个公开导出、253 个链接输入及 56 个 libplacebo 归档成员已校验。静态/源码校验不证明真实 GPU 故障恢复；最终 HAR 仍须由 iMac CI 构建。
 
 T069审查门禁：producer-input-lock.json更新为T066精确生产输入，绑定56ebd3f、iMac CI43624519417及T068 API24证据。原失败源于锁仍指向早期Spec017 mpv；七项mpv清单/来源/绑定更新，六个FFmpeg库、C++库及FFmpeg来源记录未变。仍保留`producerLatestNormalFullCloudRebuildVerified=false`与`formalArtifactAllowed=false`，不跳过哈希检查，不称上游FFmpeg新构建。
+
+## Spec 019 旋转修复交付
+
+当前 ARM64 核心为 Spec 019 的 mpv 构建结果，保留上文 Spec 017 交付记录用于追溯。生产输入锁通过 [iMac CI HAR](../../../specs/019-sw-render-rotation/ci-har.json) 和 [API 19 TV 模拟器验收](../../../specs/019-sw-render-rotation/api19-tv.json) 绑定新 libmpv。六个 FFmpeg 运行库及 C++ 运行库继续使用原锁定输入。

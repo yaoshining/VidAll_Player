@@ -1,0 +1,18 @@
+{
+  "tvTestedHAR": {
+    "sourceCommit": "00e5a080b9a4afb5c5395352c78a56cd7d4785c6",
+    "runId": 44306605463,
+    "artifactId": 14427629936,
+    "harSHA256": "07d9807602727d73a96c64ec84ad51b8b646260e4c7e4d97f9c19d84c582c816"
+  },
+  "branchHAR": {
+    "sourceCommit": "6476cdf73aaf82d86830787c1e7d8bc09aa65ded",
+    "runId": 44309543487,
+    "artifactId": 14429897519,
+    "harSHA256": "ac69ec8d1b17f61d31f54bc4ace14f04f7c6551d07f707751c5ccf0a3dcdd693"
+  },
+  "regularFileCount": 37,
+  "differentFiles": [],
+  "fileManifestFormat": "按 TAR 成员路径排序，每行 SHA-256、两个空格、成员路径及 LF，UTF-8 编码",
+  "fileManifestSHA256": "7947bb9a3eb40cebb38da61ae0c453df8a2082a34909d9176b7c5881b33afd7e"
+}

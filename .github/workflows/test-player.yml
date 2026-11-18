@@ -146,3 +146,46 @@ jobs:
           path: ${{ runner.temp }}/legacy-native/work/
           if-no-files-found: error
           retention-days: 14
+
+  sw-render-rotation:
+    name: MPV 软件渲染旋转回归
+    # 锁定的 mpv 源码引用 FFmpeg 8 的 AV_PIX_FMT_OHCODEC。
+    runs-on: ubuntu-26.04
+    # 托管镜像下载多媒体开发依赖时可能超过 10 分钟。
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: 检出锁定的 mpv 源码
+        uses: actions/checkout@v4
+        with:
+          repository: ErBWs/mpv
+          ref: 6edeee00a07b9b76f197aa71eee3d029fb090de4
+          path: .cache/mpv-sw-rotation
+          persist-credentials: false
+      - name: 安装 MPV 软件渲染宿主测试依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends meson ninja-build pkg-config ffmpeg \
+            libass-dev libplacebo-dev libavcodec-dev libavfilter-dev libavformat-dev \
+            libavutil-dev libswresample-dev libswscale-dev
+      - name: MP4 显示矩阵与 MPV 软件渲染回归
+        run: |
+          test_dir="$RUNNER_TEMP/sw-render-rotation"
+          git -C .cache/mpv-sw-rotation apply "$PWD/native/patches/mpv/0002-use-render-backend-capabilities.patch"
+          meson setup "$test_dir/build" .cache/mpv-sw-rotation \
+            -Dauto_features=disabled -Dgl=disabled -Dlibmpv=true -Dcplayer=false -Dbuild-date=false
+          meson compile -C "$test_dir/build"
+          cc -std=c11 -Wall -Wextra -Werror -I.cache/mpv-sw-rotation/include \
+            native/tests/sw-render-rotation/play.c -L"$test_dir/build" -Wl,-rpath,"$test_dir/build" \
+            -lmpv -o "$test_dir/play"
+          bash native/tests/sw-render-rotation/fixtures.sh "$test_dir/fixtures"
+          for angle in 0 90 180 270; do
+            "$test_dir/play" "$test_dir/fixtures/rotate-$angle.mp4" "$((angle / 90))"
+          done
+          status=0
+          "$test_dir/play" "$test_dir/fixtures/black-first.mp4" 0 > "$test_dir/black-first.log" 2>&1 || status=$?
+          cat "$test_dir/black-first.log"
+          test "$status" -eq 1
+          grep -F 'first frame has incorrect orientation' "$test_dir/black-first.log"

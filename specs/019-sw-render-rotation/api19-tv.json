@@ -1,0 +1,216 @@
+{
+  "sourceCommit": "00e5a080b9a4afb5c5395352c78a56cd7d4785c6",
+  "device": "HarmonyOS 5.1.1 API 19 ARM64 TV 模拟器",
+  "consumerBranch": "codex/fix-372-playback-recovery",
+  "consumerBaseCommit": "76e711b6299d606f7517731b663b4982b1831ab8",
+  "consumerTrackedDiffSHA256": "00f08f1da58f91f14d7a08b2191abfec42b88234ca9c840cfa9d6aa5197a5552",
+  "entry": "正式文件源 WebDAV → MPV standard",
+  "hwdecCurrent": "no",
+  "pid": "13214",
+  "harSHA256": "07d9807602727d73a96c64ec84ad51b8b646260e4c7e4d97f9c19d84c582c816",
+  "hapSHA256": "b2174645bbd8ce7c175b36f58806344d964c5629cae7613de89223d66f8c5c66",
+  "ninePlayerLibrariesExact": true,
+  "controls": {
+    "oldHarSHA256": "79260c2afdca171247498289c6d6ca68ae54de5e1e0c2c13f8f2ec716f0a1adf",
+    "old90Result": "SIGABRT: x1 <= img->w && y1 <= img->h in mp_image_crop"
+  },
+  "samples": [
+    {
+      "rotationDegrees": 0,
+      "sampleSHA256": "6f87ca1d1c1d9a46f0e32c8ea3f76cf738bf9bef44a4610c1186f68ea862a821",
+      "firstFrameReported": true,
+      "sameProcess": true,
+      "elapsedSec": 10.71,
+      "changedFraction": 0.1935,
+      "rgbMAEFromSource": {
+        "early": {
+          "0": 8.8,
+          "90": 118.26,
+          "180": 215.14,
+          "270": 120.61
+        },
+        "late": {
+          "0": 21.4,
+          "90": 126.9,
+          "180": 204.07,
+          "270": 111.84
+        }
+      },
+      "rotationFilterLogged": false,
+      "onReadyDeviceLogTime": "11-18 20:53:59.614",
+      "markedFirstFrame": {
+        "sampleSHA256": "369c4476c0fb21b3faed1446e2f98becfbb33ed5f6e24772a026598569eb6ec8",
+        "onReadyDeviceLogTime": "11-19 01:24:38.907",
+        "earlyCaptureRequestSecondsAfterClickReturn": 2.2,
+        "earlyScreenshotSHA256": "dd2e5cdb959c8e13cd65bf15894bd6331e9cca2a94b95366a3a93e4d84c4c371",
+        "firstFrameQuadrantsRGB": [
+          [
+            254,
+            0,
+            0
+          ],
+          [
+            0,
+            254,
+            0
+          ],
+          [
+            0,
+            0,
+            255
+          ],
+          [
+            255,
+            255,
+            0
+          ]
+        ],
+        "lateCaptureRequestSecondsAfterClickReturn": 7.004,
+        "lateMarkerAbsent": true,
+        "whiteMarkerRGBAtAllFourPoints": [
+          255,
+          255,
+          255
+        ]
+      }
+    },
+    {
+      "rotationDegrees": 90,
+      "sampleSHA256": "35e268408f300470d36b394322704f47a0ba8e2ce0a0568bf15bedea0b3c15bc",
+      "firstFrameReported": true,
+      "sameProcess": true,
+      "elapsedSec": 10.74,
+      "changedFraction": 0.1122,
+      "rgbMAEFromSource": {
+        "early": {
+          "0": 120.96,
+          "90": 8.56,
+          "180": 123.7,
+          "270": 212.53
+        },
+        "late": {
+          "0": 119.76,
+          "90": 7.79,
+          "180": 124.98,
+          "270": 203.74
+        }
+      },
+      "rotationFilterLogged": true,
+      "onReadyDeviceLogTime": "11-18 20:54:14.087",
+      "markedFirstFrame": {
+        "sampleSHA256": "6c1dc1ed59e560189fc7e81c67f672aeefaa6f313ace068b4fd7e8629dff3e5e",
+        "onReadyDeviceLogTime": "11-19 01:24:54.833",
+        "earlyCaptureRequestSecondsAfterClickReturn": 2.2,
+        "earlyScreenshotSHA256": "10a56870b34e15a18769cb1a0531dd1f2465c61ea6f77bc51ffd185b3288adc4",
+        "firstFrameQuadrantsRGB": [
+          [
+            0,
+            254,
+            0
+          ],
+          [
+            255,
+            255,
+            0
+          ],
+          [
+            254,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            255
+          ]
+        ],
+        "lateCaptureRequestSecondsAfterClickReturn": 7.004,
+        "lateMarkerAbsent": true,
+        "whiteMarkerRGBAtAllFourPoints": [
+          255,
+          255,
+          255
+        ]
+      }
+    },
+    {
+      "rotationDegrees": 180,
+      "sampleSHA256": "6ff13ffc655ed681a6f253387541b76e05d6205a4a68c990f6352b7982513289",
+      "firstFrameReported": true,
+      "sameProcess": true,
+      "elapsedSec": 10.76,
+      "changedFraction": 0.1977,
+      "rgbMAEFromSource": {
+        "early": {
+          "0": 214.92,
+          "90": 120.55,
+          "180": 8.79,
+          "270": 118.58
+        },
+        "late": {
+          "0": 204.0,
+          "90": 113.29,
+          "180": 21.62,
+          "270": 125.38
+        }
+      },
+      "rotationFilterLogged": true,
+      "onReadyDeviceLogTime": "11-18 20:54:28.701",
+      "markedFirstFrame": {
+        "sampleSHA256": "50eb7a699a22e6a060c864c7748eab19bfc3a7fec70d2868f799499856645e98",
+        "onReadyDeviceLogTime": "11-19 01:25:10.778",
+        "earlyCaptureRequestSecondsAfterClickReturn": 2.203,
+        "earlyScreenshotSHA256": "ab5a78cf52c5b53fbd7677578622d16112c4bb5579802f9f72b1a08e11c1f8c6",
+        "firstFrameQuadrantsRGB": [
+          [
+            255,
+            255,
+            0
+          ],
+          [
+            0,
+            0,
+            255
+          ],
+          [
+            0,
+            254,
+            0
+          ],
+          [
+            254,
+            0,
+            0
+          ]
+        ],
+        "lateCaptureRequestSecondsAfterClickReturn": 7.005,
+        "lateMarkerAbsent": true,
+        "whiteMarkerRGBAtAllFourPoints": [
+          255,
+          255,
+          255
+        ]
+      }
+    }
+  ],
+  "screenshotTiming": {
+    "reference": "测试脚本的文件点击命令返回时刻",
+    "earlyRequestSeconds": 2.2,
+    "lateRequestSeconds": 7,
+    "firstFrameSignal": "同次播放的 onReady 日志表示播放器报告就绪。截图独立定时，未与该事件或帧序号绑定。"
+  },
+  "markedFirstFrameRerun": {
+    "date": "2026-11-19",
+    "pid": "2365",
+    "fixture": "H.264 640×360、24 fps。首个帧的中心仅出现一次白色 120×120 方块，后续帧不含该标记。固定角度仅修改 MP4 显示矩阵。",
+    "markerFrameIndex": 0,
+    "markerFramePTSSeconds": 0,
+    "secondFramePTSSeconds": 4.041667,
+    "orientationMethod": "采样左上、右上、左下、右下象限，按显示矩阵核对其位置。4 个中心采样点识别仅存在于帧 0 的白块，晚期截图重复核对象限并确认白块已消失。",
+    "preview": "api19-first-frame.png",
+    "entry": "正式文件源 WebDAV → MPV standard",
+    "harSHA256": "07d9807602727d73a96c64ec84ad51b8b646260e4c7e4d97f9c19d84c582c816",
+    "hapSHA256": "b2174645bbd8ce7c175b36f58806344d964c5629cae7613de89223d66f8c5c66",
+    "previewSHA256": "d0b5cbc2b84c50037a6e76d3e66d8a00d721b16236d4641ef85823961418d4ec"
+  }
+}

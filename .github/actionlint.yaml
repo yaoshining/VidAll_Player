@@ -1,3 +1,4 @@
 # 静态识别标签；vidall-device-evidence 仅为待审批设计，不表示已注册或部署。
 self-hosted-runner:
-  labels: [deveco, vidall-device-evidence]
+  # 1.7.12 的内置标签早于 GitHub 托管的 ubuntu-26.04。此处仅补充静态识别。
+  labels: [deveco, vidall-device-evidence, ubuntu-26.04]
