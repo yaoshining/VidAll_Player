@@ -95,7 +95,7 @@ jobs:
           python3 -B scripts/release/test-candidate-integrity.py
           python3 -B scripts/release/test-source-consistency.py
           bash native/tests/fixture-public-import.test.sh
-      - name: 检出锁定的 mpv 音频源
+      - name: 检出锁定的 mpv 源码
         uses: actions/checkout@v4
         with:
           repository: ErBWs/mpv
@@ -130,6 +130,27 @@ jobs:
             ${{ runner.temp }}/player-audio-regressions/mpv/audio-input.json
           if-no-files-found: error
           retention-days: 14
+      - name: 安装 MPV 软件渲染宿主测试依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends meson ninja-build pkg-config ffmpeg \
+            libass-dev libplacebo-dev libavcodec-dev libavfilter-dev libavformat-dev \
+            libavutil-dev libswresample-dev libswscale-dev
+      - name: MP4 显示矩阵与 MPV 软件渲染回归
+        run: |
+          test_dir="$RUNNER_TEMP/sw-render-rotation"
+          git -C .cache/mpv-interrupt worktree add --detach "$test_dir/source" HEAD
+          git -C "$test_dir/source" apply "$PWD/native/patches/mpv/0002-use-render-backend-capabilities.patch"
+          meson setup "$test_dir/build" "$test_dir/source" \
+            -Dauto_features=disabled -Dgl=disabled -Dlibmpv=true -Dcplayer=false -Dbuild-date=false
+          meson compile -C "$test_dir/build"
+          cc -std=c11 -Wall -Wextra -Werror -I"$test_dir/source/include" \
+            native/tests/sw-render-rotation/play.c -L"$test_dir/build" -Wl,-rpath,"$test_dir/build" \
+            -lmpv -o "$test_dir/play"
+          bash native/tests/sw-render-rotation/fixtures.sh "$test_dir/fixtures"
+          for angle in 0 90 180 270; do
+            "$test_dir/play" "$test_dir/fixtures/rotate-$angle.mp4" "$((angle / 90))"
+          done
       - name: 窗口旋转、重绘与媒体结束事件回归
         run: |
           python3 -B native/tests/vulkan-size/resize.test.py packages/vidall-player/src/main/cpp/napi_init.cpp

@@ -299,6 +299,11 @@
       "path": "native/patches/mpv/0001-ohaudio-legacy-interrupt.patch",
       "sha256": "fd91b22df8e46b49acb3b120e1f38bfd3bad4d8c12e7d95e2f26d1256a161e72",
       "appliesTo": "mpv"
+    },
+    {
+      "path": "native/patches/mpv/0002-use-render-backend-capabilities.patch",
+      "sha256": "ec178ed5317b729d257f8edda9b5d8b3bbbb66a9665982fcb6317e614f6ca467",
+      "appliesTo": "mpv"
     }
   ],
   "buildSwitches": {

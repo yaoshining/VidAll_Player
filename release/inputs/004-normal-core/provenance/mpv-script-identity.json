@@ -1,11 +1,11 @@
 {
-  "script": "/Users/yaoshining/DevEcoStudioProjects/VidAll_Player/native/tooling/normal-core/fresh_build.py",
+  "script": "/private/tmp/vidall-player-issue95/native/tooling/normal-core/fresh_build.py",
   "sha256": "1f098c60c8836c88ecfbe6779c6e281058fa0e4746c9b9ea0e8f6140dd53c2ee",
   "arguments": [
     "--input-root",
-    "/tmp/vidall-host-recovery-t051-input",
+    "/private/tmp/vidall-95-ohos-input",
     "--run-root",
-    "/tmp/vidall-host-recovery-t051-build",
+    "/private/tmp/vidall-95-ohos-build",
     "--sdk",
     "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native",
     "--meson",

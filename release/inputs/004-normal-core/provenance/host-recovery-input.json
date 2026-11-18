@@ -65,6 +65,10 @@
     {
       "path": "native/patches/phase30/0015-ohaudio-zero-position.patch",
       "sha256": "c42a9f0097d9148d6b46db89f1415b95b23626554c8d11001baf9c3da4a2b262"
+    },
+    {
+      "path": "native/patches/mpv/0002-use-render-backend-capabilities.patch",
+      "sha256": "ec178ed5317b729d257f8edda9b5d8b3bbbb66a9665982fcb6317e614f6ca467"
     }
   ],
   "addedSources": [
