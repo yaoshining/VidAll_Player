@@ -151,7 +151,8 @@ jobs:
     name: MPV 软件渲染旋转回归
     # 锁定的 mpv 源码引用 FFmpeg 8 的 AV_PIX_FMT_OHCODEC。
     runs-on: ubuntu-26.04
-    timeout-minutes: 10
+    # 托管镜像下载多媒体开发依赖时可能超过 10 分钟。
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
