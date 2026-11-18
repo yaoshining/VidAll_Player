@@ -1,0 +1,88 @@
+{
+  "sourceCommit": "00e5a080b9a4afb5c5395352c78a56cd7d4785c6",
+  "device": "HarmonyOS 5.1.1 API 19 ARM64 TV 模拟器",
+  "consumerBranch": "codex/fix-372-playback-recovery",
+  "consumerBaseCommit": "76e711b6299d606f7517731b663b4982b1831ab8",
+  "consumerTrackedDiffSHA256": "00f08f1da58f91f14d7a08b2191abfec42b88234ca9c840cfa9d6aa5197a5552",
+  "entry": "正式文件源 WebDAV → MPV standard",
+  "hwdecCurrent": "no",
+  "pid": "13214",
+  "harSHA256": "07d9807602727d73a96c64ec84ad51b8b646260e4c7e4d97f9c19d84c582c816",
+  "hapSHA256": "b2174645bbd8ce7c175b36f58806344d964c5629cae7613de89223d66f8c5c66",
+  "ninePlayerLibrariesExact": true,
+  "controls": {
+    "oldHarSHA256": "79260c2afdca171247498289c6d6ca68ae54de5e1e0c2c13f8f2ec716f0a1adf",
+    "old90Result": "SIGABRT: x1 <= img->w && y1 <= img->h in mp_image_crop"
+  },
+  "samples": [
+    {
+      "rotationDegrees": 0,
+      "sampleSHA256": "6f87ca1d1c1d9a46f0e32c8ea3f76cf738bf9bef44a4610c1186f68ea862a821",
+      "firstFrameReported": true,
+      "sameProcess": true,
+      "elapsedSec": 10.71,
+      "changedFraction": 0.1935,
+      "rgbMAEFromSource": {
+        "early": {
+          "0": 8.8,
+          "90": 118.26,
+          "180": 215.14,
+          "270": 120.61
+        },
+        "late": {
+          "0": 21.4,
+          "90": 126.9,
+          "180": 204.07,
+          "270": 111.84
+        }
+      },
+      "rotationFilterLogged": false
+    },
+    {
+      "rotationDegrees": 90,
+      "sampleSHA256": "35e268408f300470d36b394322704f47a0ba8e2ce0a0568bf15bedea0b3c15bc",
+      "firstFrameReported": true,
+      "sameProcess": true,
+      "elapsedSec": 10.74,
+      "changedFraction": 0.1122,
+      "rgbMAEFromSource": {
+        "early": {
+          "0": 120.96,
+          "90": 8.56,
+          "180": 123.7,
+          "270": 212.53
+        },
+        "late": {
+          "0": 119.76,
+          "90": 7.79,
+          "180": 124.98,
+          "270": 203.74
+        }
+      },
+      "rotationFilterLogged": true
+    },
+    {
+      "rotationDegrees": 180,
+      "sampleSHA256": "6ff13ffc655ed681a6f253387541b76e05d6205a4a68c990f6352b7982513289",
+      "firstFrameReported": true,
+      "sameProcess": true,
+      "elapsedSec": 10.76,
+      "changedFraction": 0.1977,
+      "rgbMAEFromSource": {
+        "early": {
+          "0": 214.92,
+          "90": 120.55,
+          "180": 8.79,
+          "270": 118.58
+        },
+        "late": {
+          "0": 204.0,
+          "90": 113.29,
+          "180": 21.62,
+          "270": 125.38
+        }
+      },
+      "rotationFilterLogged": true
+    }
+  ]
+}
